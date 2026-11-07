@@ -611,7 +611,8 @@ export type User = {
   internalNotes?: string | null;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   byline: string;
@@ -620,6 +621,8 @@ export type User = {
   pages?: Array<PageSingle>;
   roles: Array<RoleSingle>;
   apiKeys: Array<ApiKeySingle>;
+  twoFactorMethods: Array<TwoFactorMethodSingle>;
+  twoFactorRecoveryCodes: Array<TwoFactorRecoveryCodeSingle>;
   connectedAccounts: Array<ConnectedAccountSingle>;
   avatar?: FileSingle | null;
   updatedAt: Date;
@@ -637,7 +640,8 @@ export type UserSingle = {
   bio?: string | null;
   website?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   byline: string;
@@ -660,7 +664,8 @@ export type UserMultiple = {
   bio?: string | null;
   website?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   byline: string;
@@ -681,7 +686,6 @@ export type UserCreate = {
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
   roles: Array<
@@ -700,7 +704,6 @@ export type UserUpdate = {
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   roles?: Array<
@@ -719,7 +722,6 @@ export type UserReplace = {
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   roles: Array<
@@ -738,7 +740,6 @@ export type UserRelationCreate = {
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
 };
@@ -752,7 +753,6 @@ export type UserRelationUpdate = {
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };
@@ -1058,6 +1058,140 @@ export type OneTimeTokenResourceService = IResourceService<
   OneTimeTokenUpdate,
   OneTimeTokenQuery,
   OneTimeTokenReplace
+>;
+
+export type TwoFactorMethod = {
+  id: number;
+  type: 'Email' | 'Sms' | 'Totp';
+  priority: number;
+  secret?: string | null;
+  confirmedAt?: Date | null;
+  lastUsedStep?: number | null;
+  user: UserSingle;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodSingle = {
+  id: number;
+  type: 'Email' | 'Sms' | 'Totp';
+  priority: number;
+  confirmedAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodMultiple = {
+  id: number;
+  type: 'Email' | 'Sms' | 'Totp';
+  priority: number;
+  confirmedAt?: Date | null;
+  updatedAt: Date;
+  createdAt: Date;
+};
+
+export type TwoFactorMethodCreate = {
+  type: 'Email' | 'Sms' | 'Totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodUpdate = {
+  type?: 'Email' | 'Sms' | 'Totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodReplace = {
+  type: 'Email' | 'Sms' | 'Totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodRelationCreate = {
+  type: 'Email' | 'Sms' | 'Totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodRelationUpdate = {
+  id: number;
+  type?: 'Email' | 'Sms' | 'Totp';
+  priority?: number;
+  confirmedAt?: Date | null;
+};
+
+export type TwoFactorMethodQuery = QueryFilter<TwoFactorMethod>;
+
+export type TwoFactorMethodSort = QuerySort<TwoFactorMethodMultiple>;
+
+export type TwoFactorMethodAggregate = AggregateSelect<TwoFactorMethod>;
+
+export type TwoFactorMethodResourceService = IResourceService<
+  TwoFactorMethod,
+  TwoFactorMethodMultiple,
+  TwoFactorMethodCreate,
+  TwoFactorMethodUpdate,
+  TwoFactorMethodQuery,
+  TwoFactorMethodReplace
+>;
+
+export type TwoFactorRecoveryCode = {
+  id: number;
+  codeHash: string;
+  usedAt?: Date | null;
+  user: UserSingle;
+  createdAt: Date;
+};
+
+export type TwoFactorRecoveryCodeSingle = {
+  id: number;
+  usedAt?: Date | null;
+  createdAt: Date;
+};
+
+export type TwoFactorRecoveryCodeMultiple = {
+  id: number;
+  usedAt?: Date | null;
+  createdAt: Date;
+};
+
+export type TwoFactorRecoveryCodeCreate = {
+  usedAt?: Date | null;
+};
+
+export type TwoFactorRecoveryCodeUpdate = {
+  usedAt?: Date | null;
+};
+
+export type TwoFactorRecoveryCodeReplace = {
+  usedAt?: Date | null;
+};
+
+export type TwoFactorRecoveryCodeRelationCreate = {
+  usedAt?: Date | null;
+};
+
+export type TwoFactorRecoveryCodeRelationUpdate = {
+  id: number;
+  usedAt?: Date | null;
+};
+
+export type TwoFactorRecoveryCodeQuery = QueryFilter<TwoFactorRecoveryCode>;
+
+export type TwoFactorRecoveryCodeSort =
+  QuerySort<TwoFactorRecoveryCodeMultiple>;
+
+export type TwoFactorRecoveryCodeAggregate =
+  AggregateSelect<TwoFactorRecoveryCode>;
+
+export type TwoFactorRecoveryCodeResourceService = IResourceService<
+  TwoFactorRecoveryCode,
+  TwoFactorRecoveryCodeMultiple,
+  TwoFactorRecoveryCodeCreate,
+  TwoFactorRecoveryCodeUpdate,
+  TwoFactorRecoveryCodeQuery,
+  TwoFactorRecoveryCodeReplace
 >;
 
 export type Role = {
@@ -1371,7 +1505,14 @@ declare module '@appweaver/common' {
       replace: UserReplace;
       query: UserQuery;
       service: UserResourceService;
-      relations: 'posts' | 'pages' | 'roles' | 'apiKeys' | 'connectedAccounts';
+      relations:
+        | 'posts'
+        | 'pages'
+        | 'roles'
+        | 'apiKeys'
+        | 'twoFactorMethods'
+        | 'twoFactorRecoveryCodes'
+        | 'connectedAccounts';
     };
     ApiKey: {
       model: ApiKey;
@@ -1405,6 +1546,28 @@ declare module '@appweaver/common' {
       query: OneTimeTokenQuery;
       service: OneTimeTokenResourceService;
       relations: never;
+    };
+    TwoFactorMethod: {
+      model: TwoFactorMethod;
+      single: TwoFactorMethodSingle;
+      multiple: TwoFactorMethodMultiple;
+      create: TwoFactorMethodCreate;
+      update: TwoFactorMethodUpdate;
+      replace: TwoFactorMethodReplace;
+      query: TwoFactorMethodQuery;
+      service: TwoFactorMethodResourceService;
+      relations: 'user';
+    };
+    TwoFactorRecoveryCode: {
+      model: TwoFactorRecoveryCode;
+      single: TwoFactorRecoveryCodeSingle;
+      multiple: TwoFactorRecoveryCodeMultiple;
+      create: TwoFactorRecoveryCodeCreate;
+      update: TwoFactorRecoveryCodeUpdate;
+      replace: TwoFactorRecoveryCodeReplace;
+      query: TwoFactorRecoveryCodeQuery;
+      service: TwoFactorRecoveryCodeResourceService;
+      relations: 'user';
     };
     Role: {
       model: Role;

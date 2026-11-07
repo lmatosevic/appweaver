@@ -25,11 +25,3 @@ export const EntryStatus = {
 } as const
 
 export type EntryStatus = (typeof EntryStatus)[keyof typeof EntryStatus]
-
-
-export const UserTwoFactorAuth = {
-  None: 'None',
-  Email: 'Email'
-} as const
-
-export type UserTwoFactorAuth = (typeof UserTwoFactorAuth)[keyof typeof UserTwoFactorAuth]

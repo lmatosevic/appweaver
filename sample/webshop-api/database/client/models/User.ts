@@ -46,7 +46,8 @@ export type UserMinAggregateOutputType = {
   language: string | null
   passwordHash: string | null
   verifiedEmail: boolean | null
-  twoFactorAuth: $Enums.UserTwoFactorAuth | null
+  phoneNumber: string | null
+  verifiedPhone: boolean | null
   enabled: boolean | null
   logoutAt: Date | null
   updatedAt: Date | null
@@ -64,7 +65,8 @@ export type UserMaxAggregateOutputType = {
   language: string | null
   passwordHash: string | null
   verifiedEmail: boolean | null
-  twoFactorAuth: $Enums.UserTwoFactorAuth | null
+  phoneNumber: string | null
+  verifiedPhone: boolean | null
   enabled: boolean | null
   logoutAt: Date | null
   updatedAt: Date | null
@@ -82,7 +84,8 @@ export type UserCountAggregateOutputType = {
   language: number
   passwordHash: number
   verifiedEmail: number
-  twoFactorAuth: number
+  phoneNumber: number
+  verifiedPhone: number
   enabled: number
   logoutAt: number
   updatedAt: number
@@ -112,7 +115,8 @@ export type UserMinAggregateInputType = {
   language?: true
   passwordHash?: true
   verifiedEmail?: true
-  twoFactorAuth?: true
+  phoneNumber?: true
+  verifiedPhone?: true
   enabled?: true
   logoutAt?: true
   updatedAt?: true
@@ -130,7 +134,8 @@ export type UserMaxAggregateInputType = {
   language?: true
   passwordHash?: true
   verifiedEmail?: true
-  twoFactorAuth?: true
+  phoneNumber?: true
+  verifiedPhone?: true
   enabled?: true
   logoutAt?: true
   updatedAt?: true
@@ -148,7 +153,8 @@ export type UserCountAggregateInputType = {
   language?: true
   passwordHash?: true
   verifiedEmail?: true
-  twoFactorAuth?: true
+  phoneNumber?: true
+  verifiedPhone?: true
   enabled?: true
   logoutAt?: true
   updatedAt?: true
@@ -253,7 +259,8 @@ export type UserGroupByOutputType = {
   language: string
   passwordHash: string | null
   verifiedEmail: boolean
-  twoFactorAuth: $Enums.UserTwoFactorAuth
+  phoneNumber: string | null
+  verifiedPhone: boolean
   enabled: boolean
   logoutAt: Date | null
   updatedAt: Date
@@ -294,7 +301,8 @@ export type UserWhereInput = {
   language?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -332,7 +340,8 @@ export type UserOrderByWithRelationInput = {
   language?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -373,7 +382,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   language?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -411,7 +421,8 @@ export type UserOrderByWithAggregationInput = {
   language?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -437,7 +448,8 @@ export type UserScalarWhereWithAggregatesInput = {
   language?: Prisma.StringWithAggregatesFilter<"User"> | string
   passwordHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthWithAggregatesFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   enabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -454,7 +466,8 @@ export type UserCreateInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -491,7 +504,8 @@ export type UserUncheckedCreateInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -527,7 +541,8 @@ export type UserUpdateInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -564,7 +579,8 @@ export type UserUncheckedUpdateInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -601,7 +617,8 @@ export type UserCreateManyInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -618,7 +635,8 @@ export type UserUpdateManyMutationInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -635,7 +653,8 @@ export type UserUncheckedUpdateManyInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -673,7 +692,8 @@ export type UserCountOrderByAggregateInput = {
   language?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -696,7 +716,8 @@ export type UserMaxOrderByAggregateInput = {
   language?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -714,7 +735,8 @@ export type UserMinOrderByAggregateInput = {
   language?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -921,10 +943,6 @@ export type UserUncheckedCreateNestedManyWithoutCreatedByInput = {
   connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
 }
 
-export type EnumUserTwoFactorAuthFieldUpdateOperationsInput = {
-  set?: $Enums.UserTwoFactorAuth
-}
-
 export type UserUpdateManyWithoutCreatedByNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
@@ -1104,7 +1122,8 @@ export type UserCreateWithoutAddressesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1140,7 +1159,8 @@ export type UserUncheckedCreateWithoutAddressesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1180,7 +1200,8 @@ export type UserCreateWithoutCreatedAddressesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1216,7 +1237,8 @@ export type UserUncheckedCreateWithoutCreatedAddressesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1267,7 +1289,8 @@ export type UserUpdateWithoutAddressesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1303,7 +1326,8 @@ export type UserUncheckedUpdateWithoutAddressesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1349,7 +1373,8 @@ export type UserUpdateWithoutCreatedAddressesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1385,7 +1410,8 @@ export type UserUncheckedUpdateWithoutCreatedAddressesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1420,7 +1446,8 @@ export type UserCreateWithoutCreatedBrandsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1456,7 +1483,8 @@ export type UserUncheckedCreateWithoutCreatedBrandsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1507,7 +1535,8 @@ export type UserUpdateWithoutCreatedBrandsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1543,7 +1572,8 @@ export type UserUncheckedUpdateWithoutCreatedBrandsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1578,7 +1608,8 @@ export type UserCreateWithoutCreatedCategoriesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1614,7 +1645,8 @@ export type UserUncheckedCreateWithoutCreatedCategoriesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1665,7 +1697,8 @@ export type UserUpdateWithoutCreatedCategoriesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1701,7 +1734,8 @@ export type UserUncheckedUpdateWithoutCreatedCategoriesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1736,7 +1770,8 @@ export type UserCreateWithoutCreatedCouponsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1772,7 +1807,8 @@ export type UserUncheckedCreateWithoutCreatedCouponsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1823,7 +1859,8 @@ export type UserUpdateWithoutCreatedCouponsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1859,7 +1896,8 @@ export type UserUncheckedUpdateWithoutCreatedCouponsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1894,7 +1932,8 @@ export type UserCreateWithoutCreatedOrderItemsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1930,7 +1969,8 @@ export type UserUncheckedCreateWithoutCreatedOrderItemsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1981,7 +2021,8 @@ export type UserUpdateWithoutCreatedOrderItemsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2017,7 +2058,8 @@ export type UserUncheckedUpdateWithoutCreatedOrderItemsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2052,7 +2094,8 @@ export type UserCreateWithoutOrdersInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2088,7 +2131,8 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2128,7 +2172,8 @@ export type UserCreateWithoutCreatedOrdersInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2164,7 +2209,8 @@ export type UserUncheckedCreateWithoutCreatedOrdersInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2215,7 +2261,8 @@ export type UserUpdateWithoutOrdersInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2251,7 +2298,8 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2297,7 +2345,8 @@ export type UserUpdateWithoutCreatedOrdersInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2333,7 +2382,8 @@ export type UserUncheckedUpdateWithoutCreatedOrdersInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2368,7 +2418,8 @@ export type UserCreateWithoutCreatedProductsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2404,7 +2455,8 @@ export type UserUncheckedCreateWithoutCreatedProductsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2455,7 +2507,8 @@ export type UserUpdateWithoutCreatedProductsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2491,7 +2544,8 @@ export type UserUncheckedUpdateWithoutCreatedProductsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2526,7 +2580,8 @@ export type UserCreateWithoutReviewsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2562,7 +2617,8 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2602,7 +2658,8 @@ export type UserCreateWithoutCreatedReviewsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2638,7 +2695,8 @@ export type UserUncheckedCreateWithoutCreatedReviewsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2689,7 +2747,8 @@ export type UserUpdateWithoutReviewsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2725,7 +2784,8 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2771,7 +2831,8 @@ export type UserUpdateWithoutCreatedReviewsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2807,7 +2868,8 @@ export type UserUncheckedUpdateWithoutCreatedReviewsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2842,7 +2904,8 @@ export type UserCreateWithoutCreatedByInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2878,7 +2941,8 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2923,7 +2987,8 @@ export type UserCreateWithoutCreatedUsersInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2959,7 +3024,8 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3019,7 +3085,8 @@ export type UserScalarWhereInput = {
   language?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -3047,7 +3114,8 @@ export type UserUpdateWithoutCreatedUsersInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3083,7 +3151,8 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3118,7 +3187,8 @@ export type UserCreateWithoutApiKeysInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3154,7 +3224,8 @@ export type UserUncheckedCreateWithoutApiKeysInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3194,7 +3265,8 @@ export type UserCreateWithoutCreatedApiKeysInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3230,7 +3302,8 @@ export type UserUncheckedCreateWithoutCreatedApiKeysInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3281,7 +3354,8 @@ export type UserUpdateWithoutApiKeysInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3317,7 +3391,8 @@ export type UserUncheckedUpdateWithoutApiKeysInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3363,7 +3438,8 @@ export type UserUpdateWithoutCreatedApiKeysInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3399,7 +3475,8 @@ export type UserUncheckedUpdateWithoutCreatedApiKeysInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3434,7 +3511,8 @@ export type UserCreateWithoutRolesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3470,7 +3548,8 @@ export type UserUncheckedCreateWithoutRolesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3510,7 +3589,8 @@ export type UserCreateWithoutCreatedRolesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3546,7 +3626,8 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3613,7 +3694,8 @@ export type UserUpdateWithoutCreatedRolesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3649,7 +3731,8 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3684,7 +3767,8 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3720,7 +3804,8 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3771,7 +3856,8 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3807,7 +3893,8 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3842,7 +3929,8 @@ export type UserCreateWithoutCreatedFilesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3878,7 +3966,8 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3918,7 +4007,8 @@ export type UserCreateWithoutDeletedFilesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3954,7 +4044,8 @@ export type UserUncheckedCreateWithoutDeletedFilesInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -4005,7 +4096,8 @@ export type UserUpdateWithoutCreatedFilesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4041,7 +4133,8 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4087,7 +4180,8 @@ export type UserUpdateWithoutDeletedFilesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4123,7 +4217,8 @@ export type UserUncheckedUpdateWithoutDeletedFilesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4159,7 +4254,8 @@ export type UserCreateManyCreatedByInput = {
   language?: string
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -4175,7 +4271,8 @@ export type UserUpdateWithoutCreatedByInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4211,7 +4308,8 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4247,7 +4345,8 @@ export type UserUncheckedUpdateManyWithoutCreatedByInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4263,7 +4362,8 @@ export type UserUpdateWithoutRolesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4299,7 +4399,8 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4335,7 +4436,8 @@ export type UserUncheckedUpdateManyWithoutRolesInput = {
   language?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4546,7 +4648,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   language?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   updatedAt?: boolean
@@ -4585,7 +4688,8 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   language?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   updatedAt?: boolean
@@ -4604,7 +4708,8 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   language?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   updatedAt?: boolean
@@ -4623,7 +4728,8 @@ export type UserSelectScalar = {
   language?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   updatedAt?: boolean
@@ -4631,7 +4737,7 @@ export type UserSelectScalar = {
   createdById?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "marketingOptIn" | "language" | "passwordHash" | "verifiedEmail" | "twoFactorAuth" | "enabled" | "logoutAt" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "marketingOptIn" | "language" | "passwordHash" | "verifiedEmail" | "phoneNumber" | "verifiedPhone" | "enabled" | "logoutAt" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   addresses?: boolean | Prisma.User$addressesArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
@@ -4705,7 +4811,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     language: string
     passwordHash: string | null
     verifiedEmail: boolean
-    twoFactorAuth: $Enums.UserTwoFactorAuth
+    phoneNumber: string | null
+    verifiedPhone: boolean
     enabled: boolean
     logoutAt: Date | null
     /**
@@ -5166,7 +5273,8 @@ export interface UserFieldRefs {
   readonly language: Prisma.FieldRef<"User", 'String'>
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly verifiedEmail: Prisma.FieldRef<"User", 'Boolean'>
-  readonly twoFactorAuth: Prisma.FieldRef<"User", 'UserTwoFactorAuth'>
+  readonly phoneNumber: Prisma.FieldRef<"User", 'String'>
+  readonly verifiedPhone: Prisma.FieldRef<"User", 'Boolean'>
   readonly enabled: Prisma.FieldRef<"User", 'Boolean'>
   readonly logoutAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>

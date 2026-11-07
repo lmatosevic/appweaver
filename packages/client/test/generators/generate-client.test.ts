@@ -59,6 +59,27 @@ describe('generate-client', () => {
       expect(client).toContain(`>('/auth/account')`);
     });
 
+    test('adds a two-factor client under the 2FA path of the account', () => {
+      expect(client).toContain('public twoFactor =');
+      expect(client).toContain(`this.twoFactorClient<TwoFactorModuleType,`);
+      expect(client).toContain(`'verify'`);
+      expect(client).not.toMatch(/\['[^\]]*'challenge'/);
+      expect(client).not.toMatch(/\['[^\]]*'disableMethod'/);
+      expect(client).toContain(`>('/auth/account/2fa')`);
+    });
+
+    test('takes the 2FA prefix of the schema', async () => {
+      const schema = createOpenApiSchema();
+      schema['x-appweaver-config'].routePrefixes.twoFactor = '/mfa';
+      schema.paths!['/mfa/verify'] =
+        schema.paths!['/auth/account/2fa/challenge'];
+
+      const generated = await generateClient(schema);
+
+      expect(generated).toContain(`>('/mfa')`);
+      expect(generated).not.toContain(`'/auth/account/2fa'`);
+    });
+
     test('adds a health client omitting the unused operations', () => {
       expect(client).toContain(
         `public health = this.healthClient<HealthModuleType, ['ready']>('/health')`

@@ -72,60 +72,46 @@ export const AccountResetPasswordRequest = Type.Object(
   { $id: 'AccountResetPasswordRequest' }
 );
 
-export const AccountSend2FACodeRequest = Type.Object(
+export const AccountSendPhoneVerificationRequest = Type.Object(
   {
-    purpose: Type.Optional(
+    phoneNumber: Type.Optional(
       Type.String({
-        description: 'A purpose for using two-factor authentication method',
-        example: 'authentication'
+        pattern: '^\\+[1-9]\\d{6,14}$',
+        description:
+          'The phone number to verify, in the E.164 format. Defaults to the phone number of the user',
+        example: '+385911234567'
       })
     )
   },
-  { $id: 'AccountSend2FACodeRequest' }
+  { $id: 'AccountSendPhoneVerificationRequest' }
 );
 
-export const AccountSend2FAResponse = Type.Object(
+export const AccountChallengeResponse = Type.Object(
   {
     challengeId: Type.String({
-      description: 'The ID for currently requested 2FA',
+      description: 'The ID of the challenge, sent with its code',
       example: 'aBcDeFgHijkLMnO123456789'
     }),
     expiresIn: Type.Integer({
-      description: 'The expiration time in milliseconds for the 2FA challenge',
-      example: 300000
+      description: 'The expiration time of the challenge in milliseconds',
+      example: 600000
     })
   },
-  { $id: 'AccountSend2FAResponse' }
+  { $id: 'AccountChallengeResponse' }
 );
 
-export const AccountVerify2FARequest = Type.Object(
+export const AccountVerifyPhoneRequest = Type.Object(
   {
     challengeId: Type.String({
-      description: 'The ID value received on sending 2FA code request',
+      description: 'The ID received on sending the phone verification code',
       example: 'aBcDeFgHijkLMnO123456789'
     }),
     code: Type.String({
-      description: 'The 2FA code to verify',
+      description: 'The code received by SMS',
       example: '123456'
     })
   },
-  { $id: 'AccountVerify2FARequest' }
-);
-
-export const AccountVerify2FAResponse = Type.Object(
-  {
-    token: Type.String({
-      description:
-        'The one-time-token for requested purpose (e.g., authentication)',
-      example: 'aBcDeFgHijkLMnO123456789'
-    }),
-    expiresIn: Type.Integer({
-      description:
-        'The expiration time in milliseconds for the 2FA authentication token',
-      example: 120000
-    })
-  },
-  { $id: 'AccountVerify2FAResponse' }
+  { $id: 'AccountVerifyPhoneRequest' }
 );
 
 export const AccountStatusResponse = Type.Object(
@@ -236,36 +222,39 @@ export const resetPasswordSchema = {
   body: createSchemaModel(AccountResetPasswordRequest)
 };
 
-export const send2FACodeSchema = {
+export const sendPhoneVerificationSchema = {
   tags: ['Account'],
   security: authSchema([AuthType.Jwt]),
-  summary: 'Send 2FA code for currently logged-in user',
-  description: 'Send 2FA code for currently logged-in user',
+  summary: 'Send a verification code to a phone number by SMS',
+  description: 'Send a verification code to a phone number by SMS',
   response: {
-    200: createSchemaModel(AccountSend2FAResponse),
+    200: createSchemaModel(AccountChallengeResponse),
     ...errorResponses(
       ...authErrorCodes([AuthType.Jwt]),
       ErrorCode.AccountFeatureUnavailable,
-      ErrorCode.QueueUnavailable,
+      ErrorCode.AccountPhoneAlreadyVerified,
+      ErrorCode.AccountPhoneNotSet,
+      ErrorCode.SmsSendFailed,
       ErrorCode.MemoryUnavailable
     )
   },
-  body: createSchemaModel(AccountSend2FACodeRequest)
+  body: createSchemaModel(AccountSendPhoneVerificationRequest)
 };
 
-export const verify2FACodeSchema = {
+export const verifyPhoneSchema = {
   tags: ['Account'],
   security: authSchema([AuthType.Jwt]),
-  summary: 'Verify 2FA code for currently logged-in user',
-  description: 'Verify 2FA code for currently logged-in user',
+  summary: 'Verify the phone number with the code received by SMS',
+  description: 'Verify the phone number with the code received by SMS',
   response: {
-    200: createSchemaModel(AccountVerify2FAResponse),
+    200: createSchemaModel(AccountStatusResponse),
     ...errorResponses(
       ...authErrorCodes([AuthType.Jwt]),
       ErrorCode.AuthInvalidToken,
-      ErrorCode.AuthUserNotFound,
+      ErrorCode.Account2FACodeInvalid,
+      ErrorCode.Account2FATooManyAttempts,
       ErrorCode.MemoryUnavailable
     )
   },
-  body: createSchemaModel(AccountVerify2FARequest)
+  body: createSchemaModel(AccountVerifyPhoneRequest)
 };

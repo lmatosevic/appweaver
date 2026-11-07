@@ -19,8 +19,8 @@
 
 - **Server** – the `HttpServer` lifecycle service, Swagger, `registerRoute`, `registerPlugin` and `registerModel`.
 - **Resource routes** – `createRoutes` with the CRUD, query, aggregate, export and file routes of a model.
-- **Security** – JWT, API key, HTTP Basic and OAuth2 authentication, 2FA, email verification, password reset,
-  reCAPTCHA and Cloudflare Turnstile.
+- **Security** – JWT, API key, HTTP Basic and OAuth2 authentication, 2FA by email, SMS or an authenticator app (TOTP),
+  email and phone verification, password reset, reCAPTCHA and Cloudflare Turnstile.
 - **Errors** – RFC 9457 problem details for every framework and application error code.
 
 An application without a server leaves it out with `app.modulesDisabled: ["@appweaver/web"]`, or does not install it.

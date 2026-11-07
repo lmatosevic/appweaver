@@ -26,9 +26,22 @@
       "senderName": "Support",
       "senderAddress": "support@helpdesk.example.com"
     },
+    "sms": {
+      "provider": "twilio"
+    },
     "security": {
       "apiKey": {
         "enabled": true
+      },
+      "account": {
+        "2fa": {
+          "enabled": true,
+          "defaultMethod": "Sms",
+          "methods": ["Sms", "Totp", "Email"],
+          "totp": {
+            "issuer": "Appweaver"
+          }
+        }
       }
     },
     "system": {
@@ -40,6 +53,9 @@
       "log": {
         "level": "debug",
         "pretty": true
+      },
+      "sms": {
+        "provider": "json"
       }
     },
     "test": {
@@ -64,6 +80,9 @@
       },
       "queue": {
         "provider": "memory"
+      },
+      "sms": {
+        "provider": "json"
       },
       "scheduler": {
         "autoStartJob": false

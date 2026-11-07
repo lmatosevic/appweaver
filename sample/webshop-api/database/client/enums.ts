@@ -36,11 +36,3 @@ export const ProductStatus = {
 } as const
 
 export type ProductStatus = (typeof ProductStatus)[keyof typeof ProductStatus]
-
-
-export const UserTwoFactorAuth = {
-  None: 'None',
-  Email: 'Email'
-} as const
-
-export type UserTwoFactorAuth = (typeof UserTwoFactorAuth)[keyof typeof UserTwoFactorAuth]

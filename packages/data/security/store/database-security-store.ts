@@ -4,7 +4,7 @@ import {
   generateToken,
   makeHash,
   SecurityStore,
-  ValidationResult,
+  TokenValidationResult,
   AuthError
 } from '@appweaver/common';
 import { inject } from '@appweaver/core';
@@ -42,7 +42,7 @@ export class DatabaseSecurityStore extends SecurityStore {
   public async useOneTimeToken<T = any>(
     token: string,
     purpose: string,
-    validateContent?: (value: T) => ValidationResult
+    validateContent?: (value: T) => TokenValidationResult<T>
   ): Promise<T> {
     const oneTimeTokens = this._db.client().oneTimeToken;
 
@@ -67,7 +67,18 @@ export class DatabaseSecurityStore extends SecurityStore {
     if (validateContent) {
       const result = validateContent(data);
       if (!result.valid) {
-        throw new AuthError(ErrorCode.AuthInvalidToken, result.message);
+        if (result.revoke) {
+          await oneTimeTokens.deleteMany({ where: { id: oneTimeToken.id } });
+        } else if (result.data !== undefined) {
+          await oneTimeTokens.updateMany({
+            where: { id: oneTimeToken.id },
+            data: { data: result.data as any }
+          });
+        }
+        throw (
+          result.error ??
+          new AuthError(ErrorCode.AuthInvalidToken, result.message)
+        );
       }
     }
 

@@ -355,6 +355,7 @@ function addConfig(document: any): any {
       health: normalizePath(healthCheckConfig.ROUTE_PREFIX),
       auth: normalizePath(securityConfig.ROUTE_PREFIX),
       account: normalizePath(accountConfig.ROUTE_PREFIX),
+      twoFactor: `${normalizePath(accountConfig.ROUTE_PREFIX).replace(/\/$/, '')}/2fa`,
       files: normalizePath(storageConfig.FILES_ROUTE_PREFIX)
     }
   };

@@ -42,7 +42,8 @@ weaver migration new <name>         # create a database migration
 weaver migrate                      # apply the pending migrations
 weaver seed --build-project         # build the project, then run the seeders
 weaver openapi --format yaml        # export the OpenAPI specification
-weaver run src/tasks/report.ts      # run the default export of a file with the application, then exit
+weaver run reports:daily 2026-10    # run a task of src/tasks/ by its name with the application, then exit
+weaver run                          # list the tasks of the application and the modules
 weaver test setup                   # create the temporary test database (NODE_ENV=test)
 weaver config schema                # write the JSON Schema of appweaver.json from the enabled modules
 weaver config print                 # print every config value with its source, the secrets hidden

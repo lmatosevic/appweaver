@@ -344,23 +344,6 @@ export type BoolWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
-export type EnumUserTwoFactorAuthFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserTwoFactorAuth | Prisma.EnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.UserTwoFactorAuth[]
-  notIn?: $Enums.UserTwoFactorAuth[]
-  not?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel> | $Enums.UserTwoFactorAuth
-}
-
-export type EnumUserTwoFactorAuthWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserTwoFactorAuth | Prisma.EnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.UserTwoFactorAuth[]
-  notIn?: $Enums.UserTwoFactorAuth[]
-  not?: Prisma.NestedEnumUserTwoFactorAuthWithAggregatesFilter<$PrismaModel> | $Enums.UserTwoFactorAuth
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel>
-}
-
 export type EnumWatchlistEntryStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.WatchlistEntryStatus | Prisma.EnumWatchlistEntryStatusFieldRefInput<$PrismaModel>
   in?: $Enums.WatchlistEntryStatus[]
@@ -720,23 +703,6 @@ export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedBoolFilter<$PrismaModel>
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
-}
-
-export type NestedEnumUserTwoFactorAuthFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserTwoFactorAuth | Prisma.EnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.UserTwoFactorAuth[]
-  notIn?: $Enums.UserTwoFactorAuth[]
-  not?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel> | $Enums.UserTwoFactorAuth
-}
-
-export type NestedEnumUserTwoFactorAuthWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserTwoFactorAuth | Prisma.EnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.UserTwoFactorAuth[]
-  notIn?: $Enums.UserTwoFactorAuth[]
-  not?: Prisma.NestedEnumUserTwoFactorAuthWithAggregatesFilter<$PrismaModel> | $Enums.UserTwoFactorAuth
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel>
 }
 
 export type NestedEnumWatchlistEntryStatusFilter<$PrismaModel = never> = {

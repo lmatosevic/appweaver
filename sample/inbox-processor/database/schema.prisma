@@ -36,14 +36,15 @@ model Entry {
 }
 
 model User {
-  id            Int               @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   firstName     String
   lastName      String
-  email         String            @unique
+  email         String    @unique
   passwordHash  String?
-  verifiedEmail Boolean           @default(false)
-  twoFactorAuth UserTwoFactorAuth @default(None)
-  enabled       Boolean           @default(true)
+  verifiedEmail Boolean   @default(false)
+  phoneNumber   String?
+  verifiedPhone Boolean   @default(false)
+  enabled       Boolean   @default(true)
   logoutAt      DateTime?
 
   /// Related columns
@@ -169,9 +170,4 @@ enum EntryStatus {
   Processing
   Processed
   Failed
-}
-
-enum UserTwoFactorAuth {
-  None
-  Email
 }

@@ -40,14 +40,6 @@ export const PersonKnownFor = {
 export type PersonKnownFor = (typeof PersonKnownFor)[keyof typeof PersonKnownFor]
 
 
-export const UserTwoFactorAuth = {
-  None: 'None',
-  Email: 'Email'
-} as const
-
-export type UserTwoFactorAuth = (typeof UserTwoFactorAuth)[keyof typeof UserTwoFactorAuth]
-
-
 export const WatchlistEntryStatus = {
   Planned: 'Planned',
   Watching: 'Watching',

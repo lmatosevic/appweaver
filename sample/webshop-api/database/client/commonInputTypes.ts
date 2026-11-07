@@ -355,23 +355,6 @@ export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
   _max?: Prisma.NestedJsonNullableFilter<$PrismaModel>
 }
 
-export type EnumUserTwoFactorAuthFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserTwoFactorAuth | Prisma.EnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.UserTwoFactorAuth[] | Prisma.ListEnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  notIn?: $Enums.UserTwoFactorAuth[] | Prisma.ListEnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel> | $Enums.UserTwoFactorAuth
-}
-
-export type EnumUserTwoFactorAuthWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserTwoFactorAuth | Prisma.EnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.UserTwoFactorAuth[] | Prisma.ListEnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  notIn?: $Enums.UserTwoFactorAuth[] | Prisma.ListEnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumUserTwoFactorAuthWithAggregatesFilter<$PrismaModel> | $Enums.UserTwoFactorAuth
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel>
-}
-
 export type UuidFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -697,23 +680,6 @@ export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
   gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
-}
-
-export type NestedEnumUserTwoFactorAuthFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserTwoFactorAuth | Prisma.EnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.UserTwoFactorAuth[] | Prisma.ListEnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  notIn?: $Enums.UserTwoFactorAuth[] | Prisma.ListEnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel> | $Enums.UserTwoFactorAuth
-}
-
-export type NestedEnumUserTwoFactorAuthWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserTwoFactorAuth | Prisma.EnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.UserTwoFactorAuth[] | Prisma.ListEnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  notIn?: $Enums.UserTwoFactorAuth[] | Prisma.ListEnumUserTwoFactorAuthFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumUserTwoFactorAuthWithAggregatesFilter<$PrismaModel> | $Enums.UserTwoFactorAuth
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumUserTwoFactorAuthFilter<$PrismaModel>
 }
 
 export type NestedUuidFilter<$PrismaModel = never> = {

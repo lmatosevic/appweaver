@@ -3,7 +3,7 @@ import { OpenAPI3 } from 'openapi-typescript';
 /**
  * A compact OpenAPI v3 schema shaped like the one produced by an Appweaver
  * application (`weaver openapi`). It covers every route group the generators
- * recognize: auth, account, health, files, resources and custom routes.
+ * recognize: auth, account, two-factor, health, files, resources and custom routes.
  */
 export function createOpenApiSchema(): OpenAPI3 {
   return JSON.parse(JSON.stringify(SCHEMA));
@@ -80,6 +80,7 @@ const SCHEMA: any = {
       health: '/health',
       auth: '/auth',
       account: '/auth/account',
+      twoFactor: '/auth/account/2fa',
       files: '/files'
     }
   },
@@ -275,6 +276,24 @@ const SCHEMA: any = {
         type: 'object',
         properties: { status: { type: 'boolean' } }
       },
+      'def-26': {
+        title: 'TwoFactorChallengeRequest',
+        type: 'object',
+        properties: {
+          method: { type: 'string', enum: ['Email', 'Sms', 'Totp'] }
+        }
+      },
+      'def-27': {
+        title: 'TwoFactorChallengeResponse',
+        type: 'object',
+        required: ['challengeId'],
+        properties: { challengeId: { type: 'string' } }
+      },
+      'def-28': {
+        title: 'TwoFactorMethodsResponse',
+        type: 'object',
+        properties: { enabled: { type: 'array', items: { type: 'string' } } }
+      },
       'def-16': {
         title: 'HealthCheckResponse',
         type: 'object',
@@ -305,6 +324,25 @@ const SCHEMA: any = {
       post: {
         requestBody: body('def-14'),
         responses: response('def-15')
+      }
+    },
+    '/auth/account/2fa/challenge': {
+      post: {
+        requestBody: body('def-26'),
+        responses: response('def-27')
+      }
+    },
+    '/auth/account/2fa/methods/{method}': {
+      delete: {
+        parameters: [
+          {
+            schema: { type: 'string' },
+            in: 'path',
+            name: 'method',
+            required: true
+          }
+        ],
+        responses: response('def-28')
       }
     },
     '/health/check': {

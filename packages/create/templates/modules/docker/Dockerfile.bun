@@ -45,8 +45,8 @@ COPY --from=build /usr/app/start.sh /usr/app/start.sh
 # Make start script executable
 RUN chmod +x /usr/app/start.sh
 
-# Create storage, logs, and data directories, writable by the application user
-RUN mkdir storage logs data && chown bun:bun storage logs data
+# Create storage and logs directories, writable by the application user
+RUN mkdir storage logs && chown bun:bun storage logs
 
 # Run the application as an unprivileged user
 USER bun

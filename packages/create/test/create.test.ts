@@ -5,11 +5,14 @@ import { defaultTranslations } from '../../core/locale/default-translations';
 import { cliConventionViolations } from '@appweaver/testing';
 
 // The CLI is loaded again for every run, while its dependencies are loaded
-// once, as evaluating them again takes most of the time of a run
+// once, as evaluating them again takes most of the time of a run. So is the
+// template module, whose cache then serves the templates to every run
 const mockYaml = jest.requireActual('yaml');
 const mockCommander = jest.requireActual('commander');
+const mockTemplateFiles = jest.requireActual('../scaffold/template-files');
 jest.mock('yaml', () => mockYaml);
 jest.mock('commander', () => mockCommander);
+jest.mock('../scaffold/template-files', () => mockTemplateFiles);
 
 const packageRoot = path.join(__dirname, '..');
 const skillDir = path.join(packageRoot, 'skill');
@@ -37,6 +40,8 @@ describe('scaffoldDependencies', () => {
 
 describe('create', () => {
   let tempDir: string;
+  /** The directory the projects are read from, the temporary one of the test unless shared by several. */
+  let root: string;
   let originalCwd: string;
   let originalArgv: string[];
   let createdSkillDir = false;
@@ -45,6 +50,7 @@ describe('create', () => {
     originalCwd = process.cwd();
     originalArgv = process.argv;
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-create-'));
+    root = tempDir;
     process.chdir(tempDir);
     jest.resetModules();
   });
@@ -102,13 +108,13 @@ describe('create', () => {
     });
 
   const readJson = (...segments: string[]) =>
-    JSON.parse(fs.readFileSync(path.join(tempDir, ...segments), 'utf8'));
+    JSON.parse(fs.readFileSync(path.join(root, ...segments), 'utf8'));
 
   const read = (...segments: string[]) =>
-    fs.readFileSync(path.join(tempDir, ...segments), 'utf8');
+    fs.readFileSync(path.join(root, ...segments), 'utf8');
 
   const exists = (...segments: string[]) =>
-    fs.existsSync(path.join(tempDir, ...segments));
+    fs.existsSync(path.join(root, ...segments));
 
   describe('project directory', () => {
     test('creates a directory from the sanitized project name', async () => {
@@ -155,15 +161,36 @@ describe('create', () => {
   });
 
   describe('template processing', () => {
-    beforeEach(async () => {
-      await run(
-        'MyApp',
-        'My description',
-        '--no-install',
-        '--agent',
-        'none',
-        '--all'
-      );
+    // Only read by the tests, so it is created once for all of them
+    let projectDir: string;
+
+    beforeAll(async () => {
+      projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-create-'));
+      const cwd = process.cwd();
+      const argv = process.argv;
+      process.chdir(projectDir);
+      try {
+        await run(
+          'MyApp',
+          'My description',
+          '--no-install',
+          '--agent',
+          'none',
+          '--all'
+        );
+      } finally {
+        process.chdir(cwd);
+        process.argv = argv;
+        jest.restoreAllMocks();
+      }
+    });
+
+    afterAll(() => {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    });
+
+    beforeEach(() => {
+      root = projectDir;
     });
 
     test('replaces the template variables', () => {
@@ -213,7 +240,7 @@ describe('create', () => {
 
     test('removes every template file', () => {
       const remaining = fs
-        .readdirSync(path.join(tempDir, 'my-app'), { recursive: true })
+        .readdirSync(path.join(root, 'my-app'), { recursive: true })
         .map(String)
         .filter((file) => /\.(tpl|node|bun)$/.test(file));
 
@@ -272,6 +299,14 @@ describe('create', () => {
       expect(readJson('my-app', 'locales', 'en.json')).toEqual(
         defaultTranslations
       );
+    });
+
+    test('generates the account SMS templates', () => {
+      for (const sms of ['two-factor-code', 'verify-phone']) {
+        expect(read('my-app', 'templates', 'sms', `${sms}.txt.hbs`)).toContain(
+          '{{t "sms.'
+        );
+      }
     });
 
     test('creates the reports directory', () => {
@@ -472,6 +507,53 @@ describe('create', () => {
       expect(read('my-app', 'docker-compose.yml')).toContain(
         '      DB_HOST: "sqlserver"\n'
       );
+    });
+
+    test('builds the SQLite driver adapter and keeps its data directory on SQLite only', async () => {
+      await run('Lite', '--no-install', '--agent', 'none', '--add', 'docker');
+      await run(
+        'Server',
+        '--no-install',
+        '--agent',
+        'none',
+        '--database',
+        'postgresql',
+        '--add',
+        'docker'
+      );
+
+      const allowScripts = readJson('lite', 'package.json').allowScripts;
+      expect(allowScripts['better-sqlite3']).toBe(true);
+      expect(Object.keys(allowScripts)).toEqual(
+        [...Object.keys(allowScripts)].sort()
+      );
+      expect(read('lite', 'Dockerfile')).toContain(
+        'RUN mkdir data && chown node:node data\n'
+      );
+
+      expect(
+        readJson('server', 'package.json').allowScripts['better-sqlite3']
+      ).toBeUndefined();
+      expect(read('server', 'Dockerfile')).not.toContain('mkdir data');
+    });
+
+    test('keeps the data directory of the SQLite database of Bun', async () => {
+      await run(
+        'MyApp',
+        '--no-install',
+        '--agent',
+        'none',
+        '--bun',
+        '--add',
+        'docker'
+      );
+
+      expect(read('my-app', 'Dockerfile')).toContain(
+        'RUN mkdir data && chown bun:bun data\n'
+      );
+      expect(
+        readJson('my-app', 'package.json').trustedDependencies
+      ).not.toContain('better-sqlite3');
     });
 
     test('configures the database connection without Docker', async () => {
@@ -731,6 +813,21 @@ describe('create', () => {
       expect(config).not.toHaveProperty('queue');
     });
 
+    test('adds the Twilio SMS sender, logging the messages in dev and test', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'sms');
+
+      const { dependencies } = readJson('my-app', 'package.json');
+      expect(dependencies).toHaveProperty('@appweaver/twilio');
+
+      const { config, environments } = readJson('my-app', 'appweaver.json');
+      expect(config).not.toHaveProperty('sms');
+      expect(environments.dev.sms).toEqual({ provider: 'json' });
+      expect(environments.test.sms).toEqual({ provider: 'json' });
+      expect(read('my-app', '.env')).toContain(
+        'SMS_TWILIO_ACCOUNT_SID=\nSMS_TWILIO_AUTH_TOKEN=\nSMS_SENDER=\n'
+      );
+    });
+
     test('adds the modules a module requires', async () => {
       const logs = await run(
         'MyApp',
@@ -792,9 +889,9 @@ describe('create', () => {
       expect(exists('my-app', 'templates', 'layouts', 'email.html.hbs')).toBe(
         true
       );
-      expect(readJson('my-app', 'locales', 'en.json')).toEqual(
-        defaultTranslations
-      );
+      expect(readJson('my-app', 'locales', 'en.json')).toEqual({
+        emails: defaultTranslations.emails
+      });
     });
 
     test('writes no email templates without the mailer', async () => {

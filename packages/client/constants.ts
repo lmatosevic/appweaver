@@ -137,21 +137,67 @@ export const ACCOUNT_OPERATIONS = {
   verifyEmailRedirect: 'get',
   sendResetPassword: 'post',
   resetPassword: 'post',
-  send2FACode: 'post',
-  verify2FACode: 'post'
+  sendVerifyPhone: 'post',
+  verifyPhone: 'post'
 } as const;
 
-/** Expected type keys for the account module which covers email verification, password reset, and 2FA req/resp. */
+/** Expected type keys for the account module which covers email and phone verification and password reset. */
 export const ACCOUNT_TYPES = [
   'sendEmailVerificationRequest',
   'statusResponse',
   'emailVerificationRequest',
   'sendResetPasswordRequest',
   'resetPasswordRequest',
-  'send2FACodeRequest',
-  'send2FAResponse',
-  'verify2FARequest',
-  'verify2FAResponse'
+  'sendPhoneVerificationRequest',
+  'challengeResponse',
+  'verifyPhoneRequest'
+] as const;
+
+/** Type name used when generating the TypeScript module type for the two-factor authentication module. */
+export const TWO_FACTOR_MODULE_TYPE = 'TwoFactorModuleType';
+
+/** Maps the two-factor authentication operation names to HTTP methods used for matching OpenAPI paths to
+ * `TwoFactorClient` methods. */
+export const TWO_FACTOR_OPERATIONS = {
+  challenge: 'post',
+  verify: 'post',
+  listMethods: 'get',
+  enableMethod: 'post',
+  orderMethods: 'put',
+  disableMethod: 'delete',
+  setupTotp: 'post',
+  confirmTotp: 'post',
+  generateRecoveryCodes: 'post'
+} as const;
+
+/** The paths of the two-factor authentication operations whose name is not their path, relative to the 2FA prefix,
+ * without the path parameters. */
+export const TWO_FACTOR_OPERATION_PATHS: Partial<
+  Record<keyof typeof TWO_FACTOR_OPERATIONS, string>
+> = {
+  listMethods: 'methods',
+  enableMethod: 'methods',
+  orderMethods: 'methods/order',
+  disableMethod: 'methods',
+  setupTotp: 'totp/setup',
+  confirmTotp: 'totp/confirm',
+  generateRecoveryCodes: 'recovery-codes'
+};
+
+/** Expected type keys for the two-factor authentication module. */
+export const TWO_FACTOR_TYPES = [
+  'challengeRequest',
+  'challengeResponse',
+  'verifyRequest',
+  'verifyResponse',
+  'methodsResponse',
+  'enableMethodRequest',
+  'orderMethodsRequest',
+  'disableMethodRequest',
+  'totpSetupResponse',
+  'totpConfirmRequest',
+  'recoveryCodesRequest',
+  'recoveryCodesResponse'
 ] as const;
 
 /** Type name used when generating the TypeScript module type for the health module. */

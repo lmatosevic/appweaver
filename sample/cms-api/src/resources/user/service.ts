@@ -21,7 +21,6 @@ export default createAuthService({
       password: password ?? '',
       firstName: data?.firstName ?? '',
       lastName: data?.lastName ?? '',
-      twoFactorAuth: 'None',
       roles: [{ id: role.id }]
     };
   },

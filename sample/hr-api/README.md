@@ -26,6 +26,7 @@ against yearly balances, salaries only payroll can see, personal documents, and 
 | Composite unique constraints (one balance per employee and year)                       | [`resources/leave-balance/model.ts`](src/resources/leave-balance/model.ts)                |
 | Aggregates and CSV exports behind permissions                                          | compensation and employee routes                                                          |
 | OAuth2 sign-in limited to existing employees (`checkOAuth2User`)                       | [`resources/employee/service.ts`](src/resources/employee/service.ts)                      |
+| SQL Server (docker-compose), its enums and JSON stored in string columns               | [`docker-compose.yml`](docker-compose.yml), [`appweaver.json`](appweaver.json)            |
 | Redis-free setup: in-memory cache, rate limit, and queue                               | [`appweaver.json`](appweaver.json)                                                        |
 
 ## Roles and permissions
@@ -43,11 +44,22 @@ against yearly balances, salaries only payroll can see, personal documents, and 
 Build the monorepo once from the repository root (`npm install && npm run build`), then in this directory:
 
 ```bash
-cp .env.example .env   # NODE_ENV=dev, for the development configuration
-npm run migrate        # create the SQLite database in ./data
-npm run seed      # roles, the admin, and a demo organization
-npm run dev       # http://localhost:5003, Swagger UI at http://localhost:5003/swagger
+cp .env.example .env             # NODE_ENV=dev and the database password
+docker compose up -d sqlserver   # SQL Server on :1433
+npm run migrate                  # apply the migrations
+npm run seed                     # roles, the admin, and a demo organization
+npm run dev                      # http://localhost:5003, Swagger UI at http://localhost:5003/swagger
 ```
+
+`docker compose up` runs the whole stack instead, its containers setting the `DB_HOST` the URL of `appweaver.json`
+references to the `sqlserver` service. The application connects as `sa`, with the password of `.env`, which SQL Server
+requires to be at least 8 characters of three kinds (upper and lower case letters, digits, symbols). A SQL Server
+installed locally works too, with TCP/IP enabled on port 1433, and `DB_USER` set in `.env` for a login other than `sa`.
+
+SQL Server has no enums and no JSON type, so the enum fields are string columns and the JSON fields (`goals` of the
+reviews) are stored serialized, both converted by Appweaver. It also rejects a referential action forming a cycle or a
+second path between two tables, so `weaver generate` keeps such an action out of the database (the `NoAction` of the
+`manager` and the audit relations in [`schema.prisma`](database/schema.prisma)), and Appweaver applies it on delete.
 
 The seeder prints the generated admin password (`admin@hr.example.com`). The demo employees all sign in with
 `Passw0rd!`:
@@ -97,7 +109,7 @@ curl -s -X PATCH localhost:5003/api/employees/<emily-id> -H "authorization: Bear
 
 ```bash
 npm run test  # unit tests
-npm run e2e   # end-to-end tests against a temporary SQLite database
+npm run e2e   # end-to-end tests, against the hr-api-test database of SQL Server
 ```
 
 ## License

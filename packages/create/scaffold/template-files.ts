@@ -16,6 +16,11 @@ export type TemplateFile = {
 
 const runtimes: Runtime[] = ['node', 'bun'];
 
+// The templates ship with the package and never change, so each directory is
+// listed and each file read once, however many modules a change applies
+const listings = new Map<string, TemplateFile[]>();
+const sources = new Map<string, Buffer>();
+
 /**
  * Lists the files of a template directory for a runtime. A `.tpl` file has its variables replaced, and a `.node` or
  * `.bun` file is kept only for its runtime, replacing the file without the extension.
@@ -28,6 +33,58 @@ export function collectTemplateFiles(
   dir: string,
   runtime: Runtime
 ): TemplateFile[] {
+  const key = `${runtime}:${dir}`;
+  let listing = listings.get(key);
+  if (!listing) {
+    listing = listTemplateFiles(dir, runtime);
+    listings.set(key, listing);
+  }
+  return [...listing];
+}
+
+/**
+ * Reads a template file, replacing the `{{NAME}}` variables of a `.tpl` file with their values.
+ *
+ * @param {TemplateFile} file - The template file.
+ * @param {Record<string, string>} variables - The values of the variables, keyed by name.
+ * @return {string | Buffer} The content of the file, a buffer for a file without variables.
+ */
+export function readTemplateFile(
+  file: TemplateFile,
+  variables: Record<string, string>
+): string | Buffer {
+  if (!file.render) {
+    return readTemplateSource(file.source);
+  }
+
+  let content = readTemplateSource(file.source).toString('utf8');
+  // Inserted as they are, since a replacement string would read the '$$'
+  // escapes of docker-compose as a pattern
+  for (const [key, value] of Object.entries(variables)) {
+    content = content.replace(
+      new RegExp(`\\{\\{${key}\\}\\}`, 'g'),
+      () => value
+    );
+  }
+  return content;
+}
+
+/**
+ * Reads a file of the template directories as it is.
+ *
+ * @param {string} source - The path of the file.
+ * @return {Buffer} The content of the file.
+ */
+export function readTemplateSource(source: string): Buffer {
+  let content = sources.get(source);
+  if (!content) {
+    content = fs.readFileSync(source);
+    sources.set(source, content);
+  }
+  return content;
+}
+
+function listTemplateFiles(dir: string, runtime: Runtime): TemplateFile[] {
   if (!fs.existsSync(dir)) {
     return [];
   }
@@ -62,31 +119,4 @@ export function collectTemplateFiles(
   return [...files.values()]
     .map(({ path, source, render }) => ({ path, source, render }))
     .sort((a, b) => a.path.localeCompare(b.path));
-}
-
-/**
- * Reads a template file, replacing the `{{NAME}}` variables of a `.tpl` file with their values.
- *
- * @param {TemplateFile} file - The template file.
- * @param {Record<string, string>} variables - The values of the variables, keyed by name.
- * @return {string | Buffer} The content of the file, a buffer for a file without variables.
- */
-export function readTemplateFile(
-  file: TemplateFile,
-  variables: Record<string, string>
-): string | Buffer {
-  if (!file.render) {
-    return fs.readFileSync(file.source);
-  }
-
-  let content = fs.readFileSync(file.source, 'utf8');
-  // Inserted as they are, since a replacement string would read the '$$'
-  // escapes of docker-compose as a pattern
-  for (const [key, value] of Object.entries(variables)) {
-    content = content.replace(
-      new RegExp(`\\{\\{${key}\\}\\}`, 'g'),
-      () => value
-    );
-  }
-  return content;
 }

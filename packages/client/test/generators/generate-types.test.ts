@@ -168,6 +168,18 @@ describe('generate-types', () => {
       );
     });
 
+    test('builds the two-factor module type', () => {
+      const twoFactor = moduleType(types, 'TwoFactorModuleType');
+      expect(twoFactor).toContain(
+        'challengeRequest: TwoFactorChallengeRequest'
+      );
+      expect(twoFactor).toContain(
+        'challengeResponse: TwoFactorChallengeResponse'
+      );
+      expect(twoFactor).toContain('methodsResponse: TwoFactorMethodsResponse');
+      expect(twoFactor).toContain('verifyRequest: never');
+    });
+
     test('builds a module type for every resource', () => {
       const post = moduleType(types, 'PostResourceModuleType');
       expect(post).toContain('single: PostSingle');

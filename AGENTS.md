@@ -140,13 +140,13 @@ constraint. When adding an error code:
 The framework is split into packages, each a module (see the module system below) an application enables by depending
 on it:
 
-| Package                                                 | Holds                                                                                        |
-|---------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `@appweaver/core`                                       | The runtime: modules, lifecycle, dependency injection, the in-process drivers                |
-| `@appweaver/data`                                       | Prisma, the resources, the auth data model, `FileService`, the seeders and the CSV export    |
-| `@appweaver/web`                                        | The Fastify server, the resource routes, the authentication, the problem details and Swagger |
-| `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, ... | One driver each, carrying the library it wraps as a dependency                               |
-| `@appweaver/testing`                                    | The test helpers shared by the packages                                                      |
+| Package                                                           | Holds                                                                                        |
+|-------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `@appweaver/core`                                                 | The runtime: modules, lifecycle, dependency injection, the in-process drivers                |
+| `@appweaver/data`                                                 | Prisma, the resources, the auth data model, `FileService`, the seeders and the CSV export    |
+| `@appweaver/web`                                                  | The Fastify server, the resource routes, the authentication, the problem details and Swagger |
+| `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, ... | One driver each, carrying the library it wraps as a dependency                               |
+| `@appweaver/testing`                                              | The test helpers shared by the packages                                                      |
 
 The directories moved as they were, so a file keeps its path within its package (`core/server/register-route.ts` is
 now `web/server/register-route.ts`). `@appweaver/common` and `@appweaver/core` are peer dependencies of every other
@@ -187,6 +187,8 @@ The runtime every application has, with neither a server nor a database. Organiz
 | `queue/`     | The in-process `memory` driver of `Queue`                                                                                            |
 | `scheduler/` | The scheduler config, its driver is `@appweaver/cron`                                                                                |
 | `mailer/`    | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
+| `sms/`       | `SmsService`, sending the text messages through the `sms` queue, and the `json` SMS sender of development and tests                  |
+| `task/`      | `createTask` and `isTask`, the tasks `weaver run` lists and runs by name                                                             |
 | `template/`  | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
 | `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
 | `health/`    | `HealthService` (the checks, and the readiness the lifecycle sets), the `node:http` health listener of an app without web            |
@@ -206,7 +208,8 @@ app and the modules, web the resource routes and the `web` parts), the `main` pa
 driver of an enabled module, else the fallback of core, `none` disables the contract and the services requiring it, a
 name selects a provider, and a module path still loads a class. The provider names are `memory` and `redis`
 (`Memory`), `memory` (`Cache`), `node` (`Events`), `local` (`Storage`), `database` and `memory` (`SecurityStore`),
-`memory` and `bullmq` (`Queue`), `smtp` and `json` (`Mailer`), `handlebars` (`TemplateEngine`), `cron` (`Scheduler`),
+`memory` and `bullmq` (`Queue`), `smtp` and `json` (`Mailer`), `twilio` and `json` (`SmsSender`), `handlebars`
+(`TemplateEngine`), `cron` (`Scheduler`),
 `prisma` (`Database`), `sharp` (`ImageProcessor`), and `database`, `timescale` and `memory` (`TimeSeries`). A new driver goes into a module manifest with a provider name,
 never into `load-providers.ts`, and is documented in `skill/references/modules.md` and
 `skill/references/configuration.md`.
@@ -258,8 +261,8 @@ npm run db:recreate   # drop dev.db and prisma/migrations, then recreate the ini
 ```
 
 The `appweaver.json` of `packages/data` (never published) turns on the `KEEP_DATABASE_TABLE` keys of the API keys,
-the security store and the connected accounts, so `npm run generate` emits every framework model whatever the
-environment.
+the security store, the connected accounts and the 2FA methods, so `npm run generate` emits every framework model
+whatever the environment.
 
 A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown argument" naming an *unrelated* field
 (usually `createdById`) — suspect regeneration before the calling code.
@@ -278,25 +281,26 @@ The HTTP module (`@appweaver/web`), built on Fastify. Its manifest `requires` `@
 the resource routes of the application (`RESOURCE_ROUTES_PATTERN`), then the `web` part of every module. It augments
 `Application` with `app.server` and `app.spec()`.
 
-| Module      | Purpose                                                                                                                                        |
-|-------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| `server/`   | Fastify server creation, the `HttpServer` lifecycle service, `registerRoute`, `registerPlugin`, `registerModel`, Swagger/OpenAPI               |
-| `resource/` | The resource routes and their schemas, the route loader (the `setup`) and the route `utils/`                                                   |
-| `factory/`  | `createRoutes`                                                                                                                                 |
-| `security/` | Authentication and authorization — `AuthService`, JWT, OAuth2, API key, basic auth, reCAPTCHA, Turnstile, account management, `access-util.ts` |
-| `errors/`   | The API error layer: error code to HTTP status map (`errorHttpMap`), RFC 9457 problem details, error handler and `errorResponses` schemas      |
-| `health/`   | The health check routes and their config                                                                                                       |
-| `cache/`    | The response caching of the routes                                                                                                             |
-| `storage/`  | The file routes                                                                                                                                |
-| `timeseries/` | The time series routes of the models with `series` fields and their schemas                                                                  |
-| `template/` | The template preview route of development                                                                                                      |
-| `types/`    | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                |
+| Module      | Purpose                                                                                                                                                                                       |
+|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `server/`   | Fastify server creation, the `HttpServer` lifecycle service, `registerRoute`, `registerPlugin`, `registerModel`, Swagger/OpenAPI                                                              |
+| `resource/` | The resource routes and their schemas, the route loader (the `setup`) and the route `utils/`                                                                                                  |
+| `factory/`  | `createRoutes`                                                                                                                                                                                |
+| `security/` | Authentication and authorization — `AuthService`, JWT, OAuth2, API key, basic auth, reCAPTCHA, Turnstile, account management, 2FA (`two-factor/`: `TwoFactorService`, TOTP), `access-util.ts` |
+| `errors/`   | The API error layer: error code to HTTP status map (`errorHttpMap`), RFC 9457 problem details, error handler and `errorResponses` schemas                                                     |
+| `health/`   | The health check routes and their config                                                                                                                                                      |
+| `cache/`    | The response caching of the routes                                                                                                                                                            |
+| `storage/`  | The file routes                                                                                                                                                                               |
+| `timeseries/` | The time series routes of the models with `series` fields and their schemas                                                                                                                   |
+| `template/` | The template preview route of development                                                                                                                                                     |
+| `types/`    | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                                                               |
 
 ### Driver packages
 
-`packages/{redis,bullmq,cron,nodemailer,handlebars,sharp}` each hold one driver, its `module.ts` manifest and, when it
-has one, its `config.ts` section. The library a driver wraps is a dependency of its package, so an application
-installs `@appweaver/redis`, never `ioredis`.
+`packages/{redis,bullmq,cron,nodemailer,twilio,handlebars,sharp}` each hold one driver, its `module.ts` manifest and,
+when it has one, its `config.ts` section. The library a driver wraps is a dependency of its package, so an application
+installs `@appweaver/redis`, never `ioredis`. `@appweaver/twilio` calls the REST API of Twilio with `fetch`, without
+the Twilio SDK.
 
 | Package                 | Driver                     | Provider                        | Config                          |
 |-------------------------|----------------------------|---------------------------------|---------------------------------|
@@ -304,6 +308,7 @@ installs `@appweaver/redis`, never `ioredis`.
 | `@appweaver/bullmq`     | `BullQueue`                | `bullmq` (`Queue`)              | — (requires `@appweaver/redis`) |
 | `@appweaver/cron`       | `CronScheduler`            | `cron` (`Scheduler`)            | —                               |
 | `@appweaver/nodemailer` | `SmtpMailer`               | `smtp` (`Mailer`)               | `smtpConfig` (`mailer.smtp`)    |
+| `@appweaver/twilio`     | `TwilioSms`                | `twilio` (`SmsSender`)          | `twilioConfig` (`sms.twilio`)   |
 | `@appweaver/handlebars` | `HandlebarsTemplateEngine` | `handlebars` (`TemplateEngine`) | —                               |
 | `@appweaver/sharp`      | `SharpImageProcessor`      | `sharp` (`ImageProcessor`)      | —                               |
 
@@ -320,12 +325,13 @@ path into another package. Jest maps every `@appweaver/*` import to the sources 
 
 The contract suites of `contracts/` test a driver against the behavior every driver of its contract shares:
 `testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract`, `testMailerContract` and
+`testSmsContract` and
 `testTimeSeriesContract`, each called as `(name, () => driver)` at the top level of a test file. They use the `describe`, `test`, `beforeEach`,
 `afterEach` and `expect` globals, so they run under Jest, Vitest and Bun, and create a fresh driver for every test.
 `InMemory`, `RedisMemory` (on `ioredis-mock`, which runs its Lua scripts), `FilesystemStorage`, `MemoryQueue`,
-`JsonMailer`, `CronScheduler`, `MemoryTimeSeries`, `DatabaseTimeSeries` and `TimescaleTimeSeries` (on SQLite, and on
-the databases of `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`, `TIMESERIES_TEST_SQLSERVER_URL` and
-`TIMESERIES_TEST_TIMESCALE_URL` when set) run them, and so does the test of a driver package scaffolded with
+`JsonMailer`, `JsonSms`, `TwilioSms` (on a mocked `fetch`), `CronScheduler`, `MemoryTimeSeries`, `DatabaseTimeSeries`
+and `TimescaleTimeSeries` (on SQLite, and on the databases of `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`,
+`TIMESERIES_TEST_SQLSERVER_URL` and `TIMESERIES_TEST_TIMESCALE_URL` when set) run them, and so does the test of a driver package scaffolded with
 `npm create @appweaver module`. A change of a contract's shared behavior goes into its
 suite, so every driver is held to it.
 
@@ -347,7 +353,7 @@ A type-safe HTTP client generator and runtime library for consuming Appweaver-co
 - **Code generator** — reads an OpenAPI v3 schema (JSON or YAML, from a file or URL) and emits typed TypeScript
   interfaces and a client class tailored to the API's resources, auth, account, health, and file routes.
 - **Runtime library** — provides `FetchClient` and a set of module clients (`ResourceClient`, `AuthClient`,
-  `AccountClient`, `HealthClient`, `FilesClient`) that wrap `openapi-fetch` with built-in authentication strategies (JWT
+  `AccountClient`, `TwoFactorClient`, `HealthClient`, `FilesClient`) that wrap `openapi-fetch` with built-in authentication strategies (JWT
   Bearer, API key, HTTP Basic), timeout handling, and middleware support.
 
 The package exposes a `weaver-client` CLI binary. See **Section 6** for the full command reference.
@@ -380,18 +386,20 @@ A generated project starts from the base template (`templates/base/`), a minimal
 adds the optional modules selected: the default ones (`defaultModules` of `scaffold/modules.ts`, `data` and `web`)
 with the `--add <modules...>` ones, or every module with `--all`, minus the `--exclude <modules...>` ones, which leave
 out the default modules too, with or without `--all` (`--exclude data web` for the core application alone). The
-modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `templates`,
-`locales`, `timeseries` (requires `data`) and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module
+modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `sms`,
+`templates`, `locales`, `timeseries` (requires `data`) and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module
 adds its
 packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
 `projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
-`@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`) and `@appweaver/handlebars` (`templates`), every
+`@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`), `@appweaver/twilio` (`sms`, with the `json`
+sender in dev and test and the Twilio keys of `.env`) and `@appweaver/handlebars` (`templates`), every
 `@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
 `--database`, `--host` and `--port` configure `data` and `web` only (`ProjectContext`), and `weaver module add` takes
 `--database` for `data`. The `User` auth model and its admin seeder come with `web`, which brings the authentication, so
 a project with `data` alone has no auth model. A module sets values in the other JSON files of the project with its
 `jsonFiles` (the
-`package.json` scripts of `data`, the Jest e2e `globalSetup`), and a module file at the path of a base file replaces it
+`package.json` scripts of `data` and the `allowScripts` of its SQLite adapter on Node, the Jest e2e `globalSetup`, kept
+sorted like the template's `allowScripts`), and a module file at the path of a base file replaces it
 while unchanged, restored on removal (the `/api` e2e test of `web`).
 The scaffolding engine lives in `scaffold/` and is exported as
 `@appweaver/create/scaffold`, which `weaver module add|remove` of `packages/cli` uses on an existing
@@ -410,7 +418,7 @@ version (`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the pu
 | `scaffold/compose-util.ts`          | Adds and removes the Redis service of `docker-compose.yml` with the `yaml` document API                              |
 | `templates/base/`                   | The minimal core application every module is added to                                                                |
 | `templates/modules/<name>/`         | The files of a module, deleted when it is removed                                                                    |
-| `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates` holds the email templates)                             |
+| `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates` and `sms+templates` hold the account templates)        |
 | `templates/translations/en.json`    | The English texts of the scaffolded templates, merged into `locales/en.json` with the mailer                         |
 | `templates/module-package/`         | The files of every module package (`common/`), and those of each contract (`storage/`, `mailer/`, `none/`)           |
 
@@ -443,8 +451,9 @@ A template file can have runtime-specific variants:
 A module is defined by data (packages, config values) and its files, its edits of the base files are an integration of
 the module alone in `apply-modules.ts` (the database password of `.env`, the SQLite rules of `.gitignore`), and anything
 else it adds to another enabled module is an integration of the two (the database, Redis and
-server parts of `docker-compose.yml`, the Dockerfile `COPY` blocks of public files, templates, locales and Prisma, the
-database roles of `start.sh`, the `emails` texts the mailer merges into `locales/en.json`).
+server parts of `docker-compose.yml`, the Dockerfile `COPY` blocks of public files, templates, locales and Prisma and
+its `data` directory of SQLite, the database roles of `start.sh`, the `emails` and `sms` texts the mailer and the SMS module merge into
+`locales/en.json`).
 `@appweaver/create` creates the base project with every module's disabled config, then adds the selected modules
 exactly like `weaver module add`, so a test checks that every combination of modules created, added one at a time, or
 removed from a full project gives the same files. Keep any new module or
@@ -568,7 +577,8 @@ the `ResourceRegistry` of `@appweaver/common`, so the factories and `injectServi
 name, and without any model the file holds only `export {};`. On SQLite a `json` default is written as the quoted SQL
 literal `@default(dbgenerated("'{}'"))`, since the migrations of Prisma write a plain JSON default unquoted. The models
 come from the project and from the `resources` of the enabled modules. The framework models are left out unless used:
-`Role`, `Permission`, `ApiKey`, `OneTimeToken` and `ConnectedAccount` without an auth model, `File` without a model
+`Role`, `Permission`, `ApiKey`, `OneTimeToken`, `ConnectedAccount`, `TwoFactorMethod` and `TwoFactorRecoveryCode`
+without an auth model, `File` without a model
 declaring `files`, `Seeder` without a seeders directory (`data/resource/utils/prune-util.ts`). The `npm run generate` of
 `packages/data` passes `--types --prisma-schema`, `--no-registry` and `--no-prune`, since the registry and the config belong to the
 application and data keeps every model.
@@ -631,7 +641,7 @@ unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any ne
 ### `weaver module` (alias: `mod`)
 
 Add and remove the optional modules of `@appweaver/create` (`data`, `web`, `redis`, `queue`, `scheduler`, `mailer`,
-`templates`, `locales`, `timeseries`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`,
+`sms`, `templates`, `locales`, `timeseries`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`,
 install
 module packages, and create local modules.
 
@@ -699,17 +709,33 @@ when the `@appweaver/web` module is not installed or disabled.
 
 ### `weaver run` (alias: `r`)
 
-Run a one-shot task with the application.
+Run a one-shot task with the application, by its name or its file, or list the tasks without one.
 
 ```
-weaver run <file> [args...]
+weaver run
+weaver run <task> [args...]
 ```
 
-Creates the application without starting its server, its health listener or its scheduled jobs (`SERVER_LISTEN`,
-`HEALTH_CHECK_PORT` and `SCHEDULER_AUTO_START_JOB` are forced off), runs the default export of the file,
-`(args: string[]) => number | void`, with the arguments after the file,
-stops the application, and exits with the returned number (`0` otherwise, `1` when the task throws). On Node a `.ts`
-path runs from the build output (`src/tasks/report.ts` from `dist/src/tasks/report.js`).
+A task is the default export of a file created with `createTask` of `@appweaver/core` (`task/create-task.ts`): its
+`run` function and the optional `name`, `description`, `arguments` and `options`, whose values are typed from their
+declarations. A plain default function, `(args: string[]) => number | void`, is wrapped into a task receiving the raw
+arguments, and a file exporting neither is a helper, skipped (`run/load-tasks.ts`).
+
+- **By name**: `weaver run reports:daily` finds the task in `APP_TASKS_DIR_PATH` (`<srcPath>/tasks`, the build output
+  on Node) and the `tasks` directories of the enabled modules, named by its `name` or its path (`reports/daily.ts` is
+  `reports:daily`). A task of the application replaces a module task of the same name, any other duplicate fails.
+- **By file**: a target with a directory or a script extension, a `.ts` path running from the build output on Node.
+- **List**: `weaver run` without a task prints the tasks with their descriptions and modules, and the failed files.
+
+The arguments after the task are passed through to a Commander command built from its declarations
+(`run/parse-task-args.ts`), so `weaver run <task> --help` shows its usage, and a camelCase option is its kebab-case
+flag. A task declaring no `arguments` or `options` takes any, read from `argv`. The values fill the `arguments` in the
+order of their keys, so a `TaskError` rejects an integer key, a required argument after an optional one or with a
+`default`, and a variadic one before the last.
+
+The application is created without starting it, its server, health listener and scheduled jobs forced off, and is
+started only once the arguments parse. The command exits with the number the task returns (`0` otherwise, `1` when it
+throws).
 
 ---
 
@@ -815,6 +841,8 @@ weaver test teardown [options]
 | `--temp-dir <dir>` | Temporary directory | `./temp` |
 | `--verbose`        | Verbose output      | false    |
 
+The test database of a server (PostgreSQL, MySQL, SQL Server) is kept, since `weaver test setup` resets it.
+
 ---
 
 ### `weaver upgrade` (alias: `up`)
@@ -918,13 +946,14 @@ const users = await client.user.query({ filter: { enabled: true } });
 
 **Generated module clients and their operations:**
 
-| Client           | Key operations                                                                                                                                                         |
-|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `ResourceClient` | `find`, `query`, `aggregate`, `create`, `update`, `replace`, `delete`, `export`, `uploadFiles`, `deleteFiles`, `bulkCreate`, `bulkUpdate`, `bulkReplace`, `bulkDelete` |
-| `AuthClient`     | `login`, `logout`, `refresh`, `changePassword`, `exchangeToken`, `me`                                                                                                  |
-| `AccountClient`  | `sendVerifyEmail`, `verifyEmail`, `verifyEmailRedirect`, `sendResetPassword`, `resetPassword`, `send2FACode`, `verify2FACode`                                          |
-| `HealthClient`   | `check`, `ready`                                                                                                                                                       |
-| `FilesClient`    | `public`, `protected`                                                                                                                                                  |
+| Client            | Key operations                                                                                                                                                         |
+|-------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ResourceClient`  | `find`, `query`, `aggregate`, `create`, `update`, `replace`, `delete`, `export`, `uploadFiles`, `deleteFiles`, `bulkCreate`, `bulkUpdate`, `bulkReplace`, `bulkDelete` |
+| `AuthClient`      | `login`, `logout`, `refresh`, `changePassword`, `exchangeToken`, `me`                                                                                                  |
+| `AccountClient`   | `sendVerifyEmail`, `verifyEmail`, `verifyEmailRedirect`, `sendResetPassword`, `resetPassword`, `sendVerifyPhone`, `verifyPhone`                                        |
+| `TwoFactorClient` | `challenge`, `verify`, `listMethods`, `enableMethod`, `orderMethods`, `disableMethod`, `setupTotp`, `confirmTotp`, `generateRecoveryCodes`                             |
+| `HealthClient`    | `check`, `ready`                                                                                                                                                       |
+| `FilesClient`     | `public`, `protected`                                                                                                                                                  |
 
 ---
 
@@ -1037,8 +1066,8 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 | Sample                   | Runtime | Database           | Showcases                                                                                                  |
 |--------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------------|
 | `sample/webshop-api`     | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails, product price and stock time series in a TimescaleDB hypertable |
-| `sample/hr-api`          | Node    | SQLite             | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
-| `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination, team workload time series with a retention |
+| `sample/hr-api`          | Node    | SQL Server         | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
+| `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, SMS 2FA of the admin, team workload time series with a retention |
 | `sample/movies-api-bun`  | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                     |
 | `sample/inbox-processor` | Node    | SQLite + Redis     | A file and API fed BullMQ pipeline with retries, a local module with a watcher service and routes          |
 | `sample/reports-worker`  | Node    | SQLite             | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener            |
@@ -1049,9 +1078,10 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   server: the worker is kept running by its cron jobs and answers the health checks on `healthCheck.port`, the
   calculator starts, calculates and stops, and both do their work in `weaver run` tasks. `loan-calculator` has no
   database, so no migrations, seeders or e2e database setup.
-- The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or `mysql`); their
-  end-to-end tests run against a `-test` database of the same container. The PostgreSQL service of `webshop-api` runs
-  the TimescaleDB image.
+- The PostgreSQL, MySQL and SQL Server samples start their database with `docker compose up -d postgres redis` (or
+  `mysql`, `sqlserver`); their end-to-end tests run against a `-test` database of the same container. The SQL Server
+  sample connects as `sa` (`${DB_USER:-sa}`), whose password SQL Server requires to be complex. The PostgreSQL
+  service of `webshop-api` runs the TimescaleDB image.
 - Like a generated project, every sample configures its database and Redis URLs in `appweaver.json`, referencing the
   database password of `.env` (copied from `.env.example`) as `${DB_PASSWORD}`, and the hosts as
   `${DB_HOST:-localhost}` and `${REDIS_HOST:-localhost}`, which the compose application services override. The database
@@ -1062,6 +1092,15 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   uses, `@appweaver/sharp` for the image transforms), locked in its own `package-lock.json` (`bun.lock` for the Bun
   sample) to the published `@appweaver/*` release, so its Docker image builds with a clean install outside the
   monorepo. The lockfiles are regenerated after every release, or on demand with `npm run samples:lock`.
+- `npm run samples:manage -- <operation> [params...] [samples...]` (`tools/manage-samples.js`) runs an operation in every
+  sample it applies to, or in the named ones: `regenerate:db` replaces the migrations of each sample with a database with
+  a single `init` migration and recreates its database, and `run <script>` runs a `package.json` script of every sample
+  having it, with Bun in the Bun sample (`run generate`, `run seed`). The database operations need the PostgreSQL,
+  MySQL and SQL Server containers running, and `run generate` runs the built `node_modules/@appweaver`, so run
+  `npm run build` first or it generates the models of the last build. The samples run one after another, stopping at the
+  first failure, or with `--parallel` (anywhere in the arguments) all at once, every output line prefixed with its
+  sample and every failure reported at the end. A new operation is an entry of its `operations`, with the names of its
+  `params`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
 - The Bun sample runs its scripts with `bun run`. Bun runs every test file in one process, where the application
   context is frozen once an application starts, so its end-to-end files share one application instead of resetting the
@@ -1093,8 +1132,8 @@ This runs the following steps automatically:
 4. **Changelog** (`@semantic-release/changelog`) — appends notes to `CHANGELOG.md`.
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
-   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `handlebars`, `sharp`, `testing`, `cli`, `client`
-   and `create`.
+   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `handlebars`, `sharp`, `testing`, `cli`,
+   `client` and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
@@ -1110,6 +1149,7 @@ This runs the following steps automatically:
     cd packages/bullmq/dist     && npm publish
     cd packages/cron/dist       && npm publish
     cd packages/nodemailer/dist && npm publish
+    cd packages/twilio/dist     && npm publish
     cd packages/handlebars/dist && npm publish
     cd packages/sharp/dist      && npm publish
     cd packages/testing/dist    && npm publish

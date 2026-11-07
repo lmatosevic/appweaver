@@ -31,6 +31,10 @@ describe('Reports', () => {
       }
     });
 
+  /** The context `weaver run report [from] [to]` gives the task. */
+  const context = (from: string, to?: string) =>
+    ({ args: { from, to }, options: {}, argv: [] }) as never;
+
   beforeAll(async () => {
     app = await createApp();
   });
@@ -150,7 +154,7 @@ describe('Reports', () => {
       await book('R-30', '2002-06-01T09:00:00Z', 'Income', 'Salary', 300_000);
       await book('R-31', '2002-06-02T09:00:00Z', 'Expense', 'Groceries', 4_550);
 
-      expect(await report(['2002-06-01', '2002-06-02'])).toBe(0);
+      expect(await report.run(context('2002-06-01', '2002-06-02'))).toBe(0);
 
       expect(output[0]).toBe(
         'Reports from 2002-06-01 to 2002-06-02, 2 built now\n'
@@ -169,10 +173,10 @@ describe('Reports', () => {
     });
 
     test('rejects an invalid date', async () => {
-      expect(await report(['2001-02-30'])).toBe(1);
+      expect(await report.run(context('2001-02-30'))).toBe(1);
 
       expect(output[0]).toMatch(
-        /^Invalid date 2001-02-30, expected YYYY-MM-DD\nUsage:/
+        /^Invalid date 2001-02-30, expected YYYY-MM-DD\nRun weaver run report --help/
       );
     });
   });

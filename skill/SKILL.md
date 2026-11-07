@@ -92,7 +92,7 @@ with `data` and `web`:
 | `redis`          | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service                                    | memory, cache and rate limit in the process  |
 | `queue`          | `@appweaver/bullmq` (requires `redis`, added along with it)                                                     | in-memory queue                              |
 | `scheduler`      | `@appweaver/cron`                                                                                               | scheduler disabled                           |
-| `mailer`         | `@appweaver/nodemailer`                                                                                         | mailer disabled (email features respond 501) |
+| `mailer`         | `@appweaver/nodemailer`                                                                                         | mailer disabled (no email routes)            |
 | `templates`      | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                                       | no template engine                           |
 | `locales`        | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates     |
 | `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)         |
@@ -247,9 +247,10 @@ not installed or disabled.
 
 Every part of the framework is a module declared with `defineModule`: `@appweaver/core` (always), `@appweaver/data`
 (Prisma, the resources), `@appweaver/web` (the Fastify server, authentication, requires data) and one driver package
-per library (`@appweaver/redis`, `@appweaver/bullmq`, `@appweaver/cron`, `@appweaver/nodemailer`,
-`@appweaver/handlebars`, `@appweaver/sharp`). Every package but core is enabled by being a dependency of the
-application's `package.json`, and carries the library it wraps, so install `@appweaver/redis`, not `ioredis`. The
+per library or service (`@appweaver/redis`, `@appweaver/bullmq`, `@appweaver/cron`, `@appweaver/nodemailer`,
+`@appweaver/twilio`, `@appweaver/handlebars`, `@appweaver/sharp`). Every package but core is enabled by being a
+dependency of the application's `package.json`, and carries the library it wraps, so install `@appweaver/redis`, not
+`ioredis`. The
 `provider` key of each contract (`auto` by default) picks the driver of an enabled module, `none` turns the contract
 off. An application adds its own modules in `src/modules/<name>/module.ts` (`weaver module new <name>`) or as npm
 packages (`weaver module add <package>`), and a module package is created with `npm create @appweaver module
@@ -260,20 +261,27 @@ and the [providers](references/configuration.md#providers).
 |------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
 | HTTP API                     | The default: `createApp()` starts the server on `SERVER_PORT`.                                                                           |
 | Queue worker, scheduled jobs | `APP_MODULES_DISABLED=@appweaver/web`: no server, kept alive by its workers or cron jobs. `HEALTH_CHECK_PORT` answers the health checks. |
-| One-shot task                | `weaver run src/tasks/report.ts [args...]`: runs the default export `(args) => number \| void`, then exits.                              |
+| One-shot task                | `weaver run <task> [args...]`: runs a `createTask` of `src/tasks/` by its name (`weaver run` lists them), then exits.                    |
 
 ```ts
-// src/tasks/report.ts, run with `weaver run src/tasks/report.ts Pending`
-import { injectService } from '@appweaver/core';
+// src/tasks/orders/count.ts, run with `weaver run orders:count Pending`
+import { createTask, injectService } from '@appweaver/core';
 
-export default async function (args: string[]) {
-  const count = await injectService('Order').count({ status: args[0] });
-  console.log(`${count} orders`);
-  return count > 0 ? 0 : 1; // the exit code
-}
+export default createTask({
+  description: 'Counts the orders of a status.',
+  arguments: { status: { required: true, choices: ['Pending', 'Paid'] } },
+  options: { min: { type: 'number', default: 1 } }, // --min <min>
+  run: async ({ args, options }) => {
+    const count = await injectService('Order').count({ status: args.status });
+    console.log(`${count} orders`);
+    return count >= options.min ? 0 : 1; // the exit code
+  }
+});
 ```
 
-`weaver run` creates the application without starting the server or the scheduled jobs, and stops it after the task.
+`weaver run` runs the task without the server or the scheduled jobs, `--help` showing its arguments. A task is named by
+its path in `src/tasks/` (`orders/count.ts` is `orders:count`) unless it has a `name`. See
+[cli.md](references/cli.md#weaver-run).
 
 ### Creating resources
 
@@ -556,9 +564,10 @@ or roll them back together.
 Use `createAuthModel` and `createAuthService` instead of `createModel`/`createService` when the resource represents an
 authenticatable user. They cannot be used independently! If an auth model is created, then also auth service must exist.
 
-`createAuthModel` extends the config with: `email`, `passwordHash`, `verifiedEmail`, `twoFactorAuth`, `enabled`,
-`logoutAt` scalars; a virtual `password` field (write-only); a `roles` relation; and an optional `apiKeys` relation
-(when `SECURITY_API_KEY_ENABLED` is set). An API key acts as its owner, or within the `roles` and `permissions` it
+`createAuthModel` extends the config with: `email`, `passwordHash`, `verifiedEmail`, `phoneNumber`, `verifiedPhone`,
+`enabled`, `logoutAt` scalars; a virtual `password` field (write-only); a `roles` relation; a `twoFactorMethods`
+relation (while 2FA is enabled, managed by the 2FA routes only); and an optional `apiKeys` relation (when
+`SECURITY_API_KEY_ENABLED` is set). An API key acts as its owner, or within the `roles` and `permissions` it
 lists,
 a subset of its owner's (`AUTH_API_KEY_PERMISSION_DENIED` otherwise), narrowed on every request; see
 [security.md](references/security.md#api-key-scope).
@@ -609,6 +618,18 @@ scaffolded with `web` lets only the `Admin` role create, update, delete, and cha
 `User` routes, and
 signs new users up with the `User` role. A policy on the auth model applies only to the API routes: the framework's own
 sign-up, logout, password change, and 2FA flows run with `withoutPolicies`, so a policy never blocks them.
+
+Two-factor authentication, off by default (`SECURITY_ACCOUNT_2FA_ENABLED`), offers three methods per user, `Email` and `Sms` codes and an authenticator app (`Totp`),
+each enabled, ordered and disabled by the user with the `/auth/account/2fa` routes; the first one is their default. A
+sign-in of a user with a method (or of every user with `SECURITY_ACCOUNT_2FA_FORCED`) returns the tokens of the `2fa`
+scope with `twoFactorMethods`, passed by `POST /auth/account/2fa/challenge { method? }` and
+`POST /auth/account/2fa/verify { challengeId, code }`, then `POST /auth/exchange-token`. The SMS method needs a phone
+number verified with `/auth/account/send-verify-phone` and an SMS sender (`@appweaver/twilio`), the TOTP method the
+`SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`. A user who lost their methods signs in once per code with the recovery codes
+of `POST /auth/account/2fa/recovery-codes` (challenge `method: 'Recovery'`). A route that needs a missing feature is not
+registered, so the OpenAPI spec lists only the usable ones: the email verification and password reset need a mailer,
+the phone verification an SMS sender, the 2FA routes 2FA enabled, and `/auth/exchange-token` an OAuth2 provider or 2FA. See
+[security.md](references/security.md#two-factor-authentication-2fa).
 
 #### Querying resources with filters
 
@@ -1023,7 +1044,9 @@ application file outside a module. See
 ### Run a one-shot task
 
 ```sh
-weaver run src/tasks/report.ts Pending  # run the default export of the file with the arguments, then exit
+weaver run                              # list the tasks of src/tasks/ and the modules
+weaver run orders:count Pending         # run a task by its name with the arguments, then exit
+weaver run orders:count --help          # the arguments and options of a task
 ```
 
 ### Upgrade Appweaver packages
@@ -1052,6 +1075,7 @@ of the version the project's `@appweaver/cli` is at:
 ```sh
 weaver module list                     # the modules, whether enabled, their packages and requirements
 weaver module add redis queue docker   # add modules with the modules they require, and install them
+weaver module add sms                  # the Twilio SMS sender, logging the messages in dev and test
 weaver module add web --database mysql # add the server and the database (data) it requires, on MySQL
 weaver module add templates --dry-run  # print the files and configuration it would change
 weaver module add docker --force       # overwrite the existing files instead of skipping them
@@ -1149,6 +1173,7 @@ npm run lint  # eslint "./**/*.ts"
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)
 - Sending emails: [mailer.md](references/mailer.md)
+- Sending text messages (SMS): [sms.md](references/sms.md)
 - Templates & localization: [templates.md](references/templates.md)
 - Generating an HTTP client for using API: [client.md](references/client.md)
 - Errors & error responses: [errors.md](references/errors.md)

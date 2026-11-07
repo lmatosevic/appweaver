@@ -7,6 +7,7 @@ export * from './resource/resource-schema';
 export * from './security/access-util';
 export * from './security/auth-schema';
 export * from './security/auth-service';
+export * from './security/two-factor/two-factor-service';
 export * from './security/oauth2/create-oauth2-plugin';
 export * from './security/oauth2/oauth2-service';
 export * from './security/oauth2/oauth2-util';

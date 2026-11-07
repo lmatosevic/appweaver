@@ -11,6 +11,7 @@ import {
 } from '@appweaver/common';
 import { databaseConfig } from './database-config';
 import { createClient } from './create-client';
+import { sqlServerExtension } from './sqlserver-extension';
 import { Prisma, PrismaClient } from '../prisma/client/client';
 import {
   currentTransaction,
@@ -177,7 +178,15 @@ export class PrismaDatabase extends Database {
   /** @internal */
   private clientInstance(): PrismaClient {
     if (!this._client) {
-      this._client = createClient();
+      const client = createClient();
+      const dbType = resolveDatabaseType(
+        databaseConfig.TYPE,
+        databaseConfig.URL
+      );
+      this._client =
+        dbType === DatabaseType.SQLServer
+          ? (client.$extends(sqlServerExtension(this)) as PrismaClient)
+          : client;
     }
     return this._client;
   }

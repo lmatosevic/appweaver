@@ -81,10 +81,14 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     projectPackages: ({ database, runtime }) => [
       getDatabaseAdapter(database, runtime)
     ],
-    jsonFiles: ({ runtime }) => [
+    jsonFiles: ({ runtime, database }) => [
       {
         file: 'package.json',
         enabled: [
+          // The native build of the SQLite driver adapter of Node
+          ...(runtime === 'node' && database === 'sqlite'
+            ? ([['allowScripts.better-sqlite3', true]] as ConfigEntry[])
+            : []),
           ['scripts.generate', 'weaver generate'],
           ['scripts.migrate', 'weaver migrate'],
           [
@@ -172,6 +176,19 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     enabledConfig: () => [
       ['environments.test.mailer.provider', 'json'],
       ['environments.test.mailer.senderAddress', 'no-reply@example.com']
+    ],
+    disabledConfig: []
+  },
+  sms: {
+    name: 'sms',
+    description:
+      'Twilio SMS sender of the SMS 2FA codes and the phone verification, otherwise disabled',
+    packages: ['@appweaver/twilio'],
+    requires: [],
+    // Logged instead of sent while developing and testing, without a Twilio account
+    enabledConfig: () => [
+      ['environments.dev.sms.provider', 'json'],
+      ['environments.test.sms.provider', 'json']
     ],
     disabledConfig: []
   },

@@ -167,8 +167,10 @@ export default createPolicy({
 
 Use `createAuthModel` and `createAuthService` for authenticatable users. They must be used together.
 
-`createAuthModel` adds: `email`, `passwordHash`, `verifiedEmail`, `twoFactorAuth`, `enabled`, `logoutAt` scalars; a
-virtual `password` field; a `roles` relation; and optional `apiKeys` relation.
+`createAuthModel` adds: `email`, `passwordHash`, `verifiedEmail`, `phoneNumber`, `verifiedPhone`, `enabled`, `logoutAt`
+scalars; a virtual `password` field; a `roles` relation; a `twoFactorMethods` relation (while 2FA is enabled); and
+optional `apiKeys` relation. The 2FA methods (`Email`, `Sms`, `Totp`) are managed by the `/auth/account/2fa` routes,
+and `authUser.twoFactorMethods` lists the confirmed ones, the first being the default (see the security reference).
 
 `createAuthService` supports an optional `registrationData` callback to customize the registration payload, an optional
 `registrationFiles` callback that stores files on the model's file fields right after the user is created (used to keep
@@ -318,7 +320,7 @@ export async function createAdminUser(): Promise<void> {
 | `weaver module new <name>`    | Create a local module in `src/modules/`                                                                         |
 | `weaver config check`         | Validate the config of every module                                                                             |
 | `weaver openapi`              | Generate OpenAPI specification                                                                                  |
-| `weaver run <file> [args...]` | Run a one-shot task, then exit                                                                                  |
+| `weaver run <task> [args...]` | Run a `createTask` of `src/tasks/` by name or file, then exit (`weaver run` lists them)                         |
 
 ## Testing
 
@@ -345,6 +347,7 @@ export async function createAdminUser(): Promise<void> {
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)
 - Sending emails: [mailer.md](references/mailer.md)
+- Sending text messages (SMS): [sms.md](references/sms.md)
 - Templates & translations: [templates.md](references/templates.md)
 - Generating an HTTP client for using API: [client.md](references/client.md)
 - Framework errors: [errors.md](references/errors.md)

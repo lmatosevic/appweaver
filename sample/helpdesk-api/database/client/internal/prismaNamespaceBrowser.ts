@@ -61,6 +61,8 @@ export const ModelName = {
   User: 'User',
   ApiKey: 'ApiKey',
   OneTimeToken: 'OneTimeToken',
+  TwoFactorMethod: 'TwoFactorMethod',
+  TwoFactorRecoveryCode: 'TwoFactorRecoveryCode',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
@@ -194,7 +196,8 @@ export const UserScalarFieldEnum = {
   available: 'available',
   passwordHash: 'passwordHash',
   verifiedEmail: 'verifiedEmail',
-  twoFactorAuth: 'twoFactorAuth',
+  phoneNumber: 'phoneNumber',
+  verifiedPhone: 'verifiedPhone',
   enabled: 'enabled',
   logoutAt: 'logoutAt',
   teamId: 'teamId',
@@ -233,6 +236,32 @@ export const OneTimeTokenScalarFieldEnum = {
 } as const
 
 export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
+
+
+export const TwoFactorMethodScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  priority: 'priority',
+  secret: 'secret',
+  confirmedAt: 'confirmedAt',
+  lastUsedStep: 'lastUsedStep',
+  userId: 'userId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type TwoFactorMethodScalarFieldEnum = (typeof TwoFactorMethodScalarFieldEnum)[keyof typeof TwoFactorMethodScalarFieldEnum]
+
+
+export const TwoFactorRecoveryCodeScalarFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  usedAt: 'usedAt',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type TwoFactorRecoveryCodeScalarFieldEnum = (typeof TwoFactorRecoveryCodeScalarFieldEnum)[keyof typeof TwoFactorRecoveryCodeScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
@@ -381,7 +410,8 @@ export type TicketOrderByRelevanceFieldEnum = (typeof TicketOrderByRelevanceFiel
 export const UserOrderByRelevanceFieldEnum = {
   name: 'name',
   email: 'email',
-  passwordHash: 'passwordHash'
+  passwordHash: 'passwordHash',
+  phoneNumber: 'phoneNumber'
 } as const
 
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
@@ -420,6 +450,20 @@ export const OneTimeTokenOrderByRelevanceFieldEnum = {
 } as const
 
 export type OneTimeTokenOrderByRelevanceFieldEnum = (typeof OneTimeTokenOrderByRelevanceFieldEnum)[keyof typeof OneTimeTokenOrderByRelevanceFieldEnum]
+
+
+export const TwoFactorMethodOrderByRelevanceFieldEnum = {
+  secret: 'secret'
+} as const
+
+export type TwoFactorMethodOrderByRelevanceFieldEnum = (typeof TwoFactorMethodOrderByRelevanceFieldEnum)[keyof typeof TwoFactorMethodOrderByRelevanceFieldEnum]
+
+
+export const TwoFactorRecoveryCodeOrderByRelevanceFieldEnum = {
+  codeHash: 'codeHash'
+} as const
+
+export type TwoFactorRecoveryCodeOrderByRelevanceFieldEnum = (typeof TwoFactorRecoveryCodeOrderByRelevanceFieldEnum)[keyof typeof TwoFactorRecoveryCodeOrderByRelevanceFieldEnum]
 
 
 export const RoleOrderByRelevanceFieldEnum = {

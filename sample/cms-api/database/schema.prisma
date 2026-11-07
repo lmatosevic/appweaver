@@ -158,27 +158,30 @@ model Tag {
 }
 
 model User {
-  id            Int               @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   firstName     String
   lastName      String
-  email         String            @unique
+  email         String    @unique
   phone         String?
   displayName   String?
   bio           String?
   website       String?
   internalNotes String?
   passwordHash  String?
-  verifiedEmail Boolean           @default(false)
-  twoFactorAuth UserTwoFactorAuth @default(None)
-  enabled       Boolean           @default(true)
+  verifiedEmail Boolean   @default(false)
+  phoneNumber   String?
+  verifiedPhone Boolean   @default(false)
+  enabled       Boolean   @default(true)
   logoutAt      DateTime?
 
   /// Related columns
-  posts             Post[]             @relation("PostAuthorUser")
-  pages             Page[]             @relation("PageAuthorUser")
-  roles             Role[]             @relation("UserRolesRole")
-  apiKeys           ApiKey[]           @relation("UserApiKeysApiKey")
-  connectedAccounts ConnectedAccount[] @relation("UserConnectedAccountsConnectedAccount")
+  posts                  Post[]                  @relation("PostAuthorUser")
+  pages                  Page[]                  @relation("PageAuthorUser")
+  roles                  Role[]                  @relation("UserRolesRole")
+  apiKeys                ApiKey[]                @relation("UserApiKeysApiKey")
+  twoFactorMethods       TwoFactorMethod[]       @relation("UserTwoFactorMethodsTwoFactorMethod")
+  twoFactorRecoveryCodes TwoFactorRecoveryCode[] @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode")
+  connectedAccounts      ConnectedAccount[]      @relation("UserConnectedAccountsConnectedAccount")
 
   /// File columns
   avatar   File? @relation("UserAvatarFile", fields: [avatarId], references: [id])
@@ -265,6 +268,40 @@ model OneTimeToken {
   createdAt DateTime @default(now())
 
   @@index([expiresAt])
+}
+
+model TwoFactorMethod {
+  id           Int                 @id @default(autoincrement())
+  type         TwoFactorMethodType
+  priority     Int                 @default(0)
+  secret       String?
+  confirmedAt  DateTime?
+  lastUsedStep Int?
+
+  /// Related columns
+  user   User @relation("UserTwoFactorMethodsTwoFactorMethod", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([userId, type])
+}
+
+model TwoFactorRecoveryCode {
+  id       Int       @id @default(autoincrement())
+  codeHash String    @unique
+  usedAt   DateTime?
+
+  /// Related columns
+  user   User @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  /// Audit columns
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Role {
@@ -365,7 +402,8 @@ enum PostStatus {
   Archived
 }
 
-enum UserTwoFactorAuth {
-  None
+enum TwoFactorMethodType {
   Email
+  Sms
+  Totp
 }

@@ -5,6 +5,10 @@ import { define } from '@appweaver/core';
 import { errorHandler } from '../../../errors/error-handler';
 import { ProblemDetailsSchema } from '../../../errors';
 import { AuthService } from '../../../security/auth-service';
+import {
+  AuthenticationResponse,
+  ExchangeTokenRequest
+} from '../../../security/auth-schema';
 import { OAuth2Service } from '../../../security/oauth2/oauth2-service';
 import {
   createOAuth2Plugin,
@@ -49,6 +53,9 @@ function createTestServer(): Server {
   }) as unknown as Server;
 
   server.addSchema(ProblemDetailsSchema);
+  // The schemas of the exchange-token route an enabled provider registers
+  server.addSchema(ExchangeTokenRequest);
+  server.addSchema(AuthenticationResponse);
   server.setErrorHandler(errorHandler);
 
   return server;
@@ -123,7 +130,31 @@ describe('createOAuth2Plugin', () => {
     await server.ready();
 
     expect(server[AuthSource.OAuth2Google]).toBeUndefined();
+    expect(
+      server.hasRoute({ method: 'POST', url: '/auth/exchange-token' })
+    ).toBe(false);
     await server.close();
+  });
+
+  test('should register the exchange of its one-time tokens once with every provider', async () => {
+    const both = createTestServer();
+    for (const source of [AuthSource.OAuth2Google, AuthSource.OAuth2Github]) {
+      both.register(
+        createOAuth2Plugin(source, {
+          enabled: true,
+          clientId: 'client-id',
+          clientSecret: 'client-secret',
+          scope: [],
+          extractUserInfo: async () => userInfo
+        })
+      );
+    }
+    await both.ready();
+
+    expect(both.hasRoute({ method: 'POST', url: '/auth/exchange-token' })).toBe(
+      true
+    );
+    await both.close();
   });
 
   test('should fail to register when the client credentials are missing', async () => {

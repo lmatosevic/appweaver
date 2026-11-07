@@ -22,13 +22,15 @@ export enum AuthOTTPurpose {
   Authentication = 'authentication',
   OAuth2State = 'oauth2state',
   TwoFAVerification = '2faVerification',
+  PhoneVerification = 'phoneVerification',
   EmailVerification = 'emailVerification',
   PasswordReset = 'passwordReset'
 }
 
-export enum TwoFactorAuth {
-  None = 'None',
-  Email = 'Email'
+export enum TwoFactorMethodType {
+  Email = 'Email',
+  Sms = 'Sms',
+  Totp = 'Totp' // RFC 6238
 }
 
 export enum AuthScope {

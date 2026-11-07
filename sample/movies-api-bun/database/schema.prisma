@@ -150,14 +150,15 @@ model Review {
 }
 
 model User {
-  id            Int               @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   displayName   String
-  email         String            @unique
+  email         String    @unique
   bio           String?
   passwordHash  String?
-  verifiedEmail Boolean           @default(false)
-  twoFactorAuth UserTwoFactorAuth @default(None)
-  enabled       Boolean           @default(true)
+  verifiedEmail Boolean   @default(false)
+  phoneNumber   String?
+  verifiedPhone Boolean   @default(false)
+  enabled       Boolean   @default(true)
   logoutAt      DateTime?
 
   /// Related columns
@@ -326,11 +327,6 @@ enum PersonKnownFor {
   Writing
   Producing
   Music
-}
-
-enum UserTwoFactorAuth {
-  None
-  Email
 }
 
 enum WatchlistEntryStatus {

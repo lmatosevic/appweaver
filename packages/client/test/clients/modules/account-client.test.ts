@@ -97,30 +97,46 @@ describe('account-client', () => {
     });
   });
 
-  describe('send2FACode', () => {
-    test('posts the payload to the send 2FA code path', async () => {
-      const { stub, account } = createAccount();
+  describe('sendVerifyPhone', () => {
+    test('posts the phone number to the send verify phone path', async () => {
+      const { stub, account } = createAccount({ challengeId: 'challenge' });
 
-      await account.send2FACode({ email: 'user@test.com' });
+      await expect(
+        account.sendVerifyPhone({ phoneNumber: '+385911234567' })
+      ).resolves.toEqual({ challengeId: 'challenge' });
 
       expect(stub.lastCall()).toMatchObject({
         method: 'post',
-        path: '/auth/account/send-2fa-code'
+        path: '/auth/account/send-verify-phone'
       });
+      expect(stub.lastCall().params.body).toEqual({
+        phoneNumber: '+385911234567'
+      });
+    });
+
+    test('posts an empty body for the phone number of the user', async () => {
+      const { stub, account } = createAccount({ challengeId: 'challenge' });
+
+      await account.sendVerifyPhone();
+
+      expect(stub.lastCall().params.body).toEqual({});
     });
   });
 
-  describe('verify2FACode', () => {
-    test('posts the 2FA code', async () => {
+  describe('verifyPhone', () => {
+    test('posts the code of the challenge', async () => {
       const { stub, account } = createAccount();
 
-      await account.verify2FACode({ code: '123456' });
+      await account.verifyPhone({ challengeId: 'challenge', code: '123456' });
 
       expect(stub.lastCall()).toMatchObject({
         method: 'post',
-        path: '/auth/account/verify-2fa-code'
+        path: '/auth/account/verify-phone'
       });
-      expect(stub.lastCall().params.body).toEqual({ code: '123456' });
+      expect(stub.lastCall().params.body).toEqual({
+        challengeId: 'challenge',
+        code: '123456'
+      });
     });
   });
 });

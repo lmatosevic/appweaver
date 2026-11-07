@@ -37,6 +37,7 @@ describe('basic-auth', () => {
 
   beforeEach(() => {
     resetContext();
+    configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = true;
     authenticate = jest.fn().mockImplementation(async (username, password) => {
       if (username !== 'user@test.com' || password !== 'secret') {
         throw new AuthError(
@@ -135,6 +136,25 @@ describe('basic-auth', () => {
 
     test('rejects a user without the required role', async () => {
       await startServer({ roles: ['Admin'] });
+
+      const response = await getMe(credentials('user@test.com', 'secret'));
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    test('rejects a user with 2FA, whose password alone does not sign in', async () => {
+      authenticate.mockResolvedValue(authUser({ twoFactorMethods: ['Totp'] }));
+      await startServer();
+
+      const response = await getMe(credentials('user@test.com', 'secret'));
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json().code).toBe(ErrorCode.AuthForbidden);
+    });
+
+    test('rejects every user when 2FA is forced', async () => {
+      configOverrides.SECURITY_ACCOUNT_2FA_FORCED = true;
+      await startServer();
 
       const response = await getMe(credentials('user@test.com', 'secret'));
 

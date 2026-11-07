@@ -110,6 +110,10 @@
               "default": "<srcPath>/main.ts",
               "type": "string"
             },
+            "tasksDirPath": {
+              "default": "<srcPath>/tasks",
+              "type": "string"
+            },
             "modulesPattern": {
               "default": "<srcPath>/modules/*/module.ts",
               "type": "string"
@@ -568,6 +572,9 @@
                 "server": {
                   "$ref": "#/definitions/logLevel"
                 },
+                "sms": {
+                  "$ref": "#/definitions/logLevel"
+                },
                 "storage": {
                   "$ref": "#/definitions/logLevel"
                 },
@@ -899,11 +906,23 @@
                   "default": 1800000,
                   "type": "integer"
                 },
+                "verifyPhoneEnabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "verifyPhoneOttTtl": {
+                  "default": 600000,
+                  "type": "integer"
+                },
                 "2fa": {
                   "type": "object",
                   "properties": {
+                    "keepDatabaseTable": {
+                      "default": false,
+                      "type": "boolean"
+                    },
                     "enabled": {
-                      "default": true,
+                      "default": false,
                       "type": "boolean"
                     },
                     "forced": {
@@ -913,6 +932,115 @@
                     "ottTtl": {
                       "default": 300000,
                       "type": "integer"
+                    },
+                    "methods": {
+                      "default": [
+                        "Email",
+                        "Sms",
+                        "Totp"
+                      ],
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "const": "Email",
+                            "type": "string"
+                          },
+                          {
+                            "const": "Sms",
+                            "type": "string"
+                          },
+                          {
+                            "const": "Totp",
+                            "type": "string"
+                          }
+                        ]
+                      }
+                    },
+                    "defaultMethod": {
+                      "default": "Email",
+                      "anyOf": [
+                        {
+                          "const": "Email",
+                          "type": "string"
+                        },
+                        {
+                          "const": "Sms",
+                          "type": "string"
+                        },
+                        {
+                          "const": "Totp",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "codeLength": {
+                      "default": 6,
+                      "minimum": 4,
+                      "maximum": 10,
+                      "type": "integer"
+                    },
+                    "maxAttempts": {
+                      "default": 5,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "recoveryCodes": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "default": true,
+                          "type": "boolean"
+                        },
+                        "count": {
+                          "default": 10,
+                          "minimum": 1,
+                          "maximum": 100,
+                          "type": "integer"
+                        },
+                        "length": {
+                          "default": 16,
+                          "minimum": 8,
+                          "maximum": 128,
+                          "type": "integer"
+                        },
+                        "notifyOnUse": {
+                          "default": true,
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "totp": {
+                      "type": "object",
+                      "properties": {
+                        "issuer": {
+                          "type": "string"
+                        },
+                        "encryptionKey": {
+                          "secret": true,
+                          "type": "string"
+                        },
+                        "digits": {
+                          "default": 6,
+                          "minimum": 6,
+                          "maximum": 8,
+                          "type": "integer"
+                        },
+                        "period": {
+                          "default": 30,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "window": {
+                          "default": 1,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "setupTtl": {
+                          "default": 600000,
+                          "type": "integer"
+                        }
+                      }
                     }
                   }
                 }
@@ -1438,6 +1566,18 @@
             "errorResponseMaxCount": {
               "default": 20,
               "type": "integer"
+            }
+          }
+        },
+        "sms": {
+          "type": "object",
+          "properties": {
+            "sender": {
+              "type": "string"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
             }
           }
         },

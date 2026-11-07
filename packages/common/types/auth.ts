@@ -1,4 +1,4 @@
-import { TwoFactorAuth } from '../enums';
+import { TwoFactorMethodType } from '../enums';
 import { ResourceId } from './resource-id';
 
 export type AuthUser = {
@@ -7,7 +7,11 @@ export type AuthUser = {
   roles: Role[];
   passwordHash?: string | null;
   verifiedEmail?: boolean;
-  twoFactorAuth?: `${TwoFactorAuth}`;
+  /** The verified phone number in the E.164 format, i.e. `+385911234567`, set by the phone verification. */
+  phoneNumber?: string | null;
+  verifiedPhone?: boolean;
+  /** The confirmed two-factor methods of the user, the first one being the default. Empty when 2FA is off. */
+  twoFactorMethods?: `${TwoFactorMethodType}`[];
   enabled?: boolean;
   logoutAt?: Date | null;
   createdAt?: Date;
@@ -29,3 +33,6 @@ export type Permission = {
   id: ResourceId;
   name: string;
 };
+
+/** The method of a 2FA challenge: a method of the user, or one of their recovery codes. */
+export type TwoFactorChallengeMethod = `${TwoFactorMethodType}` | 'Recovery';

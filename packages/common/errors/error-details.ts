@@ -64,6 +64,17 @@ export interface ErrorDetailsMap {
   };
 
   [ErrorCode.AccountFeatureUnavailable]: { feature: string };
+  [ErrorCode.Account2FAMethodUnavailable]: {
+    method: string;
+    availableMethods: string[];
+  };
+  [ErrorCode.Account2FAMethodNotEnabled]: {
+    method?: string;
+    enabledMethods: string[];
+  };
+  [ErrorCode.Account2FAMethodAlreadyEnabled]: { method: string };
+  [ErrorCode.Account2FACodeInvalid]: { attemptsLeft: number };
+  [ErrorCode.Account2FATooManyAttempts]: { maxAttempts: number };
 
   [ErrorCode.OAuth2ProviderError]: { provider: string; status?: number };
   [ErrorCode.OAuth2EmailUnavailable]: { provider: string };
@@ -89,6 +100,12 @@ export interface ErrorDetailsMap {
   [ErrorCode.QueueUnavailable]: { queue: string };
 
   [ErrorCode.MailerSendFailed]: { subject?: string };
+
+  [ErrorCode.SmsSendFailed]: {
+    provider: string;
+    status?: number;
+    providerCode?: string | number;
+  };
 
   [ErrorCode.TemplateNotFound]: { template: string; locale?: string };
   [ErrorCode.TemplateRenderFailed]: { template: string };

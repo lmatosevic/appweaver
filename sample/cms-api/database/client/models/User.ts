@@ -50,7 +50,8 @@ export type UserMinAggregateOutputType = {
   internalNotes: string | null
   passwordHash: string | null
   verifiedEmail: boolean | null
-  twoFactorAuth: $Enums.UserTwoFactorAuth | null
+  phoneNumber: string | null
+  verifiedPhone: boolean | null
   enabled: boolean | null
   logoutAt: Date | null
   avatarId: number | null
@@ -71,7 +72,8 @@ export type UserMaxAggregateOutputType = {
   internalNotes: string | null
   passwordHash: string | null
   verifiedEmail: boolean | null
-  twoFactorAuth: $Enums.UserTwoFactorAuth | null
+  phoneNumber: string | null
+  verifiedPhone: boolean | null
   enabled: boolean | null
   logoutAt: Date | null
   avatarId: number | null
@@ -92,7 +94,8 @@ export type UserCountAggregateOutputType = {
   internalNotes: number
   passwordHash: number
   verifiedEmail: number
-  twoFactorAuth: number
+  phoneNumber: number
+  verifiedPhone: number
   enabled: number
   logoutAt: number
   avatarId: number
@@ -127,7 +130,8 @@ export type UserMinAggregateInputType = {
   internalNotes?: true
   passwordHash?: true
   verifiedEmail?: true
-  twoFactorAuth?: true
+  phoneNumber?: true
+  verifiedPhone?: true
   enabled?: true
   logoutAt?: true
   avatarId?: true
@@ -148,7 +152,8 @@ export type UserMaxAggregateInputType = {
   internalNotes?: true
   passwordHash?: true
   verifiedEmail?: true
-  twoFactorAuth?: true
+  phoneNumber?: true
+  verifiedPhone?: true
   enabled?: true
   logoutAt?: true
   avatarId?: true
@@ -169,7 +174,8 @@ export type UserCountAggregateInputType = {
   internalNotes?: true
   passwordHash?: true
   verifiedEmail?: true
-  twoFactorAuth?: true
+  phoneNumber?: true
+  verifiedPhone?: true
   enabled?: true
   logoutAt?: true
   avatarId?: true
@@ -277,7 +283,8 @@ export type UserGroupByOutputType = {
   internalNotes: string | null
   passwordHash: string | null
   verifiedEmail: boolean
-  twoFactorAuth: $Enums.UserTwoFactorAuth
+  phoneNumber: string | null
+  verifiedPhone: boolean
   enabled: boolean
   logoutAt: Date | null
   avatarId: number | null
@@ -321,7 +328,8 @@ export type UserWhereInput = {
   internalNotes?: Prisma.StringNullableFilter<"User"> | string | null
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   avatarId?: Prisma.IntNullableFilter<"User"> | number | null
@@ -332,6 +340,8 @@ export type UserWhereInput = {
   pages?: Prisma.PageListRelationFilter
   roles?: Prisma.RoleListRelationFilter
   apiKeys?: Prisma.ApiKeyListRelationFilter
+  twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   connectedAccounts?: Prisma.ConnectedAccountListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   createdCategories?: Prisma.CategoryListRelationFilter
@@ -362,7 +372,8 @@ export type UserOrderByWithRelationInput = {
   internalNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
   avatarId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -373,6 +384,8 @@ export type UserOrderByWithRelationInput = {
   pages?: Prisma.PageOrderByRelationAggregateInput
   roles?: Prisma.RoleOrderByRelationAggregateInput
   apiKeys?: Prisma.ApiKeyOrderByRelationAggregateInput
+  twoFactorMethods?: Prisma.TwoFactorMethodOrderByRelationAggregateInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeOrderByRelationAggregateInput
   connectedAccounts?: Prisma.ConnectedAccountOrderByRelationAggregateInput
   avatar?: Prisma.FileOrderByWithRelationInput
   createdCategories?: Prisma.CategoryOrderByRelationAggregateInput
@@ -407,7 +420,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   internalNotes?: Prisma.StringNullableFilter<"User"> | string | null
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -417,6 +431,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   pages?: Prisma.PageListRelationFilter
   roles?: Prisma.RoleListRelationFilter
   apiKeys?: Prisma.ApiKeyListRelationFilter
+  twoFactorMethods?: Prisma.TwoFactorMethodListRelationFilter
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeListRelationFilter
   connectedAccounts?: Prisma.ConnectedAccountListRelationFilter
   avatar?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   createdCategories?: Prisma.CategoryListRelationFilter
@@ -447,7 +463,8 @@ export type UserOrderByWithAggregationInput = {
   internalNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
   avatarId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -476,7 +493,8 @@ export type UserScalarWhereWithAggregatesInput = {
   internalNotes?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   passwordHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthWithAggregatesFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   enabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   avatarId?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
@@ -496,7 +514,8 @@ export type UserCreateInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -505,6 +524,8 @@ export type UserCreateInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -535,7 +556,8 @@ export type UserUncheckedCreateInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -546,6 +568,8 @@ export type UserUncheckedCreateInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -573,7 +597,8 @@ export type UserUpdateInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -582,6 +607,8 @@ export type UserUpdateInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -612,7 +639,8 @@ export type UserUncheckedUpdateInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -623,6 +651,8 @@ export type UserUncheckedUpdateInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -651,7 +681,8 @@ export type UserCreateManyInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -671,7 +702,8 @@ export type UserUpdateManyMutationInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -690,7 +722,8 @@ export type UserUncheckedUpdateManyInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -726,7 +759,8 @@ export type UserCountOrderByAggregateInput = {
   internalNotes?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
   avatarId?: Prisma.SortOrder
@@ -753,7 +787,8 @@ export type UserMaxOrderByAggregateInput = {
   internalNotes?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
   avatarId?: Prisma.SortOrder
@@ -774,7 +809,8 @@ export type UserMinOrderByAggregateInput = {
   internalNotes?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  twoFactorAuth?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
   avatarId?: Prisma.SortOrder
@@ -958,10 +994,6 @@ export type UserUncheckedCreateNestedManyWithoutCreatedByInput = {
   connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
 }
 
-export type EnumUserTwoFactorAuthFieldUpdateOperationsInput = {
-  set?: $Enums.UserTwoFactorAuth
-}
-
 export type UserUpdateManyWithoutCreatedByNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedByInput, Prisma.UserUncheckedCreateWithoutCreatedByInput> | Prisma.UserCreateWithoutCreatedByInput[] | Prisma.UserUncheckedCreateWithoutCreatedByInput[]
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedByInput | Prisma.UserCreateOrConnectWithoutCreatedByInput[]
@@ -1042,6 +1074,34 @@ export type UserUpdateOneRequiredWithoutConnectedAccountsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutConnectedAccountsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutConnectedAccountsInput, Prisma.UserUpdateWithoutConnectedAccountsInput>, Prisma.UserUncheckedUpdateWithoutConnectedAccountsInput>
+}
+
+export type UserCreateNestedOneWithoutTwoFactorMethodsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedCreateWithoutTwoFactorMethodsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorMethodsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTwoFactorMethodsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedCreateWithoutTwoFactorMethodsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorMethodsInput
+  upsert?: Prisma.UserUpsertWithoutTwoFactorMethodsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTwoFactorMethodsInput, Prisma.UserUpdateWithoutTwoFactorMethodsInput>, Prisma.UserUncheckedUpdateWithoutTwoFactorMethodsInput>
+}
+
+export type UserCreateNestedOneWithoutTwoFactorRecoveryCodesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTwoFactorRecoveryCodesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput
+  upsert?: Prisma.UserUpsertWithoutTwoFactorRecoveryCodesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTwoFactorRecoveryCodesInput, Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput>, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
 }
 
 export type UserCreateNestedManyWithoutRolesInput = {
@@ -1199,7 +1259,8 @@ export type UserCreateWithoutCreatedCategoriesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1208,6 +1269,8 @@ export type UserCreateWithoutCreatedCategoriesInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdComments?: Prisma.CommentCreateNestedManyWithoutCreatedByInput
@@ -1237,7 +1300,8 @@ export type UserUncheckedCreateWithoutCreatedCategoriesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1248,6 +1312,8 @@ export type UserUncheckedCreateWithoutCreatedCategoriesInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
   createdPages?: Prisma.PageUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1290,7 +1356,8 @@ export type UserUpdateWithoutCreatedCategoriesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1299,6 +1366,8 @@ export type UserUpdateWithoutCreatedCategoriesInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdComments?: Prisma.CommentUpdateManyWithoutCreatedByNestedInput
@@ -1328,7 +1397,8 @@ export type UserUncheckedUpdateWithoutCreatedCategoriesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1339,6 +1409,8 @@ export type UserUncheckedUpdateWithoutCreatedCategoriesInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPages?: Prisma.PageUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1365,7 +1437,8 @@ export type UserCreateWithoutCreatedCommentsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1374,6 +1447,8 @@ export type UserCreateWithoutCreatedCommentsInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -1403,7 +1478,8 @@ export type UserUncheckedCreateWithoutCreatedCommentsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1414,6 +1490,8 @@ export type UserUncheckedCreateWithoutCreatedCommentsInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdPages?: Prisma.PageUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1445,7 +1523,8 @@ export type UserCreateWithoutDeletedCommentsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1454,6 +1533,8 @@ export type UserCreateWithoutDeletedCommentsInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -1483,7 +1564,8 @@ export type UserUncheckedCreateWithoutDeletedCommentsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1494,6 +1576,8 @@ export type UserUncheckedCreateWithoutDeletedCommentsInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1536,7 +1620,8 @@ export type UserUpdateWithoutCreatedCommentsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1545,6 +1630,8 @@ export type UserUpdateWithoutCreatedCommentsInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -1574,7 +1661,8 @@ export type UserUncheckedUpdateWithoutCreatedCommentsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1585,6 +1673,8 @@ export type UserUncheckedUpdateWithoutCreatedCommentsInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPages?: Prisma.PageUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1622,7 +1712,8 @@ export type UserUpdateWithoutDeletedCommentsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1631,6 +1722,8 @@ export type UserUpdateWithoutDeletedCommentsInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -1660,7 +1753,8 @@ export type UserUncheckedUpdateWithoutDeletedCommentsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1671,6 +1765,8 @@ export type UserUncheckedUpdateWithoutDeletedCommentsInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1697,7 +1793,8 @@ export type UserCreateWithoutPagesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1705,6 +1802,8 @@ export type UserCreateWithoutPagesInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -1735,7 +1834,8 @@ export type UserUncheckedCreateWithoutPagesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1745,6 +1845,8 @@ export type UserUncheckedCreateWithoutPagesInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1777,7 +1879,8 @@ export type UserCreateWithoutCreatedPagesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -1786,6 +1889,8 @@ export type UserCreateWithoutCreatedPagesInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -1815,7 +1920,8 @@ export type UserUncheckedCreateWithoutCreatedPagesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -1826,6 +1932,8 @@ export type UserUncheckedCreateWithoutCreatedPagesInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1868,7 +1976,8 @@ export type UserUpdateWithoutPagesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1876,6 +1985,8 @@ export type UserUpdateWithoutPagesInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -1906,7 +2017,8 @@ export type UserUncheckedUpdateWithoutPagesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1916,6 +2028,8 @@ export type UserUncheckedUpdateWithoutPagesInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1954,7 +2068,8 @@ export type UserUpdateWithoutCreatedPagesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1963,6 +2078,8 @@ export type UserUpdateWithoutCreatedPagesInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -1992,7 +2109,8 @@ export type UserUncheckedUpdateWithoutCreatedPagesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2003,6 +2121,8 @@ export type UserUncheckedUpdateWithoutCreatedPagesInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2029,7 +2149,8 @@ export type UserCreateWithoutPostsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2037,6 +2158,8 @@ export type UserCreateWithoutPostsInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2067,7 +2190,8 @@ export type UserUncheckedCreateWithoutPostsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2077,6 +2201,8 @@ export type UserUncheckedCreateWithoutPostsInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2109,7 +2235,8 @@ export type UserCreateWithoutCreatedPostsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2118,6 +2245,8 @@ export type UserCreateWithoutCreatedPostsInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2147,7 +2276,8 @@ export type UserUncheckedCreateWithoutCreatedPostsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2158,6 +2288,8 @@ export type UserUncheckedCreateWithoutCreatedPostsInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2189,7 +2321,8 @@ export type UserCreateWithoutDeletedPostsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2198,6 +2331,8 @@ export type UserCreateWithoutDeletedPostsInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2227,7 +2362,8 @@ export type UserUncheckedCreateWithoutDeletedPostsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2238,6 +2374,8 @@ export type UserUncheckedCreateWithoutDeletedPostsInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2280,7 +2418,8 @@ export type UserUpdateWithoutPostsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2288,6 +2427,8 @@ export type UserUpdateWithoutPostsInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2318,7 +2459,8 @@ export type UserUncheckedUpdateWithoutPostsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2328,6 +2470,8 @@ export type UserUncheckedUpdateWithoutPostsInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2366,7 +2510,8 @@ export type UserUpdateWithoutCreatedPostsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2375,6 +2520,8 @@ export type UserUpdateWithoutCreatedPostsInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2404,7 +2551,8 @@ export type UserUncheckedUpdateWithoutCreatedPostsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2415,6 +2563,8 @@ export type UserUncheckedUpdateWithoutCreatedPostsInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2452,7 +2602,8 @@ export type UserUpdateWithoutDeletedPostsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2461,6 +2612,8 @@ export type UserUpdateWithoutDeletedPostsInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2490,7 +2643,8 @@ export type UserUncheckedUpdateWithoutDeletedPostsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2501,6 +2655,8 @@ export type UserUncheckedUpdateWithoutDeletedPostsInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2527,7 +2683,8 @@ export type UserCreateWithoutCreatedTagsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2536,6 +2693,8 @@ export type UserCreateWithoutCreatedTagsInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2565,7 +2724,8 @@ export type UserUncheckedCreateWithoutCreatedTagsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2576,6 +2736,8 @@ export type UserUncheckedCreateWithoutCreatedTagsInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2618,7 +2780,8 @@ export type UserUpdateWithoutCreatedTagsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2627,6 +2790,8 @@ export type UserUpdateWithoutCreatedTagsInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2656,7 +2821,8 @@ export type UserUncheckedUpdateWithoutCreatedTagsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2667,6 +2833,8 @@ export type UserUncheckedUpdateWithoutCreatedTagsInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2693,7 +2861,8 @@ export type UserCreateWithoutCreatedByInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2702,6 +2871,8 @@ export type UserCreateWithoutCreatedByInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2731,7 +2902,8 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2741,6 +2913,8 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2777,7 +2951,8 @@ export type UserCreateWithoutCreatedUsersInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2786,6 +2961,8 @@ export type UserCreateWithoutCreatedUsersInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -2815,7 +2992,8 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -2826,6 +3004,8 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2877,7 +3057,8 @@ export type UserScalarWhereInput = {
   internalNotes?: Prisma.StringNullableFilter<"User"> | string | null
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFilter<"User"> | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   avatarId?: Prisma.IntNullableFilter<"User"> | number | null
@@ -2908,7 +3089,8 @@ export type UserUpdateWithoutCreatedUsersInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2917,6 +3099,8 @@ export type UserUpdateWithoutCreatedUsersInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -2946,7 +3130,8 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2957,6 +3142,8 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2983,7 +3170,8 @@ export type UserCreateWithoutApiKeysInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -2991,6 +3179,8 @@ export type UserCreateWithoutApiKeysInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3021,7 +3211,8 @@ export type UserUncheckedCreateWithoutApiKeysInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -3031,6 +3222,8 @@ export type UserUncheckedCreateWithoutApiKeysInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3063,7 +3256,8 @@ export type UserCreateWithoutCreatedApiKeysInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3072,6 +3266,8 @@ export type UserCreateWithoutCreatedApiKeysInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3101,7 +3297,8 @@ export type UserUncheckedCreateWithoutCreatedApiKeysInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -3112,6 +3309,8 @@ export type UserUncheckedCreateWithoutCreatedApiKeysInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3154,7 +3353,8 @@ export type UserUpdateWithoutApiKeysInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3162,6 +3362,8 @@ export type UserUpdateWithoutApiKeysInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -3192,7 +3394,8 @@ export type UserUncheckedUpdateWithoutApiKeysInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -3202,6 +3405,8 @@ export type UserUncheckedUpdateWithoutApiKeysInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3240,7 +3445,8 @@ export type UserUpdateWithoutCreatedApiKeysInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3249,6 +3455,8 @@ export type UserUpdateWithoutCreatedApiKeysInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -3278,7 +3486,8 @@ export type UserUncheckedUpdateWithoutCreatedApiKeysInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -3289,6 +3498,8 @@ export type UserUncheckedUpdateWithoutCreatedApiKeysInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3315,7 +3526,8 @@ export type UserCreateWithoutConnectedAccountsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3324,6 +3536,8 @@ export type UserCreateWithoutConnectedAccountsInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentCreateNestedManyWithoutCreatedByInput
@@ -3353,7 +3567,8 @@ export type UserUncheckedCreateWithoutConnectedAccountsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -3364,6 +3579,8 @@ export type UserUncheckedCreateWithoutConnectedAccountsInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
   createdPages?: Prisma.PageUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3406,7 +3623,8 @@ export type UserUpdateWithoutConnectedAccountsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3415,6 +3633,8 @@ export type UserUpdateWithoutConnectedAccountsInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUpdateManyWithoutCreatedByNestedInput
@@ -3444,7 +3664,8 @@ export type UserUncheckedUpdateWithoutConnectedAccountsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -3455,6 +3676,364 @@ export type UserUncheckedUpdateWithoutConnectedAccountsInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+  createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPages?: Prisma.PageUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdTags?: Prisma.TagUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
+}
+
+export type UserCreateWithoutTwoFactorMethodsInput = {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  displayName?: string | null
+  bio?: string | null
+  website?: string | null
+  internalNotes?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
+  pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
+  connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
+  createdComments?: Prisma.CommentCreateNestedManyWithoutCreatedByInput
+  createdPages?: Prisma.PageCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
+  createdTags?: Prisma.TagCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutTwoFactorMethodsInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  displayName?: string | null
+  bio?: string | null
+  website?: string | null
+  internalNotes?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
+  pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
+  connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
+  createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
+  createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPages?: Prisma.PageUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
+  createdTags?: Prisma.TagUncheckedCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
+}
+
+export type UserCreateOrConnectWithoutTwoFactorMethodsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedCreateWithoutTwoFactorMethodsInput>
+}
+
+export type UserUpsertWithoutTwoFactorMethodsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedUpdateWithoutTwoFactorMethodsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedCreateWithoutTwoFactorMethodsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTwoFactorMethodsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorMethodsInput, Prisma.UserUncheckedUpdateWithoutTwoFactorMethodsInput>
+}
+
+export type UserUpdateWithoutTwoFactorMethodsInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
+  pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
+  connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
+  createdComments?: Prisma.CommentUpdateManyWithoutCreatedByNestedInput
+  createdPages?: Prisma.PageUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
+  createdTags?: Prisma.TagUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTwoFactorMethodsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
+  pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
+  connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
+  createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPages?: Prisma.PageUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdTags?: Prisma.TagUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUncheckedUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUncheckedUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUncheckedUpdateManyWithoutDeletedByNestedInput
+}
+
+export type UserCreateWithoutTwoFactorRecoveryCodesInput = {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  displayName?: string | null
+  bio?: string | null
+  website?: string | null
+  internalNotes?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
+  pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
+  avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
+  createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
+  createdComments?: Prisma.CommentCreateNestedManyWithoutCreatedByInput
+  createdPages?: Prisma.PageCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostCreateNestedManyWithoutCreatedByInput
+  createdTags?: Prisma.TagCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileCreateNestedManyWithoutDeletedByInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutCreatedUsersInput
+}
+
+export type UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput = {
+  id?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  displayName?: string | null
+  bio?: string | null
+  website?: string | null
+  internalNotes?: string | null
+  passwordHash?: string | null
+  verifiedEmail?: boolean
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
+  enabled?: boolean
+  logoutAt?: Date | string | null
+  avatarId?: number | null
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  createdById?: number | null
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
+  pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
+  apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
+  createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
+  createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPages?: Prisma.PageUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPosts?: Prisma.PostUncheckedCreateNestedManyWithoutCreatedByInput
+  createdTags?: Prisma.TagUncheckedCreateNestedManyWithoutCreatedByInput
+  createdUsers?: Prisma.UserUncheckedCreateNestedManyWithoutCreatedByInput
+  createdApiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
+  createdRoles?: Prisma.RoleUncheckedCreateNestedManyWithoutCreatedByInput
+  createdPermissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutCreatedByInput
+  createdFiles?: Prisma.FileUncheckedCreateNestedManyWithoutCreatedByInput
+  deletedComments?: Prisma.CommentUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedPosts?: Prisma.PostUncheckedCreateNestedManyWithoutDeletedByInput
+  deletedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutDeletedByInput
+}
+
+export type UserCreateOrConnectWithoutTwoFactorRecoveryCodesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+}
+
+export type UserUpsertWithoutTwoFactorRecoveryCodesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTwoFactorRecoveryCodesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTwoFactorRecoveryCodesInput, Prisma.UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput>
+}
+
+export type UserUpdateWithoutTwoFactorRecoveryCodesInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
+  pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
+  avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
+  createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
+  createdComments?: Prisma.CommentUpdateManyWithoutCreatedByNestedInput
+  createdPages?: Prisma.PageUpdateManyWithoutCreatedByNestedInput
+  createdPosts?: Prisma.PostUpdateManyWithoutCreatedByNestedInput
+  createdTags?: Prisma.TagUpdateManyWithoutCreatedByNestedInput
+  createdUsers?: Prisma.UserUpdateManyWithoutCreatedByNestedInput
+  createdApiKeys?: Prisma.ApiKeyUpdateManyWithoutCreatedByNestedInput
+  createdRoles?: Prisma.RoleUpdateManyWithoutCreatedByNestedInput
+  createdPermissions?: Prisma.PermissionUpdateManyWithoutCreatedByNestedInput
+  createdFiles?: Prisma.FileUpdateManyWithoutCreatedByNestedInput
+  deletedComments?: Prisma.CommentUpdateManyWithoutDeletedByNestedInput
+  deletedPosts?: Prisma.PostUpdateManyWithoutDeletedByNestedInput
+  deletedFiles?: Prisma.FileUpdateManyWithoutDeletedByNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutCreatedUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
+  pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
+  apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdPages?: Prisma.PageUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3481,7 +4060,8 @@ export type UserCreateWithoutRolesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3489,6 +4069,8 @@ export type UserCreateWithoutRolesInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3519,7 +4101,8 @@ export type UserUncheckedCreateWithoutRolesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -3529,6 +4112,8 @@ export type UserUncheckedCreateWithoutRolesInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3561,7 +4146,8 @@ export type UserCreateWithoutCreatedRolesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3570,6 +4156,8 @@ export type UserCreateWithoutCreatedRolesInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3599,7 +4187,8 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -3610,6 +4199,8 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3668,7 +4259,8 @@ export type UserUpdateWithoutCreatedRolesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3677,6 +4269,8 @@ export type UserUpdateWithoutCreatedRolesInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -3706,7 +4300,8 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -3717,6 +4312,8 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3743,7 +4340,8 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3752,6 +4350,8 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -3781,7 +4381,8 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -3792,6 +4393,8 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3834,7 +4437,8 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3843,6 +4447,8 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -3872,7 +4478,8 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -3883,6 +4490,8 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3909,7 +4518,8 @@ export type UserCreateWithoutAvatarInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3918,6 +4528,8 @@ export type UserCreateWithoutAvatarInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentCreateNestedManyWithoutCreatedByInput
@@ -3947,7 +4559,8 @@ export type UserUncheckedCreateWithoutAvatarInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -3957,6 +4570,8 @@ export type UserUncheckedCreateWithoutAvatarInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3993,7 +4608,8 @@ export type UserCreateWithoutCreatedFilesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -4002,6 +4618,8 @@ export type UserCreateWithoutCreatedFilesInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -4031,7 +4649,8 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -4042,6 +4661,8 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4073,7 +4694,8 @@ export type UserCreateWithoutDeletedFilesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -4082,6 +4704,8 @@ export type UserCreateWithoutDeletedFilesInput = {
   pages?: Prisma.PageCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountCreateNestedManyWithoutUserInput
   avatar?: Prisma.FileCreateNestedOneWithoutAvatarUsersInput
   createdCategories?: Prisma.CategoryCreateNestedManyWithoutCreatedByInput
@@ -4111,7 +4735,8 @@ export type UserUncheckedCreateWithoutDeletedFilesInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -4122,6 +4747,8 @@ export type UserUncheckedCreateWithoutDeletedFilesInput = {
   pages?: Prisma.PageUncheckedCreateNestedManyWithoutAuthorInput
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutUsersInput
   apiKeys?: Prisma.ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedCreateNestedManyWithoutUserInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedCreateNestedManyWithoutUserInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedCreateNestedManyWithoutUserInput
   createdCategories?: Prisma.CategoryUncheckedCreateNestedManyWithoutCreatedByInput
   createdComments?: Prisma.CommentUncheckedCreateNestedManyWithoutCreatedByInput
@@ -4180,7 +4807,8 @@ export type UserUpdateWithoutCreatedFilesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4189,6 +4817,8 @@ export type UserUpdateWithoutCreatedFilesInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -4218,7 +4848,8 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -4229,6 +4860,8 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4266,7 +4899,8 @@ export type UserUpdateWithoutDeletedFilesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4275,6 +4909,8 @@ export type UserUpdateWithoutDeletedFilesInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -4304,7 +4940,8 @@ export type UserUncheckedUpdateWithoutDeletedFilesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -4315,6 +4952,8 @@ export type UserUncheckedUpdateWithoutDeletedFilesInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4342,7 +4981,8 @@ export type UserCreateManyCreatedByInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   avatarId?: number | null
@@ -4361,7 +5001,8 @@ export type UserUpdateWithoutCreatedByInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4370,6 +5011,8 @@ export type UserUpdateWithoutCreatedByInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -4399,7 +5042,8 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -4409,6 +5053,8 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4437,7 +5083,8 @@ export type UserUncheckedUpdateManyWithoutCreatedByInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -4456,7 +5103,8 @@ export type UserUpdateWithoutRolesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4464,6 +5112,8 @@ export type UserUpdateWithoutRolesInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   avatar?: Prisma.FileUpdateOneWithoutAvatarUsersNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
@@ -4494,7 +5144,8 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -4504,6 +5155,8 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4532,7 +5185,8 @@ export type UserUncheckedUpdateManyWithoutRolesInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   avatarId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -4553,7 +5207,8 @@ export type UserCreateManyAvatarInput = {
   internalNotes?: string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  twoFactorAuth?: $Enums.UserTwoFactorAuth
+  phoneNumber?: string | null
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
   updatedAt?: Date | string
@@ -4572,7 +5227,8 @@ export type UserUpdateWithoutAvatarInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4581,6 +5237,8 @@ export type UserUpdateWithoutAvatarInput = {
   pages?: Prisma.PageUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUpdateManyWithoutCreatedByNestedInput
@@ -4610,7 +5268,8 @@ export type UserUncheckedUpdateWithoutAvatarInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4620,6 +5279,8 @@ export type UserUncheckedUpdateWithoutAvatarInput = {
   pages?: Prisma.PageUncheckedUpdateManyWithoutAuthorNestedInput
   roles?: Prisma.RoleUncheckedUpdateManyWithoutUsersNestedInput
   apiKeys?: Prisma.ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorMethods?: Prisma.TwoFactorMethodUncheckedUpdateManyWithoutUserNestedInput
+  twoFactorRecoveryCodes?: Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyWithoutUserNestedInput
   connectedAccounts?: Prisma.ConnectedAccountUncheckedUpdateManyWithoutUserNestedInput
   createdCategories?: Prisma.CategoryUncheckedUpdateManyWithoutCreatedByNestedInput
   createdComments?: Prisma.CommentUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -4648,7 +5309,8 @@ export type UserUncheckedUpdateManyWithoutAvatarInput = {
   internalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  twoFactorAuth?: Prisma.EnumUserTwoFactorAuthFieldUpdateOperationsInput | $Enums.UserTwoFactorAuth
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4666,6 +5328,8 @@ export type UserCountOutputType = {
   pages: number
   roles: number
   apiKeys: number
+  twoFactorMethods: number
+  twoFactorRecoveryCodes: number
   connectedAccounts: number
   createdCategories: number
   createdComments: number
@@ -4687,6 +5351,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   pages?: boolean | UserCountOutputTypeCountPagesArgs
   roles?: boolean | UserCountOutputTypeCountRolesArgs
   apiKeys?: boolean | UserCountOutputTypeCountApiKeysArgs
+  twoFactorMethods?: boolean | UserCountOutputTypeCountTwoFactorMethodsArgs
+  twoFactorRecoveryCodes?: boolean | UserCountOutputTypeCountTwoFactorRecoveryCodesArgs
   connectedAccounts?: boolean | UserCountOutputTypeCountConnectedAccountsArgs
   createdCategories?: boolean | UserCountOutputTypeCountCreatedCategoriesArgs
   createdComments?: boolean | UserCountOutputTypeCountCreatedCommentsArgs
@@ -4739,6 +5405,20 @@ export type UserCountOutputTypeCountRolesArgs<ExtArgs extends runtime.Types.Exte
  */
 export type UserCountOutputTypeCountApiKeysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ApiKeyWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTwoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TwoFactorMethodWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTwoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TwoFactorRecoveryCodeWhereInput
 }
 
 /**
@@ -4852,7 +5532,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   internalNotes?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   avatarId?: boolean
@@ -4863,6 +5544,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   pages?: boolean | Prisma.User$pagesArgs<ExtArgs>
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   apiKeys?: boolean | Prisma.User$apiKeysArgs<ExtArgs>
+  twoFactorMethods?: boolean | Prisma.User$twoFactorMethodsArgs<ExtArgs>
+  twoFactorRecoveryCodes?: boolean | Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>
   connectedAccounts?: boolean | Prisma.User$connectedAccountsArgs<ExtArgs>
   avatar?: boolean | Prisma.User$avatarArgs<ExtArgs>
   createdCategories?: boolean | Prisma.User$createdCategoriesArgs<ExtArgs>
@@ -4894,7 +5577,8 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   internalNotes?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   avatarId?: boolean
@@ -4917,7 +5601,8 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   internalNotes?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   avatarId?: boolean
@@ -4940,7 +5625,8 @@ export type UserSelectScalar = {
   internalNotes?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  twoFactorAuth?: boolean
+  phoneNumber?: boolean
+  verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
   avatarId?: boolean
@@ -4949,12 +5635,14 @@ export type UserSelectScalar = {
   createdById?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "displayName" | "bio" | "website" | "internalNotes" | "passwordHash" | "verifiedEmail" | "twoFactorAuth" | "enabled" | "logoutAt" | "avatarId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "displayName" | "bio" | "website" | "internalNotes" | "passwordHash" | "verifiedEmail" | "phoneNumber" | "verifiedPhone" | "enabled" | "logoutAt" | "avatarId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   posts?: boolean | Prisma.User$postsArgs<ExtArgs>
   pages?: boolean | Prisma.User$pagesArgs<ExtArgs>
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   apiKeys?: boolean | Prisma.User$apiKeysArgs<ExtArgs>
+  twoFactorMethods?: boolean | Prisma.User$twoFactorMethodsArgs<ExtArgs>
+  twoFactorRecoveryCodes?: boolean | Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>
   connectedAccounts?: boolean | Prisma.User$connectedAccountsArgs<ExtArgs>
   avatar?: boolean | Prisma.User$avatarArgs<ExtArgs>
   createdCategories?: boolean | Prisma.User$createdCategoriesArgs<ExtArgs>
@@ -4992,6 +5680,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     pages: Prisma.$PagePayload<ExtArgs>[]
     roles: Prisma.$RolePayload<ExtArgs>[]
     apiKeys: Prisma.$ApiKeyPayload<ExtArgs>[]
+    twoFactorMethods: Prisma.$TwoFactorMethodPayload<ExtArgs>[]
+    twoFactorRecoveryCodes: Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>[]
     connectedAccounts: Prisma.$ConnectedAccountPayload<ExtArgs>[]
     /**
      * File columns
@@ -5030,7 +5720,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     internalNotes: string | null
     passwordHash: string | null
     verifiedEmail: boolean
-    twoFactorAuth: $Enums.UserTwoFactorAuth
+    phoneNumber: string | null
+    verifiedPhone: boolean
     enabled: boolean
     logoutAt: Date | null
     avatarId: number | null
@@ -5438,6 +6129,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   pages<T extends Prisma.User$pagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$pagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   roles<T extends Prisma.User$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   apiKeys<T extends Prisma.User$apiKeysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$apiKeysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  twoFactorMethods<T extends Prisma.User$twoFactorMethodsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$twoFactorMethodsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorMethodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  twoFactorRecoveryCodes<T extends Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$twoFactorRecoveryCodesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   connectedAccounts<T extends Prisma.User$connectedAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$connectedAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConnectedAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   avatar<T extends Prisma.User$avatarArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$avatarArgs<ExtArgs>>): Prisma.Prisma__FileClient<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdCategories<T extends Prisma.User$createdCategoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdCategoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -5494,7 +6187,8 @@ export interface UserFieldRefs {
   readonly internalNotes: Prisma.FieldRef<"User", 'String'>
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly verifiedEmail: Prisma.FieldRef<"User", 'Boolean'>
-  readonly twoFactorAuth: Prisma.FieldRef<"User", 'UserTwoFactorAuth'>
+  readonly phoneNumber: Prisma.FieldRef<"User", 'String'>
+  readonly verifiedPhone: Prisma.FieldRef<"User", 'Boolean'>
   readonly enabled: Prisma.FieldRef<"User", 'Boolean'>
   readonly logoutAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly avatarId: Prisma.FieldRef<"User", 'Int'>
@@ -5993,6 +6687,54 @@ export type User$apiKeysArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.ApiKeyScalarFieldEnum | Prisma.ApiKeyScalarFieldEnum[]
+}
+
+/**
+ * User.twoFactorMethods
+ */
+export type User$twoFactorMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TwoFactorMethod
+   */
+  select?: Prisma.TwoFactorMethodSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TwoFactorMethod
+   */
+  omit?: Prisma.TwoFactorMethodOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TwoFactorMethodInclude<ExtArgs> | null
+  where?: Prisma.TwoFactorMethodWhereInput
+  orderBy?: Prisma.TwoFactorMethodOrderByWithRelationInput | Prisma.TwoFactorMethodOrderByWithRelationInput[]
+  cursor?: Prisma.TwoFactorMethodWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TwoFactorMethodScalarFieldEnum | Prisma.TwoFactorMethodScalarFieldEnum[]
+}
+
+/**
+ * User.twoFactorRecoveryCodes
+ */
+export type User$twoFactorRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TwoFactorRecoveryCode
+   */
+  select?: Prisma.TwoFactorRecoveryCodeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TwoFactorRecoveryCode
+   */
+  omit?: Prisma.TwoFactorRecoveryCodeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TwoFactorRecoveryCodeInclude<ExtArgs> | null
+  where?: Prisma.TwoFactorRecoveryCodeWhereInput
+  orderBy?: Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput | Prisma.TwoFactorRecoveryCodeOrderByWithRelationInput[]
+  cursor?: Prisma.TwoFactorRecoveryCodeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TwoFactorRecoveryCodeScalarFieldEnum | Prisma.TwoFactorRecoveryCodeScalarFieldEnum[]
 }
 
 /**

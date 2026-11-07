@@ -53,8 +53,11 @@ COPY --from=build /usr/app/start.sh /usr/app/start.sh
 # Make start script executable
 RUN chmod +x /usr/app/start.sh
 
-# Create storage, logs, and data directories, writable by the application user
-RUN mkdir storage logs data && chown node:node storage logs data
+# Create storage and logs directories, writable by the application user
+RUN mkdir storage logs && chown node:node storage logs
+
+# Create the directory of the SQLite database, writable by the application user
+RUN mkdir data && chown node:node data
 
 # Run the application as an unprivileged user
 USER node

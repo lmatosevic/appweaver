@@ -28,6 +28,7 @@ const lockedPackages = [
   'nodemailer',
   'handlebars',
   'sharp',
+  'twilio',
   'testing',
   'cli',
   'client',

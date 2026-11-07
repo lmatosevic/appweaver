@@ -18,6 +18,8 @@ import {
   securityConfig,
   turnstileConfig,
   apiKeyRoutesConfig,
+  recoveryCodesConfig,
+  totpConfig,
   twoFactorConfig
 } from './security/security-config';
 import {
@@ -41,6 +43,8 @@ export default defineModule({
     securityConfig,
     accountConfig,
     twoFactorConfig,
+    totpConfig,
+    recoveryCodesConfig,
     recaptchaConfig,
     turnstileConfig,
     apiKeyRoutesConfig,
@@ -61,6 +65,10 @@ export default defineModule({
   loggers: ['resource', 'security', 'server', 'template'],
   services: [
     { load: () => import('./security/auth-service'), requires: [Database] },
+    {
+      load: () => import('./security/two-factor/two-factor-service'),
+      requires: [Database]
+    },
     {
       load: () => import('./security/account/account-service'),
       requires: [Database]

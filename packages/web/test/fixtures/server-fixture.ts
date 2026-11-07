@@ -1,7 +1,7 @@
 import { AsyncResource } from 'node:async_hooks';
 import fastify from 'fastify';
 import { fastifyRequestContext } from '@fastify/request-context';
-import { AuthUser, TwoFactorAuth } from '@appweaver/common';
+import { AuthUser } from '@appweaver/common';
 import { errorHandler } from '../../errors/error-handler';
 import { Server } from '../../types/server';
 import {
@@ -53,7 +53,6 @@ export function authUser(overrides: Partial<AuthUser> = {}): AuthUser {
     email: 'user@test.com',
     enabled: true,
     roles: [],
-    twoFactorAuth: TwoFactorAuth.None,
     ...overrides
   };
 }

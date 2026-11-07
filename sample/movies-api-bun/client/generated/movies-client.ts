@@ -9,9 +9,7 @@ import {
 } from '@appweaver/client';
 
 export class MoviesClient extends FetchClient<paths> {
-  public auth = this.authClient<AuthModuleType>('/auth');
-
-  public account = this.accountClient<AccountModuleType>('/auth/account');
+  public auth = this.authClient<AuthModuleType, ['exchangeToken']>('/auth');
 
   public health = this.healthClient<HealthModuleType>('/health');
 
@@ -19,32 +17,71 @@ export class MoviesClient extends FetchClient<paths> {
 
   public credit = this.resourceClient<
     CreditResourceModuleType,
-    ['aggregate', 'export', 'uploadFiles', 'deleteFiles']
+    [
+      'aggregate',
+      'export',
+      'uploadFiles',
+      'deleteFiles',
+      'bulkCreate',
+      'bulkUpdate',
+      'bulkReplace',
+      'bulkDelete'
+    ]
   >('/api/credits');
 
   public genre = this.resourceClient<
     GenreResourceModuleType,
-    ['aggregate', 'export', 'uploadFiles', 'deleteFiles']
+    [
+      'aggregate',
+      'export',
+      'uploadFiles',
+      'deleteFiles',
+      'bulkCreate',
+      'bulkUpdate',
+      'bulkReplace',
+      'bulkDelete'
+    ]
   >('/api/genres');
 
-  public movie = this.resourceClient<MovieResourceModuleType>('/api/movies');
+  public movie = this.resourceClient<
+    MovieResourceModuleType,
+    ['bulkCreate', 'bulkUpdate', 'bulkReplace', 'bulkDelete']
+  >('/api/movies');
 
-  public person = this.resourceClient<PersonResourceModuleType, ['aggregate']>(
-    '/api/people'
-  );
+  public person = this.resourceClient<
+    PersonResourceModuleType,
+    ['aggregate', 'bulkCreate', 'bulkUpdate', 'bulkReplace', 'bulkDelete']
+  >('/api/people');
 
   public review = this.resourceClient<
     ReviewResourceModuleType,
-    ['uploadFiles', 'deleteFiles']
+    [
+      'uploadFiles',
+      'deleteFiles',
+      'bulkCreate',
+      'bulkUpdate',
+      'bulkReplace',
+      'bulkDelete'
+    ]
   >('/api/reviews');
 
-  public user = this.resourceClient<UserResourceModuleType, ['export']>(
-    '/api/users'
-  );
+  public user = this.resourceClient<
+    UserResourceModuleType,
+    ['export', 'bulkCreate', 'bulkUpdate', 'bulkReplace', 'bulkDelete']
+  >('/api/users');
 
   public watchlistEntry = this.resourceClient<
     WatchlistEntryResourceModuleType,
-    ['aggregate', 'export', 'uploadFiles', 'deleteFiles']
+    [
+      'aggregate',
+      'export',
+      'uploadFiles',
+      'deleteFiles',
+      'bulkCreate',
+      'bulkUpdate',
+      'bulkReplace',
+      'bulkDelete'
+    ]
   >('/api/watchlist');
 
   public info = this.customRequest('get', '/api/');
@@ -67,7 +104,7 @@ export function createClient(config: ClientConfig): MoviesClient {
 export { ClientError };
 
 /** An error response of the API, its `code` typed by the error codes of the API. */
-export type ApiError = ClientError<components['schemas']['def-156']['code']>;
+export type ApiError = ClientError<components['schemas']['def-168']['code']>;
 
 /** Checks whether a caught error is an error response of the API, typing its `code`. */
 export function isApiError(error: unknown): error is ApiError {
@@ -124,6 +161,7 @@ export type paths = {
         403: components['responses']['AuthPasswordDisabledError'];
         429: components['responses']['RateLimitedError'];
         500: components['responses']['InternalError'];
+        503: components['responses']['MemoryUnavailableError'];
       };
     };
     delete?: never;
@@ -260,54 +298,7 @@ export type paths = {
         403: components['responses']['ForbiddenError_1047b6'];
         429: components['responses']['RateLimitedError'];
         500: components['responses']['InternalError'];
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/exchange-token': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Exchange one time token for access token
-     * @description Exchange one time token for access token
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': ExchangeTokenRequest;
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': AuthenticationResponse;
-          };
-        };
-        400: components['responses']['BadRequestError_54cb34'];
-        401: components['responses']['UnauthorizedError_f8f8b5'];
-        409: components['responses']['OAuth2AccountConflictError'];
-        429: components['responses']['RateLimitedError'];
-        500: components['responses']['InternalError'];
+        503: components['responses']['MemoryUnavailableError'];
       };
     };
     delete?: never;
@@ -354,346 +345,6 @@ export type paths = {
     };
     put?: never;
     post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/account/send-verify-email': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Send verification email
-     * @description Send verification email
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': AccountSendEmailVerificationRequest;
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': AccountStatusResponse;
-          };
-        };
-        400: components['responses']['BadRequestError_1b28a6'];
-        401: components['responses']['UnauthorizedError_e72428'];
-        403: components['responses']['ForbiddenError_4e336d'];
-        409: components['responses']['AccountEmailAlreadyVerifiedError'];
-        429: components['responses']['RateLimitedError'];
-        500: components['responses']['InternalError'];
-        501: components['responses']['AccountFeatureUnavailableError'];
-        503: components['responses']['QueueUnavailableError'];
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/account/verify-email': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Verify email token
-     * @description Verify email token
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': AccountEmailVerificationRequest;
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': AccountStatusResponse;
-          };
-        };
-        400: components['responses']['BadRequestError_54cb34'];
-        401: components['responses']['AuthInvalidTokenError'];
-        409: components['responses']['AccountEmailAlreadyVerifiedError'];
-        429: components['responses']['RateLimitedError'];
-        500: components['responses']['InternalError'];
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/account/verify-email-redirect': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Verify email token and redirect to a provided URL with status message
-     * @description Verify email token and redirect to a provided URL with status message
-     */
-    get: {
-      parameters: {
-        query: {
-          /** @description Verification token sent to the user email */
-          token: string;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Redirect to URL provided in the request for sending verification email */
-        302: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': unknown;
-          };
-        };
-        400: components['responses']['BadRequestError_54cb34'];
-        401: components['responses']['AuthInvalidTokenError'];
-        409: components['responses']['AccountEmailAlreadyVerifiedError'];
-        429: components['responses']['RateLimitedError'];
-        500: components['responses']['InternalError'];
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/account/send-reset-password': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Send password reset link to provided email address
-     * @description Send password reset link to provided email address
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': AccountSendResetPasswordRequest;
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': AccountStatusResponse;
-          };
-        };
-        400: components['responses']['BadRequestError_1b28a6'];
-        429: components['responses']['RateLimitedError'];
-        500: components['responses']['InternalError'];
-        501: components['responses']['AccountFeatureUnavailableError'];
-        503: components['responses']['QueueUnavailableError'];
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/account/reset-password': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Reset the user password to a new value
-     * @description Reset the user password to a new value
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': AccountResetPasswordRequest;
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': AccountStatusResponse;
-          };
-        };
-        400: components['responses']['BadRequestError_df2467'];
-        401: components['responses']['AuthInvalidTokenError'];
-        403: components['responses']['AccountPasswordNotSetError'];
-        429: components['responses']['RateLimitedError'];
-        500: components['responses']['InternalError'];
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/account/send-2fa-code': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Send 2FA code for currently logged-in user
-     * @description Send 2FA code for currently logged-in user
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': AccountSend2FACodeRequest;
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': AccountSend2FAResponse;
-          };
-        };
-        400: components['responses']['BadRequestError_a06dd6'];
-        401: components['responses']['UnauthorizedError_e72428'];
-        403: components['responses']['ForbiddenError_4e336d'];
-        429: components['responses']['RateLimitedError'];
-        500: components['responses']['InternalError'];
-        501: components['responses']['AccountFeatureUnavailableError'];
-        503: components['responses']['QueueUnavailableError'];
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/account/verify-2fa-code': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Verify 2FA code for currently logged-in user
-     * @description Verify 2FA code for currently logged-in user
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': AccountVerify2FARequest;
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': AccountVerify2FAResponse;
-          };
-        };
-        400: components['responses']['BadRequestError_54cb34'];
-        401: components['responses']['UnauthorizedError_e72428'];
-        403: components['responses']['ForbiddenError_4e336d'];
-        429: components['responses']['RateLimitedError'];
-        500: components['responses']['InternalError'];
-      };
-    };
     delete?: never;
     options?: never;
     head?: never;
@@ -762,7 +413,7 @@ export type paths = {
     };
     /**
      * Application ready status
-     * @description Application ready status
+     * @description Application ready status, responding with 503 while not ready
      */
     get: {
       parameters: {
@@ -785,6 +436,15 @@ export type paths = {
         400: components['responses']['BadRequestError_a06dd6'];
         429: components['responses']['RateLimitedError'];
         500: components['responses']['InternalError'];
+        /** @description Default Response */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': HealthReadyResponse;
+          };
+        };
       };
     };
     put?: never;
@@ -993,8 +653,8 @@ export type paths = {
       };
     };
     /**
-     * Update credit data
-     * @description Update credit data
+     * Replace credit data
+     * @description Replace credit data as a whole. The fields left out are reset to their default value, or to null, while the optional relations left out stay untouched
      */
     put: {
       parameters: {
@@ -1007,7 +667,7 @@ export type paths = {
       };
       requestBody: {
         content: {
-          'application/json': CreditUpdate;
+          'application/json': CreditReplace;
         };
       };
       responses: {
@@ -1067,7 +727,44 @@ export type paths = {
     };
     options?: never;
     head?: never;
-    patch?: never;
+    /**
+     * Update credit data
+     * @description Update the given fields of credit data
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': CreditUpdate;
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': CreditSingle;
+          };
+        };
+        400: components['responses']['BadRequestError_32e5bd'];
+        401: components['responses']['UnauthorizedError_e72428'];
+        403: components['responses']['ForbiddenError_8cb418'];
+        404: components['responses']['ResourceNotFoundError'];
+        409: components['responses']['ConflictError_6f5ee8'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalServerError_813b96'];
+        503: components['responses']['DatabaseUnavailableError'];
+      };
+    };
     trace?: never;
   };
   '/api/credits/query': {
@@ -1207,8 +904,8 @@ export type paths = {
       };
     };
     /**
-     * Update genre data
-     * @description Update genre data
+     * Replace genre data
+     * @description Replace genre data as a whole. The fields left out are reset to their default value, or to null, while the optional relations left out stay untouched
      */
     put: {
       parameters: {
@@ -1221,7 +918,7 @@ export type paths = {
       };
       requestBody: {
         content: {
-          'application/json': GenreUpdate;
+          'application/json': GenreReplace;
         };
       };
       responses: {
@@ -1281,7 +978,44 @@ export type paths = {
     };
     options?: never;
     head?: never;
-    patch?: never;
+    /**
+     * Update genre data
+     * @description Update the given fields of genre data
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': GenreUpdate;
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': GenreSingle;
+          };
+        };
+        400: components['responses']['BadRequestError_32e5bd'];
+        401: components['responses']['UnauthorizedError_e72428'];
+        403: components['responses']['ForbiddenError_8cb418'];
+        404: components['responses']['ResourceNotFoundError'];
+        409: components['responses']['ConflictError_6f5ee8'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalServerError_813b96'];
+        503: components['responses']['DatabaseUnavailableError'];
+      };
+    };
     trace?: never;
   };
   '/api/genres/query': {
@@ -1421,8 +1155,8 @@ export type paths = {
       };
     };
     /**
-     * Update movie data
-     * @description Update movie data
+     * Replace movie data
+     * @description Replace movie data as a whole. The fields left out are reset to their default value, or to null, while the optional relations left out stay untouched
      */
     put: {
       parameters: {
@@ -1435,7 +1169,7 @@ export type paths = {
       };
       requestBody: {
         content: {
-          'application/json': MovieUpdate;
+          'application/json': MovieReplace;
         };
       };
       responses: {
@@ -1495,7 +1229,44 @@ export type paths = {
     };
     options?: never;
     head?: never;
-    patch?: never;
+    /**
+     * Update movie data
+     * @description Update the given fields of movie data
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': MovieUpdate;
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': MovieSingle;
+          };
+        };
+        400: components['responses']['BadRequestError_32e5bd'];
+        401: components['responses']['UnauthorizedError_e72428'];
+        403: components['responses']['ForbiddenError_8cb418'];
+        404: components['responses']['ResourceNotFoundError'];
+        409: components['responses']['ConflictError_6f5ee8'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalServerError_813b96'];
+        503: components['responses']['DatabaseUnavailableError'];
+      };
+    };
     trace?: never;
   };
   '/api/movies/query': {
@@ -1837,8 +1608,8 @@ export type paths = {
       };
     };
     /**
-     * Update person data
-     * @description Update person data
+     * Replace person data
+     * @description Replace person data as a whole. The fields left out are reset to their default value, or to null, while the optional relations left out stay untouched
      */
     put: {
       parameters: {
@@ -1851,7 +1622,7 @@ export type paths = {
       };
       requestBody: {
         content: {
-          'application/json': PersonUpdate;
+          'application/json': PersonReplace;
         };
       };
       responses: {
@@ -1911,7 +1682,44 @@ export type paths = {
     };
     options?: never;
     head?: never;
-    patch?: never;
+    /**
+     * Update person data
+     * @description Update the given fields of person data
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': PersonUpdate;
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': PersonSingle;
+          };
+        };
+        400: components['responses']['BadRequestError_32e5bd'];
+        401: components['responses']['UnauthorizedError_e72428'];
+        403: components['responses']['ForbiddenError_8cb418'];
+        404: components['responses']['ResourceNotFoundError'];
+        409: components['responses']['ConflictError_6f5ee8'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalServerError_813b96'];
+        503: components['responses']['DatabaseUnavailableError'];
+      };
+    };
     trace?: never;
   };
   '/api/people/query': {
@@ -2206,8 +2014,8 @@ export type paths = {
       };
     };
     /**
-     * Update review data
-     * @description Update review data
+     * Replace review data
+     * @description Replace review data as a whole. The fields left out are reset to their default value, or to null, while the optional relations left out stay untouched
      */
     put: {
       parameters: {
@@ -2220,7 +2028,7 @@ export type paths = {
       };
       requestBody: {
         content: {
-          'application/json': ReviewUpdate;
+          'application/json': ReviewReplace;
         };
       };
       responses: {
@@ -2280,7 +2088,44 @@ export type paths = {
     };
     options?: never;
     head?: never;
-    patch?: never;
+    /**
+     * Update review data
+     * @description Update the given fields of review data
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': ReviewUpdate;
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': ReviewSingle;
+          };
+        };
+        400: components['responses']['BadRequestError_32e5bd'];
+        401: components['responses']['UnauthorizedError_e72428'];
+        403: components['responses']['ForbiddenError_8cb418'];
+        404: components['responses']['ResourceNotFoundError'];
+        409: components['responses']['ConflictError_6f5ee8'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalServerError_813b96'];
+        503: components['responses']['DatabaseUnavailableError'];
+      };
+    };
     trace?: never;
   };
   '/api/reviews/query': {
@@ -2517,8 +2362,8 @@ export type paths = {
       };
     };
     /**
-     * Update user data
-     * @description Update user data
+     * Replace user data
+     * @description Replace user data as a whole. The fields left out are reset to their default value, or to null, while the optional relations left out stay untouched
      */
     put: {
       parameters: {
@@ -2531,7 +2376,7 @@ export type paths = {
       };
       requestBody: {
         content: {
-          'application/json': UserUpdate;
+          'application/json': UserReplace;
         };
       };
       responses: {
@@ -2591,7 +2436,44 @@ export type paths = {
     };
     options?: never;
     head?: never;
-    patch?: never;
+    /**
+     * Update user data
+     * @description Update the given fields of user data
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': UserUpdate;
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': UserSingle;
+          };
+        };
+        400: components['responses']['BadRequestError_32e5bd'];
+        401: components['responses']['UnauthorizedError_e72428'];
+        403: components['responses']['ForbiddenError_8cb418'];
+        404: components['responses']['ResourceNotFoundError'];
+        409: components['responses']['ConflictError_6f5ee8'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalServerError_813b96'];
+        503: components['responses']['DatabaseUnavailableError'];
+      };
+    };
     trace?: never;
   };
   '/api/users/query': {
@@ -2889,8 +2771,8 @@ export type paths = {
       };
     };
     /**
-     * Update watchlist entry data
-     * @description Update watchlist entry data
+     * Replace watchlist entry data
+     * @description Replace watchlist entry data as a whole. The fields left out are reset to their default value, or to null, while the optional relations left out stay untouched
      */
     put: {
       parameters: {
@@ -2903,7 +2785,7 @@ export type paths = {
       };
       requestBody: {
         content: {
-          'application/json': WatchlistEntryUpdate;
+          'application/json': WatchlistEntryReplace;
         };
       };
       responses: {
@@ -2963,7 +2845,44 @@ export type paths = {
     };
     options?: never;
     head?: never;
-    patch?: never;
+    /**
+     * Update watchlist entry data
+     * @description Update the given fields of watchlist entry data
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': WatchlistEntryUpdate;
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': WatchlistEntrySingle;
+          };
+        };
+        400: components['responses']['BadRequestError_32e5bd'];
+        401: components['responses']['UnauthorizedError_e72428'];
+        403: components['responses']['ForbiddenError_8cb418'];
+        404: components['responses']['ResourceNotFoundError'];
+        409: components['responses']['ConflictError_6f5ee8'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalServerError_813b96'];
+        503: components['responses']['DatabaseUnavailableError'];
+      };
+    };
     trace?: never;
   };
   '/api/watchlist/query': {
@@ -3164,38 +3083,20 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
   schemas: {
-    /** AccountEmailVerificationRequest */
-    'def-165': AccountEmailVerificationRequest;
-    /** AccountResetPasswordRequest */
-    'def-167': AccountResetPasswordRequest;
-    /** AccountSend2FACodeRequest */
-    'def-169': AccountSend2FACodeRequest;
-    /** AccountSend2FAResponse */
-    'def-168': AccountSend2FAResponse;
-    /** AccountSendEmailVerificationRequest */
-    'def-164': AccountSendEmailVerificationRequest;
-    /** AccountSendResetPasswordRequest */
-    'def-166': AccountSendResetPasswordRequest;
-    /** AccountStatusResponse */
-    'def-163': AccountStatusResponse;
-    /** AccountVerify2FARequest */
-    'def-171': AccountVerify2FARequest;
-    /** AccountVerify2FAResponse */
-    'def-170': AccountVerify2FAResponse;
     /**
      * AggregateDateOperators
      * @description Aggregation operators applicable to a date field
      */
-    'def-201': AggregateDateOperators;
+    'def-224': AggregateDateOperators;
     /**
      * AggregateNumericOperators
      * @description Aggregation operators applicable to a numeric field
      */
-    'def-200': AggregateNumericOperators;
+    'def-223': AggregateNumericOperators;
     /** AuthenticationResponse */
-    'def-157': AuthenticationResponse;
+    'def-169': AuthenticationResponse;
     /** ChangePasswordRequest */
-    'def-160': ChangePasswordRequest;
+    'def-172': ChangePasswordRequest;
     /** CreditCreate */
     'def-4': CreditCreate;
     /** CreditMultiple */
@@ -3204,252 +3105,264 @@ export type components = {
      * CreditQueryFilter
      * @description Query filter for the Credit resource
      */
-    'def-176': CreditQueryFilter;
+    'def-199': CreditQueryFilter;
     /** CreditQueryRequest */
-    'def-215': CreditQueryRequest;
+    'def-238': CreditQueryRequest;
     /** CreditQueryResponse */
-    'def-214': CreditQueryResponse;
+    'def-237': CreditQueryResponse;
     /**
      * CreditQuerySort
      * @description Query sort for the Credit resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-188': CreditQuerySort;
+    'def-211': CreditQuerySort;
+    /** CreditReplace */
+    'def-6': CreditReplace;
     /** CreditSingle */
     'def-1': CreditSingle;
     /** CreditUpdate */
     'def-5': CreditUpdate;
-    /** ExchangeTokenRequest */
-    'def-161': ExchangeTokenRequest;
     /**
      * FileQueryFilter
      * @description Query filter for the File resource
      */
-    'def-187': FileQueryFilter;
+    'def-210': FileQueryFilter;
     /**
      * FileQuerySort
      * @description Query sort for the File resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-199': FileQuerySort;
+    'def-222': FileQuerySort;
     /** FileSingle */
-    'def-144': FileSingle;
+    'def-155': FileSingle;
     /** GenreCreate */
-    'def-17': GenreCreate;
+    'def-18': GenreCreate;
     /** GenreMultiple */
-    'def-15': GenreMultiple;
+    'def-16': GenreMultiple;
     /**
      * GenreQueryFilter
      * @description Query filter for the Genre resource
      */
-    'def-177': GenreQueryFilter;
+    'def-200': GenreQueryFilter;
     /** GenreQueryRequest */
-    'def-220': GenreQueryRequest;
+    'def-243': GenreQueryRequest;
     /** GenreQueryResponse */
-    'def-219': GenreQueryResponse;
+    'def-242': GenreQueryResponse;
     /**
      * GenreQuerySort
      * @description Query sort for the Genre resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-189': GenreQuerySort;
+    'def-212': GenreQuerySort;
     /** GenreRelationCreate */
-    'def-19': GenreRelationCreate;
+    'def-21': GenreRelationCreate;
+    /** GenreReplace */
+    'def-20': GenreReplace;
     /** GenreSingle */
-    'def-14': GenreSingle;
+    'def-15': GenreSingle;
     /** GenreUpdate */
-    'def-18': GenreUpdate;
+    'def-19': GenreUpdate;
     /** HealthCheckResponse */
-    'def-174': HealthCheckResponse;
+    'def-197': HealthCheckResponse;
     /** HealthCheckResult */
-    'def-173': HealthCheckResult;
+    'def-196': HealthCheckResult;
     /** HealthReadyResponse */
-    'def-162': HealthReadyResponse;
+    'def-174': HealthReadyResponse;
     /** InfoResponse */
-    'def-172': InfoResponse;
+    'def-195': InfoResponse;
     /** LoginRequest */
-    'def-158': LoginRequest;
+    'def-170': LoginRequest;
     /** LogoutResponse */
-    'def-159': LogoutResponse;
+    'def-171': LogoutResponse;
     /** MovieAggregateRequest */
-    'def-227': MovieAggregateRequest;
+    'def-250': MovieAggregateRequest;
     /** MovieAggregateResponse */
-    'def-226': MovieAggregateResponse;
+    'def-249': MovieAggregateResponse;
     /**
      * MovieAggregateSelect
      * @description Aggregate selection for the Movie resource, holding the operators to apply per aggregated field
      */
-    'def-204': MovieAggregateSelect;
+    'def-227': MovieAggregateSelect;
     /** MovieCreate */
-    'def-30': MovieCreate;
+    'def-32': MovieCreate;
     /** MovieExportRequest */
-    'def-228': MovieExportRequest;
+    'def-251': MovieExportRequest;
     /** MovieFileDelete */
-    'def-38': MovieFileDelete;
+    'def-41': MovieFileDelete;
     /** MovieFiles */
-    'def-36': MovieFiles;
+    'def-39': MovieFiles;
     /** MovieFileUpload */
-    'def-37': MovieFileUpload;
+    'def-40': MovieFileUpload;
     /** MovieMultiple */
-    'def-28': MovieMultiple;
+    'def-30': MovieMultiple;
     /**
      * MovieQueryFilter
      * @description Query filter for the Movie resource
      */
-    'def-178': MovieQueryFilter;
+    'def-201': MovieQueryFilter;
     /** MovieQueryRequest */
-    'def-225': MovieQueryRequest;
+    'def-248': MovieQueryRequest;
     /** MovieQueryResponse */
-    'def-224': MovieQueryResponse;
+    'def-247': MovieQueryResponse;
     /**
      * MovieQuerySort
      * @description Query sort for the Movie resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-190': MovieQuerySort;
+    'def-213': MovieQuerySort;
+    /** MovieReplace */
+    'def-34': MovieReplace;
     /** MovieSingle */
-    'def-27': MovieSingle;
+    'def-29': MovieSingle;
     /** MovieUpdate */
-    'def-31': MovieUpdate;
+    'def-33': MovieUpdate;
     /**
      * PermissionQueryFilter
      * @description Query filter for the Permission resource
      */
-    'def-185': PermissionQueryFilter;
+    'def-208': PermissionQueryFilter;
     /** PermissionSingle */
-    'def-118': PermissionSingle;
+    'def-127': PermissionSingle;
     /** PersonCreate */
-    'def-43': PersonCreate;
+    'def-46': PersonCreate;
     /** PersonExportRequest */
-    'def-233': PersonExportRequest;
+    'def-256': PersonExportRequest;
     /** PersonFileDelete */
-    'def-51': PersonFileDelete;
+    'def-55': PersonFileDelete;
     /** PersonFiles */
-    'def-49': PersonFiles;
+    'def-53': PersonFiles;
     /** PersonFileUpload */
-    'def-50': PersonFileUpload;
+    'def-54': PersonFileUpload;
     /** PersonMultiple */
-    'def-41': PersonMultiple;
+    'def-44': PersonMultiple;
     /**
      * PersonQueryFilter
      * @description Query filter for the Person resource
      */
-    'def-179': PersonQueryFilter;
+    'def-202': PersonQueryFilter;
     /** PersonQueryRequest */
-    'def-230': PersonQueryRequest;
+    'def-253': PersonQueryRequest;
     /** PersonQueryResponse */
-    'def-229': PersonQueryResponse;
+    'def-252': PersonQueryResponse;
     /**
      * PersonQuerySort
      * @description Query sort for the Person resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-191': PersonQuerySort;
+    'def-214': PersonQuerySort;
+    /** PersonReplace */
+    'def-48': PersonReplace;
     /** PersonSingle */
-    'def-40': PersonSingle;
+    'def-43': PersonSingle;
     /** PersonUpdate */
-    'def-44': PersonUpdate;
+    'def-47': PersonUpdate;
     /** ProblemDetails */
-    'def-156': ProblemDetails;
+    'def-168': ProblemDetails;
     /**
      * QueryCondition
      * @description Field condition object combining comparison operators on a single field
      */
-    'def-175': QueryCondition;
+    'def-198': QueryCondition;
     /** ReviewAggregateRequest */
-    'def-237': ReviewAggregateRequest;
+    'def-260': ReviewAggregateRequest;
     /** ReviewAggregateResponse */
-    'def-236': ReviewAggregateResponse;
+    'def-259': ReviewAggregateResponse;
     /**
      * ReviewAggregateSelect
      * @description Aggregate selection for the Review resource, holding the operators to apply per aggregated field
      */
-    'def-206': ReviewAggregateSelect;
+    'def-229': ReviewAggregateSelect;
     /** ReviewCreate */
-    'def-56': ReviewCreate;
+    'def-60': ReviewCreate;
     /** ReviewExportRequest */
-    'def-238': ReviewExportRequest;
+    'def-261': ReviewExportRequest;
     /** ReviewMultiple */
-    'def-54': ReviewMultiple;
+    'def-58': ReviewMultiple;
     /**
      * ReviewQueryFilter
      * @description Query filter for the Review resource
      */
-    'def-180': ReviewQueryFilter;
+    'def-203': ReviewQueryFilter;
     /** ReviewQueryRequest */
-    'def-235': ReviewQueryRequest;
+    'def-258': ReviewQueryRequest;
     /** ReviewQueryResponse */
-    'def-234': ReviewQueryResponse;
+    'def-257': ReviewQueryResponse;
     /**
      * ReviewQuerySort
      * @description Query sort for the Review resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-192': ReviewQuerySort;
+    'def-215': ReviewQuerySort;
+    /** ReviewReplace */
+    'def-62': ReviewReplace;
     /** ReviewSingle */
-    'def-53': ReviewSingle;
+    'def-57': ReviewSingle;
     /** ReviewUpdate */
-    'def-57': ReviewUpdate;
+    'def-61': ReviewUpdate;
     /**
      * RoleQueryFilter
      * @description Query filter for the Role resource
      */
-    'def-184': RoleQueryFilter;
+    'def-207': RoleQueryFilter;
     /** RoleSingle */
-    'def-105': RoleSingle;
+    'def-113': RoleSingle;
     /** UserAggregateRequest */
-    'def-242': UserAggregateRequest;
+    'def-265': UserAggregateRequest;
     /** UserAggregateResponse */
-    'def-241': UserAggregateResponse;
+    'def-264': UserAggregateResponse;
     /**
      * UserAggregateSelect
      * @description Aggregate selection for the User resource, holding the operators to apply per aggregated field
      */
-    'def-207': UserAggregateSelect;
+    'def-230': UserAggregateSelect;
     /** UserCreate */
-    'def-69': UserCreate;
+    'def-74': UserCreate;
     /** UserFileDelete */
-    'def-77': UserFileDelete;
+    'def-83': UserFileDelete;
     /** UserFiles */
-    'def-75': UserFiles;
+    'def-81': UserFiles;
     /** UserFileUpload */
-    'def-76': UserFileUpload;
+    'def-82': UserFileUpload;
     /** UserMultiple */
-    'def-67': UserMultiple;
+    'def-72': UserMultiple;
     /**
      * UserQueryFilter
      * @description Query filter for the User resource
      */
-    'def-181': UserQueryFilter;
+    'def-204': UserQueryFilter;
     /** UserQueryRequest */
-    'def-240': UserQueryRequest;
+    'def-263': UserQueryRequest;
     /** UserQueryResponse */
-    'def-239': UserQueryResponse;
+    'def-262': UserQueryResponse;
     /**
      * UserQuerySort
      * @description Query sort for the User resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-193': UserQuerySort;
+    'def-216': UserQuerySort;
+    /** UserReplace */
+    'def-76': UserReplace;
     /** UserSingle */
-    'def-66': UserSingle;
+    'def-71': UserSingle;
     /** UserUpdate */
-    'def-70': UserUpdate;
+    'def-75': UserUpdate;
     /** WatchlistEntryCreate */
-    'def-82': WatchlistEntryCreate;
+    'def-88': WatchlistEntryCreate;
     /** WatchlistEntryMultiple */
-    'def-80': WatchlistEntryMultiple;
+    'def-86': WatchlistEntryMultiple;
     /**
      * WatchlistEntryQueryFilter
      * @description Query filter for the WatchlistEntry resource
      */
-    'def-182': WatchlistEntryQueryFilter;
+    'def-205': WatchlistEntryQueryFilter;
     /** WatchlistEntryQueryRequest */
-    'def-245': WatchlistEntryQueryRequest;
+    'def-268': WatchlistEntryQueryRequest;
     /** WatchlistEntryQueryResponse */
-    'def-244': WatchlistEntryQueryResponse;
+    'def-267': WatchlistEntryQueryResponse;
     /**
      * WatchlistEntryQuerySort
      * @description Query sort for the WatchlistEntry resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-194': WatchlistEntryQuerySort;
+    'def-217': WatchlistEntryQuerySort;
+    /** WatchlistEntryReplace */
+    'def-90': WatchlistEntryReplace;
     /** WatchlistEntrySingle */
-    'def-79': WatchlistEntrySingle;
+    'def-85': WatchlistEntrySingle;
     /** WatchlistEntryUpdate */
-    'def-83': WatchlistEntryUpdate;
+    'def-89': WatchlistEntryUpdate;
     /** QueryFilterValue */
     QueryFilterValue: QueryFilterValue;
     /** QueryFilterScalar */
@@ -3479,11 +3392,6 @@ export type components = {
      * @enum {string}
      */
     PersonKnownFor: PersonKnownFor;
-    /**
-     * UserTwoFactorAuth
-     * @enum {string}
-     */
-    UserTwoFactorAuth: UserTwoFactorAuth;
     /**
      * WatchlistEntryStatus
      * @enum {string}
@@ -3546,6 +3454,17 @@ export type components = {
         };
       };
     };
+    /** @description Service Unavailable */
+    MemoryUnavailableError: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        'application/problem+json': ProblemDetails & {
+          code: 'MEMORY_UNAVAILABLE';
+        };
+      };
+    };
     /** @description Unauthorized */
     UnauthorizedError_e72428: {
       headers: {
@@ -3598,129 +3517,6 @@ export type components = {
             | 'AUTH_PASSWORD_DISABLED'
             | 'AUTH_PASSWORD_INVALID'
             | 'AUTH_SCOPE_FORBIDDEN';
-        };
-      };
-    };
-    /** @description Bad Request */
-    BadRequestError_54cb34: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        'application/problem+json': ProblemDetails & {
-          code:
-            | 'AUTH_USER_NOT_FOUND'
-            | 'MALFORMED_REQUEST'
-            | 'VALIDATION_FAILED';
-        };
-      };
-    };
-    /** @description Unauthorized */
-    UnauthorizedError_f8f8b5: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        'application/problem+json': ProblemDetails & {
-          code:
-            | 'AUTH_INVALID_CREDENTIALS'
-            | 'AUTH_INVALID_TOKEN'
-            | 'AUTH_PASSWORD_REQUIRED';
-        };
-      };
-    };
-    /** @description Conflict */
-    OAuth2AccountConflictError: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        'application/problem+json': ProblemDetails & {
-          code: 'OAUTH2_ACCOUNT_CONFLICT';
-        };
-      };
-    };
-    /** @description Bad Request */
-    BadRequestError_1b28a6: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        'application/problem+json': ProblemDetails & {
-          code:
-            | 'AUTH_INVALID_REDIRECT_URL'
-            | 'MALFORMED_REQUEST'
-            | 'VALIDATION_FAILED';
-        };
-      };
-    };
-    /** @description Conflict */
-    AccountEmailAlreadyVerifiedError: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        'application/problem+json': ProblemDetails & {
-          code: 'ACCOUNT_EMAIL_ALREADY_VERIFIED';
-        };
-      };
-    };
-    /** @description Not Implemented */
-    AccountFeatureUnavailableError: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        'application/problem+json': ProblemDetails & {
-          code: 'ACCOUNT_FEATURE_UNAVAILABLE';
-        };
-      };
-    };
-    /** @description Service Unavailable */
-    QueueUnavailableError: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        'application/problem+json': ProblemDetails & {
-          code: 'QUEUE_UNAVAILABLE';
-        };
-      };
-    };
-    /** @description Unauthorized */
-    AuthInvalidTokenError: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        'application/problem+json': ProblemDetails & {
-          code: 'AUTH_INVALID_TOKEN';
-        };
-      };
-    };
-    /** @description Bad Request */
-    BadRequestError_df2467: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        'application/problem+json': ProblemDetails & {
-          code:
-            | 'AUTH_PASSWORD_WEAK'
-            | 'AUTH_USER_NOT_FOUND'
-            | 'MALFORMED_REQUEST'
-            | 'VALIDATION_FAILED';
-        };
-      };
-    };
-    /** @description Forbidden */
-    AccountPasswordNotSetError: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        'application/problem+json': ProblemDetails & {
-          code: 'ACCOUNT_PASSWORD_NOT_SET';
         };
       };
     };
@@ -4039,12 +3835,13 @@ export type components = {
   pathItems: never;
 };
 export type $defs = Record<string, never>;
-export const AccountSendEmailVerificationRequestVerificationType = {
-  auto: 'auto',
-  manual: 'manual'
+export const AuthenticationResponseTwoFactorMethods = {
+  Email: 'Email',
+  Sms: 'Sms',
+  Totp: 'Totp'
 } as const;
-export type AccountSendEmailVerificationRequestVerificationType =
-  (typeof AccountSendEmailVerificationRequestVerificationType)[keyof typeof AccountSendEmailVerificationRequestVerificationType];
+export type AuthenticationResponseTwoFactorMethods =
+  (typeof AuthenticationResponseTwoFactorMethods)[keyof typeof AuthenticationResponseTwoFactorMethods];
 export const MovieAggregateRequestDateField = {
   updatedAt: 'updatedAt',
   createdAt: 'createdAt',
@@ -4065,6 +3862,12 @@ export const ErrorCode = {
   ContextDefinitionMissing: 'CONTEXT_DEFINITION_MISSING',
   ContextDefinitionDuplicate: 'CONTEXT_DEFINITION_DUPLICATE',
   ContextServerUnavailable: 'CONTEXT_SERVER_UNAVAILABLE',
+  ModuleInvalid: 'MODULE_INVALID',
+  ModuleMissing: 'MODULE_MISSING',
+  ModuleDuplicate: 'MODULE_DUPLICATE',
+  ModuleIncompatible: 'MODULE_INCOMPATIBLE',
+  ModuleProviderMissing: 'MODULE_PROVIDER_MISSING',
+  ModuleProviderAmbiguous: 'MODULE_PROVIDER_AMBIGUOUS',
   DatabaseUniqueViolation: 'DATABASE_UNIQUE_VIOLATION',
   DatabaseForeignKeyViolation: 'DATABASE_FOREIGN_KEY_VIOLATION',
   DatabaseNullViolation: 'DATABASE_NULL_VIOLATION',
@@ -4099,11 +3902,20 @@ export const ErrorCode = {
   AuthApiKeyMissing: 'AUTH_API_KEY_MISSING',
   AuthApiKeyInvalid: 'AUTH_API_KEY_INVALID',
   AuthApiKeyExpired: 'AUTH_API_KEY_EXPIRED',
+  AuthApiKeyPermissionDenied: 'AUTH_API_KEY_PERMISSION_DENIED',
   AuthProxyAuthenticationRequired: 'AUTH_PROXY_AUTHENTICATION_REQUIRED',
   AuthInvalidRedirectUrl: 'AUTH_INVALID_REDIRECT_URL',
   AccountFeatureUnavailable: 'ACCOUNT_FEATURE_UNAVAILABLE',
   AccountEmailAlreadyVerified: 'ACCOUNT_EMAIL_ALREADY_VERIFIED',
   AccountPasswordNotSet: 'ACCOUNT_PASSWORD_NOT_SET',
+  AccountEmailNotVerified: 'ACCOUNT_EMAIL_NOT_VERIFIED',
+  AccountPhoneNotVerified: 'ACCOUNT_PHONE_NOT_VERIFIED',
+  AccountPhoneAlreadyVerified: 'ACCOUNT_PHONE_ALREADY_VERIFIED',
+  Account2FAMethodUnavailable: 'ACCOUNT_2FA_METHOD_UNAVAILABLE',
+  Account2FAMethodNotEnabled: 'ACCOUNT_2FA_METHOD_NOT_ENABLED',
+  Account2FAMethodAlreadyEnabled: 'ACCOUNT_2FA_METHOD_ALREADY_ENABLED',
+  Account2FACodeInvalid: 'ACCOUNT_2FA_CODE_INVALID',
+  Account2FATooManyAttempts: 'ACCOUNT_2FA_TOO_MANY_ATTEMPTS',
   OAuth2ProviderError: 'OAUTH2_PROVIDER_ERROR',
   OAuth2EmailUnavailable: 'OAUTH2_EMAIL_UNAVAILABLE',
   OAuth2RegistrationDisabled: 'OAUTH2_REGISTRATION_DISABLED',
@@ -4114,6 +3926,10 @@ export const ErrorCode = {
   RecaptchaActionMismatch: 'RECAPTCHA_ACTION_MISMATCH',
   RecaptchaLowScore: 'RECAPTCHA_LOW_SCORE',
   RecaptchaUnavailable: 'RECAPTCHA_UNAVAILABLE',
+  TurnstileMissing: 'TURNSTILE_MISSING',
+  TurnstileInvalid: 'TURNSTILE_INVALID',
+  TurnstileActionMismatch: 'TURNSTILE_ACTION_MISMATCH',
+  TurnstileUnavailable: 'TURNSTILE_UNAVAILABLE',
   FileNotFound: 'FILE_NOT_FOUND',
   FileForbidden: 'FILE_FORBIDDEN',
   FileFieldNotFound: 'FILE_FIELD_NOT_FOUND',
@@ -4130,7 +3946,16 @@ export const ErrorCode = {
   QueueUnavailable: 'QUEUE_UNAVAILABLE',
   MailerSendFailed: 'MAILER_SEND_FAILED',
   MailerJobNotFound: 'MAILER_JOB_NOT_FOUND',
+  MailerSenderMissing: 'MAILER_SENDER_MISSING',
+  SmsSendFailed: 'SMS_SEND_FAILED',
+  SmsJobNotFound: 'SMS_JOB_NOT_FOUND',
+  TemplateNotFound: 'TEMPLATE_NOT_FOUND',
+  TemplateRenderFailed: 'TEMPLATE_RENDER_FAILED',
+  TemplateLoadFailed: 'TEMPLATE_LOAD_FAILED',
+  TemplatePreviewNotFound: 'TEMPLATE_PREVIEW_NOT_FOUND',
+  LocaleLoadFailed: 'LOCALE_LOAD_FAILED',
   LockNotAcquired: 'LOCK_NOT_ACQUIRED',
+  MemoryUnavailable: 'MEMORY_UNAVAILABLE',
   AlreadyReviewed: 'ALREADY_REVIEWED',
   AlreadyOnWatchlist: 'ALREADY_ON_WATCHLIST'
 } as const;
@@ -4182,12 +4007,6 @@ export const PersonKnownFor = {
 } as const;
 export type PersonKnownFor =
   (typeof PersonKnownFor)[keyof typeof PersonKnownFor];
-export const UserTwoFactorAuth = {
-  None: 'None',
-  Email: 'Email'
-} as const;
-export type UserTwoFactorAuth =
-  (typeof UserTwoFactorAuth)[keyof typeof UserTwoFactorAuth];
 export const WatchlistEntryStatus = {
   Planned: 'Planned',
   Watching: 'Watching',
@@ -4196,112 +4015,6 @@ export const WatchlistEntryStatus = {
 export type WatchlistEntryStatus =
   (typeof WatchlistEntryStatus)[keyof typeof WatchlistEntryStatus];
 export type operations = Record<string, never>;
-
-export type AccountEmailVerificationRequest = {
-  /**
-   * @description Verification token sent to the user email
-   * @example aBcDeFgHijkLMnO123456789
-   */
-  token: string;
-};
-
-export type AccountResetPasswordRequest = {
-  /**
-   * @description Password reset token sent to the user email
-   * @example aBcDeFgHijkLMnO123456789
-   */
-  token: string;
-  /**
-   * @description The new password to set for this user
-   * @example yourNewPassword123
-   */
-  newPassword: string;
-};
-
-export type AccountSend2FACodeRequest = {
-  /**
-   * @description A purpose for using two-factor authentication method
-   * @example authentication
-   */
-  purpose?: string;
-};
-
-export type AccountSend2FAResponse = {
-  /**
-   * @description The ID for currently requested 2FA
-   * @example aBcDeFgHijkLMnO123456789
-   */
-  challengeId: string;
-  /**
-   * @description The expiration time in milliseconds for the 2FA challenge
-   * @example 300000
-   */
-  expiresIn: number;
-};
-
-export type AccountSendEmailVerificationRequest = {
-  /**
-   * @format uri
-   *
-   * @description A URL to redirect to with token or status code after email verification is completed
-   * @example https://example.com/account
-   */
-  redirectToUrl: string;
-  /**
-   * @description auto (default) - token is verified automatically before redirecting to provided URL with a status message, manual - client must manually verify received token on provided URL
-   * @example auto
-   * @enum {string}
-   */
-  verificationType?: AccountSendEmailVerificationRequestVerificationType;
-};
-
-export type AccountSendResetPasswordRequest = {
-  /**
-   * @format uri
-   *
-   * @description A URL to redirect to where the user will perform the password reset with one-time-token in the request
-   * @example https://example.com/reset-password
-   */
-  redirectToUrl: string;
-  /**
-   * @format email
-   *
-   * @description A email address for which to perform password reset
-   * @example account@example.com
-   */
-  email: string;
-};
-
-export type AccountStatusResponse = {
-  /** @example Operation finished successfully */
-  message: string;
-};
-
-export type AccountVerify2FARequest = {
-  /**
-   * @description The ID value received on sending 2FA code request
-   * @example aBcDeFgHijkLMnO123456789
-   */
-  challengeId: string;
-  /**
-   * @description The 2FA code to verify
-   * @example 123456
-   */
-  code: string;
-};
-
-export type AccountVerify2FAResponse = {
-  /**
-   * @description The one-time-token for requested purpose (e.g., authentication)
-   * @example aBcDeFgHijkLMnO123456789
-   */
-  token: string;
-  /**
-   * @description The expiration time in milliseconds for the 2FA authentication token
-   * @example 120000
-   */
-  expiresIn: number;
-};
 
 export type AggregateDateOperators = {
   /**
@@ -4378,6 +4091,14 @@ export type AuthenticationResponse = {
   expiresIn: number;
   /** @example 5184000 */
   refreshExpiresIn: number;
+  /**
+   * @description The 2FA methods of the user, the first being the default, set on the tokens of the 2fa scope
+   * @example [
+   *       "Totp",
+   *       "Email"
+   *     ]
+   */
+  twoFactorMethods?: AuthenticationResponseTwoFactorMethods[];
 };
 
 export type ChangePasswordRequest = {
@@ -4546,6 +4267,34 @@ export type CreditQuerySort = {
   person?: PersonQuerySort;
 };
 
+export type CreditReplace = {
+  role?: CreditRole;
+  /**
+   * @maxLength 150
+   * @example Louise Banks */
+  character?: string | null;
+  /**
+   * @minimum 0
+   */
+  billingOrder?: number;
+  movie:
+    | {
+        /**
+         * @maxLength 36
+         * @example a1b2c3d4 */
+        id: string;
+      }
+    | string;
+  person:
+    | {
+        /**
+         * @minimum 1
+         * @example 1 */
+        id: number;
+      }
+    | number;
+};
+
 export type CreditSingle = {
   /**
    * @minimum 1
@@ -4606,16 +4355,6 @@ export type CreditUpdate = {
         id: number;
       }
     | number;
-};
-
-export type ExchangeTokenRequest = {
-  /** @example aBcDeFgHijkLMnO123456789 */
-  token: string;
-  /**
-   * @description Account password, required when the OAuth2 redirect returned `passwordRequired=true`
-   * @example yourPassword123!
-   */
-  password?: string;
 };
 
 export type FileQueryFilter = {
@@ -4884,6 +4623,18 @@ export type GenreRelationCreate = {
   slug: string;
 };
 
+export type GenreReplace = {
+  /**
+   * @minLength 2
+   * @maxLength 50
+   * @example Science Fiction */
+  name: string;
+  /**
+   * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
+   * @example science-fiction */
+  slug: string;
+};
+
 export type GenreSingle = {
   /**
    * @minimum 1
@@ -4941,10 +4692,10 @@ export type HealthCheckResponse = {
    */
   timestamp: string;
   checks: {
-    database: HealthCheckResult;
-    storage: HealthCheckResult;
     memory: HealthCheckResult;
+    storage: HealthCheckResult;
     queue: HealthCheckResult;
+    database: HealthCheckResult;
   };
 };
 
@@ -5421,6 +5172,67 @@ export type MovieQuerySort = {
   stillsCount?: SortDirection;
 };
 
+export type MovieReplace = {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   * @example Arrival */
+  title: string;
+  /**
+   * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
+   * @example arrival-2016 */
+  slug: string;
+  /**
+   * @maxLength 200
+   */
+  originalTitle?: string | null;
+  /**
+   * @maxLength 300
+   * @example Why are they here? */
+  tagline?: string | null;
+  /**
+   * @maxLength 5000
+   */
+  overview?: string | null;
+  status?: MovieStatus;
+  /**
+   * @format date-time
+   *
+   * @example 2016-11-11T00:00:00.000Z
+   */
+  releaseDate?: string | null;
+  /**
+   * @minimum 1
+   * @maximum 1000
+   * @example 116 */
+  runtimeMinutes?: number | null;
+  /**
+   * @pattern ^[a-z]{2}$
+   * @example en */
+  language?: string;
+  /**
+   * @minimum 0
+   * @example 47000000 */
+  budgetUsd?: number | null;
+  /**
+   * @minimum 0
+   * @example 203400000 */
+  revenueUsd?: number | null;
+  keywords?: unknown | null;
+  genres?:
+    | (
+        | {
+            /**
+             * @minimum 1
+             * @example 1 */
+            id: number;
+          }
+        | GenreRelationCreate
+        | number
+      )[]
+    | null;
+};
+
 export type MovieSingle = {
   /**
    * @maxLength 36
@@ -5852,6 +5664,39 @@ export type PersonQuerySort = {
   photo?: FileQuerySort;
 };
 
+export type PersonReplace = {
+  /**
+   * @minLength 1
+   * @maxLength 150
+   * @example Denis Villeneuve */
+  name: string;
+  /**
+   * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
+   * @example denis-villeneuve */
+  slug: string;
+  knownFor?: PersonKnownFor;
+  /**
+   * @format date-time
+   *
+   * @example 1967-10-03T00:00:00.000Z
+   */
+  birthDate?: string | null;
+  /**
+   * @format date-time
+   *
+   * @example 2026-03-24T16:35:09.521Z
+   */
+  deathDate?: string | null;
+  /**
+   * @maxLength 150
+   * @example Gentilly, Quebec, Canada */
+  birthPlace?: string | null;
+  /**
+   * @maxLength 10000
+   */
+  biography?: string | null;
+};
+
 export type PersonSingle = {
   /**
    * @minimum 1
@@ -6265,6 +6110,31 @@ export type ReviewQuerySort = {
   author?: UserQuerySort;
 };
 
+export type ReviewReplace = {
+  /**
+   * @minimum 1
+   * @maximum 10
+   * @example 9 */
+  rating: number;
+  /**
+   * @maxLength 150
+   * @example Language as a weapon */
+  title?: string | null;
+  /**
+   * @maxLength 10000
+   */
+  body?: string | null;
+  containsSpoilers?: boolean;
+  movie:
+    | {
+        /**
+         * @maxLength 36
+         * @example a1b2c3d4 */
+        id: string;
+      }
+    | string;
+};
+
 export type ReviewSingle = {
   /**
    * @minimum 1
@@ -6461,7 +6331,6 @@ export type UserCreate = {
    * @maxLength 500
    */
   bio?: string | null;
-  twoFactorAuth?: UserTwoFactorAuth;
   enabled?: boolean;
   password: string;
   roles: (
@@ -6513,7 +6382,12 @@ export type UserMultiple = {
    */
   bio?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: UserTwoFactorAuth;
+  /**
+   * @maxLength 16
+   * @pattern ^\+[1-9]\d{6,14}$
+   */
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   /**
    * @format date-time
@@ -6581,8 +6455,10 @@ export type UserQueryFilter = {
   bio?: QueryFilterValue;
   /** @description Filter by the verifiedEmail field */
   verifiedEmail?: QueryFilterValue;
-  /** @description Filter by the twoFactorAuth field */
-  twoFactorAuth?: QueryFilterValue;
+  /** @description Filter by the phoneNumber field */
+  phoneNumber?: QueryFilterValue;
+  /** @description Filter by the verifiedPhone field */
+  verifiedPhone?: QueryFilterValue;
   /** @description Filter by the enabled field */
   enabled?: QueryFilterValue;
   /** @description Filter by the logoutAt field */
@@ -6665,7 +6541,9 @@ export type UserQuerySort = {
   /** @example desc */
   verifiedEmail?: SortDirection;
   /** @example desc */
-  twoFactorAuth?: SortDirection;
+  phoneNumber?: SortDirection;
+  /** @example desc */
+  verifiedPhone?: SortDirection;
   /** @example desc */
   enabled?: SortDirection;
   /** @example desc */
@@ -6683,6 +6561,36 @@ export type UserQuerySort = {
   /** @example desc */
   rolesCount?: SortDirection;
   avatar?: FileQuerySort;
+};
+
+export type UserReplace = {
+  /**
+   * @minLength 2
+   * @maxLength 50
+   * @example cinephile42 */
+  displayName: string;
+  /**
+   * @maxLength 255
+   * @format email
+   *
+   * @example member@movies.example.com
+   */
+  email: string;
+  /**
+   * @maxLength 500
+   */
+  bio?: string | null;
+  enabled?: boolean;
+  password?: string;
+  roles: (
+    | {
+        /**
+         * @minimum 1
+         * @example 1 */
+        id: number;
+      }
+    | number
+  )[];
 };
 
 export type UserSingle = {
@@ -6707,7 +6615,12 @@ export type UserSingle = {
    */
   bio?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: UserTwoFactorAuth;
+  /**
+   * @maxLength 16
+   * @pattern ^\+[1-9]\d{6,14}$
+   */
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   /**
    * @format date-time
@@ -6760,7 +6673,6 @@ export type UserUpdate = {
    * @maxLength 500
    */
   bio?: string | null;
-  twoFactorAuth?: UserTwoFactorAuth;
   enabled?: boolean;
   password?: string;
   roles?: (
@@ -6928,6 +6840,28 @@ export type WatchlistEntryQuerySort = {
   movie?: MovieQuerySort;
 };
 
+export type WatchlistEntryReplace = {
+  status?: WatchlistEntryStatus;
+  /**
+   * @format date-time
+   *
+   * @example 2026-03-24T16:35:09.521Z
+   */
+  watchedAt?: string | null;
+  /**
+   * @maxLength 500
+   */
+  notes?: string | null;
+  movie:
+    | {
+        /**
+         * @maxLength 36
+         * @example a1b2c3d4 */
+        id: string;
+      }
+    | string;
+};
+
 export type WatchlistEntrySingle = {
   /**
    * @minimum 1
@@ -6997,20 +6931,34 @@ export type AuthModuleType = {
   authenticationResponse: AuthenticationResponse;
   logoutResponse: LogoutResponse;
   changePasswordRequest: ChangePasswordRequest;
-  exchangeTokenRequest: ExchangeTokenRequest;
+  exchangeTokenRequest: never;
   identity: UserSingle;
 };
 
 export type AccountModuleType = {
-  sendEmailVerificationRequest: AccountSendEmailVerificationRequest;
-  statusResponse: AccountStatusResponse;
-  emailVerificationRequest: AccountEmailVerificationRequest;
-  sendResetPasswordRequest: AccountSendResetPasswordRequest;
-  resetPasswordRequest: AccountResetPasswordRequest;
-  send2FACodeRequest: AccountSend2FACodeRequest;
-  send2FAResponse: AccountSend2FAResponse;
-  verify2FARequest: AccountVerify2FARequest;
-  verify2FAResponse: AccountVerify2FAResponse;
+  sendEmailVerificationRequest: never;
+  statusResponse: never;
+  emailVerificationRequest: never;
+  sendResetPasswordRequest: never;
+  resetPasswordRequest: never;
+  sendPhoneVerificationRequest: never;
+  challengeResponse: never;
+  verifyPhoneRequest: never;
+};
+
+export type TwoFactorModuleType = {
+  challengeRequest: never;
+  challengeResponse: never;
+  verifyRequest: never;
+  verifyResponse: never;
+  methodsResponse: never;
+  enableMethodRequest: never;
+  orderMethodsRequest: never;
+  disableMethodRequest: never;
+  totpSetupResponse: never;
+  totpConfirmRequest: never;
+  recoveryCodesRequest: never;
+  recoveryCodesResponse: never;
 };
 
 export type HealthModuleType = {
@@ -7023,6 +6971,7 @@ export type CreditResourceModuleType = {
   multiple: CreditMultiple;
   create: CreditCreate;
   update: CreditUpdate;
+  replace: CreditReplace;
   queryRequest: CreditQueryRequest;
   queryResponse: CreditQueryResponse;
   querySort: CreditQuerySort;
@@ -7039,6 +6988,7 @@ export type GenreResourceModuleType = {
   multiple: GenreMultiple;
   create: GenreCreate;
   update: GenreUpdate;
+  replace: GenreReplace;
   queryRequest: GenreQueryRequest;
   queryResponse: GenreQueryResponse;
   querySort: GenreQuerySort;
@@ -7055,6 +7005,7 @@ export type MovieResourceModuleType = {
   multiple: MovieMultiple;
   create: MovieCreate;
   update: MovieUpdate;
+  replace: MovieReplace;
   queryRequest: MovieQueryRequest;
   queryResponse: MovieQueryResponse;
   querySort: MovieQuerySort;
@@ -7071,6 +7022,7 @@ export type PersonResourceModuleType = {
   multiple: PersonMultiple;
   create: PersonCreate;
   update: PersonUpdate;
+  replace: PersonReplace;
   queryRequest: PersonQueryRequest;
   queryResponse: PersonQueryResponse;
   querySort: PersonQuerySort;
@@ -7087,6 +7039,7 @@ export type ReviewResourceModuleType = {
   multiple: ReviewMultiple;
   create: ReviewCreate;
   update: ReviewUpdate;
+  replace: ReviewReplace;
   queryRequest: ReviewQueryRequest;
   queryResponse: ReviewQueryResponse;
   querySort: ReviewQuerySort;
@@ -7103,6 +7056,7 @@ export type UserResourceModuleType = {
   multiple: UserMultiple;
   create: UserCreate;
   update: UserUpdate;
+  replace: UserReplace;
   queryRequest: UserQueryRequest;
   queryResponse: UserQueryResponse;
   querySort: UserQuerySort;
@@ -7119,6 +7073,7 @@ export type WatchlistEntryResourceModuleType = {
   multiple: WatchlistEntryMultiple;
   create: WatchlistEntryCreate;
   update: WatchlistEntryUpdate;
+  replace: WatchlistEntryReplace;
   queryRequest: WatchlistEntryQueryRequest;
   queryResponse: WatchlistEntryQueryResponse;
   querySort: WatchlistEntryQuerySort;

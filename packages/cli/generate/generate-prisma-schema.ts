@@ -33,6 +33,7 @@ import {
   seriesTableName,
   SeriesFieldType,
   softDeleteCascadeErrors,
+  sqlServerForeignKeys,
   uncapitalize,
   appConfig
 } from '@appweaver/common';
@@ -69,14 +70,27 @@ const UUID_NATIVE_TYPES: Partial<Record<DatabaseType, string>> = {
   [DatabaseType.MySQL]: `@db.Char(${UUID_LENGTH})`
 };
 
-// The longest VARCHAR of each database in characters (utf8mb4 on MySQL), and
-// the text type holding a longer value
+// The type of a string column, its longest length in characters (utf8mb4 on
+// MySQL), and the text type holding a longer value. SQL Server stores Unicode
+// only in the NVARCHAR columns.
 const STRING_NATIVE_TYPES: Partial<
-  Record<DatabaseType, { maxVarChar: number; text: string }>
+  Record<DatabaseType, { varChar: string; maxVarChar: number; text: string }>
 > = {
-  [DatabaseType.PostgreSQL]: { maxVarChar: 10_485_760, text: '@db.Text' },
-  [DatabaseType.MySQL]: { maxVarChar: 16_383, text: '@db.MediumText' },
-  [DatabaseType.SQLServer]: { maxVarChar: 8_000, text: '@db.VarChar(Max)' }
+  [DatabaseType.PostgreSQL]: {
+    varChar: 'VarChar',
+    maxVarChar: 10_485_760,
+    text: '@db.Text'
+  },
+  [DatabaseType.MySQL]: {
+    varChar: 'VarChar',
+    maxVarChar: 16_383,
+    text: '@db.MediumText'
+  },
+  [DatabaseType.SQLServer]: {
+    varChar: 'NVarChar',
+    maxVarChar: 4_000,
+    text: '@db.NVarChar(Max)'
+  }
 };
 
 type PrismaSchemaField = {
@@ -150,6 +164,20 @@ export async function generatePrismaSchema(
     const dbType = databaseType();
     const relativeOutputPath = relativePathFrom(schemaPath, clientPath);
 
+    // SQL Server keeps a single NULL in a unique constraint, so an optional
+    // unique column is a partial unique index (see applySqlServerUniqueIndexes)
+    const generatorEntries: [string, string | undefined][] = [
+      ['provider', '"prisma-client"'],
+      ['output', `"${relativeOutputPath}"`],
+      ['runtime', appConfig.RUNTIME === Runtime.Bun ? '"bun"' : undefined],
+      [
+        'previewFeatures',
+        dbType === DatabaseType.SQLServer ? '["partialIndexes"]' : undefined
+      ]
+    ];
+    const generatorLines = generatorEntries.filter(([, value]) => value);
+    const keyLength = Math.max(...generatorLines.map(([key]) => key.length));
+
     const schemaContent = [
       `// This is your Prisma schema file,`,
       `// learn more about it in the docs: https://pris.ly/d/prisma-schema`,
@@ -161,12 +189,12 @@ export async function generatePrismaSchema(
       `}`,
       ``,
       `generator client {`,
-      `  provider = "prisma-client"`,
-      `  output   = "${relativeOutputPath}"`,
-      appConfig.RUNTIME === Runtime.Bun ? '  runtime  = "bun"' : undefined,
+      ...generatorLines.map(
+        ([key, value]) => `  ${key.padEnd(keyLength)} = ${value}`
+      ),
       `}`,
       ``
-    ].filter((l) => l !== undefined);
+    ];
 
     let authModel: ResourceModel | undefined;
     for (const model of Object.values(models)) {
@@ -214,7 +242,11 @@ export async function generatePrismaSchema(
       for (const [fieldName, scalar] of Object.entries(
         schema.config.scalars ?? {}
       )) {
-        if (scalar.type === 'enum' && scalar.values?.length) {
+        if (
+          scalar.type === 'enum' &&
+          scalar.values?.length &&
+          dbType !== DatabaseType.SQLServer
+        ) {
           prismaEnums[`${name}${capitalize(fieldName)}`] = scalar.values;
         }
       }
@@ -399,6 +431,11 @@ export async function generatePrismaSchema(
       seriesModels.push(...createSeriesModel(name, config, idColumnOf(name)));
     }
 
+    if (dbType === DatabaseType.SQLServer) {
+      applySqlServerActions(prismaModels, models);
+      applySqlServerUniqueIndexes(prismaModels);
+    }
+
     // Add Prisma models to the schema content
     for (const [name, model] of Object.entries(prismaModels)) {
       schemaContent.push(`model ${name} {`);
@@ -518,6 +555,62 @@ export async function generatePrismaSchema(
   }
 }
 
+/**
+ * Sets the referential actions SQL Server runs on every foreign key, replacing the declared ones, since SQL Server
+ * rejects the actions forming a cycle or a second path between two tables (see `sqlServerForeignKeys`).
+ */
+function applySqlServerActions(
+  prismaModels: Record<string, PrismaSchemaModel>,
+  models: Record<string, ResourceModel>
+): void {
+  const actions = new Map(
+    sqlServerForeignKeys(models).map((fk) => [
+      `${fk.modelName}.${fk.foreignKey}`,
+      fk
+    ])
+  );
+
+  for (const [name, model] of Object.entries(prismaModels)) {
+    for (const field of [...model.relations, ...model.files, ...model.audit]) {
+      const attribute = field.attributes?.[0];
+      const column = attribute?.match(/fields: \[(\w+)]/)?.[1];
+      if (!attribute || !column) {
+        continue;
+      }
+
+      const fk = actions.get(`${name}.${column}`);
+      const onDelete = capitalize(fk?.dbOnDelete ?? 'noAction');
+      const onUpdate = capitalize(fk?.dbOnUpdate ?? 'noAction');
+      field.attributes![0] = attribute
+        .replace(/, on(Delete|Update): \w+/g, '')
+        .replace(/\)$/, `, onDelete: ${onDelete}, onUpdate: ${onUpdate})`);
+    }
+  }
+}
+
+/**
+ * Turns the unique constraint of every optional column into a unique index of its values, since a unique constraint of
+ * SQL Server holds a single NULL, i.e. one record without a file or a oneToOne relation.
+ */
+function applySqlServerUniqueIndexes(
+  prismaModels: Record<string, PrismaSchemaModel>
+): void {
+  for (const model of Object.values(prismaModels)) {
+    for (const field of [
+      ...model.scalars,
+      ...model.relations,
+      ...model.files
+    ]) {
+      if (field.type.endsWith('?') && field.attributes?.includes('@unique')) {
+        field.attributes = field.attributes.filter((a) => a !== '@unique');
+        model.index.push(
+          `@@unique([${field.name}], where: { ${field.name}: { not: null } })`
+        );
+      }
+    }
+  }
+}
+
 function buildPrismaField(
   field: PrismaSchemaField,
   nameLength = 0,
@@ -614,7 +707,8 @@ function stringNativeType(
     return limits.text;
   }
 
-  return varCharType(maxLength);
+  const size = Number.isFinite(maxLength) ? maxLength : undefined;
+  return size ? `@db.${limits?.varChar ?? 'VarChar'}(${size})` : undefined;
 }
 
 function idNativeType(id?: IdField): string | undefined {
@@ -659,7 +753,15 @@ function createScalarSchema(
 ): PrismaSchemaField {
   const attributes: string[] = [];
 
-  const isSqlite = databaseType() === DatabaseType.Sqlite;
+  const dbType = databaseType();
+  const isSqlite = dbType === DatabaseType.Sqlite;
+  const isEnum = scalar.type === 'enum' && !!scalar.values?.length;
+  // SQL Server has neither enums nor JSON, so they are string columns, a JSON
+  // value serialized by the data layer
+  const columnType =
+    dbType === DatabaseType.SQLServer && (isEnum || scalar.type === 'json')
+      ? 'string'
+      : scalar.type;
 
   const sanitize = (val: FieldDefault) => {
     if (isNumber(val) || isBoolean(val)) {
@@ -677,9 +779,9 @@ function createScalarSchema(
   }
 
   const type =
-    scalar.type === 'enum' && scalar.values?.length
+    isEnum && columnType === 'enum'
       ? `${modelName}${capitalize(name)}${typeSuffix}`
-      : `${capitalize(scalar.type)}${typeSuffix}`;
+      : `${capitalize(columnType)}${typeSuffix}`;
 
   if (scalar.unique) {
     attributes.push(`@unique`);
@@ -696,7 +798,7 @@ function createScalarSchema(
       const literal = `'${json.replace(/'/g, "''")}'`;
       defaultAttribute = `@default(dbgenerated(${JSON.stringify(literal)}))`;
     } else if (
-      ['string', 'dateTime', 'json'].includes(scalar.type) &&
+      ['string', 'dateTime', 'json'].includes(columnType) &&
       !scalar.array
     ) {
       defaultAttribute = `@default("${sanitize(scalar.default)}")`;
@@ -706,7 +808,7 @@ function createScalarSchema(
         : [scalar.default];
       const mappedValues = defaultValues
         .map((v: any) =>
-          ['string', 'dateTime', 'json'].includes(scalar.type)
+          ['string', 'dateTime', 'json'].includes(columnType)
             ? `"${sanitize(v)}"`
             : `${v}`
         )
@@ -725,11 +827,19 @@ function createScalarSchema(
     attributes.push(defaultAttribute);
   }
 
-  if (scalar.type === 'string' && !isSqlite) {
+  if (columnType === 'string' && !isSqlite) {
     // The generator width wins over `maxLength`, which only bounds the API input
-    const nativeType =
-      generatorNativeType(scalar.defaultGenerator) ??
-      stringNativeType(scalar.maxLength);
+    let nativeType: string | undefined;
+    if (scalar.type === 'json') {
+      nativeType = stringNativeType(Infinity, dbType);
+    } else if (isEnum) {
+      const longest = Math.max(...scalar.values.map((v) => v.length));
+      nativeType = stringNativeType(longest, dbType);
+    } else if (scalar.type === 'string') {
+      nativeType =
+        generatorNativeType(scalar.defaultGenerator) ??
+        stringNativeType(scalar.maxLength);
+    }
     if (nativeType) {
       attributes.push(nativeType);
     }

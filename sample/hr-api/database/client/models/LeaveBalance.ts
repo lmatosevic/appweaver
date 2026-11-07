@@ -414,7 +414,6 @@ export type LeaveBalanceUncheckedUpdateInput = {
 }
 
 export type LeaveBalanceCreateManyInput = {
-  id?: number
   year: number
   allowanceDays: number
   carriedOverDays?: number
@@ -818,7 +817,6 @@ export type LeaveBalanceUpdateManyWithWhereWithoutDeletedByInput = {
 }
 
 export type LeaveBalanceCreateManyEmployeeInput = {
-  id?: number
   year: number
   allowanceDays: number
   carriedOverDays?: number
@@ -831,7 +829,6 @@ export type LeaveBalanceCreateManyEmployeeInput = {
 }
 
 export type LeaveBalanceCreateManyCreatedByInput = {
-  id?: number
   year: number
   allowanceDays: number
   carriedOverDays?: number
@@ -844,7 +841,6 @@ export type LeaveBalanceCreateManyCreatedByInput = {
 }
 
 export type LeaveBalanceCreateManyDeletedByInput = {
-  id?: number
   year: number
   allowanceDays: number
   carriedOverDays?: number
@@ -989,39 +985,7 @@ export type LeaveBalanceSelect<ExtArgs extends runtime.Types.Extensions.Internal
   deletedBy?: boolean | Prisma.LeaveBalance$deletedByArgs<ExtArgs>
 }, ExtArgs["result"]["leaveBalance"]>
 
-export type LeaveBalanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  year?: boolean
-  allowanceDays?: boolean
-  carriedOverDays?: boolean
-  usedDays?: boolean
-  employeeId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.LeaveBalance$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.LeaveBalance$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["leaveBalance"]>
 
-export type LeaveBalanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  year?: boolean
-  allowanceDays?: boolean
-  carriedOverDays?: boolean
-  usedDays?: boolean
-  employeeId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.LeaveBalance$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.LeaveBalance$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["leaveBalance"]>
 
 export type LeaveBalanceSelectScalar = {
   id?: boolean
@@ -1039,16 +1003,6 @@ export type LeaveBalanceSelectScalar = {
 
 export type LeaveBalanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "year" | "allowanceDays" | "carriedOverDays" | "usedDays" | "employeeId" | "updatedAt" | "createdAt" | "createdById" | "deletedAt" | "deletedById", ExtArgs["result"]["leaveBalance"]>
 export type LeaveBalanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.LeaveBalance$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.LeaveBalance$deletedByArgs<ExtArgs>
-}
-export type LeaveBalanceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.LeaveBalance$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.LeaveBalance$deletedByArgs<ExtArgs>
-}
-export type LeaveBalanceIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.LeaveBalance$createdByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.LeaveBalance$deletedByArgs<ExtArgs>
@@ -1197,30 +1151,6 @@ export interface LeaveBalanceDelegate<ExtArgs extends runtime.Types.Extensions.I
   createMany<T extends LeaveBalanceCreateManyArgs>(args?: Prisma.SelectSubset<T, LeaveBalanceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many LeaveBalances and returns the data saved in the database.
-   * @param {LeaveBalanceCreateManyAndReturnArgs} args - Arguments to create many LeaveBalances.
-   * @example
-   * // Create many LeaveBalances
-   * const leaveBalance = await prisma.leaveBalance.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many LeaveBalances and only return the `id`
-   * const leaveBalanceWithIdOnly = await prisma.leaveBalance.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends LeaveBalanceCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, LeaveBalanceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveBalancePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a LeaveBalance.
    * @param {LeaveBalanceDeleteArgs} args - Arguments to delete one LeaveBalance.
    * @example
@@ -1283,36 +1213,6 @@ export interface LeaveBalanceDelegate<ExtArgs extends runtime.Types.Extensions.I
    * 
    */
   updateMany<T extends LeaveBalanceUpdateManyArgs>(args: Prisma.SelectSubset<T, LeaveBalanceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more LeaveBalances and returns the data updated in the database.
-   * @param {LeaveBalanceUpdateManyAndReturnArgs} args - Arguments to update many LeaveBalances.
-   * @example
-   * // Update many LeaveBalances
-   * const leaveBalance = await prisma.leaveBalance.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more LeaveBalances and only return the `id`
-   * const leaveBalanceWithIdOnly = await prisma.leaveBalance.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends LeaveBalanceUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, LeaveBalanceUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveBalancePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one LeaveBalance.
@@ -1753,28 +1653,6 @@ export type LeaveBalanceCreateManyArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 /**
- * LeaveBalance createManyAndReturn
- */
-export type LeaveBalanceCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the LeaveBalance
-   */
-  select?: Prisma.LeaveBalanceSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the LeaveBalance
-   */
-  omit?: Prisma.LeaveBalanceOmit<ExtArgs> | null
-  /**
-   * The data used to create many LeaveBalances.
-   */
-  data: Prisma.LeaveBalanceCreateManyInput | Prisma.LeaveBalanceCreateManyInput[]
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.LeaveBalanceIncludeCreateManyAndReturn<ExtArgs> | null
-}
-
-/**
  * LeaveBalance update
  */
 export type LeaveBalanceUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1816,36 +1694,6 @@ export type LeaveBalanceUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many LeaveBalances to update.
    */
   limit?: number
-}
-
-/**
- * LeaveBalance updateManyAndReturn
- */
-export type LeaveBalanceUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the LeaveBalance
-   */
-  select?: Prisma.LeaveBalanceSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the LeaveBalance
-   */
-  omit?: Prisma.LeaveBalanceOmit<ExtArgs> | null
-  /**
-   * The data used to update LeaveBalances.
-   */
-  data: Prisma.XOR<Prisma.LeaveBalanceUpdateManyMutationInput, Prisma.LeaveBalanceUncheckedUpdateManyInput>
-  /**
-   * Filter which LeaveBalances to update
-   */
-  where?: Prisma.LeaveBalanceWhereInput
-  /**
-   * Limit how many LeaveBalances to update.
-   */
-  limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.LeaveBalanceIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

@@ -1,8 +1,9 @@
-import { resolveSourcePath, appConfig } from '@appweaver/common';
-import { databaseConfig } from '../database/database-config';
+import { appConfig, resolveSourcePath } from '@appweaver/common';
 import { discoverModules } from '@appweaver/core';
 import { loadProviders } from '@appweaver/core/internal';
 import { Seeder } from './seeder';
+import { loadResources } from '../resource/resource-loader';
+import { databaseConfig } from '../database/database-config';
 
 export type CreateSeederParams = {
   /** A relative path where the application source code is located.
@@ -51,6 +52,16 @@ export async function createSeeder(
   // Define the providers and the services of the modules
   const modules = await discoverModules({ scanPath });
   await loadProviders(modules, scanPath);
+
+  // Load the resources like the application does, i.e. for the JSON fields
+  // the database client of SQL Server serializes
+  await loadResources(
+    scanPath,
+    undefined,
+    modules.flatMap(({ module }) =>
+      module.resources ? [module.resources] : []
+    )
+  );
 
   const seeder = new Seeder(
     seedersPath,

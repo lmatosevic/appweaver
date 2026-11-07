@@ -13,7 +13,8 @@ import {
   apiKeyConfig,
   connectedAccountConfig,
   passwordConfig,
-  systemConfig
+  systemConfig,
+  twoFactorModelConfig
 } from './security/auth-config';
 import { imageConfig } from './storage/image-config';
 import { databaseSeriesConfig } from './timeseries/database-series-config';
@@ -30,6 +31,7 @@ export default defineModule({
     passwordConfig,
     apiKeyConfig,
     connectedAccountConfig,
+    twoFactorModelConfig,
     systemConfig,
     databaseSeriesConfig,
     timescaleConfig

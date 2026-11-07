@@ -7,12 +7,14 @@ import {
   basicAuthConfig,
   recaptchaConfig,
   securityConfig,
-  turnstileConfig
+  turnstileConfig,
+  twoFactorConfig
 } from './security-config';
 import { apiKeyConfig } from '@appweaver/data';
 import { Server } from '../types/server';
-import { authRoutes } from './auth-routes';
+import { authRoutes, registerExchangeTokenRoute } from './auth-routes';
 import { accountRoutes } from './account';
+import { twoFactorRoutes } from './two-factor';
 import { recaptcha } from './recaptcha';
 import { turnstile } from './turnstile';
 import { basicAuth, hasBasicAuth } from './basic';
@@ -68,6 +70,13 @@ export default fastifyPlugin((server: Server) => {
   server.register(accountRoutes, {
     prefix: accountConfig.ROUTE_PREFIX
   });
+
+  if (twoFactorConfig.ENABLED) {
+    registerExchangeTokenRoute(server);
+    server.register(twoFactorRoutes, {
+      prefix: `${accountConfig.ROUTE_PREFIX.replace(/\/$/, '')}/2fa`
+    });
+  }
 
   server.decorate('authenticate', (authTypes?: AuthType[]) => {
     const { auth, authenticateJWT, authenticateApiKey, basicAuth } = server;

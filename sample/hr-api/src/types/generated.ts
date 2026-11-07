@@ -346,7 +346,8 @@ export type Employee = {
   terminatedAt?: Date | null;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   fullName: string;
@@ -385,7 +386,8 @@ export type EmployeeSingle = {
   hireDate: Date;
   terminatedAt?: Date | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   fullName: string;
@@ -417,7 +419,8 @@ export type EmployeeMultiple = {
   hireDate: Date;
   terminatedAt?: Date | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   fullName: string;
@@ -441,7 +444,6 @@ export type EmployeeCreate = {
   phone?: string | null;
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   hireDate: Date;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
   department?:
@@ -475,7 +477,6 @@ export type EmployeeUpdate = {
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate?: Date;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   department?:
@@ -509,7 +510,6 @@ export type EmployeeReplace = {
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate: Date;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   department?:
@@ -542,7 +542,6 @@ export type EmployeeRelationCreate = {
   phone?: string | null;
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   hireDate: Date;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
 };
@@ -556,7 +555,6 @@ export type EmployeeRelationUpdate = {
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate?: Date;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };

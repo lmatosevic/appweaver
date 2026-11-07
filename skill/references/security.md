@@ -56,17 +56,17 @@ if `SECURITY_JWT_SECRET` is set.
 - RSA 2048-bit key pair generated automatically if `SECURITY_JWT_AUTO_GENERATE_KEYS` is `true` and key files are missing
 - Keys stored at `SECURITY_JWT_PUBLIC_KEY_PATH` and `SECURITY_JWT_PRIVATE_KEY_PATH` (default: `./storage/__keys__/`)
 - Generated keys are written with owner-only permissions (`0600` for the private key, `0700` for its directory)
-- The default `STORAGE_RESERVED_PATHS` value (`['__keys__']`) makes the `__keys__` directory unusable by the file storage
-  layer, so uploads can never overwrite the default key location
+- The default `STORAGE_RESERVED_PATHS` value (`['__keys__']`) makes the `__keys__` directory unusable by the file
+  storage layer, so uploads can never overwrite the default key location
 - If `SECURITY_JWT_SECRET` is set, HMAC signing is used instead of RSA
 
 ### Token types and scopes
 
-| Scope     | Purpose               | Access                                                                           |
-|-----------|-----------------------|----------------------------------------------------------------------------------|
-| `Auth`    | Full API access       | All routes except `/refresh`, `/send-2fa-code`, `/verify-2fa-code`               |
-| `Refresh` | Token renewal only    | Only `POST /auth/refresh`                                                        |
-| `TwoFA`   | 2FA verification only | Only `POST /auth/account/send-2fa-code` and `POST /auth/account/verify-2fa-code` |
+| Scope     | Purpose               | Access                                                                      |
+|-----------|-----------------------|-----------------------------------------------------------------------------|
+| `Auth`    | Full API access       | All routes except `/refresh`, `/2fa/challenge`, `/2fa/verify`               |
+| `Refresh` | Token renewal only    | Only `POST /auth/refresh`                                                   |
+| `TwoFA`   | 2FA verification only | Only `POST /auth/account/2fa/challenge` and `POST /auth/account/2fa/verify` |
 
 ### JWT payload
 
@@ -104,6 +104,10 @@ On every authenticated request, the server:
 | `POST` | `/auth/change-password` | Any                 | Change password. Requires current password + new password. Invalidates all tokens. Rate limited: 12/window. |
 | `POST` | `/auth/exchange-token`  | Public              | Exchange a one-time token (OTT) for JWT access + refresh tokens. Rate limited: 12/window.                   |
 
+`/auth/exchange-token` exchanges the one-time tokens of the OAuth2 sign-in and of the 2FA verification, so it is
+registered only with an enabled OAuth2 provider or 2FA, by `registerExchangeTokenRoute` of `@appweaver/web` (once,
+whichever registers it first).
+
 A failed login responds with the same `400` "Invalid user credentials" error whether the user does not exist, is
 disabled, or gave a wrong password, so the response does not reveal which accounts exist. HTTP Basic authentication
 answers the same failures with its `401` challenge instead.
@@ -131,7 +135,9 @@ When enabled, requests with an `Authorization: Basic` header are authenticated a
 ```
 
 Uses `@fastify/basic-auth` plugin. Extracts Base64-encoded `username:password` from the header and validates against the
-user's stored password hash.
+user's stored password hash. A user who has to pass 2FA (a user with a method, or every user when it is forced) is
+rejected with `AUTH_FORBIDDEN`, since the password alone would skip the second factor; such a user authenticates with a
+JWT or an API key.
 
 ---
 
@@ -176,7 +182,12 @@ A key has the full access of its owner unless it lists a scope, its optional `ro
 
 ```ts
 // POST /api/api-keys, with the JWT of the owner
-{ "name": "CI deploys", "roles": [3], "permissions": [12, { "id": 15 }] }
+const _ = {
+  'name':
+    'CI deploys', 'roles':
+    [3], 'permissions':
+    [12, { 'id': 15 }]
+};
 ```
 
 - A role or permission the owner does not hold fails with `403` `AUTH_API_KEY_PERMISSION_DENIED`, whose details list
@@ -541,7 +552,19 @@ const source = currentAuthSource();   // 'Password' | 'OAuth2Google' | 'ApiKey' 
 
 ## Two-factor authentication (2FA)
 
-When enabled, 2FA adds an extra verification step after password login using email-based one-time codes.
+When enabled, 2FA adds a second verification step to a sign-in, by a password or by OAuth2. A user enables any of
+three methods, each one once:
+
+| Method  | The code                                                                                          | Available with                                 |
+|---------|---------------------------------------------------------------------------------------------------|------------------------------------------------|
+| `Email` | Sent by email (`emails/two-factor-code` template), to a verified email address                    | A mailer (`@appweaver/nodemailer`, or `json`)  |
+| `Sms`   | Sent by SMS (`sms.twoFactorCode` translation), to a verified phone number                         | An SMS sender (`@appweaver/twilio`, or `json`) |
+| `Totp`  | Generated by an authenticator app (TOTP of RFC 6238, Google Authenticator, Authy, 1Password, ...) | `security.account.2fa.totp.encryptionKey`      |
+
+The methods of a user are ordered, the first one being their default, and the `TwoFactorMethodType` enum of
+`@appweaver/common` names them. The auth user carries the confirmed ones as `authUser.twoFactorMethods`, i.e.
+`['Totp', 'Email']`, loaded with the user by `AuthService`. They are stored in the `TwoFactorMethod` framework model,
+linked to the auth model and deleted with it, and managed by the 2FA routes only, never by the resource routes.
 
 ### Configuration
 
@@ -553,7 +576,19 @@ When enabled, 2FA adds an extra verification step after password login using ema
         "2fa": {
           "enabled": true,
           "forced": false,
-          "ottTtl": 300000
+          "ottTtl": 300000,
+          "methods": [
+            "Email",
+            "Sms",
+            "Totp"
+          ],
+          "defaultMethod": "Email",
+          "codeLength": 6,
+          "maxAttempts": 5,
+          "totp": {
+            "issuer": "My App",
+            "encryptionKey": "${TOTP_ENCRYPTION_KEY}"
+          }
         }
       }
     }
@@ -561,43 +596,134 @@ When enabled, 2FA adds an extra verification step after password login using ema
 }
 ```
 
-- `enabled` - Allow users to opt into 2FA
-- `forced` - Require 2FA for all users regardless of their preference
-- `ottTtl` - Code expiration time in milliseconds (default 5 minutes)
+- `enabled` - Enable 2FA, off by default: its routes, the `/auth/exchange-token` route and the `TwoFactorMethod` and
+  `TwoFactorRecoveryCode` models exist only with it
+- `forced` - Require 2FA of every user, a user without a method of their own verifying with the `defaultMethod`
+- `methods` - The methods users may enable, offered only with their service (see the table above)
+- `maxAttempts` - Wrong codes of a challenge, revoked on the last one (`ACCOUNT_2FA_TOO_MANY_ATTEMPTS`)
+- `totp.encryptionKey` - Encrypts the TOTP secrets in the database (AES-256-GCM); changing it makes the enabled TOTP
+  methods unusable
 
-### User setting
+A user with a method, or every user when 2FA is forced, is challenged on every sign-in. A user whose methods became
+unavailable (i.e. the SMS sender was removed) is still challenged, so 2FA never turns off on its own, and their
+challenge fails with `ACCOUNT_2FA_METHOD_UNAVAILABLE` until the method is available again.
 
-Users set their 2FA preference via the `twoFactorAuth` field on their profile, the values of the `TwoFactorAuth` enum
-of `@appweaver/common`:
-
-- `TwoFactorAuth.None` (`'None'`) - 2FA disabled for this user
-- `TwoFactorAuth.Email` (`'Email'`) - 2FA enabled via email codes
-
-### Login flow with 2FA
+### Sign-in flow with 2FA
 
 ```
-1. POST /auth/login { email, password }
-   -> If 2FA required: returns JWT with TwoFA scope (restricted access)
-   -> If 2FA not required: returns JWT with Auth scope (full access)
+1. POST /auth/login { username, password }            (or the OAuth2 sign-in, then POST /auth/exchange-token)
+   -> 2FA required: tokens of the 2fa scope, with the methods of the user { accessToken, ..., twoFactorMethods }
+   -> 2FA not required: tokens of the auth scope (full access)
 
-2. POST /auth/account/send-2fa-code
-   -> Generates 6-digit code, emails it to user
-   -> Returns { challengeId }
+2. POST /auth/account/2fa/challenge { method?, purpose? }      (with the token of the 2fa scope)
+   -> Without a method, the default one of the user (the first of twoFactorMethods), 'Recovery' for a recovery code
+   -> email / sms: sends a code; totp: waits for the code of the authenticator app
+   -> Returns { challengeId, expiresIn, method, destination, methods }
+      (destination: the masked address or number, i.e. "+385*******67", null for totp)
 
-3. POST /auth/account/verify-2fa-code { challengeId, code }
-   -> Validates code against stored hash
+3. POST /auth/account/2fa/verify { challengeId, code }      (with the token of the 2fa scope)
+   -> A wrong code: ACCOUNT_2FA_CODE_INVALID with details.attemptsLeft
    -> Returns { token } (one-time authentication token)
 
 4. POST /auth/exchange-token { token }
-   -> Returns full JWT with Auth scope { accessToken, refreshToken }
+   -> Returns the tokens of the auth scope, keeping the source of the sign-in (i.e. oauth2Google)
 ```
+
+Changing the password (`POST /auth/change-password`) returns the tokens of the `auth` scope, since the user passed 2FA
+to call it. The refresh token of the tokens of the `2fa` scope keeps that scope and the expiration of the access token,
+so `/auth/refresh` never turns them into the tokens of the `auth` scope without the challenge.
+
+The challenge fails with `ACCOUNT_2FA_METHOD_UNAVAILABLE` for a method the application does not offer, and with
+`ACCOUNT_2FA_METHOD_NOT_ENABLED` (`details.enabledMethods`) for one the user has not enabled. A challenge belongs to the
+user it was sent to, and a TOTP code is accepted once, a later code of the same time step being rejected. The `purpose`
+of a challenge (`authentication` by default) is the purpose of the one-time token it issues, so an application can
+verify a sensitive action with 2FA and consume the token itself; the purposes of the framework's own tokens
+(`emailVerification`, `passwordReset`, `phoneVerification`, `2faVerification`) are rejected with `VALIDATION_FAILED`.
+
+### Managing the methods
+
+The routes below take the token of the auth scope. Each one answering with the methods returns
+`{ enabled, available }`, the enabled methods of the user in their order and the ones they may enable.
+
+```
+GET    /auth/account/2fa/methods                       -> { enabled: ['Totp'], available: ['Email', 'Sms', 'Totp'] }
+POST   /auth/account/2fa/methods { method: 'Email' }   -> enables Email (needs a verified email address) or Sms
+                                                          (needs a verified phone number), as the last method
+POST   /auth/account/2fa/totp/setup                    -> { secret, otpauthUrl, expiresIn }, show otpauthUrl as a QR code
+POST   /auth/account/2fa/totp/confirm { code }         -> enables totp with a first code of the app, within setupTtl
+PUT    /auth/account/2fa/methods/order { methods }     -> every enabled method in the new order, the first is the default
+DELETE /auth/account/2fa/methods/:method { password }  -> disables a method, the password required when the user has one
+```
+
+`TwoFactorService` of `@appweaver/web` does the same in code: `availableMethods`, `listMethods`, `sendChallenge`,
+`verifyChallenge`, `enableMethod`, `setupTotp`, `confirmTotp`, `orderMethods`, `disableMethod`,
+`generateRecoveryCodes`, `resetTwoFactor` and `removeSmsMethod`.
+
+### Recovery codes
+
+Recovery codes stand in for the 2FA methods of a user who lost them, i.e. a lost phone. A user with a method generates
+`recoveryCodes.count` codes (10 by default) of `recoveryCodes.length` characters (16 by default, at most 128), shown in
+groups of four (`7G2K-QX9M-4TZB-8HRW`, Crockford Base32 without `I`, `L`, `O` and `U`):
+
+```
+POST /auth/account/2fa/recovery-codes { password }   -> { codes: [...], generatedAt }, shown only this once
+```
+
+The password is required when the user has one, and a new set replaces the previous one. Only the SHA-256 of each code
+is stored, in the `TwoFactorRecoveryCode` framework model, since the randomness of a code makes a slow hash pointless.
+A code signs the user in once, by the challenge of the `Recovery` method, which sends nothing:
+
+```
+1. POST /auth/account/2fa/challenge { method: 'Recovery' }       (with the token of the 2fa scope)
+2. POST /auth/account/2fa/verify { challengeId, code: '7g2k qx9m 4tzb 8hrw' }   (case, spaces and hyphens ignored)
+3. POST /auth/exchange-token { token }
+```
+
+A used code is never accepted again, also by a concurrent verification, and a wrong one counts against the
+`maxAttempts` of the challenge. The user is emailed about every used code (`emails/recovery-code-used`), unless
+`recoveryCodes.notifyOnUse` is off, and a failing email never fails the sign-in. `Recovery` is a challenge method only,
+never one of the enabled methods, so it is not ordered and never the default; a challenge for it fails with
+`ACCOUNT_2FA_METHOD_NOT_ENABLED` without an unused code. Disabling the last method deletes the codes, and
+`TwoFactorService.resetTwoFactor(authUserId)` removes every method and code of a user, i.e. for an administrator helping
+a user who lost them all.
+
+### Phone verification
+
+The SMS method needs a verified phone number (`phoneNumber`, `verifiedPhone` of the auth model, never accepted by the
+resource routes):
+
+```
+1. POST /auth/account/send-verify-phone { phoneNumber: '+385911234567' }   -> { challengeId, expiresIn }, a code by SMS
+   POST /auth/account/send-verify-phone {}                                    -> the same, to the number of the user
+2. POST /auth/account/verify-phone { challengeId, code }                    -> { message }, the number is verified
+```
+
+The number is in the E.164 format. Without one, the code goes to the `phoneNumber` of the user (i.e. stored by the
+sign-up code of the application), and without that the request fails with `ACCOUNT_PHONE_NOT_SET`. A new number
+replaces the current one only once verified. Verifying another number than the current one removes the `Sms` method of the user,
+enabled again for the new number. The routes are registered only with an SMS sender, and `AccountService` answers
+`ACCOUNT_FEATURE_UNAVAILABLE` without one.
+`AccountService.sendPhoneVerification` and `AccountService.verifyPhone` do the same in code.
 
 ### 2FA routes
 
-| Method | Path                            | Auth              | Rate limit | Description                                      |
-|--------|---------------------------------|-------------------|------------|--------------------------------------------------|
-| `POST` | `/auth/account/send-2fa-code`   | JWT (TwoFA scope) | 10/15min   | Send 2FA code to user's email.                   |
-| `POST` | `/auth/account/verify-2fa-code` | JWT (TwoFA scope) | 12/window  | Verify 2FA code, returns OTT for token exchange. |
+| Method   | Path                                | Auth             | Rate limit | Description                                        |
+|----------|-------------------------------------|------------------|------------|----------------------------------------------------|
+| `POST`   | `/auth/account/2fa/challenge`       | JWT (2fa scope)  | 10/15min   | Send a 2FA challenge by a method.                  |
+| `POST`   | `/auth/account/2fa/verify`          | JWT (2fa scope)  | 12/window  | Verify a code, returns the OTT for token exchange. |
+| `GET`    | `/auth/account/2fa/methods`         | JWT (auth scope) | -          | List the enabled and the available methods.        |
+| `POST`   | `/auth/account/2fa/methods`         | JWT (auth scope) | -          | Enable the email or SMS method.                    |
+| `PUT`    | `/auth/account/2fa/methods/order`   | JWT (auth scope) | -          | Order the methods, the first is the default.       |
+| `DELETE` | `/auth/account/2fa/methods/:method` | JWT (auth scope) | 12/window  | Disable a method, with the password.               |
+| `POST`   | `/auth/account/2fa/totp/setup`      | JWT (auth scope) | -          | Start the setup of an authenticator app.           |
+| `POST`   | `/auth/account/2fa/totp/confirm`    | JWT (auth scope) | 12/window  | Confirm the setup with a first code.               |
+| `POST`   | `/auth/account/2fa/recovery-codes`  | JWT (auth scope) | 12/window  | Generate the recovery codes, with the password.    |
+| `POST`   | `/auth/account/send-verify-phone`   | JWT (auth scope) | 5/15min    | Send a phone verification code by SMS.             |
+| `POST`   | `/auth/account/verify-phone`        | JWT (auth scope) | 12/window  | Verify the phone number.                           |
+
+The 2FA routes are registered only with `security.account.2fa.enabled`, the TOTP setup only with the `Totp` method
+available (its `encryptionKey` set), and the recovery codes only with `recoveryCodes.enabled`. The phone verification
+routes need an SMS sender, whether 2FA is enabled or not.
 
 ---
 
@@ -693,6 +819,9 @@ or unreachable API with `TURNSTILE_UNAVAILABLE`. The password reset routes also 
 
 ## Account management
 
+The email verification and password reset routes are registered only with a mailer (`@appweaver/nodemailer`, or the
+`json` one) and their `enabled` config, so an application without one offers neither in its API.
+
 ### Email verification
 
 | Method | Path                                  | Auth   | Description                                                                                                                      |
@@ -739,7 +868,8 @@ time-limited.
 | `Authentication`    | `SECURITY_AUTH_OTT_TTL` (120s)                    | OAuth2 token exchange, 2FA completion |
 | `EmailVerification` | `SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL` (2h)      | Email verification links              |
 | `PasswordReset`     | `SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL` (30min) | Password reset links                  |
-| `TwoFAVerification` | `SECURITY_ACCOUNT_2FA_OTT_TTL` (5min)             | 2FA code challenges                   |
+| `TwoFAVerification` | `SECURITY_ACCOUNT_2FA_OTT_TTL` (5min)             | 2FA challenges                        |
+| `PhoneVerification` | `SECURITY_ACCOUNT_VERIFY_PHONE_OTT_TTL` (10min)   | Phone verification codes              |
 | `OAuth2State`       | `SECURITY_OAUTH2_STATE_TTL` (10min)               | CSRF protection in OAuth2 flow        |
 
 ### Storage
@@ -761,7 +891,9 @@ Both stores behave the same way:
 
 - A token is consumed by its first successful use. Of concurrent uses of the same token only one succeeds, the others
   are rejected with `401`.
-- A token failing the content validation (e.g. a mistyped 2FA code) is kept, so it can be used again until it expires.
+- A token failing the content validation is kept, so it can be used again until it expires, unless the validation
+  replaces its data or revokes it (`TokenValidationResult`): a wrong 2FA or phone verification code counts against
+  the `SECURITY_ACCOUNT_2FA_MAX_ATTEMPTS` of its challenge, and the last one revokes it.
 - Expired tokens are rejected. The database store deletes them whenever a new token is created, the memory expires them
   on its own.
 
@@ -769,23 +901,27 @@ Both stores behave the same way:
 
 ## Auth user model
 
-The security module automatically adds the following fields to the user model:
+The security module automatically adds the following fields to the user model. `verifiedEmail`, `phoneNumber` and
+`verifiedPhone` are never accepted as input of the resource routes:
 
-| Field           | Type             | Default  | Description                                                  |
-|-----------------|------------------|----------|--------------------------------------------------------------|
-| `email`         | string (unique)  | -        | User's email address.                                        |
-| `passwordHash`  | string? (hidden) | -        | Argon2id password hash (never exposed in API).               |
-| `verifiedEmail` | boolean          | `false`  | Whether the user's email is verified.                        |
-| `twoFactorAuth` | enum             | `'None'` | 2FA setting, the values of the `TwoFactorAuth` enum.         |
-| `enabled`       | boolean          | `true`   | Whether the account is active.                               |
-| `logoutAt`      | dateTime?        | -        | Timestamp used to invalidate tokens issued before this time. |
+| Field           | Type             | Default | Description                                                            |
+|-----------------|------------------|---------|------------------------------------------------------------------------|
+| `email`         | string (unique)  | -       | User's email address.                                                  |
+| `passwordHash`  | string? (hidden) | -       | Argon2id password hash (never exposed in API).                         |
+| `verifiedEmail` | boolean          | `false` | Whether the user's email is verified.                                  |
+| `phoneNumber`   | string?          | -       | The phone number (E.164), set by the phone verification or the app.    |
+| `verifiedPhone` | boolean          | `false` | Whether the phone number is verified.                                  |
+| `enabled`       | boolean          | `true`  | Whether the account is active.                                         |
+| `logoutAt`      | dateTime?        | -       | Timestamp used to invalidate tokens issued before this time.           |
 
 **Relations:**
 
-| Relation  | Type     | Description                                                         |
-|-----------|----------|---------------------------------------------------------------------|
-| `roles`   | Role[]   | Assigned roles with nested permissions (always included in output). |
-| `apiKeys` | ApiKey[] | User's API keys (if API key auth is enabled).                       |
+| Relation                 | Type                    | Description                                                                      |
+|--------------------------|-------------------------|----------------------------------------------------------------------------------|
+| `roles`                  | Role[]                  | Assigned roles with nested permissions (always included in output).              |
+| `apiKeys`                | ApiKey[]                | User's API keys (if API key auth is enabled).                                    |
+| `twoFactorMethods`       | TwoFactorMethod[]       | The 2FA methods (if 2FA is enabled), managed by the 2FA routes, never in output. |
+| `twoFactorRecoveryCodes` | TwoFactorRecoveryCode[] | The hashes of the recovery codes (if 2FA is enabled), never in output.           |
 
 ---
 
@@ -822,15 +958,20 @@ tokens across all devices. The `change-password` endpoint returns new tokens so 
 
 ## Rate limiting on security routes
 
-| Endpoint                                 | Limit             |
-|------------------------------------------|-------------------|
-| `POST /auth/login`                       | 12 per window     |
-| `POST /auth/refresh`                     | 12 per window     |
-| `POST /auth/change-password`             | 12 per window     |
-| `POST /auth/exchange-token`              | 12 per window     |
-| `POST /auth/account/send-verify-email`   | 10 per 15 minutes |
-| `POST /auth/account/verify-email`        | 12 per window     |
-| `POST /auth/account/send-reset-password` | 10 per 15 minutes |
-| `POST /auth/account/reset-password`      | 12 per window     |
-| `POST /auth/account/send-2fa-code`       | 10 per 15 minutes |
-| `POST /auth/account/verify-2fa-code`     | 12 per window     |
+| Endpoint                                   | Limit             |
+|--------------------------------------------|-------------------|
+| `POST /auth/login`                         | 12 per window     |
+| `POST /auth/refresh`                       | 12 per window     |
+| `POST /auth/change-password`               | 12 per window     |
+| `POST /auth/exchange-token`                | 12 per window     |
+| `POST /auth/account/send-verify-email`     | 10 per 15 minutes |
+| `POST /auth/account/verify-email`          | 12 per window     |
+| `POST /auth/account/send-reset-password`   | 10 per 15 minutes |
+| `POST /auth/account/reset-password`        | 12 per window     |
+| `POST /auth/account/send-verify-phone`     | 5 per 15 minutes  |
+| `POST /auth/account/verify-phone`          | 12 per window     |
+| `POST /auth/account/2fa/challenge`         | 10 per 15 minutes |
+| `POST /auth/account/2fa/verify`            | 12 per window     |
+| `POST /auth/account/2fa/totp/confirm`      | 12 per window     |
+| `DELETE /auth/account/2fa/methods/:method` | 12 per window     |
+| `POST /auth/account/2fa/recovery-codes`    | 12 per window     |

@@ -42,7 +42,8 @@ export type PerformanceReviewMinAggregateOutputType = {
   rating: number | null
   strengths: string | null
   improvements: string | null
-  status: $Enums.PerformanceReviewStatus | null
+  goals: string | null
+  status: string | null
   employeeId: string | null
   reviewerId: string | null
   updatedAt: Date | null
@@ -58,7 +59,8 @@ export type PerformanceReviewMaxAggregateOutputType = {
   rating: number | null
   strengths: string | null
   improvements: string | null
-  status: $Enums.PerformanceReviewStatus | null
+  goals: string | null
+  status: string | null
   employeeId: string | null
   reviewerId: string | null
   updatedAt: Date | null
@@ -103,6 +105,7 @@ export type PerformanceReviewMinAggregateInputType = {
   rating?: true
   strengths?: true
   improvements?: true
+  goals?: true
   status?: true
   employeeId?: true
   reviewerId?: true
@@ -119,6 +122,7 @@ export type PerformanceReviewMaxAggregateInputType = {
   rating?: true
   strengths?: true
   improvements?: true
+  goals?: true
   status?: true
   employeeId?: true
   reviewerId?: true
@@ -239,8 +243,8 @@ export type PerformanceReviewGroupByOutputType = {
   rating: number
   strengths: string | null
   improvements: string | null
-  goals: runtime.JsonValue | null
-  status: $Enums.PerformanceReviewStatus
+  goals: string | null
+  status: string
   employeeId: string
   reviewerId: string | null
   updatedAt: Date
@@ -279,8 +283,8 @@ export type PerformanceReviewWhereInput = {
   rating?: Prisma.IntFilter<"PerformanceReview"> | number
   strengths?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
   improvements?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
-  goals?: Prisma.JsonNullableFilter<"PerformanceReview">
-  status?: Prisma.EnumPerformanceReviewStatusFilter<"PerformanceReview"> | $Enums.PerformanceReviewStatus
+  goals?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
+  status?: Prisma.StringFilter<"PerformanceReview"> | string
   employeeId?: Prisma.StringFilter<"PerformanceReview"> | string
   reviewerId?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"PerformanceReview"> | Date | string
@@ -325,8 +329,8 @@ export type PerformanceReviewWhereUniqueInput = Prisma.AtLeast<{
   rating?: Prisma.IntFilter<"PerformanceReview"> | number
   strengths?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
   improvements?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
-  goals?: Prisma.JsonNullableFilter<"PerformanceReview">
-  status?: Prisma.EnumPerformanceReviewStatusFilter<"PerformanceReview"> | $Enums.PerformanceReviewStatus
+  goals?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
+  status?: Prisma.StringFilter<"PerformanceReview"> | string
   employeeId?: Prisma.StringFilter<"PerformanceReview"> | string
   reviewerId?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"PerformanceReview"> | Date | string
@@ -371,8 +375,8 @@ export type PerformanceReviewScalarWhereWithAggregatesInput = {
   rating?: Prisma.IntWithAggregatesFilter<"PerformanceReview"> | number
   strengths?: Prisma.StringNullableWithAggregatesFilter<"PerformanceReview"> | string | null
   improvements?: Prisma.StringNullableWithAggregatesFilter<"PerformanceReview"> | string | null
-  goals?: Prisma.JsonNullableWithAggregatesFilter<"PerformanceReview">
-  status?: Prisma.EnumPerformanceReviewStatusWithAggregatesFilter<"PerformanceReview"> | $Enums.PerformanceReviewStatus
+  goals?: Prisma.StringNullableWithAggregatesFilter<"PerformanceReview"> | string | null
+  status?: Prisma.StringWithAggregatesFilter<"PerformanceReview"> | string
   employeeId?: Prisma.StringWithAggregatesFilter<"PerformanceReview"> | string
   reviewerId?: Prisma.StringNullableWithAggregatesFilter<"PerformanceReview"> | string | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PerformanceReview"> | Date | string
@@ -387,8 +391,8 @@ export type PerformanceReviewCreateInput = {
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -404,8 +408,8 @@ export type PerformanceReviewUncheckedCreateInput = {
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   employeeId: string
   reviewerId?: string | null
   updatedAt?: Date | string
@@ -420,8 +424,8 @@ export type PerformanceReviewUpdateInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -437,8 +441,8 @@ export type PerformanceReviewUncheckedUpdateInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -449,13 +453,12 @@ export type PerformanceReviewUncheckedUpdateInput = {
 }
 
 export type PerformanceReviewCreateManyInput = {
-  id?: number
   period: string
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   employeeId: string
   reviewerId?: string | null
   updatedAt?: Date | string
@@ -470,8 +473,8 @@ export type PerformanceReviewUpdateManyMutationInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -483,8 +486,8 @@ export type PerformanceReviewUncheckedUpdateManyInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -537,6 +540,7 @@ export type PerformanceReviewMaxOrderByAggregateInput = {
   rating?: Prisma.SortOrder
   strengths?: Prisma.SortOrder
   improvements?: Prisma.SortOrder
+  goals?: Prisma.SortOrder
   status?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
@@ -553,6 +557,7 @@ export type PerformanceReviewMinOrderByAggregateInput = {
   rating?: Prisma.SortOrder
   strengths?: Prisma.SortOrder
   improvements?: Prisma.SortOrder
+  goals?: Prisma.SortOrder
   status?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
@@ -736,17 +741,13 @@ export type PerformanceReviewUncheckedUpdateManyWithoutDeletedByNestedInput = {
   deleteMany?: Prisma.PerformanceReviewScalarWhereInput | Prisma.PerformanceReviewScalarWhereInput[]
 }
 
-export type EnumPerformanceReviewStatusFieldUpdateOperationsInput = {
-  set?: $Enums.PerformanceReviewStatus
-}
-
 export type PerformanceReviewCreateWithoutEmployeeInput = {
   period: string
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -761,8 +762,8 @@ export type PerformanceReviewUncheckedCreateWithoutEmployeeInput = {
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   reviewerId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -785,8 +786,8 @@ export type PerformanceReviewCreateWithoutReviewerInput = {
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -801,8 +802,8 @@ export type PerformanceReviewUncheckedCreateWithoutReviewerInput = {
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   employeeId: string
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -825,8 +826,8 @@ export type PerformanceReviewCreateWithoutCreatedByInput = {
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -841,8 +842,8 @@ export type PerformanceReviewUncheckedCreateWithoutCreatedByInput = {
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   employeeId: string
   reviewerId?: string | null
   updatedAt?: Date | string
@@ -865,8 +866,8 @@ export type PerformanceReviewCreateWithoutDeletedByInput = {
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -881,8 +882,8 @@ export type PerformanceReviewUncheckedCreateWithoutDeletedByInput = {
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   employeeId: string
   reviewerId?: string | null
   updatedAt?: Date | string
@@ -925,8 +926,8 @@ export type PerformanceReviewScalarWhereInput = {
   rating?: Prisma.IntFilter<"PerformanceReview"> | number
   strengths?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
   improvements?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
-  goals?: Prisma.JsonNullableFilter<"PerformanceReview">
-  status?: Prisma.EnumPerformanceReviewStatusFilter<"PerformanceReview"> | $Enums.PerformanceReviewStatus
+  goals?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
+  status?: Prisma.StringFilter<"PerformanceReview"> | string
   employeeId?: Prisma.StringFilter<"PerformanceReview"> | string
   reviewerId?: Prisma.StringNullableFilter<"PerformanceReview"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"PerformanceReview"> | Date | string
@@ -985,13 +986,12 @@ export type PerformanceReviewUpdateManyWithWhereWithoutDeletedByInput = {
 }
 
 export type PerformanceReviewCreateManyEmployeeInput = {
-  id?: number
   period: string
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   reviewerId?: string | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1001,13 +1001,12 @@ export type PerformanceReviewCreateManyEmployeeInput = {
 }
 
 export type PerformanceReviewCreateManyReviewerInput = {
-  id?: number
   period: string
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   employeeId: string
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1017,13 +1016,12 @@ export type PerformanceReviewCreateManyReviewerInput = {
 }
 
 export type PerformanceReviewCreateManyCreatedByInput = {
-  id?: number
   period: string
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   employeeId: string
   reviewerId?: string | null
   updatedAt?: Date | string
@@ -1033,13 +1031,12 @@ export type PerformanceReviewCreateManyCreatedByInput = {
 }
 
 export type PerformanceReviewCreateManyDeletedByInput = {
-  id?: number
   period: string
   rating: number
   strengths?: string | null
   improvements?: string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: $Enums.PerformanceReviewStatus
+  goals?: string | null
+  status?: string
   employeeId: string
   reviewerId?: string | null
   updatedAt?: Date | string
@@ -1053,8 +1050,8 @@ export type PerformanceReviewUpdateWithoutEmployeeInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1069,8 +1066,8 @@ export type PerformanceReviewUncheckedUpdateWithoutEmployeeInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1085,8 +1082,8 @@ export type PerformanceReviewUncheckedUpdateManyWithoutEmployeeInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1100,8 +1097,8 @@ export type PerformanceReviewUpdateWithoutReviewerInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1116,8 +1113,8 @@ export type PerformanceReviewUncheckedUpdateWithoutReviewerInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1132,8 +1129,8 @@ export type PerformanceReviewUncheckedUpdateManyWithoutReviewerInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1147,8 +1144,8 @@ export type PerformanceReviewUpdateWithoutCreatedByInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1163,8 +1160,8 @@ export type PerformanceReviewUncheckedUpdateWithoutCreatedByInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1179,8 +1176,8 @@ export type PerformanceReviewUncheckedUpdateManyWithoutCreatedByInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1194,8 +1191,8 @@ export type PerformanceReviewUpdateWithoutDeletedByInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1210,8 +1207,8 @@ export type PerformanceReviewUncheckedUpdateWithoutDeletedByInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1226,8 +1223,8 @@ export type PerformanceReviewUncheckedUpdateManyWithoutDeletedByInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   strengths?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   improvements?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  goals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  status?: Prisma.EnumPerformanceReviewStatusFieldUpdateOperationsInput | $Enums.PerformanceReviewStatus
+  goals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1259,47 +1256,7 @@ export type PerformanceReviewSelect<ExtArgs extends runtime.Types.Extensions.Int
   deletedBy?: boolean | Prisma.PerformanceReview$deletedByArgs<ExtArgs>
 }, ExtArgs["result"]["performanceReview"]>
 
-export type PerformanceReviewSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  period?: boolean
-  rating?: boolean
-  strengths?: boolean
-  improvements?: boolean
-  goals?: boolean
-  status?: boolean
-  employeeId?: boolean
-  reviewerId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  reviewer?: boolean | Prisma.PerformanceReview$reviewerArgs<ExtArgs>
-  createdBy?: boolean | Prisma.PerformanceReview$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.PerformanceReview$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["performanceReview"]>
 
-export type PerformanceReviewSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  period?: boolean
-  rating?: boolean
-  strengths?: boolean
-  improvements?: boolean
-  goals?: boolean
-  status?: boolean
-  employeeId?: boolean
-  reviewerId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  reviewer?: boolean | Prisma.PerformanceReview$reviewerArgs<ExtArgs>
-  createdBy?: boolean | Prisma.PerformanceReview$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.PerformanceReview$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["performanceReview"]>
 
 export type PerformanceReviewSelectScalar = {
   id?: boolean
@@ -1325,18 +1282,6 @@ export type PerformanceReviewInclude<ExtArgs extends runtime.Types.Extensions.In
   createdBy?: boolean | Prisma.PerformanceReview$createdByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.PerformanceReview$deletedByArgs<ExtArgs>
 }
-export type PerformanceReviewIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  reviewer?: boolean | Prisma.PerformanceReview$reviewerArgs<ExtArgs>
-  createdBy?: boolean | Prisma.PerformanceReview$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.PerformanceReview$deletedByArgs<ExtArgs>
-}
-export type PerformanceReviewIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  reviewer?: boolean | Prisma.PerformanceReview$reviewerArgs<ExtArgs>
-  createdBy?: boolean | Prisma.PerformanceReview$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.PerformanceReview$deletedByArgs<ExtArgs>
-}
 
 export type $PerformanceReviewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PerformanceReview"
@@ -1355,8 +1300,8 @@ export type $PerformanceReviewPayload<ExtArgs extends runtime.Types.Extensions.I
     rating: number
     strengths: string | null
     improvements: string | null
-    goals: runtime.JsonValue | null
-    status: $Enums.PerformanceReviewStatus
+    goals: string | null
+    status: string
     employeeId: string
     reviewerId: string | null
     /**
@@ -1485,30 +1430,6 @@ export interface PerformanceReviewDelegate<ExtArgs extends runtime.Types.Extensi
   createMany<T extends PerformanceReviewCreateManyArgs>(args?: Prisma.SelectSubset<T, PerformanceReviewCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many PerformanceReviews and returns the data saved in the database.
-   * @param {PerformanceReviewCreateManyAndReturnArgs} args - Arguments to create many PerformanceReviews.
-   * @example
-   * // Create many PerformanceReviews
-   * const performanceReview = await prisma.performanceReview.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many PerformanceReviews and only return the `id`
-   * const performanceReviewWithIdOnly = await prisma.performanceReview.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends PerformanceReviewCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, PerformanceReviewCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PerformanceReviewPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a PerformanceReview.
    * @param {PerformanceReviewDeleteArgs} args - Arguments to delete one PerformanceReview.
    * @example
@@ -1571,36 +1492,6 @@ export interface PerformanceReviewDelegate<ExtArgs extends runtime.Types.Extensi
    * 
    */
   updateMany<T extends PerformanceReviewUpdateManyArgs>(args: Prisma.SelectSubset<T, PerformanceReviewUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more PerformanceReviews and returns the data updated in the database.
-   * @param {PerformanceReviewUpdateManyAndReturnArgs} args - Arguments to update many PerformanceReviews.
-   * @example
-   * // Update many PerformanceReviews
-   * const performanceReview = await prisma.performanceReview.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more PerformanceReviews and only return the `id`
-   * const performanceReviewWithIdOnly = await prisma.performanceReview.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends PerformanceReviewUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, PerformanceReviewUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PerformanceReviewPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one PerformanceReview.
@@ -1799,8 +1690,8 @@ export interface PerformanceReviewFieldRefs {
   readonly rating: Prisma.FieldRef<"PerformanceReview", 'Int'>
   readonly strengths: Prisma.FieldRef<"PerformanceReview", 'String'>
   readonly improvements: Prisma.FieldRef<"PerformanceReview", 'String'>
-  readonly goals: Prisma.FieldRef<"PerformanceReview", 'Json'>
-  readonly status: Prisma.FieldRef<"PerformanceReview", 'PerformanceReviewStatus'>
+  readonly goals: Prisma.FieldRef<"PerformanceReview", 'String'>
+  readonly status: Prisma.FieldRef<"PerformanceReview", 'String'>
   readonly employeeId: Prisma.FieldRef<"PerformanceReview", 'String'>
   readonly reviewerId: Prisma.FieldRef<"PerformanceReview", 'String'>
   readonly updatedAt: Prisma.FieldRef<"PerformanceReview", 'DateTime'>
@@ -2045,28 +1936,6 @@ export type PerformanceReviewCreateManyArgs<ExtArgs extends runtime.Types.Extens
 }
 
 /**
- * PerformanceReview createManyAndReturn
- */
-export type PerformanceReviewCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the PerformanceReview
-   */
-  select?: Prisma.PerformanceReviewSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the PerformanceReview
-   */
-  omit?: Prisma.PerformanceReviewOmit<ExtArgs> | null
-  /**
-   * The data used to create many PerformanceReviews.
-   */
-  data: Prisma.PerformanceReviewCreateManyInput | Prisma.PerformanceReviewCreateManyInput[]
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PerformanceReviewIncludeCreateManyAndReturn<ExtArgs> | null
-}
-
-/**
  * PerformanceReview update
  */
 export type PerformanceReviewUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2108,36 +1977,6 @@ export type PerformanceReviewUpdateManyArgs<ExtArgs extends runtime.Types.Extens
    * Limit how many PerformanceReviews to update.
    */
   limit?: number
-}
-
-/**
- * PerformanceReview updateManyAndReturn
- */
-export type PerformanceReviewUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the PerformanceReview
-   */
-  select?: Prisma.PerformanceReviewSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the PerformanceReview
-   */
-  omit?: Prisma.PerformanceReviewOmit<ExtArgs> | null
-  /**
-   * The data used to update PerformanceReviews.
-   */
-  data: Prisma.XOR<Prisma.PerformanceReviewUpdateManyMutationInput, Prisma.PerformanceReviewUncheckedUpdateManyInput>
-  /**
-   * Filter which PerformanceReviews to update
-   */
-  where?: Prisma.PerformanceReviewWhereInput
-  /**
-   * Limit how many PerformanceReviews to update.
-   */
-  limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PerformanceReviewIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

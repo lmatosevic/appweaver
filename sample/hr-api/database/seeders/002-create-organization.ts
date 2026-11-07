@@ -326,10 +326,11 @@ export async function createOrganization(): Promise<string> {
       rating: 5,
       strengths: 'Led the billing migration without a single incident.',
       improvements: 'Share knowledge with the newer members of the team.',
+      // A JSON field is a string column on SQL Server, which Appweaver serializes
       goals: [
         { title: 'Mentor an intern', done: false },
         { title: 'Present at the engineering all-hands', done: true }
-      ],
+      ] as unknown as string,
       status: 'Shared'
     }
   });

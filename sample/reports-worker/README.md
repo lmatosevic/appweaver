@@ -41,14 +41,14 @@ volume, and checks the worker's health on its listener.
 
 ```bash
 # The reports of the last 7 days, and their totals by category
-npx weaver run src/tasks/report.ts
+npx weaver run report
 
 # A period of your choice, building the reports it misses
-npx weaver run src/tasks/report.ts 2026-10-01 2026-10-31
+npx weaver run report 2026-10-01 2026-10-31
 
 # Import a bank export: run it twice, the second run skips every reference it imported
-npx weaver run src/tasks/import.ts fixtures/transactions.csv
-npx weaver run src/tasks/report.ts 2026-10-01 2026-10-04
+npx weaver run import fixtures/transactions.csv
+npx weaver run report 2026-10-01 2026-10-04
 
 # The health of the running worker: the database, memory, storage and queue
 curl -s localhost:5006/health/check | jq

@@ -230,17 +230,18 @@ model Review {
 }
 
 model User {
-  id             Int               @id @default(autoincrement())
-  firstName      String            @db.VarChar(100)
-  lastName       String            @db.VarChar(100)
-  email          String            @unique @db.VarChar(255)
-  phone          String?           @db.VarChar(32)
-  marketingOptIn Boolean           @default(false)
-  language       String            @default("en") @db.VarChar(8)
+  id             Int       @id @default(autoincrement())
+  firstName      String    @db.VarChar(100)
+  lastName       String    @db.VarChar(100)
+  email          String    @unique @db.VarChar(255)
+  phone          String?   @db.VarChar(32)
+  marketingOptIn Boolean   @default(false)
+  language       String    @default("en") @db.VarChar(8)
   passwordHash   String?
-  verifiedEmail  Boolean           @default(false)
-  twoFactorAuth  UserTwoFactorAuth @default(None)
-  enabled        Boolean           @default(true)
+  verifiedEmail  Boolean   @default(false)
+  phoneNumber    String?   @db.VarChar(16)
+  verifiedPhone  Boolean   @default(false)
+  enabled        Boolean   @default(true)
   logoutAt       DateTime?
 
   /// Related columns
@@ -423,9 +424,4 @@ enum ProductStatus {
   Draft
   Active
   Archived
-}
-
-enum UserTwoFactorAuth {
-  None
-  Email
 }

@@ -7,23 +7,24 @@ first-party module does.
 
 ## First-party modules
 
-| Module                  | Enabled                      | Brings                                                                                                            |
-|-------------------------|------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer, `memory` time series |
+| Module                  | Enabled                      | Brings                                                                                                                               |
+|-------------------------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer, `json` SMS sender, `memory` time series |
 | `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store, the `database` and `timescale` time series |
-| `@appweaver/web`        | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account and OAuth2 services                                    |
-| `@appweaver/redis`      | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                |
-| `@appweaver/bullmq`     | Installed (requires `redis`) | The `bullmq` queue                                                                                                |
-| `@appweaver/cron`       | Installed                    | The `cron` scheduler                                                                                              |
-| `@appweaver/nodemailer` | Installed                    | The `smtp` mailer                                                                                                 |
-| `@appweaver/handlebars` | Installed                    | The `handlebars` template engine                                                                                  |
-| `@appweaver/sharp`      | Installed                    | The `sharp` image processor                                                                                       |
+| `@appweaver/web`        | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account, 2FA (`TwoFactorService`) and OAuth2 services                             |
+| `@appweaver/redis`      | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                                   |
+| `@appweaver/bullmq`     | Installed (requires `redis`) | The `bullmq` queue                                                                                                                   |
+| `@appweaver/cron`       | Installed                    | The `cron` scheduler                                                                                                                 |
+| `@appweaver/nodemailer` | Installed                    | The `smtp` mailer                                                                                                                    |
+| `@appweaver/twilio`     | Installed                    | The `twilio` SMS sender (`SmsSender`), with the REST API of Twilio and no SDK                                                        |
+| `@appweaver/handlebars` | Installed                    | The `handlebars` template engine                                                                                                     |
+| `@appweaver/sharp`      | Installed                    | The `sharp` image processor                                                                                                          |
 
 Every first-party module but core is a package of its own, enabled like any [package module](#package-modules): by
 being a dependency of the application's `package.json`. A driver package carries the library it wraps as a dependency,
 so `npm install @appweaver/redis` moves the memory, the cache and the rate limit to Redis without any config, and
 installing `ioredis` alone enables nothing. The scaffold modules of `weaver module add` (`data`, `web`, `redis`,
-`queue`, `mailer`,
+`queue`, `mailer`, `sms`,
 ...) install these packages along with their config and files.
 
 ## Discovery
@@ -109,6 +110,7 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 | `main`      | `() => import(...)`                      | Code run at startup: scheduled jobs, queue workers, event listeners                                                                                  |
 | `web`       | `() => import(...)`                      | Its resource routes, custom routes (`registerRoute`) and plugins (`registerPlugin`), loaded by the `setup` of `@appweaver/web`                       |
 | `seeders`   | `string`                                 | The absolute path of its seeders directory, run by `weaver seed` before the seeders of the application                                               |
+| `tasks`     | `string`                                 | The absolute path of its tasks directory (`createTask` files), listed and run by `weaver run`, overridden by a task of the application                |
 | `locales`   | `string`                                 | The absolute path of its translations, overridden by the ones of the application                                                                     |
 | `templates` | `string`                                 | The absolute path of its templates, overridden by the ones of the application                                                                        |
 
@@ -130,7 +132,7 @@ export default defineModule({
 `isModule(value)` checks a manifest, and `PROVIDER_AUTO` / `PROVIDER_NONE` hold `'auto'` and `'none'`. A manifest is
 marked with `Symbol.for('appweaver.module')`, so it is recognized whichever copy of `@appweaver/common` defined it.
 
-The directories of `seeders`, `locales` and `templates` are absolute, i.e. `path.join(__dirname, 'locales')` in
+The directories of `seeders`, `tasks`, `locales` and `templates` are absolute, i.e. `path.join(__dirname, 'locales')` in
 `module.ts`, so they point to the build output of a package or a local module:
 
 - `weaver seed` (`createSeeder`) runs the seeders of the modules first, in their load order, each recorded under the
@@ -145,8 +147,9 @@ The directories of `seeders`, `locales` and `templates` are absolute, i.e. `path
 `moduleDirectories('locales' | 'templates' | 'seeders')` of `@appweaver/core` returns the directories of the enabled
 modules, for a driver of another engine. A config section is registered when its file is imported (the manifest
 imports it to list it), and the sections of `config` are parsed when the application starts, so an invalid value fails
-the start instead of the first read of its key. A module ships its own command line tool, or a task run with
-`weaver run`, since `weaver` has no module subcommands.
+the start instead of the first read of its key. A module ships its commands as tasks (`createTask`) in its `tasks`
+directory, run by `weaver run`. Prefix their names with the module (`billing:sync`), so they never take the name of an
+application task, which would replace them.
 
 A module model relates to the application only through a reference resolved when the app loads, i.e. the auth model.
 
@@ -386,11 +389,13 @@ A driver of an external service runs the suite on an in-memory stand-in of its c
 | `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, a given job id and an ignored send of one still queued, closing a queue, the health check |
 | `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)                                                          |
 | `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                                                                                 |
+| `testSmsContract`       | `SmsSender` | Sending a text message with and without a sender, the name of its health check, the health check                                                    |
 | `testTimeSeriesContract` | `TimeSeries` | Writing and merging points, selecting fields and ranges, ordering and limiting, every aggregate by bucket and over the range, deleting a range (a store with `supportsDelete`), the health check |
 
 The suites use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
 (with `globals: true`) and Bun. A driver of a remote service runs them against a test instance or emulator, the
-mailer suite against a test inbox or a mocked transport, since it sends a real email. Set the config the driver reads
+mailer suite against a test inbox or a mocked transport, since it sends a real email, and the SMS suite against a test
+number or a mocked API (`jest.spyOn(global, 'fetch')` for Twilio). Set the config the driver reads
 with `configOverrides` of `@appweaver/common` in the factory or a `beforeAll`.
 
 ### Adding a module package

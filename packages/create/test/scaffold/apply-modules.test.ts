@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import { defaultTranslations } from '../../../core/locale/default-translations';
 import { disableModules, enableModules } from '../../scaffold/apply-modules';
 import { createProject } from '../../scaffold/create-project';
@@ -13,31 +14,60 @@ import {
   Runtime
 } from '../../scaffold/types';
 
-// The template files never change, so each one is read once for the hundreds
-// of projects the tests create
-jest.mock('../../scaffold/template-files', () => {
-  const actual = jest.requireActual('../../scaffold/template-files');
-  const cache = new Map<string, unknown>();
-  const cached =
-    (fn: (...args: any[]) => unknown) =>
-    (...args: any[]) => {
-      const key = JSON.stringify(args);
-      if (!cache.has(key)) {
-        cache.set(key, fn(...args));
-      }
-      return cache.get(key);
-    };
-  return {
-    ...actual,
-    collectTemplateFiles: cached(actual.collectTemplateFiles),
-    readTemplateFile: cached(actual.readTemplateFile)
-  };
-});
-
-/** Files kept in memory, a commit leaving the staged changes in place. */
+/**
+ * The files of a project kept in memory only, like the staged changes of a project without any file on disk, so the
+ * hundreds of projects the tests create never touch the disk. A commit leaves the files in place.
+ */
 class MemoryFiles extends ProjectFiles {
+  constructor(
+    dir: string,
+    private readonly contents = new Map<string, string | Buffer>()
+  ) {
+    super(dir);
+  }
+
+  public override exists(file: string): boolean {
+    return this.contents.has(normalize(file)) || this.list(file).length > 0;
+  }
+
+  public override read(file: string): string | undefined {
+    return this.contents.get(normalize(file))?.toString();
+  }
+
+  public override write(file: string, content: string | Buffer): void {
+    this.contents.set(normalize(file), content);
+  }
+
+  public override remove(file: string): void {
+    const rel = normalize(file);
+    for (const name of [...this.contents.keys()]) {
+      if (name === rel || name.startsWith(`${rel}/`)) {
+        this.contents.delete(name);
+      }
+    }
+  }
+
+  public override list(dir: string): string[] {
+    const rel = normalize(dir);
+    return [...this.contents.keys()]
+      .filter((name) => rel === '' || name.startsWith(`${rel}/`))
+      .sort();
+  }
+
   public override async commit(): Promise<void> {}
+
+  /** A copy of the project, changed without changing this one. */
+  public clone(): MemoryFiles {
+    return new MemoryFiles(this.dir, new Map(this.contents));
+  }
 }
+
+/** A project path the way {@link ProjectFiles} takes it: relative, separated by forward slashes. */
+const normalize = (file: string) =>
+  file
+    .replace(/\\/g, '/')
+    .replace(/^\.(\/|$)/, '')
+    .replace(/\/$/, '');
 
 describe('apply-modules', () => {
   let tempDir: string;
@@ -68,9 +98,12 @@ describe('apply-modules', () => {
     return dir;
   };
 
-  /** Creates a project staged in memory, since writing it to disk takes most of the time of a test. */
-  const stage = async (modules: ModuleName[]): Promise<ProjectFiles> => {
-    const files = new MemoryFiles(path.join(tempDir, `project-${count++}`));
+  /**
+   * Creates a project kept in memory, since writing it to disk takes most of the time of a test. Its directory holds
+   * only the reports directory every created project has, so the projects share it.
+   */
+  const stage = async (modules: ModuleName[]): Promise<MemoryFiles> => {
+    const files = new MemoryFiles(path.join(tempDir, 'staged'));
     await createProject(projectOptions(files.dir, modules), files);
     return files;
   };
@@ -147,6 +180,17 @@ describe('apply-modules', () => {
     return createdSnapshots.get(key)!;
   };
 
+  /** Compares the snapshot of a combination of modules with the expected one, deeply only when they differ, since `toEqual` takes most of the time of comparing hundreds of equal snapshots. */
+  const expectSnapshot = (
+    modules: ModuleName[],
+    actual: Record<string, unknown>,
+    expected: Record<string, unknown>
+  ) => {
+    if (!isDeepStrictEqual(actual, expected)) {
+      expect([modules, actual]).toEqual([modules, expected]);
+    }
+  };
+
   const read = (dir: string, file: string) =>
     fs.readFileSync(path.join(dir, file), 'utf8');
 
@@ -160,18 +204,67 @@ describe('apply-modules', () => {
         (!names.includes('web') || names.includes('data'))
     );
 
+  /**
+   * Applies every combination of modules to a project, one module at a time in the given order: `change` adds or
+   * removes a module to a copy of the project, called when `changed` tells that the combination changes the module.
+   * The combinations sharing their first changes share the copies those changes lead to, so each one goes through
+   * the same changes as when applied alone, without repeating the ones of the others. `visit` gets every combination
+   * with the project it leads to, and the number of combinations visited is returned.
+   */
+  const applyCombinations = async (
+    project: MemoryFiles,
+    order: ModuleName[],
+    changed: (included: boolean) => boolean,
+    change: (project: MemoryFiles, name: ModuleName) => Promise<void>,
+    visit: (modules: ModuleName[], project: MemoryFiles) => Promise<void>
+  ): Promise<number> => {
+    let visited = 0;
+    const next = async (
+      current: MemoryFiles,
+      depth: number,
+      remaining: ModuleName[][]
+    ): Promise<void> => {
+      if (depth === order.length) {
+        visited++;
+        return visit(remaining[0], current);
+      }
+      const name = order[depth];
+      for (const included of [false, true]) {
+        const matching = remaining.filter(
+          (modules) => modules.includes(name) === included
+        );
+        if (matching.length === 0) {
+          continue;
+        }
+        let project = current;
+        if (changed(included)) {
+          project = current.clone();
+          await change(project, name);
+        }
+        await next(project, depth + 1, matching);
+      }
+    };
+    await next(project, 0, combinations());
+    return visited;
+  };
+
   describe('enableModules', () => {
     test('adds every combination of modules like a created project', async () => {
-      for (const modules of combinations()) {
-        const added = await stage([]);
-        // Added in the reverse order they are applied, to cover every integration
-        await add(added, ...[...modules].reverse());
+      // Added in the reverse order they are applied, to cover every integration
+      const visited = await applyCombinations(
+        await stage([]),
+        [...moduleNames].reverse(),
+        (included) => included,
+        (project, name) => add(project, name),
+        async (modules, added) =>
+          expectSnapshot(
+            modules,
+            snapshot(added),
+            await createdSnapshot(modules)
+          )
+      );
 
-        expect([modules, snapshot(added)]).toEqual([
-          modules,
-          await createdSnapshot(modules)
-        ]);
-      }
+      expect(visited).toBe(combinations().length);
     }, 120_000);
 
     test.each([
@@ -184,7 +277,15 @@ describe('apply-modules', () => {
       async (database, runtime) => {
         const created = await create([...moduleNames], { database, runtime });
         const added = await create([], { database, runtime });
-        await add(added, 'docker', 'locales', 'redis', 'templates', 'mailer');
+        await add(
+          added,
+          'docker',
+          'locales',
+          'redis',
+          'templates',
+          'mailer',
+          'sms'
+        );
         await add(added, 'data', 'scheduler', 'queue', 'web');
         await add(added, 'timeseries');
 
@@ -242,9 +343,9 @@ describe('apply-modules', () => {
 
       await add(dir, 'mailer');
 
-      expect(JSON.parse(read(dir, 'locales/en.json'))).toEqual(
-        defaultTranslations
-      );
+      expect(JSON.parse(read(dir, 'locales/en.json'))).toEqual({
+        emails: defaultTranslations.emails
+      });
     });
 
     test('keeps the existing translations, unless forced', async () => {
@@ -269,7 +370,7 @@ describe('apply-modules', () => {
       await files.commit();
 
       expect(JSON.parse(read(dir, 'locales/en.json'))).toEqual({
-        ...defaultTranslations,
+        emails: defaultTranslations.emails,
         page: { title: 'Home' }
       });
     });
@@ -339,20 +440,20 @@ describe('apply-modules', () => {
 
   describe('disableModules', () => {
     test('removes every combination of modules like a created project', async () => {
-      for (const modules of combinations()) {
-        const removed = await stage([...moduleNames]);
-        await remove(
-          removed,
-          ...[...moduleNames]
-            .reverse()
-            .filter((name) => !modules.includes(name))
-        );
+      const visited = await applyCombinations(
+        await stage([...moduleNames]),
+        [...moduleNames].reverse(),
+        (included) => !included,
+        (project, name) => remove(project, name),
+        async (modules, removed) =>
+          expectSnapshot(
+            modules,
+            snapshot(removed),
+            await createdSnapshot(modules)
+          )
+      );
 
-        expect([modules, snapshot(removed)]).toEqual([
-          modules,
-          await createdSnapshot(modules)
-        ]);
-      }
+      expect(visited).toBe(combinations().length);
     }, 120_000);
 
     test('deletes the template, translation and Docker files', async () => {

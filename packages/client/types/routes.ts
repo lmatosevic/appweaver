@@ -6,6 +6,7 @@ export type RoutePathConfig = {
     health: string;
     auth: string;
     account: string;
+    twoFactor: string;
     files: string;
   };
 };
@@ -14,6 +15,7 @@ export type RouteType =
   | 'resource'
   | 'auth'
   | 'account'
+  | 'twoFactor'
   | 'health'
   | 'files'
   | 'custom';

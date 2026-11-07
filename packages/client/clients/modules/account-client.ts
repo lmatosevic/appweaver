@@ -113,34 +113,34 @@ export class AccountClient<Account extends AccountType>
   }
 
   /**
-   * Sends a two-factor authentication (2FA) code to the user (e.g., via SMS or email).
+   * Sends a verification code by SMS to a phone number of the signed-in user.
    *
-   * @param {Object} request - The payload identifying the account to send the code to.
+   * @param {Object} request - The phone number in the E.164 format, by default the one of the user.
    * @param {RequestOptions} options - Additional request options.
-   * @return A response confirming the 2FA code was sent.
+   * @return The id of the challenge and its expiration time.
    */
-  public async send2FACode(
-    request: Account['send2FACodeRequest'],
+  public async sendVerifyPhone(
+    request: Account['sendPhoneVerificationRequest'] = {},
     options: RequestOptions = {}
-  ): Promise<Account['send2FAResponse']> {
-    return this.sendRequest('post', `${this.basePath}/send-2fa-code`, {
+  ): Promise<Account['challengeResponse']> {
+    return this.sendRequest('post', `${this.basePath}/send-verify-phone`, {
       ...options,
       body: request
     });
   }
 
   /**
-   * Verifies a two-factor authentication (2FA) code submitted by the user.
+   * Verifies the phone number of the signed-in user with the code received by SMS.
    *
-   * @param {Object} request - The payload containing the 2FA code to verify.
+   * @param {Object} request - The id of the challenge and the code.
    * @param {RequestOptions} options - Additional request options.
-   * @return A response indicating whether the 2FA verification succeeded.
+   * @return A status response indicating whether the phone number was verified.
    */
-  public async verify2FACode(
-    request: Account['verify2FARequest'],
+  public async verifyPhone(
+    request: Account['verifyPhoneRequest'],
     options: RequestOptions = {}
-  ): Promise<Account['verify2FAResponse']> {
-    return this.sendRequest('post', `${this.basePath}/verify-2fa-code`, {
+  ): Promise<Account['statusResponse']> {
+    return this.sendRequest('post', `${this.basePath}/verify-phone`, {
       ...options,
       body: request
     });

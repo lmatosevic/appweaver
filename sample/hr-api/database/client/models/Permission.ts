@@ -302,7 +302,6 @@ export type PermissionUncheckedUpdateInput = {
 }
 
 export type PermissionCreateManyInput = {
-  id?: number
   name: string
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -533,7 +532,6 @@ export type PermissionUpdateManyWithWhereWithoutRolesInput = {
 }
 
 export type PermissionCreateManyCreatedByInput = {
-  id?: number
   name: string
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -626,23 +624,7 @@ export type PermissionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   _count?: boolean | Prisma.PermissionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["permission"]>
 
-export type PermissionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  name?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  createdBy?: boolean | Prisma.Permission$createdByArgs<ExtArgs>
-}, ExtArgs["result"]["permission"]>
 
-export type PermissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  name?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  createdBy?: boolean | Prisma.Permission$createdByArgs<ExtArgs>
-}, ExtArgs["result"]["permission"]>
 
 export type PermissionSelectScalar = {
   id?: boolean
@@ -657,12 +639,6 @@ export type PermissionInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   roles?: boolean | Prisma.Permission$rolesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Permission$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.PermissionCountOutputTypeDefaultArgs<ExtArgs>
-}
-export type PermissionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  createdBy?: boolean | Prisma.Permission$createdByArgs<ExtArgs>
-}
-export type PermissionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  createdBy?: boolean | Prisma.Permission$createdByArgs<ExtArgs>
 }
 
 export type $PermissionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -801,30 +777,6 @@ export interface PermissionDelegate<ExtArgs extends runtime.Types.Extensions.Int
   createMany<T extends PermissionCreateManyArgs>(args?: Prisma.SelectSubset<T, PermissionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many Permissions and returns the data saved in the database.
-   * @param {PermissionCreateManyAndReturnArgs} args - Arguments to create many Permissions.
-   * @example
-   * // Create many Permissions
-   * const permission = await prisma.permission.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many Permissions and only return the `id`
-   * const permissionWithIdOnly = await prisma.permission.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends PermissionCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, PermissionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PermissionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a Permission.
    * @param {PermissionDeleteArgs} args - Arguments to delete one Permission.
    * @example
@@ -887,36 +839,6 @@ export interface PermissionDelegate<ExtArgs extends runtime.Types.Extensions.Int
    * 
    */
   updateMany<T extends PermissionUpdateManyArgs>(args: Prisma.SelectSubset<T, PermissionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more Permissions and returns the data updated in the database.
-   * @param {PermissionUpdateManyAndReturnArgs} args - Arguments to update many Permissions.
-   * @example
-   * // Update many Permissions
-   * const permission = await prisma.permission.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more Permissions and only return the `id`
-   * const permissionWithIdOnly = await prisma.permission.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends PermissionUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, PermissionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PermissionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Permission.
@@ -1350,28 +1272,6 @@ export type PermissionCreateManyArgs<ExtArgs extends runtime.Types.Extensions.In
 }
 
 /**
- * Permission createManyAndReturn
- */
-export type PermissionCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Permission
-   */
-  select?: Prisma.PermissionSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the Permission
-   */
-  omit?: Prisma.PermissionOmit<ExtArgs> | null
-  /**
-   * The data used to create many Permissions.
-   */
-  data: Prisma.PermissionCreateManyInput | Prisma.PermissionCreateManyInput[]
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PermissionIncludeCreateManyAndReturn<ExtArgs> | null
-}
-
-/**
  * Permission update
  */
 export type PermissionUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1413,36 +1313,6 @@ export type PermissionUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many Permissions to update.
    */
   limit?: number
-}
-
-/**
- * Permission updateManyAndReturn
- */
-export type PermissionUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Permission
-   */
-  select?: Prisma.PermissionSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the Permission
-   */
-  omit?: Prisma.PermissionOmit<ExtArgs> | null
-  /**
-   * The data used to update Permissions.
-   */
-  data: Prisma.XOR<Prisma.PermissionUpdateManyMutationInput, Prisma.PermissionUncheckedUpdateManyInput>
-  /**
-   * Filter which Permissions to update
-   */
-  where?: Prisma.PermissionWhereInput
-  /**
-   * Limit how many Permissions to update.
-   */
-  limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PermissionIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

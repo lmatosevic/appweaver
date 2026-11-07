@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { defineConfig } from '@appweaver/common';
+import { defineConfig, TwoFactorMethodType } from '@appweaver/common';
 
 export const securityConfig = defineConfig('security', {
   /** Base path for authentication routes. Default: `'/auth'`. */
@@ -24,16 +24,65 @@ export const accountConfig = defineConfig('security.account', {
   /** Enable password reset flow. Default: `true`. */
   RESET_PASSWORD_ENABLED: Type.Boolean({ default: true }),
   /** Password reset token TTL in milliseconds. Default: `1800000` (30 min). */
-  RESET_PASSWORD_OTT_TTL: Type.Integer({ default: 1800000 })
+  RESET_PASSWORD_OTT_TTL: Type.Integer({ default: 1800000 }),
+  /** Enable phone number verification by an SMS code, which needs an SMS sender. Default: `true`. */
+  VERIFY_PHONE_ENABLED: Type.Boolean({ default: true }),
+  /** Phone verification code TTL in milliseconds. Default: `600000` (10 min). */
+  VERIFY_PHONE_OTT_TTL: Type.Integer({ default: 600000 })
 });
 
 export const twoFactorConfig = defineConfig('security.account.2fa', {
-  /** Enable two-factor authentication. Default: `true`. */
-  ENABLED: Type.Boolean({ default: true }),
-  /** Force 2FA for all users. Default: `false`. */
+  /** Enable two-factor authentication, its routes and its models. Default: `false`. */
+  ENABLED: Type.Boolean({ default: false }),
+  /** Force 2FA for all users, a user without a method of their own verifying with the `defaultMethod`. Default:
+   * `false`. */
   FORCED: Type.Boolean({ default: false }),
-  /** 2FA verification code TTL in milliseconds. Default: `300000` (5 min). */
-  OTT_TTL: Type.Integer({ default: 300000 })
+  /** 2FA challenge TTL in milliseconds. Default: `300000` (5 min). */
+  OTT_TTL: Type.Integer({ default: 300000 }),
+  /** The methods users may enable, of `Email`, `Sms` and `Totp`. A method is available only with its service: a
+   * mailer for `Email`, an SMS sender for `Sms`, and the `totp.encryptionKey` for `Totp`. Default:
+   * `['Email', 'Sms', 'Totp']`. */
+  METHODS: Type.Array(Type.Enum(TwoFactorMethodType), {
+    default: Object.values(TwoFactorMethodType)
+  }),
+  /** The method of a user without one of their own when 2FA is forced. Default: `'Email'`. */
+  DEFAULT_METHOD: Type.Enum(TwoFactorMethodType, {
+    default: TwoFactorMethodType.Email
+  }),
+  /** Digits of the codes sent by email and SMS. Default: `6`. */
+  CODE_LENGTH: Type.Integer({ default: 6, minimum: 4, maximum: 10 }),
+  /** Wrong codes accepted for a challenge, which is revoked on the last one. Default: `5`. */
+  MAX_ATTEMPTS: Type.Integer({ default: 5, minimum: 1 })
+});
+
+export const recoveryCodesConfig = defineConfig(
+  'security.account.2fa.recoveryCodes',
+  {
+    /** Enable the recovery codes, used once each instead of a 2FA code. Default: `true`. */
+    ENABLED: Type.Boolean({ default: true }),
+    /** Number of recovery codes generated at once. Default: `10`. */
+    COUNT: Type.Integer({ default: 10, minimum: 1, maximum: 100 }),
+    /** Characters of a recovery code, shown in groups of four. Default: `16`. */
+    LENGTH: Type.Integer({ default: 16, minimum: 8, maximum: 128 }),
+    /** Email the user when one of their recovery codes is used. Default: `true`. */
+    NOTIFY_ON_USE: Type.Boolean({ default: true })
+  }
+);
+
+export const totpConfig = defineConfig('security.account.2fa.totp', {
+  /** Issuer the authenticator apps show the account under. Defaults to the `app.name` config. */
+  ISSUER: Type.Optional(Type.String()),
+  /** Secret the TOTP secrets are encrypted with in the database, required by the `Totp` method. Changing it makes
+   * the enabled TOTP methods unusable. */
+  ENCRYPTION_KEY: Type.Optional(Type.String({ secret: true })),
+  /** Digits of a TOTP code, `6` being the only one every authenticator app supports. Default: `6`. */
+  DIGITS: Type.Integer({ default: 6, minimum: 6, maximum: 8 }),
+  /** Seconds of a TOTP time step, `30` being the only one every authenticator app supports. Default: `30`. */
+  PERIOD: Type.Integer({ default: 30, minimum: 1 }),
+  /** Time steps before and after the current one whose codes are accepted, for a clock drift. Default: `1`. */
+  WINDOW: Type.Integer({ default: 1, minimum: 0 }),
+  /** Time to confirm a TOTP setup with its first code in milliseconds. Default: `600000` (10 min). */
+  SETUP_TTL: Type.Integer({ default: 600000 })
 });
 
 export const recaptchaConfig = defineConfig('security.recaptcha', {

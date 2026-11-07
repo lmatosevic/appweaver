@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import {
   flattenTranslations,
@@ -25,6 +24,7 @@ import { ProjectFiles } from './project-files';
 import {
   collectTemplateFiles,
   readTemplateFile,
+  readTemplateSource,
   TemplateFile,
   templatesDir
 } from './template-files';
@@ -100,10 +100,22 @@ const prismaBlock: DockerfileBlock = {
   before: ['Copy config file/s']
 };
 
+/** The directory of the SQLite database file, the volume of docker-compose.yml. */
+const sqliteDataBlock = (runtime: Runtime): DockerfileBlock => ({
+  comment:
+    'Create the directory of the SQLite database, writable by the application user',
+  instructions: [`RUN mkdir data && chown ${runtime}:${runtime} data`],
+  before: ['Run the application as an unprivileged user']
+});
+
 /** The start.sh anchor the container roles are inserted before. */
 const unknownRole = 'else\n  echo "Could not match the container role';
 
 const translationFile = 'locales/en.json';
+
+/** The Twilio account of the SMS sender, set in the environment of a deployment. */
+const twilioEnv =
+  '\n# Twilio account of the SMS sender, used outside the dev and test environments\nSMS_TWILIO_ACCOUNT_SID=\nSMS_TWILIO_AUTH_TOKEN=\nSMS_SENDER=\n';
 
 const integrations: ModuleIntegration[] = [
   // The database password referenced by the appweaver.json URL, and the ignored SQLite database files
@@ -112,7 +124,11 @@ const integrations: ModuleIntegration[] = [
     enable: (scaffold) => {
       const { database, name } = scaffold.context;
       for (const file of ['.env', '.env.example']) {
-        addText(scaffold, file, getSecretsEnv(database, name));
+        // Before the Twilio account, so the order does not depend on the module added first
+        const before = scaffold.files.read(file)?.includes(twilioEnv)
+          ? twilioEnv
+          : undefined;
+        addText(scaffold, file, getSecretsEnv(database, name), before);
       }
       addText(scaffold, '.gitignore', getSqliteGitignore(database), '# OS');
     },
@@ -122,6 +138,20 @@ const integrations: ModuleIntegration[] = [
         removeText(scaffold, file, getSecretsEnv(database, name));
       }
       removeText(scaffold, '.gitignore', getSqliteGitignore(database));
+    }
+  },
+  // The Twilio account of the SMS sender
+  {
+    modules: ['sms'],
+    enable: (scaffold) => {
+      for (const file of ['.env', '.env.example']) {
+        addText(scaffold, file, twilioEnv);
+      }
+    },
+    disable: (scaffold) => {
+      for (const file of ['.env', '.env.example']) {
+        removeText(scaffold, file, twilioEnv);
+      }
     }
   },
   {
@@ -135,6 +165,9 @@ const integrations: ModuleIntegration[] = [
         )
       );
       addBlock(scaffold, prismaBlock);
+      if (scaffold.context.database === 'sqlite') {
+        addBlock(scaffold, sqliteDataBlock(scaffold.context.runtime));
+      }
       addText(
         scaffold,
         'start.sh',
@@ -147,6 +180,7 @@ const integrations: ModuleIntegration[] = [
         removeDatabaseServices(content, scaffold.context)
       );
       removeBlock(scaffold, prismaBlock);
+      removeBlock(scaffold, sqliteDataBlock(scaffold.context.runtime));
       removeText(
         scaffold,
         'start.sh',
@@ -197,36 +231,40 @@ const integrations: ModuleIntegration[] = [
     modules: ['mailer', 'templates'],
     enable: (scaffold) => scaffold.files.remove('templates/.gitkeep'),
     disable: (scaffold, name) => {
-      if (name !== 'mailer') {
-        return;
+      if (name === 'mailer') {
+        restoreTemplatesPlaceholder(scaffold, 'mailer+templates');
       }
-      const emails = collectModuleFiles(
-        'mailer+templates',
-        scaffold.context
-      ).map((file) => file.path);
-      if (
-        scaffold.files.list('templates').every((file) => emails.includes(file))
-      ) {
-        copyFiles(scaffold, 'templates');
+    }
+  },
+  // The account SMS templates, like the email ones
+  {
+    modules: ['sms', 'templates'],
+    enable: (scaffold) => scaffold.files.remove('templates/.gitkeep'),
+    disable: (scaffold, name) => {
+      if (name === 'sms') {
+        restoreTemplatesPlaceholder(scaffold, 'sms+templates');
       }
     }
   },
   // The English texts of the account emails, in the translation file of the project
   {
     modules: ['mailer', 'locales'],
-    enable: (scaffold) => {
-      const translations = scaffold.files.readJson(translationFile) ?? {};
-      addTranslations(translations, readSourceTranslations(), scaffold.force);
-      scaffold.files.writeJson(translationFile, translations);
-    },
+    enable: (scaffold) => addSourceTranslations(scaffold, 'emails'),
     // Removing the locales deletes the whole file
     disable: (scaffold, name) => {
-      const translations = scaffold.files.readJson(translationFile);
-      if (name !== 'mailer' || !translations) {
-        return;
+      if (name === 'mailer') {
+        removeSourceTranslations(scaffold, 'emails');
       }
-      removeTranslations(translations, readSourceTranslations());
-      scaffold.files.writeJson(translationFile, translations);
+    }
+  },
+  // The English texts of the account SMS messages, like the email ones
+  {
+    modules: ['sms', 'locales'],
+    enable: (scaffold) => addSourceTranslations(scaffold, 'sms'),
+    disable: (scaffold, name) => {
+      if (name === 'sms') {
+        removeSourceTranslations(scaffold, 'sms');
+      }
     }
   },
   {
@@ -235,7 +273,7 @@ const integrations: ModuleIntegration[] = [
     enable: (scaffold) => {
       const translations = loadSourceTranslations();
       for (const file of collectScaffoldedTemplates(scaffold)) {
-        const source = fs.readFileSync(file.source, 'utf8');
+        const source = readTemplateSource(file.source).toString('utf8');
         if (
           scaffold.files.read(file.path) ===
           inlineTemplate(file.path, source, translations)
@@ -614,10 +652,57 @@ function collectScaffoldedTemplates(scaffold: ModuleScaffold): TemplateFile[] {
     .filter((file) => file.path.endsWith('.hbs'));
 }
 
-/** The English translations of the scaffolded templates, which the mailer adds to the project's translation file. */
+/**
+ * Writes the placeholder of the empty templates directory back when the files of the removed integration are the last
+ * ones left in it.
+ */
+function restoreTemplatesPlaceholder(
+  scaffold: ModuleScaffold,
+  unit: string
+): void {
+  const owned = collectModuleFiles(unit, scaffold.context).map(
+    (file) => file.path
+  );
+  if (scaffold.files.list('templates').every((file) => owned.includes(file))) {
+    copyFiles(scaffold, 'templates');
+  }
+}
+
+/** Adds the English texts of a section of the source translations, i.e. `emails`, to the project's translation file. */
+function addSourceTranslations(
+  scaffold: ModuleScaffold,
+  section: string
+): void {
+  const translations = scaffold.files.readJson(translationFile) ?? {};
+  addTranslations(
+    translations,
+    { [section]: readSourceTranslations()[section] },
+    scaffold.force
+  );
+  scaffold.files.writeJson(translationFile, translations);
+}
+
+/** Deletes the unchanged English texts of a section of the source translations from the project's translation file. */
+function removeSourceTranslations(
+  scaffold: ModuleScaffold,
+  section: string
+): void {
+  const translations = scaffold.files.readJson(translationFile);
+  if (!translations) {
+    return;
+  }
+  removeTranslations(translations, {
+    [section]: readSourceTranslations()[section]
+  });
+  scaffold.files.writeJson(translationFile, translations);
+}
+
+/** The English translations of the scaffolded templates, which the mailer and the SMS add to the translation file. */
 function readSourceTranslations(): Record<string, any> {
   return JSON.parse(
-    fs.readFileSync(path.join(templatesDir, 'translations', 'en.json'), 'utf8')
+    readTemplateSource(
+      path.join(templatesDir, 'translations', 'en.json')
+    ).toString('utf8')
   );
 }
 
@@ -802,6 +887,13 @@ function updateJson(
     if (!setKeys.includes(key) && getValue(config, key) === value) {
       deleteValue(config, key);
     }
+  }
+
+  // Kept sorted like in the template, whichever module added a package
+  if (file === 'package.json' && config.allowScripts) {
+    config.allowScripts = Object.fromEntries(
+      Object.entries(config.allowScripts).sort(([a], [b]) => a.localeCompare(b))
+    );
   }
 
   files.writeJson(file, config);

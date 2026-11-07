@@ -1447,7 +1447,8 @@ export const UserScalarFieldEnum = {
   bio: 'bio',
   passwordHash: 'passwordHash',
   verifiedEmail: 'verifiedEmail',
-  twoFactorAuth: 'twoFactorAuth',
+  phoneNumber: 'phoneNumber',
+  verifiedPhone: 'verifiedPhone',
   enabled: 'enabled',
   logoutAt: 'logoutAt',
   avatarId: 'avatarId',
@@ -1663,13 +1664,6 @@ export type EnumPersonKnownForFieldRefInput<$PrismaModel> = FieldRefInputType<$P
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-/**
- * Reference to a field of type 'UserTwoFactorAuth'
- */
-export type EnumUserTwoFactorAuthFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserTwoFactorAuth'>
     
 
 

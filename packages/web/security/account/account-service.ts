@@ -5,30 +5,26 @@ import {
   createLogger,
   ErrorCode,
   makeHash,
-  randomString,
   ResourceId,
   SecurityStore,
-  TemplateEmail,
-  TemplateEngine,
   appConfig,
   AccountError,
   AuthError
 } from '@appweaver/common';
-import {
-  accountConfig,
-  securityConfig,
-  twoFactorConfig
-} from '../security-config';
+import { accountConfig } from '../security-config';
 import { AuthService } from '../auth-service';
 import { hashPassword, validatePasswordComplexity } from '@appweaver/data';
 import { validateRedirectUrl } from '../access-util';
+import { inject, EmailService, SmsService } from '@appweaver/core';
+import { AuthOTTData, PhoneVerificationData } from '../../types/http-auth';
+import { TwoFactorService } from '../two-factor/two-factor-service';
 import {
-  inject,
-  EmailService,
-  LocaleService,
-  TranslationParams
-} from '@appweaver/core';
-import { AuthOTTData, TwoFactorAuthData } from '../../types/http-auth';
+  codeChallengeValidator,
+  generateCode,
+  matchesCodeHash
+} from '../two-factor/utils/code-util';
+import { sendAccountEmail } from './utils/account-email';
+import { sendAccountSms } from './utils/account-sms';
 
 const logger = createLogger('security');
 
@@ -49,6 +45,10 @@ export class AccountService {
   private readonly _securityStore = inject(SecurityStore);
   /** @internal */
   private readonly _emailService = inject(EmailService, false);
+  /** @internal */
+  private readonly _smsService = inject(SmsService, false);
+  /** @internal */
+  private readonly _twoFactorService = inject(TwoFactorService);
 
   /**
    * Sends an email verification link to the specified user's email address.
@@ -105,7 +105,8 @@ export class AccountService {
         ? `${appConfig.HOSTNAME}${accountPath}/verify-email-redirect?token=${token}`
         : `${redirectToUrl}${separator}token=${token}`;
 
-    await this.sendAccountEmail(
+    await sendAccountEmail(
+      this._emailService,
       {
         to: authUser.email,
         template: 'emails/verify-email',
@@ -252,7 +253,8 @@ export class AccountService {
     const separator = redirectToUrl.includes('?') ? '&' : '?';
     const changePasswordLink = `${redirectToUrl}${separator}token=${token}`;
 
-    await this.sendAccountEmail(
+    await sendAccountEmail(
+      this._emailService,
       {
         to: authUser.email,
         template: 'emails/password-reset',
@@ -322,142 +324,115 @@ export class AccountService {
   }
 
   /**
-   * Sends a two-factor authentication (2FA) code to the specified user via email for a given purpose.
+   * Sends a code to a phone number by SMS, which {@link verifyPhone} checks to set it as the verified phone number of
+   * the user. A new number is verified before it replaces the current one.
    *
-   * @param {AuthUser} authUser - The authenticated user to whom the 2FA code will be sent.
-   * @param {string} [purpose='authentication'] - The purpose for sending the 2FA code (e.g., authentication, account
-   * recovery).
-   * @param {string} [locale] - The locale of the email, rendered from the `emails/two-factor-code` templates. Defaults
-   * to the `LOCALE_DEFAULT` config.
-   * @return {Promise<{ challengeId: string; expiresIn: number }>} A promise that resolves to the unique challenge ID
-   * and expiration time associated with the 2FA code.
-   * @throws {AccountError} `ACCOUNT_FEATURE_UNAVAILABLE` if the email service is not available.
+   * @param {AuthUser} authUser - The user verifying the phone number.
+   * @param {string} [phoneNumber] - The phone number in the E.164 format, i.e. `+385911234567`. Defaults to the phone
+   * number of the user.
+   * @param {string} [locale] - The locale of the message, the `sms.verifyPhone` translation. Defaults to the
+   * `LOCALE_DEFAULT` config.
+   * @return {Promise<{ challengeId: string; expiresIn: number }>} The id of the challenge and its expiration time.
+   * @throws {AccountError} `ACCOUNT_FEATURE_UNAVAILABLE` without an SMS sender, `ACCOUNT_PHONE_NOT_SET` without a
+   * number given or stored, `ACCOUNT_PHONE_ALREADY_VERIFIED` for the verified number of the user.
+   * @throws {SmsError} `SMS_SEND_FAILED` if the provider rejects the message, i.e. for an invalid number.
    */
-  public async send2FACode(
+  public async sendPhoneVerification(
     authUser: AuthUser,
-    purpose: string = 'authentication',
+    phoneNumber: string | undefined = authUser.phoneNumber ?? undefined,
     locale?: string
   ): Promise<{ challengeId: string; expiresIn: number }> {
-    if (!this._emailService) {
+    if (!this._smsService) {
       throw new AccountError(
         ErrorCode.AccountFeatureUnavailable,
-        '2FA is not supported',
-        { feature: '2fa' }
+        'Phone verification is not supported',
+        { feature: 'phone-verification' }
       );
     }
 
-    const expiresIn = twoFactorConfig.OTT_TTL;
-    const code = randomString(6, { numbers: true });
+    if (!phoneNumber) {
+      throw new AccountError(
+        ErrorCode.AccountPhoneNotSet,
+        'No phone number to verify'
+      );
+    }
+
+    if (authUser.verifiedPhone && authUser.phoneNumber === phoneNumber) {
+      throw new AccountError(
+        ErrorCode.AccountPhoneAlreadyVerified,
+        'Phone number is already verified'
+      );
+    }
+
+    const code = generateCode();
+    const expiresIn = accountConfig.VERIFY_PHONE_OTT_TTL;
     const challengeId =
-      await this._securityStore.generateOneTimeToken<TwoFactorAuthData>(
-        AuthOTTPurpose.TwoFAVerification,
-        { authUserId: authUser.id, codeHash: makeHash(code), purpose },
+      await this._securityStore.generateOneTimeToken<PhoneVerificationData>(
+        AuthOTTPurpose.PhoneVerification,
+        {
+          authUserId: authUser.id,
+          phoneNumber,
+          codeHash: makeHash(code),
+          attempts: 0
+        },
         expiresIn
       );
 
-    const expiresInMinutes = Math.ceil(expiresIn / 60_000);
-    await this.sendAccountEmail(
+    await sendAccountSms(
+      this._smsService,
       {
-        to: authUser.email,
-        template: 'emails/two-factor-code',
-        data: { email: authUser.email, code, purpose, expiresInMinutes },
+        to: phoneNumber,
+        template: 'sms/verify-phone',
+        code,
+        expiresInMinutes: Math.ceil(expiresIn / 60_000),
         locale
       },
-      'emails.twoFactorCode',
-      (t) => [
-        t('emails.twoFactorCode.message'),
-        code,
-        t('emails.twoFactorCode.expires', { count: expiresInMinutes })
-      ]
+      'sms.verifyPhone'
     );
 
-    logger.debug({ id: authUser.id, challengeId }, '2FA code sent');
+    logger.debug({ id: authUser.id, challengeId }, 'Phone verification sent');
 
     return { challengeId, expiresIn };
   }
 
   /**
-   * Verifies a two-factor authentication (2FA) code for a provided challenge ID.
+   * Verifies the code sent by {@link sendPhoneVerification}, setting the phone number as the verified one of the user.
+   * A changed number removes the SMS 2FA method of the user, enabled again for the new number. A wrong code counts
+   * against the `security.account.2fa.maxAttempts` of the challenge.
    *
-   * @param {string} challengeId The unique identifier of the 2FA challenge.
-   * @param {string} code The 2FA code entered by the user.
-   * @return {Promise<{ token: string; expiresIn: number }>} A promise that resolves to a one-time token and expiration
-   * time if the 2FA verification is successful.
-   * @throws {AuthError} An error if verification fails or the associated user is disabled or does not exist.
+   * @param {AuthUser} authUser - The user verifying the phone number.
+   * @param {string} challengeId - The id of the challenge.
+   * @param {string} code - The code received by SMS.
+   * @return {Promise<string>} A confirmation message.
+   * @throws {AuthError} `AUTH_INVALID_TOKEN` for an expired challenge or the one of another user.
+   * @throws {AccountError} `ACCOUNT_2FA_CODE_INVALID` for a wrong code, `ACCOUNT_2FA_TOO_MANY_ATTEMPTS` for the last
+   * wrong code allowed, which revokes the challenge.
    */
-  public async verify2FACode(
+  public async verifyPhone(
+    authUser: AuthUser,
     challengeId: string,
     code: string
-  ): Promise<{ token: string; expiresIn: number }> {
-    const data = await this._securityStore.useOneTimeToken<TwoFactorAuthData>(
-      challengeId,
-      AuthOTTPurpose.TwoFAVerification,
-      (value) => {
-        if (value.codeHash !== makeHash(code)) {
-          return { valid: false, message: 'Invalid 2FA code provided' };
-        }
-        return { valid: true, message: 'OK' };
-      }
-    );
-
-    const authUser = await this._authService.findById(data.authUserId);
-    if (!authUser || !authUser.enabled) {
-      throw new AuthError(
-        ErrorCode.AuthUserNotFound,
-        'Auth user does not exist or is disabled'
-      );
-    }
-
-    const expiresIn = securityConfig.AUTH_OTT_TTL;
-    const token = await this._securityStore.generateOneTimeToken<AuthOTTData>(
-      data.purpose,
-      { authUserId: authUser.id, authSource: AuthSource.Password },
-      expiresIn
-    );
-
-    logger.debug({ id: authUser.id }, '2FA code verified');
-
-    return { token, expiresIn };
-  }
-
-  /**
-   * Sends an email rendered from the `.html` or `.txt` template of the application, or without one the plain text of
-   * the translations. A missing `.subject` template is replaced by the translated subject.
-   *
-   * @internal
-   */
-  private async sendAccountEmail(
-    email: TemplateEmail,
-    key: string,
-    body: (t: (key: string, params?: TranslationParams) => string) => string[]
-  ): Promise<void> {
-    const emailService = this._emailService!;
-    const localeService = inject(LocaleService);
-    const t = (translationKey: string, params?: TranslationParams) =>
-      localeService.translate(translationKey, email.locale, params);
-
-    const engine = inject(TemplateEngine, false);
-    if (engine) {
-      const [html, text, subject] = await Promise.all(
-        ['html', 'txt', 'subject'].map((format) =>
-          engine.hasTemplate(`${email.template}.${format}`, email.locale)
+  ): Promise<string> {
+    const { phoneNumber } =
+      await this._securityStore.useOneTimeToken<PhoneVerificationData>(
+        challengeId,
+        AuthOTTPurpose.PhoneVerification,
+        codeChallengeValidator(authUser.id, (data) =>
+          matchesCodeHash(data.codeHash, code)
         )
       );
-      if (html || text) {
-        return emailService.sendEmail(
-          subject ? email : { ...email, subject: t(`${key}.subject`) }
-        );
-      }
+
+    if (authUser.phoneNumber !== phoneNumber) {
+      await this._twoFactorService.removeSmsMethod(authUser);
     }
 
-    await emailService.sendEmail({
-      to: email.to,
-      subject: t(`${key}.subject`),
-      text: [
-        t('emails.greeting'),
-        ...body(t),
-        `--\n${t('emails.footer', { appName: appConfig.NAME })}`
-      ].join('\n\n')
+    await this._authService.updateAuthUser(authUser.id, {
+      phoneNumber,
+      verifiedPhone: true
     });
+
+    logger.debug({ id: authUser.id }, 'Phone number verified');
+
+    return 'Phone number verified';
   }
 }

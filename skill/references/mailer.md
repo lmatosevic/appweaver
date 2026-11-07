@@ -4,7 +4,8 @@ The mailer module sends transactional emails. Its driver `SmtpMailer` (provider 
 Nodemailer over SMTP and is selected when the package is installed. The `JsonMailer` of core (provider `json`, selected
 by name only) writes the emails into the log at `debug` (the `mailer` logger) instead of sending them, for development
 and tests. Without a driver, or with `MAILER_PROVIDER=none`, no `Mailer` and no `EmailService` are defined, and the
-email features (email verification, password reset, 2FA) respond with `501`.
+email features are unavailable: the email verification and password reset routes are not registered, and the `Email`
+2FA method is not offered.
 
 ## Injecting Mailer
 
@@ -285,14 +286,16 @@ without a loaded template engine with `CONFIGURATION_INVALID`.
 ### Account emails
 
 The account routes send their emails from the templates of the application, always in `LOCALE_DEFAULT`. To send one
-in another locale, call `AccountService` directly: `sendEmailVerification`, `sendResetPassword` and `send2FACode` take
-the locale as their last argument. The framework ships no templates of its own:
+in another locale, call the services directly: `sendEmailVerification` and `sendResetPassword` of `AccountService` take
+the locale as their last argument, `sendChallenge` of `TwoFactorService` as its `locale` option. The framework ships no
+templates of its own:
 
-| Template                 | Data                                           |
-|--------------------------|------------------------------------------------|
-| `emails/verify-email`    | `email`, `link`                                |
-| `emails/password-reset`  | `email`, `link`                                |
-| `emails/two-factor-code` | `email`, `code`, `purpose`, `expiresInMinutes` |
+| Template                    | Data                                           |
+|-----------------------------|------------------------------------------------|
+| `emails/verify-email`       | `email`, `link`                                |
+| `emails/password-reset`     | `email`, `link`                                |
+| `emails/two-factor-code`    | `email`, `code`, `purpose`, `expiresInMinutes` |
+| `emails/recovery-code-used` | `email`                                        |
 
 An email is rendered when its `.html` or `.txt` template exists, with the translated `emails.<email>.subject` key when
 it has no `.subject` template. Without a template, or without the `@appweaver/handlebars` package, it is sent as plain

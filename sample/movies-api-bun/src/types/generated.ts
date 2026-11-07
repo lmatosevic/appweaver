@@ -622,7 +622,8 @@ export type User = {
   bio?: string | null;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   password: string;
@@ -641,7 +642,8 @@ export type UserSingle = {
   email: string;
   bio?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   updatedAt: Date;
@@ -659,7 +661,8 @@ export type UserMultiple = {
   email: string;
   bio?: string | null;
   verifiedEmail: boolean;
-  twoFactorAuth: 'None' | 'Email';
+  phoneNumber?: string | null;
+  verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
   updatedAt: Date;
@@ -675,7 +678,6 @@ export type UserCreate = {
   displayName: string;
   email: string;
   bio?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
   roles: Array<
@@ -690,7 +692,6 @@ export type UserUpdate = {
   displayName?: string;
   email?: string;
   bio?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   roles?: Array<
@@ -705,7 +706,6 @@ export type UserReplace = {
   displayName: string;
   email: string;
   bio?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
   roles: Array<
@@ -720,7 +720,6 @@ export type UserRelationCreate = {
   displayName: string;
   email: string;
   bio?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password: string;
 };
@@ -730,7 +729,6 @@ export type UserRelationUpdate = {
   displayName?: string;
   email?: string;
   bio?: string | null;
-  twoFactorAuth?: 'None' | 'Email';
   enabled?: boolean;
   password?: string;
 };
