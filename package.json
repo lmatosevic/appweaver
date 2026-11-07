@@ -35,7 +35,8 @@
     "prerelease": "node tools/check-tokens.js && npm run build -- --sourceMap false",
     "release": "semantic-release --no-ci",
     "postrelease": "git push --follow-tags",
-    "samples:lock": "node tools/lock-samples.js"
+    "samples:lock": "node tools/lock-samples.js",
+    "samples:manage": "node tools/manage-samples.js"
   },
   "dependencies": {
     "@fastify/ajv-compiler": "4.0.5",

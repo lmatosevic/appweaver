@@ -8,7 +8,7 @@ CREATE TYPE "OrderStatus" AS ENUM ('Pending', 'Paid', 'Shipped', 'Delivered', 'C
 CREATE TYPE "ProductStatus" AS ENUM ('Draft', 'Active', 'Archived');
 
 -- CreateEnum
-CREATE TYPE "UserTwoFactorAuth" AS ENUM ('None', 'Email');
+CREATE TYPE "TwoFactorMethodType" AS ENUM ('email', 'sms', 'totp');
 
 -- CreateTable
 CREATE TABLE "Address" (
@@ -169,7 +169,8 @@ CREATE TABLE "User" (
     "language" VARCHAR(8) NOT NULL DEFAULT 'en',
     "passwordHash" TEXT,
     "verifiedEmail" BOOLEAN NOT NULL DEFAULT false,
-    "twoFactorAuth" "UserTwoFactorAuth" NOT NULL DEFAULT 'None',
+    "phoneNumber" VARCHAR(16),
+    "verifiedPhone" BOOLEAN NOT NULL DEFAULT false,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "logoutAt" TIMESTAMP(3),
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -206,6 +207,32 @@ CREATE TABLE "OneTimeToken" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "OneTimeToken_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TwoFactorMethod" (
+    "id" SERIAL NOT NULL,
+    "type" "TwoFactorMethodType" NOT NULL,
+    "priority" INTEGER NOT NULL DEFAULT 0,
+    "secret" TEXT,
+    "confirmedAt" TIMESTAMP(3),
+    "lastUsedStep" INTEGER,
+    "userId" INTEGER NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "TwoFactorMethod_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TwoFactorRecoveryCode" (
+    "id" SERIAL NOT NULL,
+    "codeHash" VARCHAR(64) NOT NULL,
+    "usedAt" TIMESTAMP(3),
+    "userId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "TwoFactorRecoveryCode_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -413,6 +440,15 @@ CREATE UNIQUE INDEX "OneTimeToken_tokenHash_key" ON "OneTimeToken"("tokenHash");
 CREATE INDEX "OneTimeToken_expiresAt_idx" ON "OneTimeToken"("expiresAt");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "TwoFactorMethod_userId_type_key" ON "TwoFactorMethod"("userId", "type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TwoFactorRecoveryCode_codeHash_key" ON "TwoFactorRecoveryCode"("codeHash");
+
+-- CreateIndex
+CREATE INDEX "TwoFactorRecoveryCode_userId_idx" ON "TwoFactorRecoveryCode"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 
 -- CreateIndex
@@ -516,6 +552,12 @@ ALTER TABLE "ApiKey" ADD CONSTRAINT "ApiKey_userId_fkey" FOREIGN KEY ("userId") 
 
 -- AddForeignKey
 ALTER TABLE "ApiKey" ADD CONSTRAINT "ApiKey_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TwoFactorMethod" ADD CONSTRAINT "TwoFactorMethod_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TwoFactorRecoveryCode" ADD CONSTRAINT "TwoFactorRecoveryCode_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Role" ADD CONSTRAINT "Role_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

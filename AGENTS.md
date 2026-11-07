@@ -1065,6 +1065,12 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   uses, `@appweaver/sharp` for the image transforms), locked in its own `package-lock.json` (`bun.lock` for the Bun
   sample) to the published `@appweaver/*` release, so its Docker image builds with a clean install outside the
   monorepo. The lockfiles are regenerated after every release, or on demand with `npm run samples:lock`.
+- `npm run samples:manage -- <operation> [params...] [samples...]` (`tools/manage-samples.js`) runs an operation in every
+  sample it applies to, or in the named ones: `regenerate:db` replaces the migrations of each sample with a database with
+  a single `init` migration and recreates its database, and `run <script>` runs a `package.json` script of every sample
+  having it, with Bun in the Bun sample (`run generate`, `run seed`). The database operations need the PostgreSQL and
+  MySQL containers running, and `run generate` runs the built `node_modules/@appweaver`, so run `npm run build` first or
+  it generates the models of the last build. A new operation is an entry of its `operations`, with the names of its `params`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
 - The Bun sample runs its scripts with `bun run`. Bun runs every test file in one process, where the application
   context is frozen once an application starts, so its end-to-end files share one application instead of resetting the

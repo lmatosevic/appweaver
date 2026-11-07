@@ -66,7 +66,8 @@ CREATE TABLE "Employee" (
     "terminatedAt" DATETIME,
     "passwordHash" TEXT,
     "verifiedEmail" BOOLEAN NOT NULL DEFAULT false,
-    "twoFactorAuth" TEXT NOT NULL DEFAULT 'None',
+    "phoneNumber" TEXT,
+    "verifiedPhone" BOOLEAN NOT NULL DEFAULT false,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "logoutAt" DATETIME,
     "departmentId" INTEGER,
@@ -176,6 +177,36 @@ CREATE TABLE "OneTimeToken" (
     "data" JSONB NOT NULL,
     "expiresAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "TwoFactorMethod" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "type" TEXT NOT NULL,
+    "priority" INTEGER NOT NULL DEFAULT 0,
+    "secret" TEXT,
+    "confirmedAt" DATETIME,
+    "lastUsedStep" INTEGER,
+    "employeeId" TEXT NOT NULL,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deletedAt" DATETIME,
+    "deletedById" TEXT,
+    CONSTRAINT "TwoFactorMethod_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "TwoFactorMethod_deletedById_fkey" FOREIGN KEY ("deletedById") REFERENCES "Employee" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "TwoFactorRecoveryCode" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "codeHash" TEXT NOT NULL,
+    "usedAt" DATETIME,
+    "employeeId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deletedAt" DATETIME,
+    "deletedById" TEXT,
+    CONSTRAINT "TwoFactorRecoveryCode_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "TwoFactorRecoveryCode_deletedById_fkey" FOREIGN KEY ("deletedById") REFERENCES "Employee" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -359,6 +390,21 @@ CREATE UNIQUE INDEX "OneTimeToken_tokenHash_key" ON "OneTimeToken"("tokenHash");
 
 -- CreateIndex
 CREATE INDEX "OneTimeToken_expiresAt_idx" ON "OneTimeToken"("expiresAt");
+
+-- CreateIndex
+CREATE INDEX "TwoFactorMethod_deletedById_idx" ON "TwoFactorMethod"("deletedById");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TwoFactorMethod_employeeId_type_key" ON "TwoFactorMethod"("employeeId", "type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TwoFactorRecoveryCode_codeHash_key" ON "TwoFactorRecoveryCode"("codeHash");
+
+-- CreateIndex
+CREATE INDEX "TwoFactorRecoveryCode_employeeId_idx" ON "TwoFactorRecoveryCode"("employeeId");
+
+-- CreateIndex
+CREATE INDEX "TwoFactorRecoveryCode_deletedById_idx" ON "TwoFactorRecoveryCode"("deletedById");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");

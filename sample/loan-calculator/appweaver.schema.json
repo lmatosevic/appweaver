@@ -359,6 +359,9 @@
                 "queue": {
                   "$ref": "#/definitions/logLevel"
                 },
+                "sms": {
+                  "$ref": "#/definitions/logLevel"
+                },
                 "storage": {
                   "$ref": "#/definitions/logLevel"
                 }
@@ -500,6 +503,18 @@
                   "type": "boolean"
                 }
               }
+            }
+          }
+        },
+        "sms": {
+          "type": "object",
+          "properties": {
+            "sender": {
+              "type": "string"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
             }
           }
         },

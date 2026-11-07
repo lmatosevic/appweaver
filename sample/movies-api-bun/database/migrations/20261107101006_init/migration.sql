@@ -95,7 +95,8 @@ CREATE TABLE "User" (
     "bio" TEXT,
     "passwordHash" TEXT,
     "verifiedEmail" BOOLEAN NOT NULL DEFAULT false,
-    "twoFactorAuth" TEXT NOT NULL DEFAULT 'None',
+    "phoneNumber" TEXT,
+    "verifiedPhone" BOOLEAN NOT NULL DEFAULT false,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "logoutAt" DATETIME,
     "avatarId" INTEGER,
@@ -130,6 +131,30 @@ CREATE TABLE "OneTimeToken" (
     "data" JSONB NOT NULL,
     "expiresAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "TwoFactorMethod" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "type" TEXT NOT NULL,
+    "priority" INTEGER NOT NULL DEFAULT 0,
+    "secret" TEXT,
+    "confirmedAt" DATETIME,
+    "lastUsedStep" INTEGER,
+    "userId" INTEGER NOT NULL,
+    "updatedAt" DATETIME NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "TwoFactorMethod_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "TwoFactorRecoveryCode" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "codeHash" TEXT NOT NULL,
+    "usedAt" DATETIME,
+    "userId" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "TwoFactorRecoveryCode_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -305,6 +330,15 @@ CREATE UNIQUE INDEX "OneTimeToken_tokenHash_key" ON "OneTimeToken"("tokenHash");
 
 -- CreateIndex
 CREATE INDEX "OneTimeToken_expiresAt_idx" ON "OneTimeToken"("expiresAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TwoFactorMethod_userId_type_key" ON "TwoFactorMethod"("userId", "type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TwoFactorRecoveryCode_codeHash_key" ON "TwoFactorRecoveryCode"("codeHash");
+
+-- CreateIndex
+CREATE INDEX "TwoFactorRecoveryCode_userId_idx" ON "TwoFactorRecoveryCode"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");

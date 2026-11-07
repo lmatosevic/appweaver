@@ -129,7 +129,8 @@ CREATE TABLE `User` (
     `available` BOOLEAN NOT NULL DEFAULT true,
     `passwordHash` VARCHAR(191) NULL,
     `verifiedEmail` BOOLEAN NOT NULL DEFAULT false,
-    `twoFactorAuth` ENUM('None', 'Email') NOT NULL DEFAULT 'None',
+    `phoneNumber` VARCHAR(16) NULL,
+    `verifiedPhone` BOOLEAN NOT NULL DEFAULT false,
     `enabled` BOOLEAN NOT NULL DEFAULT true,
     `logoutAt` DATETIME(3) NULL,
     `teamId` INTEGER NULL,
@@ -174,6 +175,35 @@ CREATE TABLE `OneTimeToken` (
 
     UNIQUE INDEX `OneTimeToken_tokenHash_key`(`tokenHash`),
     INDEX `OneTimeToken_expiresAt_idx`(`expiresAt`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `TwoFactorMethod` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `type` ENUM('email', 'sms', 'totp') NOT NULL,
+    `priority` INTEGER NOT NULL DEFAULT 0,
+    `secret` VARCHAR(191) NULL,
+    `confirmedAt` DATETIME(3) NULL,
+    `lastUsedStep` INTEGER NULL,
+    `userId` INTEGER NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `TwoFactorMethod_userId_type_key`(`userId`, `type`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `TwoFactorRecoveryCode` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `codeHash` VARCHAR(64) NOT NULL,
+    `usedAt` DATETIME(3) NULL,
+    `userId` INTEGER NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `TwoFactorRecoveryCode_codeHash_key`(`codeHash`),
+    INDEX `TwoFactorRecoveryCode_userId_idx`(`userId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -346,6 +376,12 @@ ALTER TABLE `ApiKey` ADD CONSTRAINT `ApiKey_userId_fkey` FOREIGN KEY (`userId`) 
 
 -- AddForeignKey
 ALTER TABLE `ApiKey` ADD CONSTRAINT `ApiKey_createdById_fkey` FOREIGN KEY (`createdById`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `TwoFactorMethod` ADD CONSTRAINT `TwoFactorMethod_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `TwoFactorRecoveryCode` ADD CONSTRAINT `TwoFactorRecoveryCode_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Role` ADD CONSTRAINT `Role_createdById_fkey` FOREIGN KEY (`createdById`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
