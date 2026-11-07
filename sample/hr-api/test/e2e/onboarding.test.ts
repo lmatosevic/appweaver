@@ -1,6 +1,12 @@
 import { Application, createApp, injectService } from '@appweaver/core';
 import { resetTestData } from './support/reset';
-import { createRoles, hire, setBalance, signIn } from './support/fixtures';
+import {
+  createRoles,
+  eventually,
+  hire,
+  setBalance,
+  signIn
+} from './support/fixtures';
 
 /**
  * The work done around a hire outside of the request: the employee number,
@@ -39,7 +45,10 @@ describe('Onboarding', () => {
       hireDate: '2026-10-01T00:00:00.000Z'
     });
 
-    const { items } = await balances(employee.id);
+    const { items } = await eventually(
+      () => balances(employee.id),
+      ({ items }) => items.length > 0
+    );
 
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({ year: 2026, allowanceDays: 6 });

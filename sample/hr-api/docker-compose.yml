@@ -1,17 +1,42 @@
 services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: hr-api-sqlserver
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
+      start_interval: 5s
+    ports:
+      - "127.0.0.1:1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - hr-api
+
   hr-api.migrations:
     image: hr-api:latest
     container_name: hr-api-migrations
     restart: no
     build:
       context: .
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     env_file:
       - .env
+    environment:
+      DB_HOST: "sqlserver"
     command: [ "migrations" ]
     volumes:
       - ./storage:/usr/app/storage
       - ./logs:/usr/app/logs
-      - sqlite-data:/usr/app/data
     networks:
       - hr-api
 
@@ -26,11 +51,12 @@ services:
         condition: service_completed_successfully
     env_file:
       - .env
+    environment:
+      DB_HOST: "sqlserver"
     command: [ "seed" ]
     volumes:
       - ./storage:/usr/app/storage
       - ./logs:/usr/app/logs
-      - sqlite-data:/usr/app/data
     networks:
       - hr-api
 
@@ -55,9 +81,10 @@ services:
     volumes:
       - ./storage:/usr/app/storage
       - ./logs:/usr/app/logs
-      - sqlite-data:/usr/app/data
     env_file:
       - .env
+    environment:
+      DB_HOST: "sqlserver"
     networks:
       - hr-api
 
@@ -67,4 +94,4 @@ networks:
     name: hr-api-network
 
 volumes:
-  sqlite-data:
+  sqlserver-data:

@@ -45,7 +45,7 @@ export type PositionSumAggregateOutputType = {
 export type PositionMinAggregateOutputType = {
   id: number | null
   title: string | null
-  level: $Enums.PositionLevel | null
+  level: string | null
   salaryMin: number | null
   salaryMax: number | null
   openings: number | null
@@ -58,7 +58,7 @@ export type PositionMinAggregateOutputType = {
 export type PositionMaxAggregateOutputType = {
   id: number | null
   title: string | null
-  level: $Enums.PositionLevel | null
+  level: string | null
   salaryMin: number | null
   salaryMax: number | null
   openings: number | null
@@ -228,7 +228,7 @@ export type PositionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 export type PositionGroupByOutputType = {
   id: number
   title: string
-  level: $Enums.PositionLevel
+  level: string
   salaryMin: number
   salaryMax: number
   openings: number
@@ -264,7 +264,7 @@ export type PositionWhereInput = {
   NOT?: Prisma.PositionWhereInput | Prisma.PositionWhereInput[]
   id?: Prisma.IntFilter<"Position"> | number
   title?: Prisma.StringFilter<"Position"> | string
-  level?: Prisma.EnumPositionLevelFilter<"Position"> | $Enums.PositionLevel
+  level?: Prisma.StringFilter<"Position"> | string
   salaryMin?: Prisma.FloatFilter<"Position"> | number
   salaryMax?: Prisma.FloatFilter<"Position"> | number
   openings?: Prisma.IntFilter<"Position"> | number
@@ -300,7 +300,7 @@ export type PositionWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.PositionWhereInput[]
   NOT?: Prisma.PositionWhereInput | Prisma.PositionWhereInput[]
   title?: Prisma.StringFilter<"Position"> | string
-  level?: Prisma.EnumPositionLevelFilter<"Position"> | $Enums.PositionLevel
+  level?: Prisma.StringFilter<"Position"> | string
   salaryMin?: Prisma.FloatFilter<"Position"> | number
   salaryMax?: Prisma.FloatFilter<"Position"> | number
   openings?: Prisma.IntFilter<"Position"> | number
@@ -337,7 +337,7 @@ export type PositionScalarWhereWithAggregatesInput = {
   NOT?: Prisma.PositionScalarWhereWithAggregatesInput | Prisma.PositionScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Position"> | number
   title?: Prisma.StringWithAggregatesFilter<"Position"> | string
-  level?: Prisma.EnumPositionLevelWithAggregatesFilter<"Position"> | $Enums.PositionLevel
+  level?: Prisma.StringWithAggregatesFilter<"Position"> | string
   salaryMin?: Prisma.FloatWithAggregatesFilter<"Position"> | number
   salaryMax?: Prisma.FloatWithAggregatesFilter<"Position"> | number
   openings?: Prisma.IntWithAggregatesFilter<"Position"> | number
@@ -349,7 +349,7 @@ export type PositionScalarWhereWithAggregatesInput = {
 
 export type PositionCreateInput = {
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -363,7 +363,7 @@ export type PositionCreateInput = {
 export type PositionUncheckedCreateInput = {
   id?: number
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -376,7 +376,7 @@ export type PositionUncheckedCreateInput = {
 
 export type PositionUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -390,7 +390,7 @@ export type PositionUpdateInput = {
 export type PositionUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -402,9 +402,8 @@ export type PositionUncheckedUpdateInput = {
 }
 
 export type PositionCreateManyInput = {
-  id?: number
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -416,7 +415,7 @@ export type PositionCreateManyInput = {
 
 export type PositionUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -427,7 +426,7 @@ export type PositionUpdateManyMutationInput = {
 export type PositionUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -455,7 +454,7 @@ export type PositionNullableScalarRelationFilter = {
 export type PositionDepartmentIdTitleLevelCompoundUniqueInput = {
   departmentId: number
   title: string
-  level: $Enums.PositionLevel
+  level: string
 }
 
 export type PositionCountOrderByAggregateInput = {
@@ -613,13 +612,9 @@ export type PositionUncheckedUpdateManyWithoutCreatedByNestedInput = {
   deleteMany?: Prisma.PositionScalarWhereInput | Prisma.PositionScalarWhereInput[]
 }
 
-export type EnumPositionLevelFieldUpdateOperationsInput = {
-  set?: $Enums.PositionLevel
-}
-
 export type PositionCreateWithoutDepartmentInput = {
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -632,7 +627,7 @@ export type PositionCreateWithoutDepartmentInput = {
 export type PositionUncheckedCreateWithoutDepartmentInput = {
   id?: number
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -673,7 +668,7 @@ export type PositionScalarWhereInput = {
   NOT?: Prisma.PositionScalarWhereInput | Prisma.PositionScalarWhereInput[]
   id?: Prisma.IntFilter<"Position"> | number
   title?: Prisma.StringFilter<"Position"> | string
-  level?: Prisma.EnumPositionLevelFilter<"Position"> | $Enums.PositionLevel
+  level?: Prisma.StringFilter<"Position"> | string
   salaryMin?: Prisma.FloatFilter<"Position"> | number
   salaryMax?: Prisma.FloatFilter<"Position"> | number
   openings?: Prisma.IntFilter<"Position"> | number
@@ -685,7 +680,7 @@ export type PositionScalarWhereInput = {
 
 export type PositionCreateWithoutEmployeesInput = {
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -698,7 +693,7 @@ export type PositionCreateWithoutEmployeesInput = {
 export type PositionUncheckedCreateWithoutEmployeesInput = {
   id?: number
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -715,7 +710,7 @@ export type PositionCreateOrConnectWithoutEmployeesInput = {
 
 export type PositionCreateWithoutCreatedByInput = {
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -728,7 +723,7 @@ export type PositionCreateWithoutCreatedByInput = {
 export type PositionUncheckedCreateWithoutCreatedByInput = {
   id?: number
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -760,7 +755,7 @@ export type PositionUpdateToOneWithWhereWithoutEmployeesInput = {
 
 export type PositionUpdateWithoutEmployeesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -773,7 +768,7 @@ export type PositionUpdateWithoutEmployeesInput = {
 export type PositionUncheckedUpdateWithoutEmployeesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -800,9 +795,8 @@ export type PositionUpdateManyWithWhereWithoutCreatedByInput = {
 }
 
 export type PositionCreateManyDepartmentInput = {
-  id?: number
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -813,7 +807,7 @@ export type PositionCreateManyDepartmentInput = {
 
 export type PositionUpdateWithoutDepartmentInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -826,7 +820,7 @@ export type PositionUpdateWithoutDepartmentInput = {
 export type PositionUncheckedUpdateWithoutDepartmentInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -839,7 +833,7 @@ export type PositionUncheckedUpdateWithoutDepartmentInput = {
 export type PositionUncheckedUpdateManyWithoutDepartmentInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -849,9 +843,8 @@ export type PositionUncheckedUpdateManyWithoutDepartmentInput = {
 }
 
 export type PositionCreateManyCreatedByInput = {
-  id?: number
   title: string
-  level?: $Enums.PositionLevel
+  level?: string
   salaryMin: number
   salaryMax: number
   openings?: number
@@ -862,7 +855,7 @@ export type PositionCreateManyCreatedByInput = {
 
 export type PositionUpdateWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -875,7 +868,7 @@ export type PositionUpdateWithoutCreatedByInput = {
 export type PositionUncheckedUpdateWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -888,7 +881,7 @@ export type PositionUncheckedUpdateWithoutCreatedByInput = {
 export type PositionUncheckedUpdateManyWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  level?: Prisma.EnumPositionLevelFieldUpdateOperationsInput | $Enums.PositionLevel
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   salaryMin?: Prisma.FloatFieldUpdateOperationsInput | number
   salaryMax?: Prisma.FloatFieldUpdateOperationsInput | number
   openings?: Prisma.IntFieldUpdateOperationsInput | number
@@ -945,35 +938,7 @@ export type PositionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   _count?: boolean | Prisma.PositionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["position"]>
 
-export type PositionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  title?: boolean
-  level?: boolean
-  salaryMin?: boolean
-  salaryMax?: boolean
-  openings?: boolean
-  departmentId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  department?: boolean | Prisma.DepartmentDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.Position$createdByArgs<ExtArgs>
-}, ExtArgs["result"]["position"]>
 
-export type PositionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  title?: boolean
-  level?: boolean
-  salaryMin?: boolean
-  salaryMax?: boolean
-  openings?: boolean
-  departmentId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  department?: boolean | Prisma.DepartmentDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.Position$createdByArgs<ExtArgs>
-}, ExtArgs["result"]["position"]>
 
 export type PositionSelectScalar = {
   id?: boolean
@@ -995,14 +960,6 @@ export type PositionInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   createdBy?: boolean | Prisma.Position$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.PositionCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type PositionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  department?: boolean | Prisma.DepartmentDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.Position$createdByArgs<ExtArgs>
-}
-export type PositionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  department?: boolean | Prisma.DepartmentDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.Position$createdByArgs<ExtArgs>
-}
 
 export type $PositionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Position"
@@ -1017,7 +974,7 @@ export type $PositionPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     title: string
-    level: $Enums.PositionLevel
+    level: string
     salaryMin: number
     salaryMax: number
     openings: number
@@ -1146,30 +1103,6 @@ export interface PositionDelegate<ExtArgs extends runtime.Types.Extensions.Inter
   createMany<T extends PositionCreateManyArgs>(args?: Prisma.SelectSubset<T, PositionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many Positions and returns the data saved in the database.
-   * @param {PositionCreateManyAndReturnArgs} args - Arguments to create many Positions.
-   * @example
-   * // Create many Positions
-   * const position = await prisma.position.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many Positions and only return the `id`
-   * const positionWithIdOnly = await prisma.position.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends PositionCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, PositionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PositionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a Position.
    * @param {PositionDeleteArgs} args - Arguments to delete one Position.
    * @example
@@ -1232,36 +1165,6 @@ export interface PositionDelegate<ExtArgs extends runtime.Types.Extensions.Inter
    * 
    */
   updateMany<T extends PositionUpdateManyArgs>(args: Prisma.SelectSubset<T, PositionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more Positions and returns the data updated in the database.
-   * @param {PositionUpdateManyAndReturnArgs} args - Arguments to update many Positions.
-   * @example
-   * // Update many Positions
-   * const position = await prisma.position.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more Positions and only return the `id`
-   * const positionWithIdOnly = await prisma.position.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends PositionUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, PositionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PositionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Position.
@@ -1456,7 +1359,7 @@ export interface Prisma__PositionClient<T, Null = never, ExtArgs extends runtime
 export interface PositionFieldRefs {
   readonly id: Prisma.FieldRef<"Position", 'Int'>
   readonly title: Prisma.FieldRef<"Position", 'String'>
-  readonly level: Prisma.FieldRef<"Position", 'PositionLevel'>
+  readonly level: Prisma.FieldRef<"Position", 'String'>
   readonly salaryMin: Prisma.FieldRef<"Position", 'Float'>
   readonly salaryMax: Prisma.FieldRef<"Position", 'Float'>
   readonly openings: Prisma.FieldRef<"Position", 'Int'>
@@ -1701,28 +1604,6 @@ export type PositionCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 /**
- * Position createManyAndReturn
- */
-export type PositionCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Position
-   */
-  select?: Prisma.PositionSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the Position
-   */
-  omit?: Prisma.PositionOmit<ExtArgs> | null
-  /**
-   * The data used to create many Positions.
-   */
-  data: Prisma.PositionCreateManyInput | Prisma.PositionCreateManyInput[]
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PositionIncludeCreateManyAndReturn<ExtArgs> | null
-}
-
-/**
  * Position update
  */
 export type PositionUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1764,36 +1645,6 @@ export type PositionUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many Positions to update.
    */
   limit?: number
-}
-
-/**
- * Position updateManyAndReturn
- */
-export type PositionUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Position
-   */
-  select?: Prisma.PositionSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the Position
-   */
-  omit?: Prisma.PositionOmit<ExtArgs> | null
-  /**
-   * The data used to update Positions.
-   */
-  data: Prisma.XOR<Prisma.PositionUpdateManyMutationInput, Prisma.PositionUncheckedUpdateManyInput>
-  /**
-   * Filter which Positions to update
-   */
-  where?: Prisma.PositionWhereInput
-  /**
-   * Limit how many Positions to update.
-   */
-  limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PositionIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

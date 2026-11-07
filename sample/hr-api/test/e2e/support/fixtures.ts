@@ -115,3 +115,18 @@ export async function setBalance(
     create: { employeeId, year, allowanceDays, usedDays }
   });
 }
+
+/** Waits until the check passes, for the work of an event listener. */
+export async function eventually<T>(
+  read: () => Promise<T>,
+  check: (value: T) => boolean,
+  timeout = 5_000
+): Promise<T> {
+  const deadline = Date.now() + timeout;
+  let value = await read();
+  while (!check(value) && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    value = await read();
+  }
+  return value;
+}

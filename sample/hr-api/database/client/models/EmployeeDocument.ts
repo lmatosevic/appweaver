@@ -39,7 +39,7 @@ export type EmployeeDocumentSumAggregateOutputType = {
 export type EmployeeDocumentMinAggregateOutputType = {
   id: number | null
   title: string | null
-  category: $Enums.EmployeeDocumentCategory | null
+  category: string | null
   validUntil: Date | null
   employeeId: string | null
   fileId: number | null
@@ -53,7 +53,7 @@ export type EmployeeDocumentMinAggregateOutputType = {
 export type EmployeeDocumentMaxAggregateOutputType = {
   id: number | null
   title: string | null
-  category: $Enums.EmployeeDocumentCategory | null
+  category: string | null
   validUntil: Date | null
   employeeId: string | null
   fileId: number | null
@@ -222,7 +222,7 @@ export type EmployeeDocumentGroupByArgs<ExtArgs extends runtime.Types.Extensions
 export type EmployeeDocumentGroupByOutputType = {
   id: number
   title: string
-  category: $Enums.EmployeeDocumentCategory
+  category: string
   validUntil: Date | null
   employeeId: string
   fileId: number | null
@@ -259,7 +259,7 @@ export type EmployeeDocumentWhereInput = {
   NOT?: Prisma.EmployeeDocumentWhereInput | Prisma.EmployeeDocumentWhereInput[]
   id?: Prisma.IntFilter<"EmployeeDocument"> | number
   title?: Prisma.StringFilter<"EmployeeDocument"> | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFilter<"EmployeeDocument"> | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFilter<"EmployeeDocument"> | string
   validUntil?: Prisma.DateTimeNullableFilter<"EmployeeDocument"> | Date | string | null
   employeeId?: Prisma.StringFilter<"EmployeeDocument"> | string
   fileId?: Prisma.IntNullableFilter<"EmployeeDocument"> | number | null
@@ -299,7 +299,7 @@ export type EmployeeDocumentWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.EmployeeDocumentWhereInput[]
   NOT?: Prisma.EmployeeDocumentWhereInput | Prisma.EmployeeDocumentWhereInput[]
   title?: Prisma.StringFilter<"EmployeeDocument"> | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFilter<"EmployeeDocument"> | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFilter<"EmployeeDocument"> | string
   validUntil?: Prisma.DateTimeNullableFilter<"EmployeeDocument"> | Date | string | null
   employeeId?: Prisma.StringFilter<"EmployeeDocument"> | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeDocument"> | Date | string
@@ -338,7 +338,7 @@ export type EmployeeDocumentScalarWhereWithAggregatesInput = {
   NOT?: Prisma.EmployeeDocumentScalarWhereWithAggregatesInput | Prisma.EmployeeDocumentScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"EmployeeDocument"> | number
   title?: Prisma.StringWithAggregatesFilter<"EmployeeDocument"> | string
-  category?: Prisma.EnumEmployeeDocumentCategoryWithAggregatesFilter<"EmployeeDocument"> | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringWithAggregatesFilter<"EmployeeDocument"> | string
   validUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"EmployeeDocument"> | Date | string | null
   employeeId?: Prisma.StringWithAggregatesFilter<"EmployeeDocument"> | string
   fileId?: Prisma.IntNullableWithAggregatesFilter<"EmployeeDocument"> | number | null
@@ -351,7 +351,7 @@ export type EmployeeDocumentScalarWhereWithAggregatesInput = {
 
 export type EmployeeDocumentCreateInput = {
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -365,7 +365,7 @@ export type EmployeeDocumentCreateInput = {
 export type EmployeeDocumentUncheckedCreateInput = {
   id?: number
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   employeeId: string
   fileId?: number | null
@@ -378,7 +378,7 @@ export type EmployeeDocumentUncheckedCreateInput = {
 
 export type EmployeeDocumentUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -392,7 +392,7 @@ export type EmployeeDocumentUpdateInput = {
 export type EmployeeDocumentUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   fileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -404,9 +404,8 @@ export type EmployeeDocumentUncheckedUpdateInput = {
 }
 
 export type EmployeeDocumentCreateManyInput = {
-  id?: number
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   employeeId: string
   fileId?: number | null
@@ -419,7 +418,7 @@ export type EmployeeDocumentCreateManyInput = {
 
 export type EmployeeDocumentUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -429,7 +428,7 @@ export type EmployeeDocumentUpdateManyMutationInput = {
 export type EmployeeDocumentUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   fileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -500,10 +499,6 @@ export type EmployeeDocumentListRelationFilter = {
 
 export type EmployeeDocumentOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type EnumEmployeeDocumentCategoryFieldUpdateOperationsInput = {
-  set?: $Enums.EmployeeDocumentCategory
 }
 
 export type NullableIntFieldUpdateOperationsInput = {
@@ -684,7 +679,7 @@ export type EmployeeDocumentUncheckedUpdateManyWithoutFileNestedInput = {
 
 export type EmployeeDocumentCreateWithoutEmployeeInput = {
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -697,7 +692,7 @@ export type EmployeeDocumentCreateWithoutEmployeeInput = {
 export type EmployeeDocumentUncheckedCreateWithoutEmployeeInput = {
   id?: number
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   fileId?: number | null
   updatedAt?: Date | string
@@ -718,7 +713,7 @@ export type EmployeeDocumentCreateManyEmployeeInputEnvelope = {
 
 export type EmployeeDocumentCreateWithoutCreatedByInput = {
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -731,7 +726,7 @@ export type EmployeeDocumentCreateWithoutCreatedByInput = {
 export type EmployeeDocumentUncheckedCreateWithoutCreatedByInput = {
   id?: number
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   employeeId: string
   fileId?: number | null
@@ -752,7 +747,7 @@ export type EmployeeDocumentCreateManyCreatedByInputEnvelope = {
 
 export type EmployeeDocumentCreateWithoutDeletedByInput = {
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -765,7 +760,7 @@ export type EmployeeDocumentCreateWithoutDeletedByInput = {
 export type EmployeeDocumentUncheckedCreateWithoutDeletedByInput = {
   id?: number
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   employeeId: string
   fileId?: number | null
@@ -806,7 +801,7 @@ export type EmployeeDocumentScalarWhereInput = {
   NOT?: Prisma.EmployeeDocumentScalarWhereInput | Prisma.EmployeeDocumentScalarWhereInput[]
   id?: Prisma.IntFilter<"EmployeeDocument"> | number
   title?: Prisma.StringFilter<"EmployeeDocument"> | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFilter<"EmployeeDocument"> | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFilter<"EmployeeDocument"> | string
   validUntil?: Prisma.DateTimeNullableFilter<"EmployeeDocument"> | Date | string | null
   employeeId?: Prisma.StringFilter<"EmployeeDocument"> | string
   fileId?: Prisma.IntNullableFilter<"EmployeeDocument"> | number | null
@@ -851,7 +846,7 @@ export type EmployeeDocumentUpdateManyWithWhereWithoutDeletedByInput = {
 
 export type EmployeeDocumentCreateWithoutFileInput = {
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -864,7 +859,7 @@ export type EmployeeDocumentCreateWithoutFileInput = {
 export type EmployeeDocumentUncheckedCreateWithoutFileInput = {
   id?: number
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   employeeId: string
   updatedAt?: Date | string
@@ -900,9 +895,8 @@ export type EmployeeDocumentUpdateManyWithWhereWithoutFileInput = {
 }
 
 export type EmployeeDocumentCreateManyEmployeeInput = {
-  id?: number
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   fileId?: number | null
   updatedAt?: Date | string
@@ -913,9 +907,8 @@ export type EmployeeDocumentCreateManyEmployeeInput = {
 }
 
 export type EmployeeDocumentCreateManyCreatedByInput = {
-  id?: number
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   employeeId: string
   fileId?: number | null
@@ -926,9 +919,8 @@ export type EmployeeDocumentCreateManyCreatedByInput = {
 }
 
 export type EmployeeDocumentCreateManyDeletedByInput = {
-  id?: number
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   employeeId: string
   fileId?: number | null
@@ -940,7 +932,7 @@ export type EmployeeDocumentCreateManyDeletedByInput = {
 
 export type EmployeeDocumentUpdateWithoutEmployeeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -953,7 +945,7 @@ export type EmployeeDocumentUpdateWithoutEmployeeInput = {
 export type EmployeeDocumentUncheckedUpdateWithoutEmployeeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -966,7 +958,7 @@ export type EmployeeDocumentUncheckedUpdateWithoutEmployeeInput = {
 export type EmployeeDocumentUncheckedUpdateManyWithoutEmployeeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -978,7 +970,7 @@ export type EmployeeDocumentUncheckedUpdateManyWithoutEmployeeInput = {
 
 export type EmployeeDocumentUpdateWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -991,7 +983,7 @@ export type EmployeeDocumentUpdateWithoutCreatedByInput = {
 export type EmployeeDocumentUncheckedUpdateWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   fileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1004,7 +996,7 @@ export type EmployeeDocumentUncheckedUpdateWithoutCreatedByInput = {
 export type EmployeeDocumentUncheckedUpdateManyWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   fileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1016,7 +1008,7 @@ export type EmployeeDocumentUncheckedUpdateManyWithoutCreatedByInput = {
 
 export type EmployeeDocumentUpdateWithoutDeletedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1029,7 +1021,7 @@ export type EmployeeDocumentUpdateWithoutDeletedByInput = {
 export type EmployeeDocumentUncheckedUpdateWithoutDeletedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   fileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1042,7 +1034,7 @@ export type EmployeeDocumentUncheckedUpdateWithoutDeletedByInput = {
 export type EmployeeDocumentUncheckedUpdateManyWithoutDeletedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   fileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1053,9 +1045,8 @@ export type EmployeeDocumentUncheckedUpdateManyWithoutDeletedByInput = {
 }
 
 export type EmployeeDocumentCreateManyFileInput = {
-  id?: number
   title: string
-  category?: $Enums.EmployeeDocumentCategory
+  category?: string
   validUntil?: Date | string | null
   employeeId: string
   updatedAt?: Date | string
@@ -1067,7 +1058,7 @@ export type EmployeeDocumentCreateManyFileInput = {
 
 export type EmployeeDocumentUpdateWithoutFileInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1080,7 +1071,7 @@ export type EmployeeDocumentUpdateWithoutFileInput = {
 export type EmployeeDocumentUncheckedUpdateWithoutFileInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1093,7 +1084,7 @@ export type EmployeeDocumentUncheckedUpdateWithoutFileInput = {
 export type EmployeeDocumentUncheckedUpdateManyWithoutFileInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  category?: Prisma.EnumEmployeeDocumentCategoryFieldUpdateOperationsInput | $Enums.EmployeeDocumentCategory
+  category?: Prisma.StringFieldUpdateOperationsInput | string
   validUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1123,41 +1114,7 @@ export type EmployeeDocumentSelect<ExtArgs extends runtime.Types.Extensions.Inte
   deletedBy?: boolean | Prisma.EmployeeDocument$deletedByArgs<ExtArgs>
 }, ExtArgs["result"]["employeeDocument"]>
 
-export type EmployeeDocumentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  title?: boolean
-  category?: boolean
-  validUntil?: boolean
-  employeeId?: boolean
-  fileId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  file?: boolean | Prisma.EmployeeDocument$fileArgs<ExtArgs>
-  createdBy?: boolean | Prisma.EmployeeDocument$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.EmployeeDocument$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["employeeDocument"]>
 
-export type EmployeeDocumentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  title?: boolean
-  category?: boolean
-  validUntil?: boolean
-  employeeId?: boolean
-  fileId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  file?: boolean | Prisma.EmployeeDocument$fileArgs<ExtArgs>
-  createdBy?: boolean | Prisma.EmployeeDocument$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.EmployeeDocument$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["employeeDocument"]>
 
 export type EmployeeDocumentSelectScalar = {
   id?: boolean
@@ -1175,18 +1132,6 @@ export type EmployeeDocumentSelectScalar = {
 
 export type EmployeeDocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "category" | "validUntil" | "employeeId" | "fileId" | "updatedAt" | "createdAt" | "createdById" | "deletedAt" | "deletedById", ExtArgs["result"]["employeeDocument"]>
 export type EmployeeDocumentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  file?: boolean | Prisma.EmployeeDocument$fileArgs<ExtArgs>
-  createdBy?: boolean | Prisma.EmployeeDocument$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.EmployeeDocument$deletedByArgs<ExtArgs>
-}
-export type EmployeeDocumentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  file?: boolean | Prisma.EmployeeDocument$fileArgs<ExtArgs>
-  createdBy?: boolean | Prisma.EmployeeDocument$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.EmployeeDocument$deletedByArgs<ExtArgs>
-}
-export type EmployeeDocumentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   file?: boolean | Prisma.EmployeeDocument$fileArgs<ExtArgs>
   createdBy?: boolean | Prisma.EmployeeDocument$createdByArgs<ExtArgs>
@@ -1210,7 +1155,7 @@ export type $EmployeeDocumentPayload<ExtArgs extends runtime.Types.Extensions.In
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     title: string
-    category: $Enums.EmployeeDocumentCategory
+    category: string
     validUntil: Date | null
     employeeId: string
     fileId: number | null
@@ -1340,30 +1285,6 @@ export interface EmployeeDocumentDelegate<ExtArgs extends runtime.Types.Extensio
   createMany<T extends EmployeeDocumentCreateManyArgs>(args?: Prisma.SelectSubset<T, EmployeeDocumentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many EmployeeDocuments and returns the data saved in the database.
-   * @param {EmployeeDocumentCreateManyAndReturnArgs} args - Arguments to create many EmployeeDocuments.
-   * @example
-   * // Create many EmployeeDocuments
-   * const employeeDocument = await prisma.employeeDocument.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many EmployeeDocuments and only return the `id`
-   * const employeeDocumentWithIdOnly = await prisma.employeeDocument.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends EmployeeDocumentCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, EmployeeDocumentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeDocumentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a EmployeeDocument.
    * @param {EmployeeDocumentDeleteArgs} args - Arguments to delete one EmployeeDocument.
    * @example
@@ -1426,36 +1347,6 @@ export interface EmployeeDocumentDelegate<ExtArgs extends runtime.Types.Extensio
    * 
    */
   updateMany<T extends EmployeeDocumentUpdateManyArgs>(args: Prisma.SelectSubset<T, EmployeeDocumentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more EmployeeDocuments and returns the data updated in the database.
-   * @param {EmployeeDocumentUpdateManyAndReturnArgs} args - Arguments to update many EmployeeDocuments.
-   * @example
-   * // Update many EmployeeDocuments
-   * const employeeDocument = await prisma.employeeDocument.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more EmployeeDocuments and only return the `id`
-   * const employeeDocumentWithIdOnly = await prisma.employeeDocument.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends EmployeeDocumentUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, EmployeeDocumentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeDocumentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one EmployeeDocument.
@@ -1651,7 +1542,7 @@ export interface Prisma__EmployeeDocumentClient<T, Null = never, ExtArgs extends
 export interface EmployeeDocumentFieldRefs {
   readonly id: Prisma.FieldRef<"EmployeeDocument", 'Int'>
   readonly title: Prisma.FieldRef<"EmployeeDocument", 'String'>
-  readonly category: Prisma.FieldRef<"EmployeeDocument", 'EmployeeDocumentCategory'>
+  readonly category: Prisma.FieldRef<"EmployeeDocument", 'String'>
   readonly validUntil: Prisma.FieldRef<"EmployeeDocument", 'DateTime'>
   readonly employeeId: Prisma.FieldRef<"EmployeeDocument", 'String'>
   readonly fileId: Prisma.FieldRef<"EmployeeDocument", 'Int'>
@@ -1897,28 +1788,6 @@ export type EmployeeDocumentCreateManyArgs<ExtArgs extends runtime.Types.Extensi
 }
 
 /**
- * EmployeeDocument createManyAndReturn
- */
-export type EmployeeDocumentCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the EmployeeDocument
-   */
-  select?: Prisma.EmployeeDocumentSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the EmployeeDocument
-   */
-  omit?: Prisma.EmployeeDocumentOmit<ExtArgs> | null
-  /**
-   * The data used to create many EmployeeDocuments.
-   */
-  data: Prisma.EmployeeDocumentCreateManyInput | Prisma.EmployeeDocumentCreateManyInput[]
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.EmployeeDocumentIncludeCreateManyAndReturn<ExtArgs> | null
-}
-
-/**
  * EmployeeDocument update
  */
 export type EmployeeDocumentUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1960,36 +1829,6 @@ export type EmployeeDocumentUpdateManyArgs<ExtArgs extends runtime.Types.Extensi
    * Limit how many EmployeeDocuments to update.
    */
   limit?: number
-}
-
-/**
- * EmployeeDocument updateManyAndReturn
- */
-export type EmployeeDocumentUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the EmployeeDocument
-   */
-  select?: Prisma.EmployeeDocumentSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the EmployeeDocument
-   */
-  omit?: Prisma.EmployeeDocumentOmit<ExtArgs> | null
-  /**
-   * The data used to update EmployeeDocuments.
-   */
-  data: Prisma.XOR<Prisma.EmployeeDocumentUpdateManyMutationInput, Prisma.EmployeeDocumentUncheckedUpdateManyInput>
-  /**
-   * Filter which EmployeeDocuments to update
-   */
-  where?: Prisma.EmployeeDocumentWhereInput
-  /**
-   * Limit how many EmployeeDocuments to update.
-   */
-  limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.EmployeeDocumentIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

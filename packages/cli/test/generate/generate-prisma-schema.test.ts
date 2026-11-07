@@ -382,8 +382,8 @@ describe('generate-schema', () => {
       ['postgresql', 20_000, '@db.VarChar(20000)'],
       ['mysql', 16_383, '@db.VarChar(16383)'],
       ['mysql', 20_000, '@db.MediumText'],
-      ['sqlserver', 8_000, '@db.VarChar(8000)'],
-      ['sqlserver', 8_001, '@db.VarChar(Max)']
+      ['sqlserver', 4_000, '@db.NVarChar(4000)'],
+      ['sqlserver', 4_001, '@db.NVarChar(Max)']
     ] as const)(
       'stores a %s string of %d characters as %s',
       async (database, maxLength, nativeType) => {
@@ -1220,6 +1220,206 @@ describe('generate-schema', () => {
 
       expect(status).toBe(2);
       expect(error).toHaveBeenCalled();
+    });
+
+    describe('on SQL Server', () => {
+      const line = (schema: string, field: string) =>
+        schema
+          .split('\n')
+          .find((l) => new RegExp(`^\\s*${field}\\s`).test(l))
+          ?.trim()
+          .replace(/\s+/g, ' ');
+
+      beforeEach(() => {
+        databaseType = 'sqlserver';
+      });
+
+      test('stores an enum in a string column sized to its longest value', async () => {
+        const { schema } = await generate({
+          Post: model('Post', {
+            scalars: {
+              status: {
+                type: 'enum',
+                values: ['Draft', 'Published'],
+                default: 'Draft'
+              }
+            }
+          })
+        });
+
+        expect(line(schema, 'status')).toBe(
+          'status String @default("Draft") @db.NVarChar(9)'
+        );
+        expect(schema).not.toContain('enum PostStatus');
+      });
+
+      test('stores a JSON value serialized in a text column', async () => {
+        const { schema } = await generate({
+          Post: model('Post', {
+            scalars: {
+              meta: { type: 'json', required: false, default: { tags: [] } }
+            }
+          })
+        });
+
+        expect(line(schema, 'meta')).toBe(
+          'meta String? @default("{\\"tags\\":[]}") @db.NVarChar(Max)'
+        );
+      });
+
+      test('never cascades the audit relations of the auth model', async () => {
+        const { schema } = await generate({
+          User: model('User', {}, true),
+          Post: model('Post', { softDelete: true })
+        });
+
+        for (const relation of ['PostCreatedByUser', 'PostDeletedByUser']) {
+          expect(schema).toContain(
+            `@relation("${relation}", fields: [${relation.includes('Created') ? 'createdById' : 'deletedById'}], references: [id], onDelete: NoAction, onUpdate: NoAction)`
+          );
+        }
+      });
+
+      test('never cascades a self relation', async () => {
+        const { schema } = await generate({
+          Employee: model('Employee', {
+            relations: {
+              manager: {
+                type: 'oneToMany',
+                model: 'Employee',
+                owner: true,
+                required: false
+              }
+            }
+          })
+        });
+
+        expect(line(schema, 'manager')).toContain(
+          'onDelete: NoAction, onUpdate: NoAction)'
+        );
+      });
+
+      test('keeps the declared actions before the implicit ones forming a second path', async () => {
+        const { schema } = await generate({
+          Department: model('Department', {}),
+          Position: model('Position', {
+            relations: {
+              department: {
+                type: 'oneToMany',
+                model: 'Department',
+                owner: true,
+                onDelete: 'cascade',
+                onUpdate: 'cascade'
+              }
+            }
+          }),
+          Employee: model('Employee', {
+            relations: {
+              department: {
+                type: 'oneToMany',
+                model: 'Department',
+                owner: true,
+                required: false
+              },
+              position: {
+                type: 'oneToMany',
+                model: 'Position',
+                owner: true,
+                required: false
+              }
+            }
+          })
+        });
+
+        const departmentRelations = schema
+          .split('\n')
+          .filter((l) => /^\s*department\s/.test(l));
+        expect(departmentRelations[0]).toContain(
+          'onDelete: Cascade, onUpdate: Cascade)'
+        );
+        expect(departmentRelations[1]).toContain(
+          'onDelete: SetNull, onUpdate: NoAction)'
+        );
+        // Department reaches Employee directly already, not through Position
+        expect(line(schema, 'position')).toContain(
+          'onDelete: NoAction, onUpdate: NoAction)'
+        );
+      });
+
+      test('turns a restricting relation into no action', async () => {
+        const { schema } = await generate({
+          Author: model('Author', {}),
+          Post: model('Post', {
+            relations: {
+              author: {
+                type: 'oneToMany',
+                model: 'Author',
+                owner: true,
+                onDelete: 'restrict'
+              }
+            }
+          })
+        });
+
+        expect(line(schema, 'author')).toContain(
+          'onDelete: NoAction, onUpdate: NoAction)'
+        );
+      });
+
+      test('enables the partial indexes of the Prisma client', async () => {
+        const { schema } = await generate({ Post: model('Post', {}) });
+
+        expect(schema).toContain(
+          [
+            'generator client {',
+            '  provider        = "prisma-client"',
+            '  output          = "./client"',
+            '  previewFeatures = ["partialIndexes"]',
+            '}'
+          ].join('\n')
+        );
+      });
+
+      test('indexes the values of an optional unique column, since a unique constraint holds one NULL', async () => {
+        const { schema } = await generate({
+          File: model('File', {}),
+          Author: model('Author', {}),
+          Post: model('Post', {
+            scalars: {
+              slug: { type: 'string', unique: true },
+              code: { type: 'string', unique: true, required: false }
+            },
+            relations: {
+              author: {
+                type: 'oneToOne',
+                model: 'Author',
+                owner: true,
+                required: false
+              }
+            },
+            files: { cover: {} }
+          })
+        });
+
+        expect(line(schema, 'slug')).toContain('@unique');
+        for (const column of ['code', 'authorId', 'coverId']) {
+          expect(line(schema, column)).not.toContain('@unique');
+          expect(schema).toContain(
+            `@@unique([${column}], where: { ${column}: { not: null } })`
+          );
+        }
+      });
+
+      test('sets null the file of a single file field', async () => {
+        const { schema } = await generate({
+          File: model('File', {}),
+          Post: model('Post', { files: { cover: {} } })
+        });
+
+        expect(line(schema, 'cover')).toContain(
+          'onDelete: SetNull, onUpdate: NoAction)'
+        );
+      });
     });
   });
 });

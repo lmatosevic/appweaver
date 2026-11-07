@@ -40,7 +40,7 @@ export type TwoFactorMethodSumAggregateOutputType = {
 
 export type TwoFactorMethodMinAggregateOutputType = {
   id: number | null
-  type: $Enums.TwoFactorMethodType | null
+  type: string | null
   priority: number | null
   secret: string | null
   confirmedAt: Date | null
@@ -54,7 +54,7 @@ export type TwoFactorMethodMinAggregateOutputType = {
 
 export type TwoFactorMethodMaxAggregateOutputType = {
   id: number | null
-  type: $Enums.TwoFactorMethodType | null
+  type: string | null
   priority: number | null
   secret: string | null
   confirmedAt: Date | null
@@ -225,7 +225,7 @@ export type TwoFactorMethodGroupByArgs<ExtArgs extends runtime.Types.Extensions.
 
 export type TwoFactorMethodGroupByOutputType = {
   id: number
-  type: $Enums.TwoFactorMethodType
+  type: string
   priority: number
   secret: string | null
   confirmedAt: Date | null
@@ -262,7 +262,7 @@ export type TwoFactorMethodWhereInput = {
   OR?: Prisma.TwoFactorMethodWhereInput[]
   NOT?: Prisma.TwoFactorMethodWhereInput | Prisma.TwoFactorMethodWhereInput[]
   id?: Prisma.IntFilter<"TwoFactorMethod"> | number
-  type?: Prisma.EnumTwoFactorMethodTypeFilter<"TwoFactorMethod"> | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFilter<"TwoFactorMethod"> | string
   priority?: Prisma.IntFilter<"TwoFactorMethod"> | number
   secret?: Prisma.StringNullableFilter<"TwoFactorMethod"> | string | null
   confirmedAt?: Prisma.DateTimeNullableFilter<"TwoFactorMethod"> | Date | string | null
@@ -298,7 +298,7 @@ export type TwoFactorMethodWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.TwoFactorMethodWhereInput | Prisma.TwoFactorMethodWhereInput[]
   OR?: Prisma.TwoFactorMethodWhereInput[]
   NOT?: Prisma.TwoFactorMethodWhereInput | Prisma.TwoFactorMethodWhereInput[]
-  type?: Prisma.EnumTwoFactorMethodTypeFilter<"TwoFactorMethod"> | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFilter<"TwoFactorMethod"> | string
   priority?: Prisma.IntFilter<"TwoFactorMethod"> | number
   secret?: Prisma.StringNullableFilter<"TwoFactorMethod"> | string | null
   confirmedAt?: Prisma.DateTimeNullableFilter<"TwoFactorMethod"> | Date | string | null
@@ -336,7 +336,7 @@ export type TwoFactorMethodScalarWhereWithAggregatesInput = {
   OR?: Prisma.TwoFactorMethodScalarWhereWithAggregatesInput[]
   NOT?: Prisma.TwoFactorMethodScalarWhereWithAggregatesInput | Prisma.TwoFactorMethodScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"TwoFactorMethod"> | number
-  type?: Prisma.EnumTwoFactorMethodTypeWithAggregatesFilter<"TwoFactorMethod"> | $Enums.TwoFactorMethodType
+  type?: Prisma.StringWithAggregatesFilter<"TwoFactorMethod"> | string
   priority?: Prisma.IntWithAggregatesFilter<"TwoFactorMethod"> | number
   secret?: Prisma.StringNullableWithAggregatesFilter<"TwoFactorMethod"> | string | null
   confirmedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TwoFactorMethod"> | Date | string | null
@@ -349,7 +349,7 @@ export type TwoFactorMethodScalarWhereWithAggregatesInput = {
 }
 
 export type TwoFactorMethodCreateInput = {
-  type: $Enums.TwoFactorMethodType
+  type: string
   priority?: number
   secret?: string | null
   confirmedAt?: Date | string | null
@@ -363,7 +363,7 @@ export type TwoFactorMethodCreateInput = {
 
 export type TwoFactorMethodUncheckedCreateInput = {
   id?: number
-  type: $Enums.TwoFactorMethodType
+  type: string
   priority?: number
   secret?: string | null
   confirmedAt?: Date | string | null
@@ -376,7 +376,7 @@ export type TwoFactorMethodUncheckedCreateInput = {
 }
 
 export type TwoFactorMethodUpdateInput = {
-  type?: Prisma.EnumTwoFactorMethodTypeFieldUpdateOperationsInput | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -390,7 +390,7 @@ export type TwoFactorMethodUpdateInput = {
 
 export type TwoFactorMethodUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumTwoFactorMethodTypeFieldUpdateOperationsInput | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -403,8 +403,7 @@ export type TwoFactorMethodUncheckedUpdateInput = {
 }
 
 export type TwoFactorMethodCreateManyInput = {
-  id?: number
-  type: $Enums.TwoFactorMethodType
+  type: string
   priority?: number
   secret?: string | null
   confirmedAt?: Date | string | null
@@ -417,7 +416,7 @@ export type TwoFactorMethodCreateManyInput = {
 }
 
 export type TwoFactorMethodUpdateManyMutationInput = {
-  type?: Prisma.EnumTwoFactorMethodTypeFieldUpdateOperationsInput | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -429,7 +428,7 @@ export type TwoFactorMethodUpdateManyMutationInput = {
 
 export type TwoFactorMethodUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumTwoFactorMethodTypeFieldUpdateOperationsInput | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -453,7 +452,7 @@ export type TwoFactorMethodOrderByRelationAggregateInput = {
 
 export type TwoFactorMethodEmployeeIdTypeCompoundUniqueInput = {
   employeeId: string
-  type: $Enums.TwoFactorMethodType
+  type: string
 }
 
 export type TwoFactorMethodCountOrderByAggregateInput = {
@@ -594,12 +593,8 @@ export type TwoFactorMethodUncheckedUpdateManyWithoutDeletedByNestedInput = {
   deleteMany?: Prisma.TwoFactorMethodScalarWhereInput | Prisma.TwoFactorMethodScalarWhereInput[]
 }
 
-export type EnumTwoFactorMethodTypeFieldUpdateOperationsInput = {
-  set?: $Enums.TwoFactorMethodType
-}
-
 export type TwoFactorMethodCreateWithoutEmployeeInput = {
-  type: $Enums.TwoFactorMethodType
+  type: string
   priority?: number
   secret?: string | null
   confirmedAt?: Date | string | null
@@ -612,7 +607,7 @@ export type TwoFactorMethodCreateWithoutEmployeeInput = {
 
 export type TwoFactorMethodUncheckedCreateWithoutEmployeeInput = {
   id?: number
-  type: $Enums.TwoFactorMethodType
+  type: string
   priority?: number
   secret?: string | null
   confirmedAt?: Date | string | null
@@ -633,7 +628,7 @@ export type TwoFactorMethodCreateManyEmployeeInputEnvelope = {
 }
 
 export type TwoFactorMethodCreateWithoutDeletedByInput = {
-  type: $Enums.TwoFactorMethodType
+  type: string
   priority?: number
   secret?: string | null
   confirmedAt?: Date | string | null
@@ -646,7 +641,7 @@ export type TwoFactorMethodCreateWithoutDeletedByInput = {
 
 export type TwoFactorMethodUncheckedCreateWithoutDeletedByInput = {
   id?: number
-  type: $Enums.TwoFactorMethodType
+  type: string
   priority?: number
   secret?: string | null
   confirmedAt?: Date | string | null
@@ -687,7 +682,7 @@ export type TwoFactorMethodScalarWhereInput = {
   OR?: Prisma.TwoFactorMethodScalarWhereInput[]
   NOT?: Prisma.TwoFactorMethodScalarWhereInput | Prisma.TwoFactorMethodScalarWhereInput[]
   id?: Prisma.IntFilter<"TwoFactorMethod"> | number
-  type?: Prisma.EnumTwoFactorMethodTypeFilter<"TwoFactorMethod"> | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFilter<"TwoFactorMethod"> | string
   priority?: Prisma.IntFilter<"TwoFactorMethod"> | number
   secret?: Prisma.StringNullableFilter<"TwoFactorMethod"> | string | null
   confirmedAt?: Prisma.DateTimeNullableFilter<"TwoFactorMethod"> | Date | string | null
@@ -716,8 +711,7 @@ export type TwoFactorMethodUpdateManyWithWhereWithoutDeletedByInput = {
 }
 
 export type TwoFactorMethodCreateManyEmployeeInput = {
-  id?: number
-  type: $Enums.TwoFactorMethodType
+  type: string
   priority?: number
   secret?: string | null
   confirmedAt?: Date | string | null
@@ -729,8 +723,7 @@ export type TwoFactorMethodCreateManyEmployeeInput = {
 }
 
 export type TwoFactorMethodCreateManyDeletedByInput = {
-  id?: number
-  type: $Enums.TwoFactorMethodType
+  type: string
   priority?: number
   secret?: string | null
   confirmedAt?: Date | string | null
@@ -742,7 +735,7 @@ export type TwoFactorMethodCreateManyDeletedByInput = {
 }
 
 export type TwoFactorMethodUpdateWithoutEmployeeInput = {
-  type?: Prisma.EnumTwoFactorMethodTypeFieldUpdateOperationsInput | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -755,7 +748,7 @@ export type TwoFactorMethodUpdateWithoutEmployeeInput = {
 
 export type TwoFactorMethodUncheckedUpdateWithoutEmployeeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumTwoFactorMethodTypeFieldUpdateOperationsInput | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -768,7 +761,7 @@ export type TwoFactorMethodUncheckedUpdateWithoutEmployeeInput = {
 
 export type TwoFactorMethodUncheckedUpdateManyWithoutEmployeeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumTwoFactorMethodTypeFieldUpdateOperationsInput | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -780,7 +773,7 @@ export type TwoFactorMethodUncheckedUpdateManyWithoutEmployeeInput = {
 }
 
 export type TwoFactorMethodUpdateWithoutDeletedByInput = {
-  type?: Prisma.EnumTwoFactorMethodTypeFieldUpdateOperationsInput | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -793,7 +786,7 @@ export type TwoFactorMethodUpdateWithoutDeletedByInput = {
 
 export type TwoFactorMethodUncheckedUpdateWithoutDeletedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumTwoFactorMethodTypeFieldUpdateOperationsInput | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -806,7 +799,7 @@ export type TwoFactorMethodUncheckedUpdateWithoutDeletedByInput = {
 
 export type TwoFactorMethodUncheckedUpdateManyWithoutDeletedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumTwoFactorMethodTypeFieldUpdateOperationsInput | $Enums.TwoFactorMethodType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -835,37 +828,7 @@ export type TwoFactorMethodSelect<ExtArgs extends runtime.Types.Extensions.Inter
   deletedBy?: boolean | Prisma.TwoFactorMethod$deletedByArgs<ExtArgs>
 }, ExtArgs["result"]["twoFactorMethod"]>
 
-export type TwoFactorMethodSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  type?: boolean
-  priority?: boolean
-  secret?: boolean
-  confirmedAt?: boolean
-  lastUsedStep?: boolean
-  employeeId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.TwoFactorMethod$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["twoFactorMethod"]>
 
-export type TwoFactorMethodSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  type?: boolean
-  priority?: boolean
-  secret?: boolean
-  confirmedAt?: boolean
-  lastUsedStep?: boolean
-  employeeId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.TwoFactorMethod$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["twoFactorMethod"]>
 
 export type TwoFactorMethodSelectScalar = {
   id?: boolean
@@ -886,14 +849,6 @@ export type TwoFactorMethodInclude<ExtArgs extends runtime.Types.Extensions.Inte
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   deletedBy?: boolean | Prisma.TwoFactorMethod$deletedByArgs<ExtArgs>
 }
-export type TwoFactorMethodIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.TwoFactorMethod$deletedByArgs<ExtArgs>
-}
-export type TwoFactorMethodIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.TwoFactorMethod$deletedByArgs<ExtArgs>
-}
 
 export type $TwoFactorMethodPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TwoFactorMethod"
@@ -906,7 +861,7 @@ export type $TwoFactorMethodPayload<ExtArgs extends runtime.Types.Extensions.Int
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
-    type: $Enums.TwoFactorMethodType
+    type: string
     priority: number
     secret: string | null
     confirmedAt: Date | null
@@ -1037,30 +992,6 @@ export interface TwoFactorMethodDelegate<ExtArgs extends runtime.Types.Extension
   createMany<T extends TwoFactorMethodCreateManyArgs>(args?: Prisma.SelectSubset<T, TwoFactorMethodCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many TwoFactorMethods and returns the data saved in the database.
-   * @param {TwoFactorMethodCreateManyAndReturnArgs} args - Arguments to create many TwoFactorMethods.
-   * @example
-   * // Create many TwoFactorMethods
-   * const twoFactorMethod = await prisma.twoFactorMethod.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many TwoFactorMethods and only return the `id`
-   * const twoFactorMethodWithIdOnly = await prisma.twoFactorMethod.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends TwoFactorMethodCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, TwoFactorMethodCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorMethodPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a TwoFactorMethod.
    * @param {TwoFactorMethodDeleteArgs} args - Arguments to delete one TwoFactorMethod.
    * @example
@@ -1123,36 +1054,6 @@ export interface TwoFactorMethodDelegate<ExtArgs extends runtime.Types.Extension
    * 
    */
   updateMany<T extends TwoFactorMethodUpdateManyArgs>(args: Prisma.SelectSubset<T, TwoFactorMethodUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more TwoFactorMethods and returns the data updated in the database.
-   * @param {TwoFactorMethodUpdateManyAndReturnArgs} args - Arguments to update many TwoFactorMethods.
-   * @example
-   * // Update many TwoFactorMethods
-   * const twoFactorMethod = await prisma.twoFactorMethod.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more TwoFactorMethods and only return the `id`
-   * const twoFactorMethodWithIdOnly = await prisma.twoFactorMethod.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends TwoFactorMethodUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, TwoFactorMethodUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorMethodPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one TwoFactorMethod.
@@ -1345,7 +1246,7 @@ export interface Prisma__TwoFactorMethodClient<T, Null = never, ExtArgs extends 
  */
 export interface TwoFactorMethodFieldRefs {
   readonly id: Prisma.FieldRef<"TwoFactorMethod", 'Int'>
-  readonly type: Prisma.FieldRef<"TwoFactorMethod", 'TwoFactorMethodType'>
+  readonly type: Prisma.FieldRef<"TwoFactorMethod", 'String'>
   readonly priority: Prisma.FieldRef<"TwoFactorMethod", 'Int'>
   readonly secret: Prisma.FieldRef<"TwoFactorMethod", 'String'>
   readonly confirmedAt: Prisma.FieldRef<"TwoFactorMethod", 'DateTime'>
@@ -1592,28 +1493,6 @@ export type TwoFactorMethodCreateManyArgs<ExtArgs extends runtime.Types.Extensio
 }
 
 /**
- * TwoFactorMethod createManyAndReturn
- */
-export type TwoFactorMethodCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the TwoFactorMethod
-   */
-  select?: Prisma.TwoFactorMethodSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the TwoFactorMethod
-   */
-  omit?: Prisma.TwoFactorMethodOmit<ExtArgs> | null
-  /**
-   * The data used to create many TwoFactorMethods.
-   */
-  data: Prisma.TwoFactorMethodCreateManyInput | Prisma.TwoFactorMethodCreateManyInput[]
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TwoFactorMethodIncludeCreateManyAndReturn<ExtArgs> | null
-}
-
-/**
  * TwoFactorMethod update
  */
 export type TwoFactorMethodUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1655,36 +1534,6 @@ export type TwoFactorMethodUpdateManyArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many TwoFactorMethods to update.
    */
   limit?: number
-}
-
-/**
- * TwoFactorMethod updateManyAndReturn
- */
-export type TwoFactorMethodUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the TwoFactorMethod
-   */
-  select?: Prisma.TwoFactorMethodSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the TwoFactorMethod
-   */
-  omit?: Prisma.TwoFactorMethodOmit<ExtArgs> | null
-  /**
-   * The data used to update TwoFactorMethods.
-   */
-  data: Prisma.XOR<Prisma.TwoFactorMethodUpdateManyMutationInput, Prisma.TwoFactorMethodUncheckedUpdateManyInput>
-  /**
-   * Filter which TwoFactorMethods to update
-   */
-  where?: Prisma.TwoFactorMethodWhereInput
-  /**
-   * Limit how many TwoFactorMethods to update.
-   */
-  limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TwoFactorMethodIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

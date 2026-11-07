@@ -3,6 +3,7 @@ export * from './array-util';
 export * from './module-util';
 export * from './object-util';
 export * from './path-util';
+export * from './referential-util';
 export * from './resource-util';
 export * from './schema-util';
 export * from './storage-util';

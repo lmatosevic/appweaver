@@ -330,7 +330,6 @@ export type TwoFactorRecoveryCodeUncheckedUpdateInput = {
 }
 
 export type TwoFactorRecoveryCodeCreateManyInput = {
-  id?: number
   codeHash: string
   usedAt?: Date | string | null
   employeeId: string
@@ -586,7 +585,6 @@ export type TwoFactorRecoveryCodeUpdateManyWithWhereWithoutDeletedByInput = {
 }
 
 export type TwoFactorRecoveryCodeCreateManyEmployeeInput = {
-  id?: number
   codeHash: string
   usedAt?: Date | string | null
   createdAt?: Date | string
@@ -595,7 +593,6 @@ export type TwoFactorRecoveryCodeCreateManyEmployeeInput = {
 }
 
 export type TwoFactorRecoveryCodeCreateManyDeletedByInput = {
-  id?: number
   codeHash: string
   usedAt?: Date | string | null
   employeeId: string
@@ -669,29 +666,7 @@ export type TwoFactorRecoveryCodeSelect<ExtArgs extends runtime.Types.Extensions
   deletedBy?: boolean | Prisma.TwoFactorRecoveryCode$deletedByArgs<ExtArgs>
 }, ExtArgs["result"]["twoFactorRecoveryCode"]>
 
-export type TwoFactorRecoveryCodeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  codeHash?: boolean
-  usedAt?: boolean
-  employeeId?: boolean
-  createdAt?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.TwoFactorRecoveryCode$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["twoFactorRecoveryCode"]>
 
-export type TwoFactorRecoveryCodeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  codeHash?: boolean
-  usedAt?: boolean
-  employeeId?: boolean
-  createdAt?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.TwoFactorRecoveryCode$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["twoFactorRecoveryCode"]>
 
 export type TwoFactorRecoveryCodeSelectScalar = {
   id?: boolean
@@ -705,14 +680,6 @@ export type TwoFactorRecoveryCodeSelectScalar = {
 
 export type TwoFactorRecoveryCodeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeHash" | "usedAt" | "employeeId" | "createdAt" | "deletedAt" | "deletedById", ExtArgs["result"]["twoFactorRecoveryCode"]>
 export type TwoFactorRecoveryCodeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.TwoFactorRecoveryCode$deletedByArgs<ExtArgs>
-}
-export type TwoFactorRecoveryCodeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.TwoFactorRecoveryCode$deletedByArgs<ExtArgs>
-}
-export type TwoFactorRecoveryCodeIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   deletedBy?: boolean | Prisma.TwoFactorRecoveryCode$deletedByArgs<ExtArgs>
 }
@@ -855,30 +822,6 @@ export interface TwoFactorRecoveryCodeDelegate<ExtArgs extends runtime.Types.Ext
   createMany<T extends TwoFactorRecoveryCodeCreateManyArgs>(args?: Prisma.SelectSubset<T, TwoFactorRecoveryCodeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many TwoFactorRecoveryCodes and returns the data saved in the database.
-   * @param {TwoFactorRecoveryCodeCreateManyAndReturnArgs} args - Arguments to create many TwoFactorRecoveryCodes.
-   * @example
-   * // Create many TwoFactorRecoveryCodes
-   * const twoFactorRecoveryCode = await prisma.twoFactorRecoveryCode.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many TwoFactorRecoveryCodes and only return the `id`
-   * const twoFactorRecoveryCodeWithIdOnly = await prisma.twoFactorRecoveryCode.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends TwoFactorRecoveryCodeCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, TwoFactorRecoveryCodeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a TwoFactorRecoveryCode.
    * @param {TwoFactorRecoveryCodeDeleteArgs} args - Arguments to delete one TwoFactorRecoveryCode.
    * @example
@@ -941,36 +884,6 @@ export interface TwoFactorRecoveryCodeDelegate<ExtArgs extends runtime.Types.Ext
    * 
    */
   updateMany<T extends TwoFactorRecoveryCodeUpdateManyArgs>(args: Prisma.SelectSubset<T, TwoFactorRecoveryCodeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more TwoFactorRecoveryCodes and returns the data updated in the database.
-   * @param {TwoFactorRecoveryCodeUpdateManyAndReturnArgs} args - Arguments to update many TwoFactorRecoveryCodes.
-   * @example
-   * // Update many TwoFactorRecoveryCodes
-   * const twoFactorRecoveryCode = await prisma.twoFactorRecoveryCode.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more TwoFactorRecoveryCodes and only return the `id`
-   * const twoFactorRecoveryCodeWithIdOnly = await prisma.twoFactorRecoveryCode.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends TwoFactorRecoveryCodeUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, TwoFactorRecoveryCodeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one TwoFactorRecoveryCode.
@@ -1406,28 +1319,6 @@ export type TwoFactorRecoveryCodeCreateManyArgs<ExtArgs extends runtime.Types.Ex
 }
 
 /**
- * TwoFactorRecoveryCode createManyAndReturn
- */
-export type TwoFactorRecoveryCodeCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the TwoFactorRecoveryCode
-   */
-  select?: Prisma.TwoFactorRecoveryCodeSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the TwoFactorRecoveryCode
-   */
-  omit?: Prisma.TwoFactorRecoveryCodeOmit<ExtArgs> | null
-  /**
-   * The data used to create many TwoFactorRecoveryCodes.
-   */
-  data: Prisma.TwoFactorRecoveryCodeCreateManyInput | Prisma.TwoFactorRecoveryCodeCreateManyInput[]
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TwoFactorRecoveryCodeIncludeCreateManyAndReturn<ExtArgs> | null
-}
-
-/**
  * TwoFactorRecoveryCode update
  */
 export type TwoFactorRecoveryCodeUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1469,36 +1360,6 @@ export type TwoFactorRecoveryCodeUpdateManyArgs<ExtArgs extends runtime.Types.Ex
    * Limit how many TwoFactorRecoveryCodes to update.
    */
   limit?: number
-}
-
-/**
- * TwoFactorRecoveryCode updateManyAndReturn
- */
-export type TwoFactorRecoveryCodeUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the TwoFactorRecoveryCode
-   */
-  select?: Prisma.TwoFactorRecoveryCodeSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the TwoFactorRecoveryCode
-   */
-  omit?: Prisma.TwoFactorRecoveryCodeOmit<ExtArgs> | null
-  /**
-   * The data used to update TwoFactorRecoveryCodes.
-   */
-  data: Prisma.XOR<Prisma.TwoFactorRecoveryCodeUpdateManyMutationInput, Prisma.TwoFactorRecoveryCodeUncheckedUpdateManyInput>
-  /**
-   * Filter which TwoFactorRecoveryCodes to update
-   */
-  where?: Prisma.TwoFactorRecoveryCodeWhereInput
-  /**
-   * Limit how many TwoFactorRecoveryCodes to update.
-   */
-  limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TwoFactorRecoveryCodeIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

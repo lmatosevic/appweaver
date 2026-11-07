@@ -338,23 +338,7 @@ export type SeederSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   logs?: boolean
 }, ExtArgs["result"]["seeder"]>
 
-export type SeederSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  checksum?: boolean
-  seederName?: boolean
-  startedAt?: boolean
-  finishedAt?: boolean
-  logs?: boolean
-}, ExtArgs["result"]["seeder"]>
 
-export type SeederSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  checksum?: boolean
-  seederName?: boolean
-  startedAt?: boolean
-  finishedAt?: boolean
-  logs?: boolean
-}, ExtArgs["result"]["seeder"]>
 
 export type SeederSelectScalar = {
   id?: boolean
@@ -495,30 +479,6 @@ export interface SeederDelegate<ExtArgs extends runtime.Types.Extensions.Interna
   createMany<T extends SeederCreateManyArgs>(args?: Prisma.SelectSubset<T, SeederCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many Seeders and returns the data saved in the database.
-   * @param {SeederCreateManyAndReturnArgs} args - Arguments to create many Seeders.
-   * @example
-   * // Create many Seeders
-   * const seeder = await prisma.seeder.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many Seeders and only return the `id`
-   * const seederWithIdOnly = await prisma.seeder.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends SeederCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, SeederCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SeederPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a Seeder.
    * @param {SeederDeleteArgs} args - Arguments to delete one Seeder.
    * @example
@@ -581,36 +541,6 @@ export interface SeederDelegate<ExtArgs extends runtime.Types.Extensions.Interna
    * 
    */
   updateMany<T extends SeederUpdateManyArgs>(args: Prisma.SelectSubset<T, SeederUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more Seeders and returns the data updated in the database.
-   * @param {SeederUpdateManyAndReturnArgs} args - Arguments to update many Seeders.
-   * @example
-   * // Update many Seeders
-   * const seeder = await prisma.seeder.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more Seeders and only return the `id`
-   * const seederWithIdOnly = await prisma.seeder.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends SeederUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, SeederUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SeederPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Seeder.
@@ -1019,24 +949,6 @@ export type SeederCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
 }
 
 /**
- * Seeder createManyAndReturn
- */
-export type SeederCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Seeder
-   */
-  select?: Prisma.SeederSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the Seeder
-   */
-  omit?: Prisma.SeederOmit<ExtArgs> | null
-  /**
-   * The data used to create many Seeders.
-   */
-  data: Prisma.SeederCreateManyInput | Prisma.SeederCreateManyInput[]
-}
-
-/**
  * Seeder update
  */
 export type SeederUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1062,32 +974,6 @@ export type SeederUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
  * Seeder updateMany
  */
 export type SeederUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * The data used to update Seeders.
-   */
-  data: Prisma.XOR<Prisma.SeederUpdateManyMutationInput, Prisma.SeederUncheckedUpdateManyInput>
-  /**
-   * Filter which Seeders to update
-   */
-  where?: Prisma.SeederWhereInput
-  /**
-   * Limit how many Seeders to update.
-   */
-  limit?: number
-}
-
-/**
- * Seeder updateManyAndReturn
- */
-export type SeederUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Seeder
-   */
-  select?: Prisma.SeederSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the Seeder
-   */
-  omit?: Prisma.SeederOmit<ExtArgs> | null
   /**
    * The data used to update Seeders.
    */

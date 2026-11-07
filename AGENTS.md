@@ -1041,7 +1041,7 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 | Sample                   | Runtime | Database           | Showcases                                                                                                  |
 |--------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------------|
 | `sample/webshop-api`     | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails |
-| `sample/hr-api`          | Node    | SQLite             | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
+| `sample/hr-api`          | Node    | SQL Server         | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
 | `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, cursor pagination              |
 | `sample/movies-api-bun`  | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                     |
 | `sample/inbox-processor` | Node    | SQLite + Redis     | A file and API fed BullMQ pipeline with retries, a local module with a watcher service and routes          |
@@ -1053,8 +1053,9 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   server: the worker is kept running by its cron jobs and answers the health checks on `healthCheck.port`, the
   calculator starts, calculates and stops, and both do their work in `weaver run` tasks. `loan-calculator` has no
   database, so no migrations, seeders or e2e database setup.
-- The PostgreSQL and MySQL samples start their database with `docker compose up -d postgres redis` (or `mysql`); their
-  end-to-end tests run against a `-test` database of the same container.
+- The PostgreSQL, MySQL and SQL Server samples start their database with `docker compose up -d postgres redis` (or
+  `mysql`, `sqlserver`); their end-to-end tests run against a `-test` database of the same container. The SQL Server
+  sample connects as `sa` (`${DB_USER:-sa}`), whose password SQL Server requires to be complex.
 - Like a generated project, every sample configures its database and Redis URLs in `appweaver.json`, referencing the
   database password of `.env` (copied from `.env.example`) as `${DB_PASSWORD}`, and the hosts as
   `${DB_HOST:-localhost}` and `${REDIS_HOST:-localhost}`, which the compose application services override. The database
@@ -1068,9 +1069,10 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 - `npm run samples:manage -- <operation> [params...] [samples...]` (`tools/manage-samples.js`) runs an operation in every
   sample it applies to, or in the named ones: `regenerate:db` replaces the migrations of each sample with a database with
   a single `init` migration and recreates its database, and `run <script>` runs a `package.json` script of every sample
-  having it, with Bun in the Bun sample (`run generate`, `run seed`). The database operations need the PostgreSQL and
-  MySQL containers running, and `run generate` runs the built `node_modules/@appweaver`, so run `npm run build` first or
-  it generates the models of the last build. A new operation is an entry of its `operations`, with the names of its `params`.
+  having it, with Bun in the Bun sample (`run generate`, `run seed`). The database operations need the PostgreSQL,
+  MySQL and SQL Server containers running, and `run generate` runs the built `node_modules/@appweaver`, so run
+  `npm run build` first or it generates the models of the last build. A new operation is an entry of its `operations`,
+  with the names of its `params`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
 - The Bun sample runs its scripts with `bun run`. Bun runs every test file in one process, where the application
   context is frozen once an application starts, so its end-to-end files share one application instead of resetting the

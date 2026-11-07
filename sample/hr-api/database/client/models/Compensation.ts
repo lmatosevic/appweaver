@@ -41,9 +41,9 @@ export type CompensationSumAggregateOutputType = {
 export type CompensationMinAggregateOutputType = {
   id: number | null
   baseSalary: number | null
-  currency: $Enums.CompensationCurrency | null
+  currency: string | null
   bonusTargetPercent: number | null
-  reason: $Enums.CompensationReason | null
+  reason: string | null
   effectiveFrom: Date | null
   notes: string | null
   employeeId: string | null
@@ -57,9 +57,9 @@ export type CompensationMinAggregateOutputType = {
 export type CompensationMaxAggregateOutputType = {
   id: number | null
   baseSalary: number | null
-  currency: $Enums.CompensationCurrency | null
+  currency: string | null
   bonusTargetPercent: number | null
-  reason: $Enums.CompensationReason | null
+  reason: string | null
   effectiveFrom: Date | null
   notes: string | null
   employeeId: string | null
@@ -238,9 +238,9 @@ export type CompensationGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 export type CompensationGroupByOutputType = {
   id: number
   baseSalary: number
-  currency: $Enums.CompensationCurrency
+  currency: string
   bonusTargetPercent: number
-  reason: $Enums.CompensationReason
+  reason: string
   effectiveFrom: Date
   notes: string | null
   employeeId: string
@@ -277,9 +277,9 @@ export type CompensationWhereInput = {
   NOT?: Prisma.CompensationWhereInput | Prisma.CompensationWhereInput[]
   id?: Prisma.IntFilter<"Compensation"> | number
   baseSalary?: Prisma.FloatFilter<"Compensation"> | number
-  currency?: Prisma.EnumCompensationCurrencyFilter<"Compensation"> | $Enums.CompensationCurrency
+  currency?: Prisma.StringFilter<"Compensation"> | string
   bonusTargetPercent?: Prisma.FloatFilter<"Compensation"> | number
-  reason?: Prisma.EnumCompensationReasonFilter<"Compensation"> | $Enums.CompensationReason
+  reason?: Prisma.StringFilter<"Compensation"> | string
   effectiveFrom?: Prisma.DateTimeFilter<"Compensation"> | Date | string
   notes?: Prisma.StringNullableFilter<"Compensation"> | string | null
   employeeId?: Prisma.StringFilter<"Compensation"> | string
@@ -318,9 +318,9 @@ export type CompensationWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.CompensationWhereInput[]
   NOT?: Prisma.CompensationWhereInput | Prisma.CompensationWhereInput[]
   baseSalary?: Prisma.FloatFilter<"Compensation"> | number
-  currency?: Prisma.EnumCompensationCurrencyFilter<"Compensation"> | $Enums.CompensationCurrency
+  currency?: Prisma.StringFilter<"Compensation"> | string
   bonusTargetPercent?: Prisma.FloatFilter<"Compensation"> | number
-  reason?: Prisma.EnumCompensationReasonFilter<"Compensation"> | $Enums.CompensationReason
+  reason?: Prisma.StringFilter<"Compensation"> | string
   effectiveFrom?: Prisma.DateTimeFilter<"Compensation"> | Date | string
   notes?: Prisma.StringNullableFilter<"Compensation"> | string | null
   employeeId?: Prisma.StringFilter<"Compensation"> | string
@@ -361,9 +361,9 @@ export type CompensationScalarWhereWithAggregatesInput = {
   NOT?: Prisma.CompensationScalarWhereWithAggregatesInput | Prisma.CompensationScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Compensation"> | number
   baseSalary?: Prisma.FloatWithAggregatesFilter<"Compensation"> | number
-  currency?: Prisma.EnumCompensationCurrencyWithAggregatesFilter<"Compensation"> | $Enums.CompensationCurrency
+  currency?: Prisma.StringWithAggregatesFilter<"Compensation"> | string
   bonusTargetPercent?: Prisma.FloatWithAggregatesFilter<"Compensation"> | number
-  reason?: Prisma.EnumCompensationReasonWithAggregatesFilter<"Compensation"> | $Enums.CompensationReason
+  reason?: Prisma.StringWithAggregatesFilter<"Compensation"> | string
   effectiveFrom?: Prisma.DateTimeWithAggregatesFilter<"Compensation"> | Date | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"Compensation"> | string | null
   employeeId?: Prisma.StringWithAggregatesFilter<"Compensation"> | string
@@ -376,9 +376,9 @@ export type CompensationScalarWhereWithAggregatesInput = {
 
 export type CompensationCreateInput = {
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   updatedAt?: Date | string
@@ -392,9 +392,9 @@ export type CompensationCreateInput = {
 export type CompensationUncheckedCreateInput = {
   id?: number
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   employeeId: string
@@ -407,9 +407,9 @@ export type CompensationUncheckedCreateInput = {
 
 export type CompensationUpdateInput = {
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -423,9 +423,9 @@ export type CompensationUpdateInput = {
 export type CompensationUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -437,11 +437,10 @@ export type CompensationUncheckedUpdateInput = {
 }
 
 export type CompensationCreateManyInput = {
-  id?: number
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   employeeId: string
@@ -454,9 +453,9 @@ export type CompensationCreateManyInput = {
 
 export type CompensationUpdateManyMutationInput = {
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -467,9 +466,9 @@ export type CompensationUpdateManyMutationInput = {
 export type CompensationUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -558,12 +557,8 @@ export type FloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type EnumCompensationCurrencyFieldUpdateOperationsInput = {
-  set?: $Enums.CompensationCurrency
-}
-
-export type EnumCompensationReasonFieldUpdateOperationsInput = {
-  set?: $Enums.CompensationReason
+export type StringFieldUpdateOperationsInput = {
+  set?: string
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -584,10 +579,6 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
-}
-
-export type StringFieldUpdateOperationsInput = {
-  set?: string
 }
 
 export type CompensationCreateNestedManyWithoutEmployeeInput = {
@@ -718,9 +709,9 @@ export type CompensationUncheckedUpdateManyWithoutDeletedByNestedInput = {
 
 export type CompensationCreateWithoutEmployeeInput = {
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   updatedAt?: Date | string
@@ -733,9 +724,9 @@ export type CompensationCreateWithoutEmployeeInput = {
 export type CompensationUncheckedCreateWithoutEmployeeInput = {
   id?: number
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   updatedAt?: Date | string
@@ -756,9 +747,9 @@ export type CompensationCreateManyEmployeeInputEnvelope = {
 
 export type CompensationCreateWithoutCreatedByInput = {
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   updatedAt?: Date | string
@@ -771,9 +762,9 @@ export type CompensationCreateWithoutCreatedByInput = {
 export type CompensationUncheckedCreateWithoutCreatedByInput = {
   id?: number
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   employeeId: string
@@ -794,9 +785,9 @@ export type CompensationCreateManyCreatedByInputEnvelope = {
 
 export type CompensationCreateWithoutDeletedByInput = {
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   updatedAt?: Date | string
@@ -809,9 +800,9 @@ export type CompensationCreateWithoutDeletedByInput = {
 export type CompensationUncheckedCreateWithoutDeletedByInput = {
   id?: number
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   employeeId: string
@@ -852,9 +843,9 @@ export type CompensationScalarWhereInput = {
   NOT?: Prisma.CompensationScalarWhereInput | Prisma.CompensationScalarWhereInput[]
   id?: Prisma.IntFilter<"Compensation"> | number
   baseSalary?: Prisma.FloatFilter<"Compensation"> | number
-  currency?: Prisma.EnumCompensationCurrencyFilter<"Compensation"> | $Enums.CompensationCurrency
+  currency?: Prisma.StringFilter<"Compensation"> | string
   bonusTargetPercent?: Prisma.FloatFilter<"Compensation"> | number
-  reason?: Prisma.EnumCompensationReasonFilter<"Compensation"> | $Enums.CompensationReason
+  reason?: Prisma.StringFilter<"Compensation"> | string
   effectiveFrom?: Prisma.DateTimeFilter<"Compensation"> | Date | string
   notes?: Prisma.StringNullableFilter<"Compensation"> | string | null
   employeeId?: Prisma.StringFilter<"Compensation"> | string
@@ -898,11 +889,10 @@ export type CompensationUpdateManyWithWhereWithoutDeletedByInput = {
 }
 
 export type CompensationCreateManyEmployeeInput = {
-  id?: number
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   updatedAt?: Date | string
@@ -913,11 +903,10 @@ export type CompensationCreateManyEmployeeInput = {
 }
 
 export type CompensationCreateManyCreatedByInput = {
-  id?: number
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   employeeId: string
@@ -928,11 +917,10 @@ export type CompensationCreateManyCreatedByInput = {
 }
 
 export type CompensationCreateManyDeletedByInput = {
-  id?: number
   baseSalary: number
-  currency?: $Enums.CompensationCurrency
+  currency?: string
   bonusTargetPercent?: number
-  reason?: $Enums.CompensationReason
+  reason?: string
   effectiveFrom: Date | string
   notes?: string | null
   employeeId: string
@@ -944,9 +932,9 @@ export type CompensationCreateManyDeletedByInput = {
 
 export type CompensationUpdateWithoutEmployeeInput = {
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -959,9 +947,9 @@ export type CompensationUpdateWithoutEmployeeInput = {
 export type CompensationUncheckedUpdateWithoutEmployeeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -974,9 +962,9 @@ export type CompensationUncheckedUpdateWithoutEmployeeInput = {
 export type CompensationUncheckedUpdateManyWithoutEmployeeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -988,9 +976,9 @@ export type CompensationUncheckedUpdateManyWithoutEmployeeInput = {
 
 export type CompensationUpdateWithoutCreatedByInput = {
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1003,9 +991,9 @@ export type CompensationUpdateWithoutCreatedByInput = {
 export type CompensationUncheckedUpdateWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1018,9 +1006,9 @@ export type CompensationUncheckedUpdateWithoutCreatedByInput = {
 export type CompensationUncheckedUpdateManyWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1032,9 +1020,9 @@ export type CompensationUncheckedUpdateManyWithoutCreatedByInput = {
 
 export type CompensationUpdateWithoutDeletedByInput = {
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1047,9 +1035,9 @@ export type CompensationUpdateWithoutDeletedByInput = {
 export type CompensationUncheckedUpdateWithoutDeletedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1062,9 +1050,9 @@ export type CompensationUncheckedUpdateWithoutDeletedByInput = {
 export type CompensationUncheckedUpdateManyWithoutDeletedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   baseSalary?: Prisma.FloatFieldUpdateOperationsInput | number
-  currency?: Prisma.EnumCompensationCurrencyFieldUpdateOperationsInput | $Enums.CompensationCurrency
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   bonusTargetPercent?: Prisma.FloatFieldUpdateOperationsInput | number
-  reason?: Prisma.EnumCompensationReasonFieldUpdateOperationsInput | $Enums.CompensationReason
+  reason?: Prisma.StringFieldUpdateOperationsInput | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1095,43 +1083,7 @@ export type CompensationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   deletedBy?: boolean | Prisma.Compensation$deletedByArgs<ExtArgs>
 }, ExtArgs["result"]["compensation"]>
 
-export type CompensationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  baseSalary?: boolean
-  currency?: boolean
-  bonusTargetPercent?: boolean
-  reason?: boolean
-  effectiveFrom?: boolean
-  notes?: boolean
-  employeeId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.Compensation$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.Compensation$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["compensation"]>
 
-export type CompensationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  baseSalary?: boolean
-  currency?: boolean
-  bonusTargetPercent?: boolean
-  reason?: boolean
-  effectiveFrom?: boolean
-  notes?: boolean
-  employeeId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.Compensation$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.Compensation$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["compensation"]>
 
 export type CompensationSelectScalar = {
   id?: boolean
@@ -1155,16 +1107,6 @@ export type CompensationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   createdBy?: boolean | Prisma.Compensation$createdByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.Compensation$deletedByArgs<ExtArgs>
 }
-export type CompensationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.Compensation$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.Compensation$deletedByArgs<ExtArgs>
-}
-export type CompensationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
-  createdBy?: boolean | Prisma.Compensation$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.Compensation$deletedByArgs<ExtArgs>
-}
 
 export type $CompensationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Compensation"
@@ -1179,9 +1121,9 @@ export type $CompensationPayload<ExtArgs extends runtime.Types.Extensions.Intern
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     baseSalary: number
-    currency: $Enums.CompensationCurrency
+    currency: string
     bonusTargetPercent: number
-    reason: $Enums.CompensationReason
+    reason: string
     effectiveFrom: Date
     notes: string | null
     employeeId: string
@@ -1311,30 +1253,6 @@ export interface CompensationDelegate<ExtArgs extends runtime.Types.Extensions.I
   createMany<T extends CompensationCreateManyArgs>(args?: Prisma.SelectSubset<T, CompensationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many Compensations and returns the data saved in the database.
-   * @param {CompensationCreateManyAndReturnArgs} args - Arguments to create many Compensations.
-   * @example
-   * // Create many Compensations
-   * const compensation = await prisma.compensation.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many Compensations and only return the `id`
-   * const compensationWithIdOnly = await prisma.compensation.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends CompensationCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, CompensationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompensationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a Compensation.
    * @param {CompensationDeleteArgs} args - Arguments to delete one Compensation.
    * @example
@@ -1397,36 +1315,6 @@ export interface CompensationDelegate<ExtArgs extends runtime.Types.Extensions.I
    * 
    */
   updateMany<T extends CompensationUpdateManyArgs>(args: Prisma.SelectSubset<T, CompensationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more Compensations and returns the data updated in the database.
-   * @param {CompensationUpdateManyAndReturnArgs} args - Arguments to update many Compensations.
-   * @example
-   * // Update many Compensations
-   * const compensation = await prisma.compensation.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more Compensations and only return the `id`
-   * const compensationWithIdOnly = await prisma.compensation.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends CompensationUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, CompensationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompensationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Compensation.
@@ -1621,9 +1509,9 @@ export interface Prisma__CompensationClient<T, Null = never, ExtArgs extends run
 export interface CompensationFieldRefs {
   readonly id: Prisma.FieldRef<"Compensation", 'Int'>
   readonly baseSalary: Prisma.FieldRef<"Compensation", 'Float'>
-  readonly currency: Prisma.FieldRef<"Compensation", 'CompensationCurrency'>
+  readonly currency: Prisma.FieldRef<"Compensation", 'String'>
   readonly bonusTargetPercent: Prisma.FieldRef<"Compensation", 'Float'>
-  readonly reason: Prisma.FieldRef<"Compensation", 'CompensationReason'>
+  readonly reason: Prisma.FieldRef<"Compensation", 'String'>
   readonly effectiveFrom: Prisma.FieldRef<"Compensation", 'DateTime'>
   readonly notes: Prisma.FieldRef<"Compensation", 'String'>
   readonly employeeId: Prisma.FieldRef<"Compensation", 'String'>
@@ -1869,28 +1757,6 @@ export type CompensationCreateManyArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 /**
- * Compensation createManyAndReturn
- */
-export type CompensationCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Compensation
-   */
-  select?: Prisma.CompensationSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the Compensation
-   */
-  omit?: Prisma.CompensationOmit<ExtArgs> | null
-  /**
-   * The data used to create many Compensations.
-   */
-  data: Prisma.CompensationCreateManyInput | Prisma.CompensationCreateManyInput[]
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.CompensationIncludeCreateManyAndReturn<ExtArgs> | null
-}
-
-/**
  * Compensation update
  */
 export type CompensationUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1932,36 +1798,6 @@ export type CompensationUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many Compensations to update.
    */
   limit?: number
-}
-
-/**
- * Compensation updateManyAndReturn
- */
-export type CompensationUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Compensation
-   */
-  select?: Prisma.CompensationSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the Compensation
-   */
-  omit?: Prisma.CompensationOmit<ExtArgs> | null
-  /**
-   * The data used to update Compensations.
-   */
-  data: Prisma.XOR<Prisma.CompensationUpdateManyMutationInput, Prisma.CompensationUncheckedUpdateManyInput>
-  /**
-   * Filter which Compensations to update
-   */
-  where?: Prisma.CompensationWhereInput
-  /**
-   * Limit how many Compensations to update.
-   */
-  limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.CompensationIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

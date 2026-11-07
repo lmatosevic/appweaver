@@ -121,6 +121,22 @@ describe('prisma-database', () => {
   });
 
   describe('client', () => {
+    test('extends the client of SQL Server only', async () => {
+      const extended = { ...root, post: { create: jest.fn(async () => 3) } };
+      root.$extends.mockReturnValue(extended);
+
+      await db.client<any>().post.create({});
+      expect(root.$extends).not.toHaveBeenCalled();
+
+      overrides.DATABASE_TYPE = common.DatabaseType.SQLServer;
+      db = new PrismaDatabase();
+
+      await expect(db.client<any>().post.create({})).resolves.toBe(3);
+      expect(root.$extends).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'appweaver-sqlserver' })
+      );
+    });
+
     test('runs the queries on the connection outside a transaction', async () => {
       await expect(db.client<any>().post.create({})).resolves.toEqual({
         id: 2

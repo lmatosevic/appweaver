@@ -19,25 +19,25 @@ import { inject, SmsService } from '@appweaver/core';
 const smsService = inject(SmsService, false); // undefined without an SMS sender
 ```
 
-| Method                         | Returns                                    | Description                                                                                 |
-|--------------------------------|--------------------------------------------|---------------------------------------------------------------------------------------------|
-| `sendSms(sms)`                 | `Promise<void>`                            | Queues the message and resolves once it is queued.                                          |
-| `sendSmsBulk(messages)`        | `Promise<void>`                            | Queues the messages at once. A template message failing to render is logged and left out.  |
-| `sendSmsAndWait(sms)`          | `Promise<boolean>`                         | Queues the message and resolves once it is sent, rejects with the error of its last retry. |
-| `sendSmsBulkAndWait(messages)` | `Promise<{ success, error? }[]>`           | Sends the messages and reports the result of each one, in their order.                     |
-| `renderTemplateSms(sms)`       | `Promise<SmsMessage>`                      | Renders a template message into the message to send, which the send methods do themselves. |
+| Method                         | Returns                          | Description                                                                                |
+|--------------------------------|----------------------------------|--------------------------------------------------------------------------------------------|
+| `sendSms(sms)`                 | `Promise<void>`                  | Queues the message and resolves once it is queued.                                         |
+| `sendSmsBulk(messages)`        | `Promise<void>`                  | Queues the messages at once. A template message failing to render is logged and left out.  |
+| `sendSmsAndWait(sms)`          | `Promise<boolean>`               | Queues the message and resolves once it is sent, rejects with the error of its last retry. |
+| `sendSmsBulkAndWait(messages)` | `Promise<{ success, error? }[]>` | Sends the messages and reports the result of each one, in their order.                     |
+| `renderTemplateSms(sms)`       | `Promise<SmsMessage>`            | Renders a template message into the message to send, which the send methods do themselves. |
 
 Every method takes an `SmsMessage` or a `TemplateSms`:
 
-| Field             | Type                      | Required | Description                                                                         |
-|-------------------|---------------------------|----------|-------------------------------------------------------------------------------------|
-| `to`              | `string`                  | Yes      | Recipient phone number in the E.164 format, i.e. `+385911234567`                    |
-| `text`            | `string`                  | Yes      | The text, of an `SmsMessage`                                                        |
-| `template`        | `string`                  | Yes      | The template without the format, of a `TemplateSms`, i.e. `sms/order-shipped`       |
-| `data`            | `Record<string, any>`     | No       | The data to render the template with                                                |
-| `locale`          | `string`                  | No       | The locale to render the template in, `LOCALE_DEFAULT` by default                   |
-| `from`            | `string`                  | No       | Sender, a phone number or an alphanumeric sender ID, `SMS_SENDER` by default        |
-| `providerOptions` | `Record<string, unknown>` | No       | Options of the driver, i.e. the extra parameters of the Twilio Messages resource    |
+| Field             | Type                      | Required | Description                                                                      |
+|-------------------|---------------------------|----------|----------------------------------------------------------------------------------|
+| `to`              | `string`                  | Yes      | Recipient phone number in the E.164 format, i.e. `+385911234567`                 |
+| `text`            | `string`                  | Yes      | The text, of an `SmsMessage`                                                     |
+| `template`        | `string`                  | Yes      | The template without the format, of a `TemplateSms`, i.e. `sms/order-shipped`    |
+| `data`            | `Record<string, any>`     | No       | The data to render the template with                                             |
+| `locale`          | `string`                  | No       | The locale to render the template in, `LOCALE_DEFAULT` by default                |
+| `from`            | `string`                  | No       | Sender, a phone number or an alphanumeric sender ID, `SMS_SENDER` by default     |
+| `providerOptions` | `Record<string, unknown>` | No       | Options of the driver, i.e. the extra parameters of the Twilio Messages resource |
 
 ```ts
 await smsService.sendSms({ to: '+385911234567', text: 'Your order has shipped.' });
@@ -77,10 +77,10 @@ The 2FA codes and the phone verification codes are sent with `sendSmsAndWait`, s
 the request with `SMS_SEND_FAILED`. Each one renders the template of the application when it exists, otherwise the
 `sms.*` translation, which the framework defines in English and `locales/<locale>.json` overrides:
 
-| Template              | Translation         | Data                                   |
-|-----------------------|---------------------|----------------------------------------|
-| `sms/two-factor-code` | `sms.twoFactorCode` | `code`, `appName`, `expiresInMinutes`  |
-| `sms/verify-phone`    | `sms.verifyPhone`   | `code`, `appName`, `expiresInMinutes`  |
+| Template              | Translation         | Data                                  |
+|-----------------------|---------------------|---------------------------------------|
+| `sms/two-factor-code` | `sms.twoFactorCode` | `code`, `appName`, `expiresInMinutes` |
+| `sms/verify-phone`    | `sms.verifyPhone`   | `code`, `appName`, `expiresInMinutes` |
 
 The translations take the minutes as `count`, i.e. `{count, plural, one {# minute} other {# minutes}}`. A project
 created with the `sms` and `templates` modules of `@appweaver/create` gets both templates, and their English texts in

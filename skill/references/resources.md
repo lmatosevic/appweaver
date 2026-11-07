@@ -35,25 +35,25 @@ function createModel(config: ResourceModelConfig, override ?: Partial<ResourceMo
 }
 ```
 
-| Property         | Type                           | Required | Default               | Description                                                         |
-|------------------|--------------------------------|----------|-----------------------|---------------------------------------------------------------------|
-| `name`           | string                         | yes      | -                     | Model name (PascalCase). Used as database table name and type name. |
-| `tableName`      | string                         | no       | (model name)          | Custom database table name override.                                |
-| `generateTypes`  | boolean                        | no       | `true`                | Generate TypeScript types for this model.                           |
+| Property           | Type                           | Required | Default               | Description                                                         |
+|--------------------|--------------------------------|----------|-----------------------|---------------------------------------------------------------------|
+| `name`             | string                         | yes      | -                     | Model name (PascalCase). Used as database table name and type name. |
+| `tableName`        | string                         | no       | (model name)          | Custom database table name override.                                |
+| `generateTypes`    | boolean                        | no       | `true`                | Generate TypeScript types for this model.                           |
 | `generateDbSchema` | boolean                        | no       | `true`                | Generate Prisma schema for this model.                              |
-| `id`             | IdField                        | no       | Autoincrement integer | ID field configuration.                                             |
-| `audit`          | AuditFields                    | no       | All included          | Audit timestamps and creator tracking fields.                       |
-| `scalars`        | Record\<string, ScalarField>   | no       | -                     | Scalar fields (database columns).                                   |
-| `relations`      | Record\<string, RelationField> | no       | -                     | Relations to other models.                                          |
-| `files`          | Record\<string, FileField>     | no       | -                     | File upload fields.                                                 |
-| `virtual`        | Record\<string, VirtualField>  | no       | -                     | Computed/virtual fields not stored in database.                     |
-| `read`           | OperationConfig                | no       | -                     | Pick/omit fields for the read DTO.                                  |
-| `create`         | OperationConfig                | no       | -                     | Pick/omit fields for the create DTO.                                |
-| `update`         | OperationConfig                | no       | -                     | Pick/omit fields for the update DTO.                                |
-| `export`         | Record\<string, ExportField>   | no       | -                     | CSV export field configuration.                                     |
-| `index`          | string[] \| string[][]         | no       | -                     | Database index definitions (`-field` desc, `+field` asc).           |
-| `unique`         | string[] \| string[][]         | no       | -                     | Composite unique constraints, in the same shape as `index`.         |
-| `softDelete`     | boolean                        | no       | `false`               | Mark deleted records instead of removing them.                      |
+| `id`               | IdField                        | no       | Autoincrement integer | ID field configuration.                                             |
+| `audit`            | AuditFields                    | no       | All included          | Audit timestamps and creator tracking fields.                       |
+| `scalars`          | Record\<string, ScalarField>   | no       | -                     | Scalar fields (database columns).                                   |
+| `relations`        | Record\<string, RelationField> | no       | -                     | Relations to other models.                                          |
+| `files`            | Record\<string, FileField>     | no       | -                     | File upload fields.                                                 |
+| `virtual`          | Record\<string, VirtualField>  | no       | -                     | Computed/virtual fields not stored in database.                     |
+| `read`             | OperationConfig                | no       | -                     | Pick/omit fields for the read DTO.                                  |
+| `create`           | OperationConfig                | no       | -                     | Pick/omit fields for the create DTO.                                |
+| `update`           | OperationConfig                | no       | -                     | Pick/omit fields for the update DTO.                                |
+| `export`           | Record\<string, ExportField>   | no       | -                     | CSV export field configuration.                                     |
+| `index`            | string[] \| string[][]         | no       | -                     | Database index definitions (`-field` desc, `+field` asc).           |
+| `unique`           | string[] \| string[][]         | no       | -                     | Composite unique constraints, in the same shape as `index`.         |
+| `softDelete`       | boolean                        | no       | `false`               | Mark deleted records instead of removing them.                      |
 
 ### ID field
 
@@ -273,9 +273,10 @@ const config = {
 String defaults can also be ID generators: `'uuid()'`, `'uuid(7)'`, `'cuid()'`, `'cuid(2)'`, `'nanoid()'`, which also
 size the column (see [Generated column types](#generated-column-types)).
 
-`maxLength` sizes the `VARCHAR` column on PostgreSQL, MySQL, and SQL Server. A length beyond the longest `VARCHAR` of
-the database is stored in its text type instead: `MEDIUMTEXT` above 16,383 characters on MySQL, `VARCHAR(MAX)` above
-8,000 on SQL Server, and `TEXT` above 10,485,760 on PostgreSQL. SQLite keeps the plain column.
+`maxLength` sizes the `VARCHAR` column on PostgreSQL and MySQL, and the `NVARCHAR` column on SQL Server, whose `VARCHAR`
+holds no Unicode. A length beyond the longest one of the database is stored in its text type instead: `MEDIUMTEXT` above
+16,383 characters on MySQL, `NVARCHAR(MAX)` above 4,000 on SQL Server, and `TEXT` above 10,485,760 on PostgreSQL. SQLite
+keeps the plain column.
 
 #### Number (int, bigInt, float)
 
@@ -356,6 +357,11 @@ const config = {
 On SQLite the default is written to the schema as the quoted SQL literal (`@default(dbgenerated("'{}'"))`), since the
 migrations of Prisma would write a plain `@default("{}")` unquoted, which SQLite rejects.
 
+SQL Server has no JSON type, so the field is an `NVARCHAR(MAX)` column holding the serialized value, which the data
+layer
+serializes on every write and parses in every result, the included relations too. Its Prisma client type is `string`,
+and the JSON filters of Prisma (`path`, `array_contains`, ...) are not available on it.
+
 #### Enum
 
 ```ts
@@ -372,6 +378,9 @@ const config = {
 |----------|----------|---------------------------------|
 | `type`   | `'enum'` | Enum field type.                |
 | `values` | string[] | Allowed enum values (required). |
+
+SQL Server has no enums, so the field is an `NVARCHAR` column sized to the longest value, the values still validated by
+the API. Its Prisma client type is `string`.
 
 ### Relations
 
@@ -456,6 +465,15 @@ rows are owned by the parent and meaningless without it. Optional owning relatio
 
 The stored files of the records a `cascade` removes are cleaned up together with the files of the deleted record. A
 model with soft delete applies the same actions itself, see its section.
+
+SQL Server rejects a referential action forming a cycle or a second path of actions between two tables, i.e. a self
+relation, or two relations from the same table. `weaver generate` then writes `onDelete: NoAction, onUpdate: NoAction`
+on the foreign keys whose action would form one, always on the `createdBy` and `deletedBy` relations to the auth model,
+and keeps the declared actions before the implicit `setNull` ones, in the order of the models and their fields. The
+actions on update are `NoAction` unless declared, since the ids never change. A `cascade` or `setNull` the database
+leaves out is applied by the data layer before every `delete` and `deleteMany` of the referenced records, in their
+transaction, so the deletes behave as on the other databases, except for a nested `delete` of an update
+(`orphanRemoval`), which only the database actions follow.
 
 With `orphanRemoval: true`, an update deletes the related records it removes from the relation instead of only
 disconnecting them. The orphans are deleted like any other record: their stored files are removed following
@@ -943,6 +961,11 @@ unique: [['provider', 'providerAccountId']] // @@unique([provider, providerAccou
 
 A create or update breaking the constraint fails in the database, so handle the conflict where concurrent writes can
 race to insert the same combination.
+
+A unique constraint of SQL Server holds a single NULL, so on SQL Server an optional unique column, i.e. a scalar with
+`unique: true` and `required: false`, the foreign key of an optional `oneToOne` relation or of a single file field, is
+generated as a unique index of its values instead, `@@unique([coverId], where: { coverId: { not: null } })`, with the
+`partialIndexes` preview feature of Prisma enabled in the generator block.
 
 ### Generated models
 
@@ -1475,18 +1498,18 @@ export default createRoutes({
 
 ### Route config (all operations)
 
-| Property          | Type                     | Default | Description                                                   |
-|-------------------|--------------------------|---------|---------------------------------------------------------------|
-| `exclude`         | boolean                  | `false` | Exclude this operation entirely.                              |
-| `public`          | boolean                  | `false` | No authentication required.                                   |
-| `roles`           | string[]                 | -       | Required roles (OR logic by default).                         |
-| `permissions`     | string[]                 | -       | Required permissions (OR logic by default).                   |
-| `auth`            | AuthType[]               | -       | Allowed authentication types: `'jwt'`, `'apiKey'`, `'basic'`. |
-| `rateLimit`       | RateLimitConfig \| false | -       | Per-operation rate limiting. `false` disables.                |
-| `recaptcha`       | boolean                  | `false` | Require reCAPTCHA verification.                               |
-| `recaptchaAction` | string                   | -       | Expected reCAPTCHA action name for score validation.          |
-| `turnstile`       | boolean                  | `false` | Require Cloudflare Turnstile verification.                    |
-| `turnstileAction` | string                   | -       | Expected Turnstile action name (enables the check).           |
+| Property          | Type                     | Default | Description                                                                                                                   |
+|-------------------|--------------------------|---------|-------------------------------------------------------------------------------------------------------------------------------|
+| `exclude`         | boolean                  | `false` | Exclude this operation entirely.                                                                                              |
+| `public`          | boolean                  | `false` | No authentication required.                                                                                                   |
+| `roles`           | string[]                 | -       | Required roles (OR logic by default).                                                                                         |
+| `permissions`     | string[]                 | -       | Required permissions (OR logic by default).                                                                                   |
+| `auth`            | AuthType[]               | -       | Allowed authentication types: `'jwt'`, `'apiKey'`, `'basic'`.                                                                 |
+| `rateLimit`       | RateLimitConfig \| false | -       | Per-operation rate limiting. `false` disables.                                                                                |
+| `recaptcha`       | boolean                  | `false` | Require reCAPTCHA verification.                                                                                               |
+| `recaptchaAction` | string                   | -       | Expected reCAPTCHA action name for score validation.                                                                          |
+| `turnstile`       | boolean                  | `false` | Require Cloudflare Turnstile verification.                                                                                    |
+| `turnstileAction` | string                   | -       | Expected Turnstile action name (enables the check).                                                                           |
 | `errorCodes`      | ErrorCode[]              | -       | Codes the route responds with besides the framework ones (a service hook throws them), listed in its OpenAPI error responses. |
 
 ### Read route config (find, query, aggregate)
@@ -1592,14 +1615,14 @@ const config = {
 };
 ```
 
-| Property       | Type                         | Description                                                                                                         |
-|----------------|------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| `max`          | number \| function           | Maximum requests per time window. Function: `(req, key) => number`.                                                 |
-| `timeWindow`   | number \| string \| function | Window duration in ms. Function: `(req, key) => number`.                                                            |
-| `allowList`    | string[] \| function         | IPs exempt from limiting. Function: `(req, key) => boolean`.                                                        |
-| `keyGenerator` | function                     | Custom key generator. Signature: `(req) => string \| number`.                                                       |
-| `secure`       | boolean                      | Respond `503 MEMORY_UNAVAILABLE` while Redis is down (login, OTP, expensive calls).                                 |
-| `skipOnError`  | boolean                      | Skip the limit while Redis is down, overriding the config and `secure`.                                             |
+| Property       | Type                         | Description                                                                         |
+|----------------|------------------------------|-------------------------------------------------------------------------------------|
+| `max`          | number \| function           | Maximum requests per time window. Function: `(req, key) => number`.                 |
+| `timeWindow`   | number \| string \| function | Window duration in ms. Function: `(req, key) => number`.                            |
+| `allowList`    | string[] \| function         | IPs exempt from limiting. Function: `(req, key) => boolean`.                        |
+| `keyGenerator` | function                     | Custom key generator. Signature: `(req) => string \| number`.                       |
+| `secure`       | boolean                      | Respond `503 MEMORY_UNAVAILABLE` while Redis is down (login, OTP, expensive calls). |
+| `skipOnError`  | boolean                      | Skip the limit while Redis is down, overriding the config and `secure`.             |
 
 ---
 

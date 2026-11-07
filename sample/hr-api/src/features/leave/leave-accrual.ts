@@ -7,9 +7,12 @@ import {
 } from './constants';
 import { proratedAllowance } from './working-days';
 
-/** Contractors are not entitled to paid leave. */
+/**
+ * Contractors are not entitled to paid leave. Takes a string, the type of an enum
+ * field in the Prisma client of SQL Server, which has no enums.
+ */
 export function allowanceFor(
-  employmentType: Employee['employmentType']
+  employmentType: Employee['employmentType'] | string
 ): number {
   switch (employmentType) {
     case 'FullTime':

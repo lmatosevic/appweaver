@@ -40,12 +40,12 @@ export type LeaveRequestSumAggregateOutputType = {
 
 export type LeaveRequestMinAggregateOutputType = {
   id: number | null
-  type: $Enums.LeaveRequestType | null
+  type: string | null
   startDate: Date | null
   endDate: Date | null
   days: number | null
   reason: string | null
-  status: $Enums.LeaveRequestStatus | null
+  status: string | null
   decidedAt: Date | null
   decisionNote: string | null
   employeeId: string | null
@@ -60,12 +60,12 @@ export type LeaveRequestMinAggregateOutputType = {
 
 export type LeaveRequestMaxAggregateOutputType = {
   id: number | null
-  type: $Enums.LeaveRequestType | null
+  type: string | null
   startDate: Date | null
   endDate: Date | null
   days: number | null
   reason: string | null
-  status: $Enums.LeaveRequestStatus | null
+  status: string | null
   decidedAt: Date | null
   decisionNote: string | null
   employeeId: string | null
@@ -261,12 +261,12 @@ export type LeaveRequestGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 
 export type LeaveRequestGroupByOutputType = {
   id: number
-  type: $Enums.LeaveRequestType
+  type: string
   startDate: Date
   endDate: Date
   days: number
   reason: string | null
-  status: $Enums.LeaveRequestStatus
+  status: string
   decidedAt: Date | null
   decisionNote: string | null
   employeeId: string | null
@@ -304,12 +304,12 @@ export type LeaveRequestWhereInput = {
   OR?: Prisma.LeaveRequestWhereInput[]
   NOT?: Prisma.LeaveRequestWhereInput | Prisma.LeaveRequestWhereInput[]
   id?: Prisma.IntFilter<"LeaveRequest"> | number
-  type?: Prisma.EnumLeaveRequestTypeFilter<"LeaveRequest"> | $Enums.LeaveRequestType
+  type?: Prisma.StringFilter<"LeaveRequest"> | string
   startDate?: Prisma.DateTimeFilter<"LeaveRequest"> | Date | string
   endDate?: Prisma.DateTimeFilter<"LeaveRequest"> | Date | string
   days?: Prisma.IntFilter<"LeaveRequest"> | number
   reason?: Prisma.StringNullableFilter<"LeaveRequest"> | string | null
-  status?: Prisma.EnumLeaveRequestStatusFilter<"LeaveRequest"> | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFilter<"LeaveRequest"> | string
   decidedAt?: Prisma.DateTimeNullableFilter<"LeaveRequest"> | Date | string | null
   decisionNote?: Prisma.StringNullableFilter<"LeaveRequest"> | string | null
   employeeId?: Prisma.StringNullableFilter<"LeaveRequest"> | string | null
@@ -358,12 +358,12 @@ export type LeaveRequestWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.LeaveRequestWhereInput | Prisma.LeaveRequestWhereInput[]
   OR?: Prisma.LeaveRequestWhereInput[]
   NOT?: Prisma.LeaveRequestWhereInput | Prisma.LeaveRequestWhereInput[]
-  type?: Prisma.EnumLeaveRequestTypeFilter<"LeaveRequest"> | $Enums.LeaveRequestType
+  type?: Prisma.StringFilter<"LeaveRequest"> | string
   startDate?: Prisma.DateTimeFilter<"LeaveRequest"> | Date | string
   endDate?: Prisma.DateTimeFilter<"LeaveRequest"> | Date | string
   days?: Prisma.IntFilter<"LeaveRequest"> | number
   reason?: Prisma.StringNullableFilter<"LeaveRequest"> | string | null
-  status?: Prisma.EnumLeaveRequestStatusFilter<"LeaveRequest"> | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFilter<"LeaveRequest"> | string
   decidedAt?: Prisma.DateTimeNullableFilter<"LeaveRequest"> | Date | string | null
   decisionNote?: Prisma.StringNullableFilter<"LeaveRequest"> | string | null
   employeeId?: Prisma.StringNullableFilter<"LeaveRequest"> | string | null
@@ -410,12 +410,12 @@ export type LeaveRequestScalarWhereWithAggregatesInput = {
   OR?: Prisma.LeaveRequestScalarWhereWithAggregatesInput[]
   NOT?: Prisma.LeaveRequestScalarWhereWithAggregatesInput | Prisma.LeaveRequestScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"LeaveRequest"> | number
-  type?: Prisma.EnumLeaveRequestTypeWithAggregatesFilter<"LeaveRequest"> | $Enums.LeaveRequestType
+  type?: Prisma.StringWithAggregatesFilter<"LeaveRequest"> | string
   startDate?: Prisma.DateTimeWithAggregatesFilter<"LeaveRequest"> | Date | string
   endDate?: Prisma.DateTimeWithAggregatesFilter<"LeaveRequest"> | Date | string
   days?: Prisma.IntWithAggregatesFilter<"LeaveRequest"> | number
   reason?: Prisma.StringNullableWithAggregatesFilter<"LeaveRequest"> | string | null
-  status?: Prisma.EnumLeaveRequestStatusWithAggregatesFilter<"LeaveRequest"> | $Enums.LeaveRequestStatus
+  status?: Prisma.StringWithAggregatesFilter<"LeaveRequest"> | string
   decidedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"LeaveRequest"> | Date | string | null
   decisionNote?: Prisma.StringNullableWithAggregatesFilter<"LeaveRequest"> | string | null
   employeeId?: Prisma.StringNullableWithAggregatesFilter<"LeaveRequest"> | string | null
@@ -429,12 +429,12 @@ export type LeaveRequestScalarWhereWithAggregatesInput = {
 }
 
 export type LeaveRequestCreateInput = {
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   updatedAt?: Date | string
@@ -449,12 +449,12 @@ export type LeaveRequestCreateInput = {
 
 export type LeaveRequestUncheckedCreateInput = {
   id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   employeeId?: string | null
@@ -468,12 +468,12 @@ export type LeaveRequestUncheckedCreateInput = {
 }
 
 export type LeaveRequestUpdateInput = {
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -488,12 +488,12 @@ export type LeaveRequestUpdateInput = {
 
 export type LeaveRequestUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -507,13 +507,12 @@ export type LeaveRequestUncheckedUpdateInput = {
 }
 
 export type LeaveRequestCreateManyInput = {
-  id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   employeeId?: string | null
@@ -527,12 +526,12 @@ export type LeaveRequestCreateManyInput = {
 }
 
 export type LeaveRequestUpdateManyMutationInput = {
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -542,12 +541,12 @@ export type LeaveRequestUpdateManyMutationInput = {
 
 export type LeaveRequestUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -810,14 +809,6 @@ export type LeaveRequestUncheckedUpdateManyWithoutDeletedByNestedInput = {
   deleteMany?: Prisma.LeaveRequestScalarWhereInput | Prisma.LeaveRequestScalarWhereInput[]
 }
 
-export type EnumLeaveRequestTypeFieldUpdateOperationsInput = {
-  set?: $Enums.LeaveRequestType
-}
-
-export type EnumLeaveRequestStatusFieldUpdateOperationsInput = {
-  set?: $Enums.LeaveRequestStatus
-}
-
 export type LeaveRequestCreateNestedManyWithoutAttachmentInput = {
   create?: Prisma.XOR<Prisma.LeaveRequestCreateWithoutAttachmentInput, Prisma.LeaveRequestUncheckedCreateWithoutAttachmentInput> | Prisma.LeaveRequestCreateWithoutAttachmentInput[] | Prisma.LeaveRequestUncheckedCreateWithoutAttachmentInput[]
   connectOrCreate?: Prisma.LeaveRequestCreateOrConnectWithoutAttachmentInput | Prisma.LeaveRequestCreateOrConnectWithoutAttachmentInput[]
@@ -861,12 +852,12 @@ export type LeaveRequestUncheckedUpdateManyWithoutAttachmentNestedInput = {
 }
 
 export type LeaveRequestCreateWithoutEmployeeInput = {
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   updatedAt?: Date | string
@@ -880,12 +871,12 @@ export type LeaveRequestCreateWithoutEmployeeInput = {
 
 export type LeaveRequestUncheckedCreateWithoutEmployeeInput = {
   id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   decidedById?: string | null
@@ -907,12 +898,12 @@ export type LeaveRequestCreateManyEmployeeInputEnvelope = {
 }
 
 export type LeaveRequestCreateWithoutDecidedByInput = {
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   updatedAt?: Date | string
@@ -926,12 +917,12 @@ export type LeaveRequestCreateWithoutDecidedByInput = {
 
 export type LeaveRequestUncheckedCreateWithoutDecidedByInput = {
   id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   employeeId?: string | null
@@ -953,12 +944,12 @@ export type LeaveRequestCreateManyDecidedByInputEnvelope = {
 }
 
 export type LeaveRequestCreateWithoutCreatedByInput = {
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   updatedAt?: Date | string
@@ -972,12 +963,12 @@ export type LeaveRequestCreateWithoutCreatedByInput = {
 
 export type LeaveRequestUncheckedCreateWithoutCreatedByInput = {
   id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   employeeId?: string | null
@@ -999,12 +990,12 @@ export type LeaveRequestCreateManyCreatedByInputEnvelope = {
 }
 
 export type LeaveRequestCreateWithoutDeletedByInput = {
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   updatedAt?: Date | string
@@ -1018,12 +1009,12 @@ export type LeaveRequestCreateWithoutDeletedByInput = {
 
 export type LeaveRequestUncheckedCreateWithoutDeletedByInput = {
   id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   employeeId?: string | null
@@ -1065,12 +1056,12 @@ export type LeaveRequestScalarWhereInput = {
   OR?: Prisma.LeaveRequestScalarWhereInput[]
   NOT?: Prisma.LeaveRequestScalarWhereInput | Prisma.LeaveRequestScalarWhereInput[]
   id?: Prisma.IntFilter<"LeaveRequest"> | number
-  type?: Prisma.EnumLeaveRequestTypeFilter<"LeaveRequest"> | $Enums.LeaveRequestType
+  type?: Prisma.StringFilter<"LeaveRequest"> | string
   startDate?: Prisma.DateTimeFilter<"LeaveRequest"> | Date | string
   endDate?: Prisma.DateTimeFilter<"LeaveRequest"> | Date | string
   days?: Prisma.IntFilter<"LeaveRequest"> | number
   reason?: Prisma.StringNullableFilter<"LeaveRequest"> | string | null
-  status?: Prisma.EnumLeaveRequestStatusFilter<"LeaveRequest"> | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFilter<"LeaveRequest"> | string
   decidedAt?: Prisma.DateTimeNullableFilter<"LeaveRequest"> | Date | string | null
   decisionNote?: Prisma.StringNullableFilter<"LeaveRequest"> | string | null
   employeeId?: Prisma.StringNullableFilter<"LeaveRequest"> | string | null
@@ -1132,12 +1123,12 @@ export type LeaveRequestUpdateManyWithWhereWithoutDeletedByInput = {
 }
 
 export type LeaveRequestCreateWithoutAttachmentInput = {
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   updatedAt?: Date | string
@@ -1151,12 +1142,12 @@ export type LeaveRequestCreateWithoutAttachmentInput = {
 
 export type LeaveRequestUncheckedCreateWithoutAttachmentInput = {
   id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   employeeId?: string | null
@@ -1194,13 +1185,12 @@ export type LeaveRequestUpdateManyWithWhereWithoutAttachmentInput = {
 }
 
 export type LeaveRequestCreateManyEmployeeInput = {
-  id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   decidedById?: string | null
@@ -1213,13 +1203,12 @@ export type LeaveRequestCreateManyEmployeeInput = {
 }
 
 export type LeaveRequestCreateManyDecidedByInput = {
-  id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   employeeId?: string | null
@@ -1232,13 +1221,12 @@ export type LeaveRequestCreateManyDecidedByInput = {
 }
 
 export type LeaveRequestCreateManyCreatedByInput = {
-  id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   employeeId?: string | null
@@ -1251,13 +1239,12 @@ export type LeaveRequestCreateManyCreatedByInput = {
 }
 
 export type LeaveRequestCreateManyDeletedByInput = {
-  id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   employeeId?: string | null
@@ -1270,12 +1257,12 @@ export type LeaveRequestCreateManyDeletedByInput = {
 }
 
 export type LeaveRequestUpdateWithoutEmployeeInput = {
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1289,12 +1276,12 @@ export type LeaveRequestUpdateWithoutEmployeeInput = {
 
 export type LeaveRequestUncheckedUpdateWithoutEmployeeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decidedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1308,12 +1295,12 @@ export type LeaveRequestUncheckedUpdateWithoutEmployeeInput = {
 
 export type LeaveRequestUncheckedUpdateManyWithoutEmployeeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   decidedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1326,12 +1313,12 @@ export type LeaveRequestUncheckedUpdateManyWithoutEmployeeInput = {
 }
 
 export type LeaveRequestUpdateWithoutDecidedByInput = {
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1345,12 +1332,12 @@ export type LeaveRequestUpdateWithoutDecidedByInput = {
 
 export type LeaveRequestUncheckedUpdateWithoutDecidedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1364,12 +1351,12 @@ export type LeaveRequestUncheckedUpdateWithoutDecidedByInput = {
 
 export type LeaveRequestUncheckedUpdateManyWithoutDecidedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1382,12 +1369,12 @@ export type LeaveRequestUncheckedUpdateManyWithoutDecidedByInput = {
 }
 
 export type LeaveRequestUpdateWithoutCreatedByInput = {
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1401,12 +1388,12 @@ export type LeaveRequestUpdateWithoutCreatedByInput = {
 
 export type LeaveRequestUncheckedUpdateWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1420,12 +1407,12 @@ export type LeaveRequestUncheckedUpdateWithoutCreatedByInput = {
 
 export type LeaveRequestUncheckedUpdateManyWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1438,12 +1425,12 @@ export type LeaveRequestUncheckedUpdateManyWithoutCreatedByInput = {
 }
 
 export type LeaveRequestUpdateWithoutDeletedByInput = {
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1457,12 +1444,12 @@ export type LeaveRequestUpdateWithoutDeletedByInput = {
 
 export type LeaveRequestUncheckedUpdateWithoutDeletedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1476,12 +1463,12 @@ export type LeaveRequestUncheckedUpdateWithoutDeletedByInput = {
 
 export type LeaveRequestUncheckedUpdateManyWithoutDeletedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1494,13 +1481,12 @@ export type LeaveRequestUncheckedUpdateManyWithoutDeletedByInput = {
 }
 
 export type LeaveRequestCreateManyAttachmentInput = {
-  id?: number
-  type?: $Enums.LeaveRequestType
+  type?: string
   startDate: Date | string
   endDate: Date | string
   days: number
   reason?: string | null
-  status?: $Enums.LeaveRequestStatus
+  status?: string
   decidedAt?: Date | string | null
   decisionNote?: string | null
   employeeId?: string | null
@@ -1513,12 +1499,12 @@ export type LeaveRequestCreateManyAttachmentInput = {
 }
 
 export type LeaveRequestUpdateWithoutAttachmentInput = {
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1532,12 +1518,12 @@ export type LeaveRequestUpdateWithoutAttachmentInput = {
 
 export type LeaveRequestUncheckedUpdateWithoutAttachmentInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1551,12 +1537,12 @@ export type LeaveRequestUncheckedUpdateWithoutAttachmentInput = {
 
 export type LeaveRequestUncheckedUpdateManyWithoutAttachmentInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumLeaveRequestTypeFieldUpdateOperationsInput | $Enums.LeaveRequestType
+  type?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   days?: Prisma.IntFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.EnumLeaveRequestStatusFieldUpdateOperationsInput | $Enums.LeaveRequestStatus
+  status?: Prisma.StringFieldUpdateOperationsInput | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decisionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1595,55 +1581,7 @@ export type LeaveRequestSelect<ExtArgs extends runtime.Types.Extensions.Internal
   deletedBy?: boolean | Prisma.LeaveRequest$deletedByArgs<ExtArgs>
 }, ExtArgs["result"]["leaveRequest"]>
 
-export type LeaveRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  type?: boolean
-  startDate?: boolean
-  endDate?: boolean
-  days?: boolean
-  reason?: boolean
-  status?: boolean
-  decidedAt?: boolean
-  decisionNote?: boolean
-  employeeId?: boolean
-  decidedById?: boolean
-  attachmentId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.LeaveRequest$employeeArgs<ExtArgs>
-  decidedBy?: boolean | Prisma.LeaveRequest$decidedByArgs<ExtArgs>
-  attachment?: boolean | Prisma.LeaveRequest$attachmentArgs<ExtArgs>
-  createdBy?: boolean | Prisma.LeaveRequest$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.LeaveRequest$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["leaveRequest"]>
 
-export type LeaveRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  type?: boolean
-  startDate?: boolean
-  endDate?: boolean
-  days?: boolean
-  reason?: boolean
-  status?: boolean
-  decidedAt?: boolean
-  decisionNote?: boolean
-  employeeId?: boolean
-  decidedById?: boolean
-  attachmentId?: boolean
-  updatedAt?: boolean
-  createdAt?: boolean
-  createdById?: boolean
-  deletedAt?: boolean
-  deletedById?: boolean
-  employee?: boolean | Prisma.LeaveRequest$employeeArgs<ExtArgs>
-  decidedBy?: boolean | Prisma.LeaveRequest$decidedByArgs<ExtArgs>
-  attachment?: boolean | Prisma.LeaveRequest$attachmentArgs<ExtArgs>
-  createdBy?: boolean | Prisma.LeaveRequest$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.LeaveRequest$deletedByArgs<ExtArgs>
-}, ExtArgs["result"]["leaveRequest"]>
 
 export type LeaveRequestSelectScalar = {
   id?: boolean
@@ -1673,20 +1611,6 @@ export type LeaveRequestInclude<ExtArgs extends runtime.Types.Extensions.Interna
   createdBy?: boolean | Prisma.LeaveRequest$createdByArgs<ExtArgs>
   deletedBy?: boolean | Prisma.LeaveRequest$deletedByArgs<ExtArgs>
 }
-export type LeaveRequestIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.LeaveRequest$employeeArgs<ExtArgs>
-  decidedBy?: boolean | Prisma.LeaveRequest$decidedByArgs<ExtArgs>
-  attachment?: boolean | Prisma.LeaveRequest$attachmentArgs<ExtArgs>
-  createdBy?: boolean | Prisma.LeaveRequest$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.LeaveRequest$deletedByArgs<ExtArgs>
-}
-export type LeaveRequestIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employee?: boolean | Prisma.LeaveRequest$employeeArgs<ExtArgs>
-  decidedBy?: boolean | Prisma.LeaveRequest$decidedByArgs<ExtArgs>
-  attachment?: boolean | Prisma.LeaveRequest$attachmentArgs<ExtArgs>
-  createdBy?: boolean | Prisma.LeaveRequest$createdByArgs<ExtArgs>
-  deletedBy?: boolean | Prisma.LeaveRequest$deletedByArgs<ExtArgs>
-}
 
 export type $LeaveRequestPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "LeaveRequest"
@@ -1705,12 +1629,12 @@ export type $LeaveRequestPayload<ExtArgs extends runtime.Types.Extensions.Intern
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
-    type: $Enums.LeaveRequestType
+    type: string
     startDate: Date
     endDate: Date
     days: number
     reason: string | null
-    status: $Enums.LeaveRequestStatus
+    status: string
     decidedAt: Date | null
     decisionNote: string | null
     employeeId: string | null
@@ -1842,30 +1766,6 @@ export interface LeaveRequestDelegate<ExtArgs extends runtime.Types.Extensions.I
   createMany<T extends LeaveRequestCreateManyArgs>(args?: Prisma.SelectSubset<T, LeaveRequestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many LeaveRequests and returns the data saved in the database.
-   * @param {LeaveRequestCreateManyAndReturnArgs} args - Arguments to create many LeaveRequests.
-   * @example
-   * // Create many LeaveRequests
-   * const leaveRequest = await prisma.leaveRequest.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many LeaveRequests and only return the `id`
-   * const leaveRequestWithIdOnly = await prisma.leaveRequest.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends LeaveRequestCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, LeaveRequestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveRequestPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a LeaveRequest.
    * @param {LeaveRequestDeleteArgs} args - Arguments to delete one LeaveRequest.
    * @example
@@ -1928,36 +1828,6 @@ export interface LeaveRequestDelegate<ExtArgs extends runtime.Types.Extensions.I
    * 
    */
   updateMany<T extends LeaveRequestUpdateManyArgs>(args: Prisma.SelectSubset<T, LeaveRequestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more LeaveRequests and returns the data updated in the database.
-   * @param {LeaveRequestUpdateManyAndReturnArgs} args - Arguments to update many LeaveRequests.
-   * @example
-   * // Update many LeaveRequests
-   * const leaveRequest = await prisma.leaveRequest.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more LeaveRequests and only return the `id`
-   * const leaveRequestWithIdOnly = await prisma.leaveRequest.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends LeaveRequestUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, LeaveRequestUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveRequestPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one LeaveRequest.
@@ -2153,12 +2023,12 @@ export interface Prisma__LeaveRequestClient<T, Null = never, ExtArgs extends run
  */
 export interface LeaveRequestFieldRefs {
   readonly id: Prisma.FieldRef<"LeaveRequest", 'Int'>
-  readonly type: Prisma.FieldRef<"LeaveRequest", 'LeaveRequestType'>
+  readonly type: Prisma.FieldRef<"LeaveRequest", 'String'>
   readonly startDate: Prisma.FieldRef<"LeaveRequest", 'DateTime'>
   readonly endDate: Prisma.FieldRef<"LeaveRequest", 'DateTime'>
   readonly days: Prisma.FieldRef<"LeaveRequest", 'Int'>
   readonly reason: Prisma.FieldRef<"LeaveRequest", 'String'>
-  readonly status: Prisma.FieldRef<"LeaveRequest", 'LeaveRequestStatus'>
+  readonly status: Prisma.FieldRef<"LeaveRequest", 'String'>
   readonly decidedAt: Prisma.FieldRef<"LeaveRequest", 'DateTime'>
   readonly decisionNote: Prisma.FieldRef<"LeaveRequest", 'String'>
   readonly employeeId: Prisma.FieldRef<"LeaveRequest", 'String'>
@@ -2406,28 +2276,6 @@ export type LeaveRequestCreateManyArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 /**
- * LeaveRequest createManyAndReturn
- */
-export type LeaveRequestCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the LeaveRequest
-   */
-  select?: Prisma.LeaveRequestSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the LeaveRequest
-   */
-  omit?: Prisma.LeaveRequestOmit<ExtArgs> | null
-  /**
-   * The data used to create many LeaveRequests.
-   */
-  data: Prisma.LeaveRequestCreateManyInput | Prisma.LeaveRequestCreateManyInput[]
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.LeaveRequestIncludeCreateManyAndReturn<ExtArgs> | null
-}
-
-/**
  * LeaveRequest update
  */
 export type LeaveRequestUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2469,36 +2317,6 @@ export type LeaveRequestUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many LeaveRequests to update.
    */
   limit?: number
-}
-
-/**
- * LeaveRequest updateManyAndReturn
- */
-export type LeaveRequestUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the LeaveRequest
-   */
-  select?: Prisma.LeaveRequestSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the LeaveRequest
-   */
-  omit?: Prisma.LeaveRequestOmit<ExtArgs> | null
-  /**
-   * The data used to update LeaveRequests.
-   */
-  data: Prisma.XOR<Prisma.LeaveRequestUpdateManyMutationInput, Prisma.LeaveRequestUncheckedUpdateManyInput>
-  /**
-   * Filter which LeaveRequests to update
-   */
-  where?: Prisma.LeaveRequestWhereInput
-  /**
-   * Limit how many LeaveRequests to update.
-   */
-  limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.LeaveRequestIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

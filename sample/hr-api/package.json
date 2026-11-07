@@ -28,7 +28,7 @@
     "@appweaver/nodemailer": "^2.4.1",
     "@appweaver/sharp": "^2.4.1",
     "@appweaver/web": "^2.4.1",
-    "@prisma/adapter-better-sqlite3": "7.9.1",
+    "@prisma/adapter-mssql": "7.9.1",
     "@prisma/client": "7.9.1",
     "@sinclair/typebox": "0.34.49",
     "prisma": "7.9.1"

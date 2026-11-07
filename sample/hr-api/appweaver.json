@@ -10,7 +10,7 @@
       "port": 5003
     },
     "database": {
-      "url": "file:./data/hr-api.db"
+      "url": "sqlserver://${DB_HOST:-localhost}:1433;database=${DB_NAME:-hr-api};user=${DB_USER:-sa};password=${DB_PASSWORD};trustServerCertificate=true"
     },
     "memory": {
       "provider": "memory"
@@ -46,7 +46,7 @@
         "listen": false
       },
       "database": {
-        "url": "file:./temp/hr-api-test.db",
+        "url": "sqlserver://${DB_HOST:-localhost}:1433;database=${DB_NAME:-hr-api}-test;user=${DB_USER:-sa};password=${DB_PASSWORD};trustServerCertificate=true",
         "schemaPath": "./temp/database/schema.prisma",
         "migrationsDirPath": "./temp/database/migrations",
         "clientOutputDirPath": "./temp/database/client"

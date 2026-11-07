@@ -38,6 +38,7 @@ export type OneTimeTokenMinAggregateOutputType = {
   id: number | null
   tokenHash: string | null
   purpose: string | null
+  data: string | null
   expiresAt: Date | null
   createdAt: Date | null
 }
@@ -46,6 +47,7 @@ export type OneTimeTokenMaxAggregateOutputType = {
   id: number | null
   tokenHash: string | null
   purpose: string | null
+  data: string | null
   expiresAt: Date | null
   createdAt: Date | null
 }
@@ -73,6 +75,7 @@ export type OneTimeTokenMinAggregateInputType = {
   id?: true
   tokenHash?: true
   purpose?: true
+  data?: true
   expiresAt?: true
   createdAt?: true
 }
@@ -81,6 +84,7 @@ export type OneTimeTokenMaxAggregateInputType = {
   id?: true
   tokenHash?: true
   purpose?: true
+  data?: true
   expiresAt?: true
   createdAt?: true
 }
@@ -185,7 +189,7 @@ export type OneTimeTokenGroupByOutputType = {
   id: number
   tokenHash: string
   purpose: string
-  data: runtime.JsonValue
+  data: string
   expiresAt: Date
   createdAt: Date
   _count: OneTimeTokenCountAggregateOutputType | null
@@ -217,7 +221,7 @@ export type OneTimeTokenWhereInput = {
   id?: Prisma.IntFilter<"OneTimeToken"> | number
   tokenHash?: Prisma.StringFilter<"OneTimeToken"> | string
   purpose?: Prisma.StringFilter<"OneTimeToken"> | string
-  data?: Prisma.JsonFilter<"OneTimeToken">
+  data?: Prisma.StringFilter<"OneTimeToken"> | string
   expiresAt?: Prisma.DateTimeFilter<"OneTimeToken"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"OneTimeToken"> | Date | string
 }
@@ -238,7 +242,7 @@ export type OneTimeTokenWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.OneTimeTokenWhereInput[]
   NOT?: Prisma.OneTimeTokenWhereInput | Prisma.OneTimeTokenWhereInput[]
   purpose?: Prisma.StringFilter<"OneTimeToken"> | string
-  data?: Prisma.JsonFilter<"OneTimeToken">
+  data?: Prisma.StringFilter<"OneTimeToken"> | string
   expiresAt?: Prisma.DateTimeFilter<"OneTimeToken"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"OneTimeToken"> | Date | string
 }, "id" | "tokenHash">
@@ -264,7 +268,7 @@ export type OneTimeTokenScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"OneTimeToken"> | number
   tokenHash?: Prisma.StringWithAggregatesFilter<"OneTimeToken"> | string
   purpose?: Prisma.StringWithAggregatesFilter<"OneTimeToken"> | string
-  data?: Prisma.JsonWithAggregatesFilter<"OneTimeToken">
+  data?: Prisma.StringWithAggregatesFilter<"OneTimeToken"> | string
   expiresAt?: Prisma.DateTimeWithAggregatesFilter<"OneTimeToken"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"OneTimeToken"> | Date | string
 }
@@ -272,7 +276,7 @@ export type OneTimeTokenScalarWhereWithAggregatesInput = {
 export type OneTimeTokenCreateInput = {
   tokenHash: string
   purpose: string
-  data: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  data: string
   expiresAt: Date | string
   createdAt?: Date | string
 }
@@ -281,7 +285,7 @@ export type OneTimeTokenUncheckedCreateInput = {
   id?: number
   tokenHash: string
   purpose: string
-  data: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  data: string
   expiresAt: Date | string
   createdAt?: Date | string
 }
@@ -289,7 +293,7 @@ export type OneTimeTokenUncheckedCreateInput = {
 export type OneTimeTokenUpdateInput = {
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
-  data?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  data?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -298,16 +302,15 @@ export type OneTimeTokenUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
-  data?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  data?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type OneTimeTokenCreateManyInput = {
-  id?: number
   tokenHash: string
   purpose: string
-  data: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  data: string
   expiresAt: Date | string
   createdAt?: Date | string
 }
@@ -315,7 +318,7 @@ export type OneTimeTokenCreateManyInput = {
 export type OneTimeTokenUpdateManyMutationInput = {
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
-  data?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  data?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -324,7 +327,7 @@ export type OneTimeTokenUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
-  data?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  data?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -346,6 +349,7 @@ export type OneTimeTokenMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
+  data?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -354,6 +358,7 @@ export type OneTimeTokenMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
+  data?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -373,23 +378,7 @@ export type OneTimeTokenSelect<ExtArgs extends runtime.Types.Extensions.Internal
   createdAt?: boolean
 }, ExtArgs["result"]["oneTimeToken"]>
 
-export type OneTimeTokenSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  tokenHash?: boolean
-  purpose?: boolean
-  data?: boolean
-  expiresAt?: boolean
-  createdAt?: boolean
-}, ExtArgs["result"]["oneTimeToken"]>
 
-export type OneTimeTokenSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  tokenHash?: boolean
-  purpose?: boolean
-  data?: boolean
-  expiresAt?: boolean
-  createdAt?: boolean
-}, ExtArgs["result"]["oneTimeToken"]>
 
 export type OneTimeTokenSelectScalar = {
   id?: boolean
@@ -409,7 +398,7 @@ export type $OneTimeTokenPayload<ExtArgs extends runtime.Types.Extensions.Intern
     id: number
     tokenHash: string
     purpose: string
-    data: runtime.JsonValue
+    data: string
     expiresAt: Date
     /**
      * Audit columns
@@ -533,30 +522,6 @@ export interface OneTimeTokenDelegate<ExtArgs extends runtime.Types.Extensions.I
   createMany<T extends OneTimeTokenCreateManyArgs>(args?: Prisma.SelectSubset<T, OneTimeTokenCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many OneTimeTokens and returns the data saved in the database.
-   * @param {OneTimeTokenCreateManyAndReturnArgs} args - Arguments to create many OneTimeTokens.
-   * @example
-   * // Create many OneTimeTokens
-   * const oneTimeToken = await prisma.oneTimeToken.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many OneTimeTokens and only return the `id`
-   * const oneTimeTokenWithIdOnly = await prisma.oneTimeToken.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends OneTimeTokenCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, OneTimeTokenCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OneTimeTokenPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a OneTimeToken.
    * @param {OneTimeTokenDeleteArgs} args - Arguments to delete one OneTimeToken.
    * @example
@@ -619,36 +584,6 @@ export interface OneTimeTokenDelegate<ExtArgs extends runtime.Types.Extensions.I
    * 
    */
   updateMany<T extends OneTimeTokenUpdateManyArgs>(args: Prisma.SelectSubset<T, OneTimeTokenUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more OneTimeTokens and returns the data updated in the database.
-   * @param {OneTimeTokenUpdateManyAndReturnArgs} args - Arguments to update many OneTimeTokens.
-   * @example
-   * // Update many OneTimeTokens
-   * const oneTimeToken = await prisma.oneTimeToken.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more OneTimeTokens and only return the `id`
-   * const oneTimeTokenWithIdOnly = await prisma.oneTimeToken.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends OneTimeTokenUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, OneTimeTokenUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OneTimeTokenPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one OneTimeToken.
@@ -841,7 +776,7 @@ export interface OneTimeTokenFieldRefs {
   readonly id: Prisma.FieldRef<"OneTimeToken", 'Int'>
   readonly tokenHash: Prisma.FieldRef<"OneTimeToken", 'String'>
   readonly purpose: Prisma.FieldRef<"OneTimeToken", 'String'>
-  readonly data: Prisma.FieldRef<"OneTimeToken", 'Json'>
+  readonly data: Prisma.FieldRef<"OneTimeToken", 'String'>
   readonly expiresAt: Prisma.FieldRef<"OneTimeToken", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"OneTimeToken", 'DateTime'>
 }
@@ -1057,24 +992,6 @@ export type OneTimeTokenCreateManyArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 /**
- * OneTimeToken createManyAndReturn
- */
-export type OneTimeTokenCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the OneTimeToken
-   */
-  select?: Prisma.OneTimeTokenSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the OneTimeToken
-   */
-  omit?: Prisma.OneTimeTokenOmit<ExtArgs> | null
-  /**
-   * The data used to create many OneTimeTokens.
-   */
-  data: Prisma.OneTimeTokenCreateManyInput | Prisma.OneTimeTokenCreateManyInput[]
-}
-
-/**
  * OneTimeToken update
  */
 export type OneTimeTokenUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1100,32 +1017,6 @@ export type OneTimeTokenUpdateArgs<ExtArgs extends runtime.Types.Extensions.Inte
  * OneTimeToken updateMany
  */
 export type OneTimeTokenUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * The data used to update OneTimeTokens.
-   */
-  data: Prisma.XOR<Prisma.OneTimeTokenUpdateManyMutationInput, Prisma.OneTimeTokenUncheckedUpdateManyInput>
-  /**
-   * Filter which OneTimeTokens to update
-   */
-  where?: Prisma.OneTimeTokenWhereInput
-  /**
-   * Limit how many OneTimeTokens to update.
-   */
-  limit?: number
-}
-
-/**
- * OneTimeToken updateManyAndReturn
- */
-export type OneTimeTokenUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the OneTimeToken
-   */
-  select?: Prisma.OneTimeTokenSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the OneTimeToken
-   */
-  omit?: Prisma.OneTimeTokenOmit<ExtArgs> | null
   /**
    * The data used to update OneTimeTokens.
    */
