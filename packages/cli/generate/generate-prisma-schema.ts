@@ -28,7 +28,10 @@ import {
   Runtime,
   ScalarConfig,
   ScalarField,
+  hasSeries,
   hasSoftDelete,
+  seriesTableName,
+  SeriesFieldType,
   softDeleteCascadeErrors,
   sqlServerForeignKeys,
   uncapitalize,
@@ -42,6 +45,17 @@ const INDEX_SORT_PREFIXES: Record<string, string> = {
 };
 
 const UUID_LENGTH = 36;
+
+/** The relation field of a model holding its time series points. */
+const SERIES_RELATION_FIELD = 'seriesPoints';
+/** The relation field of the points to their resource. */
+const SERIES_RESOURCE_FIELD = 'resource';
+
+const SERIES_PRISMA_TYPES: Record<SeriesFieldType, string> = {
+  float: 'Float',
+  int: 'Int',
+  boolean: 'Boolean'
+};
 
 const CUID_LENGTHS: Record<string, number> = {
   '': 25,
@@ -117,13 +131,16 @@ type PrismaSchemaModel = {
  * @param {string} schemaPath - The file path where the generated Prisma schema should be stored.
  * @param {string} clientPath - The file path where the Prisma client output should be generated.
  * @param {boolean} [quiet=false] - Optional flag to suppress logs. Default is false.
+ * @param {boolean} [seriesTables=true] - Whether to add the time series tables of the models with series fields, left
+ * out when another store than the database holds the points (see `seriesInDatabase`).
  * @return {Promise<number>} A promise that resolves to the number of models processed for the schema generation.
  */
 export async function generatePrismaSchema(
   models: Record<string, ResourceModel>,
   schemaPath: string,
   clientPath: string,
-  quiet: boolean = false
+  quiet: boolean = false,
+  seriesTables: boolean = true
 ): Promise<number> {
   const cwd = process.cwd();
 
@@ -392,6 +409,28 @@ export async function generatePrismaSchema(
       };
     }
 
+    // Add the time series points of the models declaring series fields, kept
+    // in a table of their own keyed by the resource and the time
+    const seriesModels: string[] = [];
+    for (const [name, model] of Object.entries(prismaModels)) {
+      const config = models[name].config;
+      if (!seriesTables || !hasSeries(config)) {
+        continue;
+      }
+
+      model.extra = {
+        ...model.extra,
+        'Time series points': [
+          {
+            name: SERIES_RELATION_FIELD,
+            type: `${name}Series[]`,
+            attributes: [`@relation("${name}Series")`]
+          }
+        ]
+      };
+      seriesModels.push(...createSeriesModel(name, config, idColumnOf(name)));
+    }
+
     if (dbType === DatabaseType.SQLServer) {
       applySqlServerActions(prismaModels, models);
       applySqlServerUniqueIndexes(prismaModels);
@@ -472,6 +511,8 @@ export async function generatePrismaSchema(
 
       schemaContent.push(`}`, ``);
     }
+
+    schemaContent.push(...seriesModels);
 
     // Add Prisma enums to the schema content
     for (const [name, enumValues] of Object.entries(prismaEnums)) {
@@ -881,7 +922,78 @@ function validateRelations(models: Record<string, ResourceModel>): string[] {
 
   errors.push(...softDeleteCascadeErrors(models));
 
+  for (const [name, model] of Object.entries(models)) {
+    if (!hasSeries(model.config)) {
+      continue;
+    }
+    if (models[`${name}Series`]) {
+      errors.push(
+        `Model '${name}Series' conflicts with the time series model generated for the series fields of '${name}'.`
+      );
+    }
+    if (
+      model.config.scalars?.[SERIES_RELATION_FIELD] ||
+      model.config.relations?.[SERIES_RELATION_FIELD]
+    ) {
+      errors.push(
+        `Field '${name}.${SERIES_RELATION_FIELD}' conflicts with the relation of the time series points of '${name}'.`
+      );
+    }
+    if (model.config.series?.[SERIES_RESOURCE_FIELD]) {
+      errors.push(
+        `Series field '${name}.${SERIES_RESOURCE_FIELD}' conflicts with the relation of '${name}Series' to its resource.`
+      );
+    }
+  }
+
   return errors;
+}
+
+/**
+ * The Prisma model of the time series points of a model: the resource id and the time as the primary key, which a
+ * TimescaleDB hypertable requires to include the time, a nullable column per series field, and the relation to the
+ * resource, deleting its points with it.
+ */
+function createSeriesModel(
+  name: string,
+  config: ResourceModelConfig,
+  idColumn: IdColumn
+): string[] {
+  const fields: PrismaSchemaField[] = [
+    {
+      name: 'resourceId',
+      type: idColumn.type,
+      attributes: nativeTypeAttributes(idColumn.nativeType)
+    },
+    { name: 'time', type: 'DateTime' },
+    ...Object.entries(config.series ?? {}).map(([field, series]) => ({
+      name: field,
+      type: `${SERIES_PRISMA_TYPES[series.type]}?`
+    }))
+  ];
+  const relation: PrismaSchemaField = {
+    name: SERIES_RESOURCE_FIELD,
+    type: name,
+    attributes: [
+      `@relation("${name}Series", fields: [resourceId], references: [id], onDelete: Cascade)`
+    ]
+  };
+
+  const { nameLength, typeLength } = calculateMaxLengths(fields);
+  const table = seriesTableName(config);
+
+  return [
+    `model ${name}Series {`,
+    ...fields.map((field) => buildPrismaField(field, nameLength, typeLength)),
+    ``,
+    `  /// Related columns`,
+    buildPrismaField(relation),
+    ``,
+    `  @@id([resourceId, time])`,
+    ...(table !== `${name}Series` ? [``, `  @@map("${table}")`] : []),
+    `}`,
+    ``
+  ];
 }
 
 function createRelationsSchema(

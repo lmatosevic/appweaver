@@ -112,6 +112,14 @@ export type BulkRouteConfig = RouteConfig & {
   returnRecords?: boolean;
 };
 
+export type SeriesWriteRouteConfig = RouteConfig & {
+  /** Maximum number of points a request accepts (default: `TIMESERIES_MAX_POINTS_PER_WRITE` config) */
+  maxPoints?: number;
+  /** Accept the `ingest=direct` query parameter, writing the points in the request instead of queueing them
+   * (default: `true`) */
+  allowDirect?: boolean;
+};
+
 export type ResourceRoutesConfig = {
   /** Resource model name */
   modelName: ModelName;
@@ -142,6 +150,14 @@ export type ResourceRoutesConfig = {
   fileUpload?: RouteConfig;
   /** Config for the file delete route */
   fileDelete?: RouteConfig;
+  /** Config for the time series write routes, of one resource (`POST /:id/series`) and of many (`POST /series`).
+   * Registered for a model with `series` fields */
+  seriesWrite?: SeriesWriteRouteConfig;
+  /** Config for the time series query routes, of one resource (`GET /:id/series`) and of many
+   * (`POST /series/query`) */
+  seriesQuery?: RouteConfig;
+  /** Config for the time series delete route (`POST /:id/delete-series`) */
+  seriesDelete?: RouteConfig;
   /** Config for the bulk create route, excluded unless
    * `RESOURCE_BULK_CREATE_ENABLED` is set (or `exclude: false`) */
   bulkCreate?: BulkRouteConfig;
@@ -183,6 +199,16 @@ export type ResourceSchemaConfig = {
   fileUploadSchema: RouteSchema;
   /** Schema for handling file deletions related to a resource */
   fileDeleteSchema: RouteSchema;
+  /** Schema for writing the time series points of a resource, for a model with series fields */
+  seriesWriteSchema?: RouteSchema;
+  /** Schema for writing the time series points of many resources */
+  seriesBulkWriteSchema?: RouteSchema;
+  /** Schema for querying the time series points of a resource */
+  seriesQuerySchema?: RouteSchema;
+  /** Schema for querying the time series points of many resources */
+  seriesBulkQuerySchema?: RouteSchema;
+  /** Schema for deleting the time series points of a resource */
+  seriesDeleteSchema?: RouteSchema;
   /** Schema for creating many resources at once */
   bulkCreateSchema: RouteSchema;
   /** Schema for updating the given fields of many resources at once (PATCH) */

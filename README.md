@@ -278,7 +278,8 @@ being a dependency of the project, and a driver is selected by its `provider` ke
 
 The database module, built on Prisma: the factory functions of the resources (`createModel`, `createService`,
 `createPolicy`), the resource services, the auth data model (`createAuthModel`, `createAuthService`, roles,
-permissions, API keys), `FileService`, the seeders and the CSV export.
+permissions, API keys), `FileService`, the seeders, the CSV export, and the `database` and `timescale` (TimescaleDB)
+stores of the time series fields (`series`) of the models.
 
 Only the model is required: a service needs the model, routes need the service, and an optional policy needs only
 the model. Define each in its own file under `src/resources/<name>/` and the framework autoloads them on startup. They
@@ -308,7 +309,7 @@ One package per library or service, each carrying the library as a dependency an
 
 The test helpers of the packages and their modules: `resetContext`, `linkModels` and `createDatabaseStub`, and the
 contract suites testing a driver against its contract (`testStorageContract('GcsStorage', () => new GcsStorage())`,
-also for `Memory`, `Queue`, `Scheduler`, `Mailer` and `SmsSender`), under Jest, Vitest or Bun.
+also for `Memory`, `Queue`, `Scheduler`, `Mailer`, `SmsSender` and `TimeSeries`), under Jest, Vitest or Bun.
 
 ### `@appweaver/common`
 

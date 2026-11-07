@@ -7,3 +7,4 @@ export { MemoryQueue } from './queue/memory-queue';
 export { MemorySecurityStore } from './security/store/memory-security-store';
 export { JsonSms } from './sms/json-sms';
 export { FilesystemStorage } from './storage/filesystem-storage';
+export { MemoryTimeSeries } from './timeseries/memory-time-series';

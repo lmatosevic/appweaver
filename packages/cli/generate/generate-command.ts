@@ -9,7 +9,8 @@ import {
   discoverProjectModules,
   importPackage,
   isModulePackage,
-  loadModels
+  loadModels,
+  seriesInDatabase
 } from '../utils';
 
 /** The outputs of `weaver generate`. */
@@ -155,7 +156,8 @@ export function generateCommand(program: Command): void {
               databaseConfig.SCHEMA_PATH,
             command.getOptionValue('clientDir') ??
               databaseConfig.CLIENT_OUTPUT_DIR_PATH,
-            quiet
+            quiet,
+            seriesInDatabase(modules)
           );
         }
       }

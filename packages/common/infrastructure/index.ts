@@ -10,3 +10,4 @@ export * from './security-store';
 export * from './sms';
 export * from './storage';
 export * from './template';
+export * from './time-series';

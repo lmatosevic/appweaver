@@ -83,6 +83,8 @@ export type ResourceModel = {
   fileUploadModel: TObject;
   /** Request for file delete route */
   fileDeleteModel: TObject;
+  /** The values of the time series fields, each optional and nullable */
+  seriesModel: TObject;
 };
 
 export type ResourceRoutes = {

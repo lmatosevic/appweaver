@@ -771,11 +771,13 @@ describe('create', () => {
         'app',
         'database',
         'server',
-        'memory'
+        'memory',
+        'timeseries'
       ]);
       expect(appConfig.config.memory).toEqual({
         redis: { url: 'redis://${REDIS_HOST:-localhost}:6379/0' }
       });
+      expect(appConfig.config.timeseries).toEqual({ provider: 'database' });
       expect(appConfig.environments.dev.template).toEqual({ cache: false });
       expect(appConfig.environments.test).toMatchObject({
         memory: { provider: 'memory' },

@@ -411,7 +411,8 @@ export const ModelName = {
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
-  File: 'File'
+  File: 'File',
+  ProductSeries: 'ProductSeries'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -427,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "address" | "brand" | "category" | "coupon" | "orderItem" | "order" | "product" | "review" | "user" | "apiKey" | "oneTimeToken" | "role" | "permission" | "seeder" | "file"
+    modelProps: "address" | "brand" | "category" | "coupon" | "orderItem" | "order" | "product" | "review" | "user" | "apiKey" | "oneTimeToken" | "role" | "permission" | "seeder" | "file" | "productSeries"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1541,6 +1542,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProductSeries: {
+      payload: Prisma.$ProductSeriesPayload<ExtArgs>
+      fields: Prisma.ProductSeriesFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProductSeriesFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProductSeriesFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload>
+        }
+        findFirst: {
+          args: Prisma.ProductSeriesFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProductSeriesFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload>
+        }
+        findMany: {
+          args: Prisma.ProductSeriesFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload>[]
+        }
+        create: {
+          args: Prisma.ProductSeriesCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload>
+        }
+        createMany: {
+          args: Prisma.ProductSeriesCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProductSeriesCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload>[]
+        }
+        delete: {
+          args: Prisma.ProductSeriesDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload>
+        }
+        update: {
+          args: Prisma.ProductSeriesUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProductSeriesDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProductSeriesUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProductSeriesUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProductSeriesUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductSeriesPayload>
+        }
+        aggregate: {
+          args: Prisma.ProductSeriesAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProductSeries>
+        }
+        groupBy: {
+          args: Prisma.ProductSeriesGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductSeriesGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProductSeriesCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductSeriesCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1833,6 +1908,17 @@ export const FileScalarFieldEnum = {
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+
+
+export const ProductSeriesScalarFieldEnum = {
+  resourceId: 'resourceId',
+  time: 'time',
+  price: 'price',
+  stock: 'stock',
+  sold: 'sold'
+} as const
+
+export type ProductSeriesScalarFieldEnum = (typeof ProductSeriesScalarFieldEnum)[keyof typeof ProductSeriesScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2173,6 +2259,7 @@ export type GlobalOmitConfig = {
   permission?: Prisma.PermissionOmit
   seeder?: Prisma.SeederOmit
   file?: Prisma.FileOmit
+  productSeries?: Prisma.ProductSeriesOmit
 }
 
 /* Types for Logging */

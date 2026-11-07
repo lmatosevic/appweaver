@@ -396,6 +396,14 @@ export type TeamRelationUpdate = {
   email?: string;
 };
 
+export type TeamSeries = {
+  open?: number | null;
+  unassigned?: number | null;
+  overdue?: number | null;
+  firstResponseMinutes?: number | null;
+  breached?: boolean | null;
+};
+
 export type TeamQuery = QueryFilter<Team>;
 
 export type TeamSort = QuerySort<TeamMultiple>;
@@ -1468,6 +1476,7 @@ declare module '@appweaver/common' {
       query: TeamQuery;
       service: TeamResourceService;
       relations: 'members' | 'tickets' | 'cannedResponses';
+      series: TeamSeries;
     };
     TicketMessage: {
       model: TicketMessage;

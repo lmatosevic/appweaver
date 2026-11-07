@@ -33,5 +33,16 @@ export default createRoutes({
   },
   fileDelete: {
     roles: [Role.Admin]
+  },
+  // The sales and stock analytics of the admins, the history of a price
+  // imported from another shop, and its removal
+  seriesQuery: {
+    roles: [Role.Admin]
+  },
+  seriesWrite: {
+    roles: [Role.Admin]
+  },
+  seriesDelete: {
+    roles: [Role.Admin]
   }
 });

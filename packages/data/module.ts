@@ -3,7 +3,8 @@ import {
   defineModule,
   ImageProcessor,
   SecurityStore,
-  Storage
+  Storage,
+  TimeSeries
 } from '@appweaver/common';
 import { databaseConfig } from './database/database-config';
 import { exportConfig } from './export/export-config';
@@ -16,6 +17,8 @@ import {
   twoFactorModelConfig
 } from './security/auth-config';
 import { imageConfig } from './storage/image-config';
+import { databaseSeriesConfig } from './timeseries/database-series-config';
+import { timescaleConfig } from './timeseries/timescale-config';
 
 /** The database, the resources and the auth data model, built on Prisma. */
 export default defineModule({
@@ -29,9 +32,11 @@ export default defineModule({
     apiKeyConfig,
     connectedAccountConfig,
     twoFactorModelConfig,
-    systemConfig
+    systemConfig,
+    databaseSeriesConfig,
+    timescaleConfig
   ],
-  loggers: ['database', 'resource', 'storage'],
+  loggers: ['database', 'resource', 'storage', 'timeseries'],
   contracts: [
     { contract: Database, provider: () => databaseConfig.PROVIDER },
     { contract: ImageProcessor, provider: () => imageConfig.PROVIDER }
@@ -47,6 +52,18 @@ export default defineModule({
       name: 'database',
       load: () => import('./security/store/database-security-store'),
       auto: 'fallback'
+    },
+    {
+      contract: TimeSeries,
+      name: 'database',
+      load: () => import('./timeseries/database-time-series'),
+      auto: 'fallback'
+    },
+    {
+      contract: TimeSeries,
+      name: 'timescale',
+      load: () => import('./timeseries/timescale-time-series'),
+      auto: false
     }
   ],
   services: [

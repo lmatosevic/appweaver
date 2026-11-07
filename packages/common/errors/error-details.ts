@@ -115,6 +115,21 @@ export interface ErrorDetailsMap {
   [ErrorCode.LocaleLoadFailed]: { path: string };
 
   [ErrorCode.MemoryUnavailable]: { retryAfter?: number };
+
+  [ErrorCode.TimeSeriesNotEnabled]: ModelDetails;
+  [ErrorCode.TimeSeriesInvalidField]: ModelDetails & { field: string };
+  [ErrorCode.TimeSeriesInvalidValue]: ModelDetails & {
+    field: string;
+    reason: string;
+  };
+  [ErrorCode.TimeSeriesInvalidTime]: { time: string };
+  [ErrorCode.TimeSeriesInvalidRange]: { from: string; to: string };
+  [ErrorCode.TimeSeriesInvalidBucket]: { bucket: string };
+  [ErrorCode.TimeSeriesInvalidAggregate]: { aggregate: string };
+  [ErrorCode.TimeSeriesTooManyPoints]: { maxPoints: number };
+  [ErrorCode.TimeSeriesTooManyResources]: { maxResources: number };
+  [ErrorCode.TimeSeriesForbidden]: ModelDetails & { action: string };
+  [ErrorCode.TimeSeriesUnsupported]: { operation: string; provider: string };
 }
 
 /** The details of an error code, see {@link ErrorDetailsMap}. */

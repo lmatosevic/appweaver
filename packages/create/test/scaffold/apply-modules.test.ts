@@ -287,6 +287,7 @@ describe('apply-modules', () => {
           'sms'
         );
         await add(added, 'data', 'scheduler', 'queue', 'web');
+        await add(added, 'timeseries');
 
         expect(snapshot(added)).toEqual(snapshot(created));
       }
@@ -410,6 +411,30 @@ describe('apply-modules', () => {
       expect(
         enableModules(files, context, ['locales'], ['mailer']).packagesChanged
       ).toBe(true);
+    });
+  });
+
+  describe('time series', () => {
+    const config = (dir: string) => JSON.parse(read(dir, 'appweaver.json'));
+
+    test('runs the time series of PostgreSQL in TimescaleDB', async () => {
+      const dir = await create(['data', 'docker', 'timeseries']);
+
+      expect(config(dir).config.timeseries).toEqual({ provider: 'timescale' });
+      expect(read(dir, 'docker-compose.yml')).toContain(
+        'image: timescale/timescaledb:'
+      );
+
+      await remove(dir, 'timeseries');
+      expect(config(dir).config.timeseries).toBeUndefined();
+      expect(read(dir, 'docker-compose.yml')).toContain('image: postgres:');
+    });
+
+    test('keeps the time series of another database in the database', async () => {
+      const dir = await create(['data', 'timeseries'], { database: 'sqlite' });
+
+      expect(config(dir).config.timeseries).toEqual({ provider: 'database' });
+      expect(loadProject(dir).enabled).toEqual(['data', 'timeseries']);
     });
   });
 

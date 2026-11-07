@@ -4,7 +4,7 @@
 
 A customer support desk in the spirit of Zendesk or Freshdesk: tickets from a public form and from other systems,
 customers without accounts, automatic assignment to agents, SLA targets with escalation, internal notes, and long
-threads read page by page. It runs on MySQL (MariaDB) without Redis.
+threads read page by page, and the workload of the teams over time. It runs on MySQL (MariaDB) without Redis.
 
 ## What it showcases
 
@@ -25,6 +25,9 @@ threads read page by page. It runs on MySQL (MariaDB) without Redis.
 | Message attachments (array files) and a computed `overdue` flag                        | message and ticket models                                                                                         |
 | OAuth2 sign-in limited to existing staff (`checkOAuth2User`)                           | [`resources/user/service.ts`](src/resources/user/service.ts)                                                      |
 | Optional 2FA by SMS (Twilio), authenticator app or email, enabled by SMS for the admin | [`004-enable-admin-sms-2fa.ts`](database/seeders/004-enable-admin-sms-2fa.ts), [`appweaver.json`](appweaver.json) |
+| **Time series** of the teams (open, unassigned, overdue tickets) in a MySQL table      | [`resources/team/model.ts`](src/resources/team/model.ts)                                                       |
+| A scheduled job recording the workload of every team every 15 minutes                  | [`features/metrics/team-metrics-job.ts`](src/features/metrics/team-metrics-job.ts)                             |
+| Staff-only series queries, by bucket and across the teams of a filter, a 400 day retention | [`resources/team/routes.ts`](src/resources/team/routes.ts)                                                 |
 
 ## Getting started
 
@@ -128,6 +131,20 @@ curl -s localhost:5004/api/messages/query -H "x-api-key: $STATUS_PAGE_KEY" -H 'c
 # A long thread is read page by page: send the nextCursor back until there is none
 curl -s localhost:5004/api/messages/query -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \
   -d '{"filter":{"ticket":"<id>"},"sort":"createdAt","size":2}' | jq '{bodies: [.items[].body], nextCursor}'
+```
+
+The workload of every team is written every 15 minutes to the `TeamSeries` table the `series` fields of the team model
+add to the Prisma schema (the `database` provider of `timeseries.provider: auto`). The points older than the 400 days
+of `seriesOptions.retention` are deleted every hour, and the points of a team with it.
+
+```bash
+# The open and overdue tickets of a team by hour, and its latest point
+curl -s "localhost:5004/api/teams/1/series?fields=open,overdue&bucket=1h&aggregate=max" -H "authorization: Bearer $TOKEN"
+curl -s "localhost:5004/api/teams/1/series?aggregate=last" -H "authorization: Bearer $TOKEN"
+
+# The share of the day each team spent with an overdue ticket
+curl -s localhost:5004/api/teams/series/query -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+  -d '{"filter":{},"fields":["breached"],"bucket":"1d"}'
 ```
 
 ## Tests

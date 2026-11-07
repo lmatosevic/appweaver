@@ -128,3 +128,10 @@ export class TurnstileError<
 > extends AppweaverError<C> {
   public readonly module = 'turnstile';
 }
+
+/** An error of a time series operation, i.e. an invalid point or query. */
+export class TimeSeriesError<
+  C extends ModuleErrorCode<'TIMESERIES'> = ModuleErrorCode<'TIMESERIES'>
+> extends AppweaverError<C> {
+  public readonly module = 'timeseries';
+}

@@ -38,6 +38,8 @@ export type ModuleDefinition = {
   projectDirs?: string[];
   /** The file whose presence marks a module without packages as enabled. */
   marker?: string;
+  /** The appweaver.json value whose presence marks a module without packages and files as enabled. */
+  configMarker?: string;
 };
 
 const bunE2eScript =
@@ -210,6 +212,21 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     disabledConfig: [],
     directories: ['locales'],
     marker: 'locales'
+  },
+  timeseries: {
+    name: 'timeseries',
+    description:
+      'Time series fields of the models (series) in the database, on TimescaleDB with PostgreSQL, otherwise none',
+    packages: [],
+    requires: ['data'],
+    enabledConfig: ({ database }) => [
+      [
+        'config.timeseries.provider',
+        database === 'postgresql' ? 'timescale' : 'database'
+      ]
+    ],
+    disabledConfig: [],
+    configMarker: 'config.timeseries.provider'
   },
   docker: {
     name: 'docker',

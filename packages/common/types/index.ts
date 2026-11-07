@@ -8,6 +8,7 @@ export * from './registry';
 export * from './resource';
 export * from './resource-id';
 export * from './routes';
+export * from './series';
 export * from './service';
 export * from './sort';
 export * from './transaction';

@@ -12,6 +12,7 @@ import db from '@db/client';
 import { Coupon, Prisma } from '@db/client/client';
 import { Order, OrderSingle } from '@/types';
 import { ShopErrors } from '@/errors';
+import { recordStock } from '@/features/catalog/product-history';
 import { couponProblem, priceOrder } from './pricing';
 
 export type ShippingAddress = {
@@ -73,6 +74,15 @@ export async function checkout(
         );
       }
     }
+
+    // Queued once the order commits, see the catalog feature
+    await recordStock(
+      products.map((product) => ({
+        productId: product.id,
+        stock: product.stock - quantities.get(product.id)!,
+        sold: quantities.get(product.id)!
+      }))
+    );
 
     const lines = products.map((product) => ({
       productId: product.id,

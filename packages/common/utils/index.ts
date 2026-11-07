@@ -10,3 +10,4 @@ export * from './storage-util';
 export * from './string-util';
 export * from './type-util';
 export * from './template-util';
+export * from './series-util';

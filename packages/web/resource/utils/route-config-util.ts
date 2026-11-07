@@ -1,7 +1,8 @@
 import {
   BulkRouteConfig,
   QueryRouteConfig,
-  ResourceRoutesConfig
+  ResourceRoutesConfig,
+  SeriesWriteRouteConfig
 } from '@appweaver/common';
 import { BulkRouteName, bulkRouteEnabled } from './query-params-util';
 
@@ -17,11 +18,15 @@ export type ResourceRouteName =
   | 'export'
   | 'fileUpload'
   | 'fileDelete'
+  | 'seriesWrite'
+  | 'seriesQuery'
+  | 'seriesDelete'
   | BulkRouteName;
 
 /** The config of any resource route. */
 export type ResourceRouteConfig = QueryRouteConfig &
-  Pick<BulkRouteConfig, 'maxItems' | 'returnRecords'>;
+  Pick<BulkRouteConfig, 'maxItems' | 'returnRecords'> &
+  Pick<SeriesWriteRouteConfig, 'maxPoints' | 'allowDirect'>;
 
 const READ_ROUTES: ResourceRouteName[] = ['find', 'query', 'aggregate'];
 const QUERY_ROUTES: ResourceRouteName[] = ['query', 'aggregate'];

@@ -110,6 +110,10 @@
               "default": "<srcPath>/main.ts",
               "type": "string"
             },
+            "tasksDirPath": {
+              "default": "<srcPath>/tasks",
+              "type": "string"
+            },
             "modulesPattern": {
               "default": "<srcPath>/modules/*/module.ts",
               "type": "string"
@@ -540,6 +544,9 @@
                   "$ref": "#/definitions/logLevel"
                 },
                 "template": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "timeseries": {
                   "$ref": "#/definitions/logLevel"
                 }
               }
@@ -1611,6 +1618,109 @@
                 "routePrefix": {
                   "default": "/templates",
                   "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "timeseries": {
+          "type": "object",
+          "properties": {
+            "ingest": {
+              "default": "direct",
+              "anyOf": [
+                {
+                  "const": "direct",
+                  "type": "string"
+                },
+                {
+                  "const": "queue",
+                  "type": "string"
+                },
+                {
+                  "const": "auto",
+                  "type": "string"
+                }
+              ]
+            },
+            "maxPointsPerWrite": {
+              "default": 5000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxPointsPerQuery": {
+              "default": 10000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxResourcesPerQuery": {
+              "default": 100,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "queueName": {
+              "default": "timeseries",
+              "type": "string"
+            },
+            "queueBatchSize": {
+              "default": 1000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "queueConcurrency": {
+              "default": 1,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "queueWorker": {
+              "default": true,
+              "type": "boolean"
+            },
+            "accessCacheTtl": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            },
+            "database": {
+              "type": "object",
+              "properties": {
+                "retention": {
+                  "default": "",
+                  "type": "string"
+                },
+                "retentionInterval": {
+                  "default": "1h",
+                  "type": "string"
+                },
+                "retentionWorker": {
+                  "default": true,
+                  "type": "boolean"
+                }
+              }
+            },
+            "timescale": {
+              "type": "object",
+              "properties": {
+                "chunkInterval": {
+                  "default": "7d",
+                  "type": "string"
+                },
+                "compressAfter": {
+                  "default": "",
+                  "type": "string"
+                },
+                "retention": {
+                  "default": "",
+                  "type": "string"
+                },
+                "setupTimeout": {
+                  "default": 60000,
+                  "minimum": 1,
+                  "type": "integer"
                 }
               }
             }

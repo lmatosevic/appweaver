@@ -9,7 +9,8 @@ import {
   addServerPort,
   removeDatabaseServices,
   removeRedisService,
-  removeServerPort
+  removeServerPort,
+  setPostgresImage
 } from './compose-util';
 import { getSecretsEnv, getSqliteGitignore } from './database-config';
 import {
@@ -157,7 +158,11 @@ const integrations: ModuleIntegration[] = [
     modules: ['data', 'docker'],
     enable: (scaffold) => {
       editFile(scaffold, 'docker-compose.yml', (content) =>
-        addDatabaseServices(content, scaffold.context)
+        addDatabaseServices(
+          content,
+          scaffold.context,
+          scaffold.enabled.has('timeseries')
+        )
       );
       addBlock(scaffold, prismaBlock);
       if (scaffold.context.database === 'sqlite') {
@@ -207,6 +212,18 @@ const integrations: ModuleIntegration[] = [
     disable: (scaffold) =>
       editFile(scaffold, 'docker-compose.yml', (content) =>
         removeRedisService(content, scaffold.context.name)
+      )
+  },
+  // The time series of PostgreSQL in TimescaleDB, run by the PostgreSQL service
+  {
+    modules: ['timeseries', 'docker'],
+    enable: (scaffold) =>
+      editFile(scaffold, 'docker-compose.yml', (content) =>
+        setPostgresImage(content, true)
+      ),
+    disable: (scaffold) =>
+      editFile(scaffold, 'docker-compose.yml', (content) =>
+        setPostgresImage(content, false)
       )
   },
   // The account email templates, copied by the generic file handling, replace the placeholder of the empty directory

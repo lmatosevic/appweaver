@@ -5,8 +5,10 @@ import {
   addServerPort,
   removeDatabaseServices,
   removeRedisService,
-  removeServerPort
+  removeServerPort,
+  setPostgresImage
 } from '../../scaffold/compose-util';
+import { timescaleImage } from '../../scaffold/database-config';
 import { ProjectContext } from '../../scaffold/types';
 
 const compose = `services:
@@ -273,6 +275,27 @@ describe('compose-util', () => {
       expect(
         removeServerPort(addServerPort(appCompose, context), context)
       ).toBe(appCompose);
+    });
+  });
+
+  describe('setPostgresImage', () => {
+    test('runs TimescaleDB on the PostgreSQL service, and back', () => {
+      const timescale = setPostgresImage(compose, true);
+
+      expect(parse(timescale).services.postgres.image).toBe(timescaleImage);
+      expect(setPostgresImage(timescale, false)).toBe(compose);
+    });
+
+    test('keeps a file without a PostgreSQL service', () => {
+      expect(setPostgresImage(appCompose, true)).toBe(appCompose);
+    });
+
+    test('adds the database services with TimescaleDB', () => {
+      const services = parse(
+        addDatabaseServices(appCompose, context, true)
+      ).services;
+
+      expect(services.postgres.image).toBe(timescaleImage);
     });
   });
 });

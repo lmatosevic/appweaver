@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:18.4
+    image: timescale/timescaledb:2.31.0-pg18
     container_name: webshop-api-postgres
     restart: unless-stopped
     healthcheck:

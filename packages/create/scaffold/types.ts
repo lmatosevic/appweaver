@@ -10,6 +10,7 @@ export const moduleNames = [
   'sms',
   'templates',
   'locales',
+  'timeseries',
   'docker'
 ] as const;
 

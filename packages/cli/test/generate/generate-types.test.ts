@@ -313,6 +313,20 @@ describe('generate-types', () => {
       expect(types).toContain('relations: never };');
     });
 
+    test('emits and registers the series values of a model with series fields', async () => {
+      const sensor = model('Sensor', Type.Object({ name: Type.String() }), {
+        series: { temperature: { type: 'float' } }
+      });
+      (sensor as any).seriesModel = Type.Object({
+        temperature: Type.Optional(Type.Number())
+      });
+
+      const { types } = await generate({ Sensor: sensor });
+
+      expect(types).toContain('export type SensorSeries = {');
+      expect(types).toContain('relations: never; series: SensorSeries };');
+    });
+
     test('registers a model without generated types with loose types', async () => {
       const { types } = await generate({
         Draft: model('Draft', Type.Object({ id: Type.Integer() }), {

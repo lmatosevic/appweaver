@@ -1,11 +1,12 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { defineModule } from '@appweaver/common';
+import { configOverrides, defineModule, TimeSeries } from '@appweaver/common';
 import {
   isModulePackage,
   loadCliPackageJson,
   loadLocalPackageJson,
+  seriesInDatabase,
   shipsResourceRegistry
 } from '../../utils/loader-util';
 
@@ -146,6 +147,39 @@ describe('loader-util', () => {
       fs.writeFileSync(path.join(packageDir, 'dist', 'index.d.ts'), registry);
 
       expect(shipsResourceRegistry(enabled('local'))).toBe(false);
+    });
+  });
+
+  describe('seriesInDatabase', () => {
+    const driver = (auto?: boolean | 'fallback') => ({
+      module: defineModule({
+        name: 'driver',
+        providers: [
+          { contract: TimeSeries, name: 'driver', load: () => ({}), auto }
+        ]
+      }),
+      source: 'package'
+    });
+
+    afterEach(() => {
+      delete configOverrides.TIMESERIES_PROVIDER;
+    });
+
+    test('keeps the points in the database unless a module provides another store', () => {
+      expect(seriesInDatabase([])).toBe(true);
+      expect(seriesInDatabase([driver('fallback') as any])).toBe(true);
+      expect(seriesInDatabase([driver() as any])).toBe(false);
+    });
+
+    test.each([
+      ['database', true],
+      ['timescale', true],
+      ['questdb', false],
+      ['memory', false]
+    ])('follows the %s provider', (provider, expected) => {
+      configOverrides.TIMESERIES_PROVIDER = provider;
+
+      expect(seriesInDatabase([driver() as any])).toBe(expected);
     });
   });
 });

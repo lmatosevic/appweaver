@@ -92,3 +92,8 @@ export type Seeder = Prisma.SeederModel
  * 
  */
 export type File = Prisma.FileModel
+/**
+ * Model ProductSeries
+ * 
+ */
+export type ProductSeries = Prisma.ProductSeriesModel

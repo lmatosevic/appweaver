@@ -36,6 +36,23 @@ export type FilePolicy<T = any> = {
   canDelete?: FileAccessFn<T>;
 };
 
+/** Returns false to deny the time series action on a resource. Called with a null user when the request is not
+ * authenticated. */
+export type SeriesAccessFn<T = any, U = AuthUser> = (
+  user: U | null,
+  resource: T
+) => boolean | Promise<boolean>;
+
+/** The access checks of the time series of a resource, each allowing the action when left out. */
+export type SeriesPolicy<T = any> = {
+  /** Custom access check for querying the points of a resource */
+  canRead?: SeriesAccessFn<T>;
+  /** Custom access check for writing the points of a resource */
+  canWrite?: SeriesAccessFn<T>;
+  /** Custom access check for deleting the points of a resource */
+  canDelete?: SeriesAccessFn<T>;
+};
+
 /** The extra conditions a policy restricts the reads with, in the database filter syntax, or nothing to restrict
  * none. */
 export type ReadRestrictions = Record<string, any> | null | undefined | void;
@@ -66,4 +83,6 @@ export type ResourcePolicyConfig<T = any, U = AuthUser> = {
   ) => WriteRestrictions | Promise<WriteRestrictions>;
   /** Per-field file policies keyed by field name */
   files?: Record<string, FilePolicy<T>>;
+  /** Access checks of the time series of the resource */
+  series?: SeriesPolicy<T>;
 };

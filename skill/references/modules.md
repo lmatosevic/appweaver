@@ -9,8 +9,8 @@ first-party module does.
 
 | Module                  | Enabled                      | Brings                                                                                                                               |
 |-------------------------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer, `json` SMS sender |
-| `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store                                                   |
+| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer, `json` SMS sender, `memory` time series |
+| `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store, the `database` and `timescale` time series |
 | `@appweaver/web`        | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account, 2FA (`TwoFactorService`) and OAuth2 services                             |
 | `@appweaver/redis`      | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                                   |
 | `@appweaver/bullmq`     | Installed (requires `redis`) | The `bullmq` queue                                                                                                                   |
@@ -390,6 +390,7 @@ A driver of an external service runs the suite on an in-memory stand-in of its c
 | `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)                                                          |
 | `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                                                                                 |
 | `testSmsContract`       | `SmsSender` | Sending a text message with and without a sender, the name of its health check, the health check                                                    |
+| `testTimeSeriesContract` | `TimeSeries` | Writing and merging points, selecting fields and ranges, ordering and limiting, every aggregate by bucket and over the range, deleting a range (a store with `supportsDelete`), the health check |
 
 The suites use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
 (with `globals: true`) and Bun. A driver of a remote service runs them against a test instance or emulator, the

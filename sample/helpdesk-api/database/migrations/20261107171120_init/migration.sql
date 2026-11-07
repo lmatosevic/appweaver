@@ -273,6 +273,19 @@ CREATE TABLE `File` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `TeamSeries` (
+    `resourceId` INTEGER NOT NULL,
+    `time` DATETIME(3) NOT NULL,
+    `open` INTEGER NULL,
+    `unassigned` INTEGER NULL,
+    `overdue` INTEGER NULL,
+    `firstResponseMinutes` DOUBLE NULL,
+    `breached` BOOLEAN NULL,
+
+    PRIMARY KEY (`resourceId`, `time`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `_TagTicketsTicket` (
     `A` INTEGER NOT NULL,
     `B` VARCHAR(24) NOT NULL,
@@ -394,6 +407,9 @@ ALTER TABLE `File` ADD CONSTRAINT `File_createdById_fkey` FOREIGN KEY (`createdB
 
 -- AddForeignKey
 ALTER TABLE `File` ADD CONSTRAINT `File_deletedById_fkey` FOREIGN KEY (`deletedById`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `TeamSeries` ADD CONSTRAINT `TeamSeries_resourceId_fkey` FOREIGN KEY (`resourceId`) REFERENCES `Team`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_TagTicketsTicket` ADD CONSTRAINT `_TagTicketsTicket_A_fkey` FOREIGN KEY (`A`) REFERENCES `Tag`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

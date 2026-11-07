@@ -93,6 +93,9 @@ model Team {
   tickets         Ticket[]         @relation("TeamTicketsTicket")
   cannedResponses CannedResponse[] @relation("CannedResponseTeamTeam")
 
+  /// Time series points
+  seriesPoints TeamSeries[] @relation("TeamSeries")
+
   /// Audit columns
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
@@ -359,6 +362,21 @@ model File {
   @@index([resourceName, resourceId, resourceField])
   @@index([createdById])
   @@index([deletedById])
+}
+
+model TeamSeries {
+  resourceId           Int
+  time                 DateTime
+  open                 Int?
+  unassigned           Int?
+  overdue              Int?
+  firstResponseMinutes Float?
+  breached             Boolean?
+
+  /// Related columns
+  resource Team @relation("TeamSeries", fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@id([resourceId, time])
 }
 
 enum SlaPolicyPriority {

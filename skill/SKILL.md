@@ -95,6 +95,7 @@ with `data` and `web`:
 | `mailer`         | `@appweaver/nodemailer`                                                                                         | mailer disabled (no email routes)            |
 | `templates`      | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                                       | no template engine                           |
 | `locales`        | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates     |
+| `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)         |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                              |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
@@ -413,6 +414,22 @@ with the record, so every model a soft deleted model cascades into must enable `
 fails to start. Stored files are removed on a regular delete but kept on a soft delete by default, configurable per
 file field with `onResourceDeleted` and `onResourceSoftDeleted`. A kept file stays in the storage, e.g. for audit, but
 is never served again.
+
+The `series` section declares fields measured over time (`float`, `int`, `boolean`), whose points belong to a resource
+and live apart from its record: in the `<Model>Series` table of the database (`database`, every database), or a
+TimescaleDB hypertable on PostgreSQL (`timescale`). They are written and queried through the
+series routes (`POST /:id/series`, `GET /:id/series?bucket=1h&aggregate=avg`, `POST /series/query`) and the
+`TimeSeriesService`, directly or through the queue (`seriesOptions.ingest`):
+
+```ts
+series: {
+  temperature: { type: 'float', minimum: -50, maximum: 150 },
+  online: { type: 'boolean' }
+},
+seriesOptions: { ingest: 'queue', retention: '365d', compressAfter: '30d' }
+```
+
+See [timeseries.md](references/timeseries.md) for the stores, the ingestion, the routes, the policies and the service.
 
 #### Creating a resource service
 
@@ -1069,7 +1086,7 @@ weaver module new audit-log            # create the local module src/modules/aud
 ```
 
 A module is enabled when the project depends on its packages (`locales` and `docker` when `locales/` and `Dockerfile`
-exist). `add` writes the module's packages into `package.json`, its values into `appweaver.json`, its files (skipping
+exist, `timeseries` when `appweaver.json` sets `timeseries.provider`). `add` writes the module's packages into `package.json`, its values into `appweaver.json`, its files (skipping
 the existing ones that differ), and what it adds to the enabled modules: the database, migrations and seed services and
 the Redis service of `docker-compose.yml`, the server port and health check, the Dockerfile `COPY` of the public,
 template, translation and Prisma files, the email templates and texts of the mailer. `data` is added on the database of
@@ -1160,3 +1177,4 @@ npm run lint  # eslint "./**/*.ts"
 - Templates & localization: [templates.md](references/templates.md)
 - Generating an HTTP client for using API: [client.md](references/client.md)
 - Errors & error responses: [errors.md](references/errors.md)
+- Time series fields, stores & routes: [timeseries.md](references/timeseries.md)

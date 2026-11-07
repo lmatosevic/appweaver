@@ -25,11 +25,13 @@ import {
   RelationConfig,
   ResourceModelConfig,
   ScalarField,
+  SeriesConfig,
   StringDate,
   StringEnum,
   VirtualConfig,
   ConfigurationError,
-  ErrorCode
+  ErrorCode,
+  parseDuration
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { define } from '@appweaver/core';
@@ -60,6 +62,7 @@ export function createModel<
   override: boolean = false
 ): ResourceModel {
   const config = normalizeRelations(modelConfig);
+  validateSeries(config);
   const resourceModel = buildModel(config);
 
   logger.debug({ modelName: resourceModel.name }, 'Created resource model');
@@ -105,6 +108,81 @@ function normalizeRelations(config: ResourceModelConfig): ResourceModelConfig {
   }
 
   return { ...config, relations };
+}
+
+const SERIES_RESERVED_NAMES = ['time', 'resourceId'];
+const SERIES_TYPES = ['float', 'int', 'boolean'];
+const SERIES_INGESTS = ['direct', 'queue', 'auto'];
+
+/**
+ * Checks the series of a model: the types of its fields, names leaving the `time` and `resourceId` of a point free,
+ * and the durations and the ingest of its options.
+ *
+ * @throws {ConfigurationError} For a series field with a reserved name or an unknown type, or an invalid option.
+ */
+function validateSeries(config: ResourceModelConfig): void {
+  for (const [field, series] of Object.entries(config.series ?? {})) {
+    if (SERIES_RESERVED_NAMES.includes(field) || !/^[A-Za-z]\w*$/.test(field)) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `Series field '${config.name}.${field}' must be an identifier other than ${SERIES_RESERVED_NAMES.join(' and ')}`
+      );
+    }
+    if (!SERIES_TYPES.includes(series.type)) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `Series field '${config.name}.${field}' has the type '${series.type}', not one of ${SERIES_TYPES.join(', ')}`
+      );
+    }
+  }
+
+  const options = config.seriesOptions ?? {};
+  for (const option of [
+    'retention',
+    'chunkInterval',
+    'compressAfter'
+  ] as const) {
+    const duration = options[option];
+    if (duration === undefined) {
+      continue;
+    }
+    const seconds = parseDuration(duration);
+    if (!seconds || !Number.isInteger(seconds)) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `Series option '${config.name}.${option}' is '${duration}', not a duration of whole seconds, i.e. 30d`
+      );
+    }
+  }
+  if (options.ingest && !SERIES_INGESTS.includes(options.ingest)) {
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      `Series option '${config.name}.ingest' is '${options.ingest}', not one of ${SERIES_INGESTS.join(', ')}`
+    );
+  }
+}
+
+/** The values of the series fields, each optional and nullable, a null leaving the stored value unchanged. */
+function buildSeriesModel(series?: SeriesConfig): TObject {
+  const properties: Record<string, TSchema> = {};
+
+  for (const [name, field] of Object.entries(series ?? {})) {
+    const options = pickProperties(field, [
+      'minimum',
+      'maximum',
+      'description',
+      'example'
+    ]);
+    const schema =
+      field.type === 'boolean'
+        ? Type.Boolean(pickProperties(field, ['description', 'example']))
+        : field.type === 'int'
+          ? Type.Integer(options)
+          : Type.Number(options);
+    properties[name] = Type.Optional(Nullable(schema));
+  }
+
+  return Type.Object(properties);
 }
 
 function buildModel(config: ResourceModelConfig): ResourceModel {
@@ -193,6 +271,7 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     config
   );
   const { fileUploadModel, fileDeleteModel } = buildFileInputModels(config);
+  const seriesModel = buildSeriesModel(config.series);
 
   const resourceModel: ResourceModel = {
     name,
@@ -213,7 +292,8 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     relationCreateModel,
     relationUpdateModel,
     fileUploadModel,
-    fileDeleteModel
+    fileDeleteModel,
+    seriesModel
   };
 
   for (const value of Object.values(resourceModel)) {

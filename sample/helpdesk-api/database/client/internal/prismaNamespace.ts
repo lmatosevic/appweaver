@@ -412,7 +412,8 @@ export const ModelName = {
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
-  File: 'File'
+  File: 'File',
+  TeamSeries: 'TeamSeries'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -428,7 +429,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "cannedResponse" | "customer" | "slaPolicy" | "tag" | "team" | "ticketMessage" | "ticket" | "user" | "apiKey" | "oneTimeToken" | "twoFactorMethod" | "twoFactorRecoveryCode" | "role" | "permission" | "seeder" | "file"
+    modelProps: "cannedResponse" | "customer" | "slaPolicy" | "tag" | "team" | "ticketMessage" | "ticket" | "user" | "apiKey" | "oneTimeToken" | "twoFactorMethod" | "twoFactorRecoveryCode" | "role" | "permission" | "seeder" | "file" | "teamSeries"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1488,6 +1489,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TeamSeries: {
+      payload: Prisma.$TeamSeriesPayload<ExtArgs>
+      fields: Prisma.TeamSeriesFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TeamSeriesFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamSeriesPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TeamSeriesFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamSeriesPayload>
+        }
+        findFirst: {
+          args: Prisma.TeamSeriesFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamSeriesPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TeamSeriesFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamSeriesPayload>
+        }
+        findMany: {
+          args: Prisma.TeamSeriesFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamSeriesPayload>[]
+        }
+        create: {
+          args: Prisma.TeamSeriesCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamSeriesPayload>
+        }
+        createMany: {
+          args: Prisma.TeamSeriesCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.TeamSeriesDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamSeriesPayload>
+        }
+        update: {
+          args: Prisma.TeamSeriesUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamSeriesPayload>
+        }
+        deleteMany: {
+          args: Prisma.TeamSeriesDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TeamSeriesUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.TeamSeriesUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamSeriesPayload>
+        }
+        aggregate: {
+          args: Prisma.TeamSeriesAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTeamSeries>
+        }
+        groupBy: {
+          args: Prisma.TeamSeriesGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeamSeriesGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TeamSeriesCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeamSeriesCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1759,6 +1826,19 @@ export const FileScalarFieldEnum = {
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+
+
+export const TeamSeriesScalarFieldEnum = {
+  resourceId: 'resourceId',
+  time: 'time',
+  open: 'open',
+  unassigned: 'unassigned',
+  overdue: 'overdue',
+  firstResponseMinutes: 'firstResponseMinutes',
+  breached: 'breached'
+} as const
+
+export type TeamSeriesScalarFieldEnum = (typeof TeamSeriesScalarFieldEnum)[keyof typeof TeamSeriesScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2189,6 +2269,7 @@ export type GlobalOmitConfig = {
   permission?: Prisma.PermissionOmit
   seeder?: Prisma.SeederOmit
   file?: Prisma.FileOmit
+  teamSeries?: Prisma.TeamSeriesOmit
 }
 
 /* Types for Logging */

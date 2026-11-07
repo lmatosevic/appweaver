@@ -11,3 +11,4 @@ export * from './security/security-store-config';
 export * from './sms/sms-config';
 export * from './storage/storage-config';
 export * from './template/template-config';
+export * from './timeseries/timeseries-config';

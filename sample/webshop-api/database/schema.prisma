@@ -188,6 +188,9 @@ model Product {
   /// File columns
   images File[] @relation("ProductImagesFile")
 
+  /// Time series points
+  seriesPoints ProductSeries[] @relation("ProductSeries")
+
   /// Audit columns
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
@@ -388,6 +391,19 @@ model File {
   @@index([resourceName, resourceId, resourceField])
   @@index([createdById])
   @@index([deletedById])
+}
+
+model ProductSeries {
+  resourceId Int
+  time       DateTime
+  price      Int?
+  stock      Int?
+  sold       Int?
+
+  /// Related columns
+  resource Product @relation("ProductSeries", fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@id([resourceId, time])
 }
 
 enum CouponType {

@@ -263,6 +263,17 @@ CREATE TABLE "File" (
 );
 
 -- CreateTable
+CREATE TABLE "ProductSeries" (
+    "resourceId" INTEGER NOT NULL,
+    "time" TIMESTAMP(3) NOT NULL,
+    "price" INTEGER,
+    "stock" INTEGER,
+    "sold" INTEGER,
+
+    CONSTRAINT "ProductSeries_pkey" PRIMARY KEY ("resourceId","time")
+);
+
+-- CreateTable
 CREATE TABLE "_ApiKeyRolesRole" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
@@ -526,6 +537,9 @@ ALTER TABLE "File" ADD CONSTRAINT "File_createdById_fkey" FOREIGN KEY ("createdB
 
 -- AddForeignKey
 ALTER TABLE "File" ADD CONSTRAINT "File_deletedById_fkey" FOREIGN KEY ("deletedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductSeries" ADD CONSTRAINT "ProductSeries_resourceId_fkey" FOREIGN KEY ("resourceId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_ApiKeyRolesRole" ADD CONSTRAINT "_ApiKeyRolesRole_A_fkey" FOREIGN KEY ("A") REFERENCES "ApiKey"("id") ON DELETE CASCADE ON UPDATE CASCADE;

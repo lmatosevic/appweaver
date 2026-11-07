@@ -32,7 +32,12 @@ import {
   ResourceError
 } from '@appweaver/common';
 import { resourceConfig } from './resource-config';
-import { inject, injectModel, CacheService } from '@appweaver/core';
+import {
+  inject,
+  injectModel,
+  CacheService,
+  TimeSeriesService
+} from '@appweaver/core';
 import { arePoliciesSkipped } from '../utils/policy-util';
 import { liveRecordFilter } from '../utils/model-util';
 import { projectVirtualFields } from '../utils/virtual-util';
@@ -1229,6 +1234,7 @@ export abstract class ResourceService<
    */
   private async cleanupDeletedRecords(deleted: DeletedRecords): Promise<void> {
     const fileService = inject(FileService, false);
+    const timeSeriesService = inject(TimeSeriesService, false);
     const groups: [boolean, AffectedRecords][] = [
       [true, deleted.soft],
       [false, deleted.hard]
@@ -1237,6 +1243,9 @@ export abstract class ResourceService<
     for (const [softDeleted, records] of groups) {
       for (const [modelName, ids] of Object.entries(records)) {
         await fileService?.deleteResourcesFiles(modelName, ids, softDeleted);
+        if (!softDeleted) {
+          await timeSeriesService?.purgeResources(modelName, ids);
+        }
         await this._cacheService.invalidateCache(modelName, 'delete');
       }
     }

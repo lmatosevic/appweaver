@@ -71,7 +71,12 @@ export const RESOURCE_OPERATIONS = {
   bulkCreate: 'post',
   bulkUpdate: 'patch',
   bulkReplace: 'put',
-  bulkDelete: 'delete'
+  bulkDelete: 'delete',
+  writeSeries: 'post',
+  writeManySeries: 'post',
+  querySeries: 'get',
+  queryManySeries: 'post',
+  deleteSeries: 'post'
 } as const;
 
 /** Expected type keys for a resource used for type inference. */
@@ -89,7 +94,12 @@ export const RESOURCE_TYPES = [
   'exportRequest',
   'files',
   'fileUpload',
-  'fileDelete'
+  'fileDelete',
+  'seriesWrite',
+  'seriesBulkWrite',
+  'seriesQuery',
+  'seriesPoints',
+  'seriesBulkPoints'
 ] as const;
 
 /** Type name used when generating the TypeScript module type for the auth module. */

@@ -5,7 +5,47 @@ import { RESOURCE_OPERATIONS, RESOURCE_TYPES } from '../../constants';
 import { BulkItem, BulkResponse, ResourceId } from '../../types';
 
 /** The resource types added after the first release, optional so that a client generated before them still compiles. */
-type OptionalResourceTypes = 'replace';
+type OptionalResourceTypes =
+  | 'replace'
+  | 'seriesWrite'
+  | 'seriesBulkWrite'
+  | 'seriesQuery'
+  | 'seriesPoints'
+  | 'seriesBulkPoints';
+
+/** The points of a write of the time series of a resource. */
+type SeriesWritePoints<Resource extends ResourceType> =
+  Resource['seriesWrite'] extends {
+    points: infer P;
+  }
+    ? P
+    : Record<string, unknown>[];
+
+/** The points of a write of the time series of many resources, each naming its resource. */
+type SeriesBulkWritePoints<Resource extends ResourceType> =
+  Resource['seriesBulkWrite'] extends {
+    points: infer P;
+  }
+    ? P
+    : Record<string, unknown>[];
+
+/** The query of the time series of a resource, its fields a list. */
+export type SeriesQueryParams<Resource extends ResourceType = ResourceType> =
+  Omit<
+    Resource['seriesQuery'] extends object
+      ? Resource['seriesQuery']
+      : Record<string, unknown>,
+    'ids' | 'filter'
+  >;
+
+/** The response of a write of time series points: their count, and whether a worker writes them later. */
+export type SeriesWriteResult = { count: number; queued: boolean };
+
+/** The options of a write of time series points. */
+export type SeriesWriteOptions = RequestOptions & {
+  /** Write the points in the request, instead of queueing them for a model queueing its points */
+  direct?: boolean;
+};
 
 export type ResourceType = Record<
   Exclude<(typeof RESOURCE_TYPES)[number], OptionalResourceTypes>,
@@ -372,6 +412,135 @@ export class ResourceClient<Resource extends ResourceType>
     return this.sendRequest('delete', `${this.basePath}/bulk`, {
       ...options,
       body: ids
+    });
+  }
+
+  /**
+   * Writes the time series points of a resource, merging a point into the one stored at the same time
+   * (`POST /{id}/series`).
+   *
+   * @param {ResourceId} id - The ID of the resource.
+   * @param {Object[]} points - The points, each with its optional `time` and the values of the series fields.
+   * @param {SeriesWriteOptions} options - Additional request options, and `direct` to skip the queue.
+   * @return The count of the points, and whether they were queued.
+   */
+  public async writeSeries(
+    id: ResourceId,
+    points: SeriesWritePoints<Resource>,
+    options: SeriesWriteOptions = {}
+  ): Promise<SeriesWriteResult> {
+    const { direct, ...requestOptions } = options;
+    return this.sendRequest('post', `${this.basePath}/{id}/series`, {
+      ...requestOptions,
+      body: { points },
+      params: {
+        ...(requestOptions.params ?? {}),
+        path: { id },
+        query: {
+          ...(requestOptions.params?.query ?? {}),
+          ...(direct ? { ingest: 'direct' } : {})
+        }
+      }
+    });
+  }
+
+  /**
+   * Writes the time series points of many resources, each point naming its `resourceId` (`POST /series`).
+   *
+   * @param {Object[]} points - The points.
+   * @param {SeriesWriteOptions} options - Additional request options, and `direct` to skip the queue.
+   * @return The count of the points, and whether they were queued.
+   */
+  public async writeManySeries(
+    points: SeriesBulkWritePoints<Resource>,
+    options: SeriesWriteOptions = {}
+  ): Promise<SeriesWriteResult> {
+    const { direct, ...requestOptions } = options;
+    return this.sendRequest('post', `${this.basePath}/series`, {
+      ...requestOptions,
+      body: { points },
+      params: {
+        ...(requestOptions.params ?? {}),
+        query: {
+          ...(requestOptions.params?.query ?? {}),
+          ...(direct ? { ingest: 'direct' } : {})
+        }
+      }
+    });
+  }
+
+  /**
+   * Queries the time series points of a resource (`GET /{id}/series`), aggregated by bucket with a `bucket` or an
+   * `aggregate`.
+   *
+   * @param {ResourceId} id - The ID of the resource.
+   * @param {SeriesQueryParams} query - The fields, the range, the bucket, the aggregate, the order and the limit.
+   * @param {RequestOptions} options - Additional request options.
+   * @return The points, in their time order.
+   */
+  public async querySeries(
+    id: ResourceId,
+    query: SeriesQueryParams<Resource> = {} as SeriesQueryParams<Resource>,
+    options: RequestOptions = {}
+  ): Promise<Resource['seriesPoints']> {
+    const params: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(
+      query as Record<string, unknown>
+    )) {
+      if (value !== undefined && value !== null) {
+        params[key] = Array.isArray(value) ? value.join(',') : value;
+      }
+    }
+
+    return this.sendRequest('get', `${this.basePath}/{id}/series`, {
+      ...options,
+      params: {
+        ...(options.params ?? {}),
+        path: { id },
+        query: { ...(options.params?.query ?? {}), ...params }
+      }
+    });
+  }
+
+  /**
+   * Queries the time series points of the resources of the `ids`, the `filter`, or both (`POST /series/query`).
+   *
+   * @param {Object} request - The resources, the fields, the range, the bucket, the aggregate, the order and the
+   * limit.
+   * @param {RequestOptions} options - Additional request options.
+   * @return The points, each naming its resource.
+   */
+  public async queryManySeries(
+    request: Resource['seriesQuery'],
+    options: RequestOptions = {}
+  ): Promise<Resource['seriesBulkPoints']> {
+    return this.sendRequest('post', `${this.basePath}/series/query`, {
+      ...options,
+      body: request
+    });
+  }
+
+  /**
+   * Deletes the time series points of a resource within a time range, all of them without one
+   * (`POST /{id}/delete-series`).
+   *
+   * @param {ResourceId} id - The ID of the resource.
+   * @param {Object} range - The `from` (inclusive) and `to` (exclusive) of the range.
+   * @param {RequestOptions} options - Additional request options.
+   * @return The count of the deleted points.
+   */
+  public async deleteSeries(
+    id: ResourceId,
+    range: { from?: string; to?: string } = {},
+    options: RequestOptions = {}
+  ): Promise<{ count: number }> {
+    return this.sendRequest('post', `${this.basePath}/{id}/delete-series`, {
+      ...options,
+      body: range,
+      params: {
+        ...(options.params ?? {}),
+        path: { id }
+      }
     });
   }
 

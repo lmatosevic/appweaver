@@ -400,4 +400,107 @@ describe('resource-client', () => {
       expect(stub.lastCall().params.body).toEqual({ image: true });
     });
   });
+
+  describe('series', () => {
+    test('writes the points of a resource, directly when asked', async () => {
+      const { stub, resource } = createResource({
+        data: { count: 1, queued: true }
+      });
+
+      await expect(
+        resource.writeSeries(7, [{ temperature: 20 }])
+      ).resolves.toEqual({
+        count: 1,
+        queued: true
+      });
+      expect(stub.lastCall()).toMatchObject({
+        method: 'post',
+        path: '/api/posts/{id}/series'
+      });
+      expect(stub.lastCall().params.body).toEqual({
+        points: [{ temperature: 20 }]
+      });
+      expect(stub.lastCall().params.params).toEqual({
+        path: { id: 7 },
+        query: {}
+      });
+
+      await resource.writeSeries(7, [{ temperature: 21 }], { direct: true });
+      expect(stub.lastCall().params.params.query).toEqual({ ingest: 'direct' });
+    });
+
+    test('writes the points of many resources', async () => {
+      const { stub, resource } = createResource({
+        data: { count: 1, queued: false }
+      });
+
+      await resource.writeManySeries([{ resourceId: 1, temperature: 20 }], {
+        direct: true
+      });
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'post',
+        path: '/api/posts/series'
+      });
+      expect(stub.lastCall().params.params.query).toEqual({ ingest: 'direct' });
+
+      await resource.writeManySeries([{ resourceId: 1, temperature: 20 }]);
+      expect(stub.lastCall().params.params.query).toEqual({});
+    });
+
+    test('queries the points of a resource, joining the fields', async () => {
+      const { stub, resource } = createResource({ data: { items: [] } });
+
+      await resource.querySeries(7, {
+        fields: ['temperature', 'errors'],
+        bucket: '1h',
+        limit: undefined
+      });
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'get',
+        path: '/api/posts/{id}/series'
+      });
+      expect(stub.lastCall().params.params).toEqual({
+        path: { id: 7 },
+        query: { fields: 'temperature,errors', bucket: '1h' }
+      });
+
+      await resource.querySeries(7);
+      expect(stub.lastCall().params.params.query).toEqual({});
+    });
+
+    test('queries the points of many resources', async () => {
+      const { stub, resource } = createResource({ data: { items: [] } });
+
+      await resource.queryManySeries({ ids: [1, 2], aggregate: 'max' });
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'post',
+        path: '/api/posts/series/query'
+      });
+      expect(stub.lastCall().params.body).toEqual({
+        ids: [1, 2],
+        aggregate: 'max'
+      });
+    });
+
+    test('deletes the points of a time range', async () => {
+      const { stub, resource } = createResource({ data: { count: 2 } });
+
+      await expect(
+        resource.deleteSeries(7, { from: '2026-01-01' })
+      ).resolves.toEqual({
+        count: 2
+      });
+      expect(stub.lastCall()).toMatchObject({
+        method: 'post',
+        path: '/api/posts/{id}/delete-series'
+      });
+      expect(stub.lastCall().params.body).toEqual({ from: '2026-01-01' });
+
+      await resource.deleteSeries(7);
+      expect(stub.lastCall().params.body).toEqual({});
+    });
+  });
 });

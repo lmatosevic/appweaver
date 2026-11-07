@@ -4,13 +4,16 @@
 
 The backend of an online shop selling audio gear: a public catalog, customer accounts, a checkout reserving stock and
 applying coupons, payments processed in the background, and a warehouse partner reporting shipments over an API key.
-It runs on PostgreSQL and Redis, the production-like setup of the samples.
+It runs on PostgreSQL with the TimescaleDB extension and Redis, the production-like setup of the samples.
 
 ## What it showcases
 
 | Feature                                                                                                             | Where                                                                                                             |
 |---------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
 | PostgreSQL, and Redis for the cache, the rate limits, and the queue (docker-compose)                                | [`docker-compose.yml`](docker-compose.yml), [`appweaver.json`](appweaver.json)                                    |
+| **Time series** of the products (price, stock, units sold) in a TimescaleDB hypertable, compressed and retained     | [`resources/product/model.ts`](src/resources/product/model.ts)                                                    |
+| The points queued for a BullMQ worker once the checkout commits, and dropped with a failed one                      | [`features/catalog/product-history.ts`](src/features/catalog/product-history.ts)                                  |
+| The lowest price of the last 30 days (EU Omnibus directive), from the price history                                 | [`features/catalog/lowest-price-route.ts`](src/features/catalog/lowest-price-route.ts)                            |
 | A transactional checkout: conditional stock reservation, coupon redemption, price copy                              | [`features/checkout/checkout.ts`](src/features/checkout/checkout.ts)                                              |
 | Pure, unit tested pricing rules (cents, discounts, free shipping)                                                   | [`features/checkout/pricing.ts`](src/features/checkout/pricing.ts)                                                |
 | A resource event emitted by hand, feeding a **BullMQ** payment worker                                               | [`features/payments/payment-worker.ts`](src/features/payments/payment-worker.ts)                                  |
@@ -35,7 +38,7 @@ Build the monorepo once from the repository root (`npm install && npm run build`
 
 ```bash
 cp .env.example .env                  # NODE_ENV=dev and the database password
-docker compose up -d postgres redis   # PostgreSQL on :5432, Redis on :6379
+docker compose up -d postgres redis   # PostgreSQL (TimescaleDB) on :5432, Redis on :6379
 npm run migrate                       # apply the migrations
 npm run seed                          # roles, staff, the catalog, coupons, and two customers
 npm run dev                           # http://localhost:5002, Swagger UI at http://localhost:5002/swagger
@@ -83,6 +86,26 @@ curl -s localhost:5002/api/reviews -H "authorization: Bearer $TOKEN" -H 'content
   -d '{"product":1,"rating":5,"title":"Silence at last"}' | jq '{authorName, verifiedPurchase}'
 ```
 
+The price, the stock and the units sold of every product are recorded as time series (`timeseries.provider:
+timescale`): the application turns the `ProductSeries` table of the migrations into a hypertable when it starts, with
+the compression and the retention of the `seriesOptions` of the product model. The admins read them back by bucket:
+
+```bash
+ADMIN=$(curl -s localhost:5002/auth/login -H 'content-type: application/json' \
+  -d '{"username":"admin@webshop.example.com","password":"<printed by the seeder>"}' | jq -r .accessToken)
+
+# The units sold per day of a product, and its stock at the end of each day
+curl -s "localhost:5002/api/products/1/series?fields=sold&bucket=1d&aggregate=sum" -H "authorization: Bearer $ADMIN"
+curl -s "localhost:5002/api/products/1/series?fields=stock&bucket=1d&aggregate=last" -H "authorization: Bearer $ADMIN"
+
+# The weekly sales of a whole category
+curl -s localhost:5002/api/products/series/query -H "authorization: Bearer $ADMIN" -H 'content-type: application/json' \
+  -d '{"filter":{"category":{"slug":"headphones"}},"fields":["sold"],"bucket":"1w","aggregate":"sum"}'
+
+# The storefront shows the lowest price of the last 30 days beside a discount
+curl -s localhost:5002/api/products/1/lowest-price
+```
+
 An order above 10,000 EUR is declined by the simulated payment provider ([
 `payment-gateway.ts`](src/features/payments/payment-gateway.ts)), which fails the order and releases its stock.
 
@@ -90,7 +113,7 @@ An order above 10,000 EUR is declined by the simulated payment provider ([
 
 ```bash
 npm run test  # unit tests
-npm run e2e   # end-to-end tests, against the webshop-api-test database of the PostgreSQL container
+npm run e2e   # end-to-end tests, against the webshop-api-test database of the TimescaleDB container
 ```
 
 The end-to-end tests need the PostgreSQL container running, while Redis is replaced by in-memory implementations (see

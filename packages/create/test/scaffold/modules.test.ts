@@ -17,7 +17,7 @@ describe('modules', () => {
 
     test('rejects an unknown module', () => {
       expect(() => parseModuleNames(['redis', 'cron'])).toThrow(
-        'Unknown module: cron. Must be one of following: data, web, redis, queue, scheduler, mailer, sms, templates, locales, docker.'
+        'Unknown module: cron. Must be one of following: data, web, redis, queue, scheduler, mailer, sms, templates, locales, timeseries, docker.'
       );
     });
   });

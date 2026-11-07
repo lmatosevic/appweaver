@@ -107,6 +107,12 @@ export function getSqliteGitignore(database: DatabaseType): string {
   return '# Local SQLite database files\n/data/*.db\n/data/*.db-*\n\n';
 }
 
+/** The image of the PostgreSQL service. */
+export const postgresImage = 'postgres:18.4';
+
+/** The image of the PostgreSQL service of a project with the time series, TimescaleDB on the same major version. */
+export const timescaleImage = 'timescale/timescaledb:2.31.0-pg18';
+
 /** The docker-compose.yml service of a database server. */
 export type DatabaseDockerService = {
   /** The service name, the hostname of the database. */
@@ -119,11 +125,13 @@ export type DatabaseDockerService = {
 
 /**
  * Returns the docker-compose.yml service of the database server, or `undefined` for SQLite, which runs embedded in
- * the application, with its file in a named volume shared by the application services.
+ * the application, with its file in a named volume shared by the application services. The PostgreSQL server runs
+ * TimescaleDB for a project with the time series.
  */
 export function getDatabaseDockerService(
   database: DatabaseType,
-  name: string
+  name: string,
+  timescale: boolean = false
 ): DatabaseDockerService | undefined {
   switch (database) {
     case 'sqlite':
@@ -132,7 +140,7 @@ export function getDatabaseDockerService(
       return {
         host: 'postgres',
         service: `postgres:
-  image: postgres:18.4
+  image: ${timescale ? timescaleImage : postgresImage}
   container_name: ${name}-postgres
   restart: unless-stopped
   healthcheck:

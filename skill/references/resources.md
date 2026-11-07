@@ -986,6 +986,7 @@ generated as a unique index of its values instead, `@@unique([coverId], where: {
 | `updateOneModel`       | Request for update endpoint                    |
 | `fileUploadModel`      | Request for file upload endpoint               |
 | `fileDeleteModel`      | Request for file delete endpoint               |
+| `seriesModel`          | The values of the series fields                |
 
 ---
 
@@ -1475,6 +1476,9 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 | `export`      | RouteConfig      | `POST /export` - Export resources to CSV.                              |
 | `fileUpload`  | RouteConfig      | `POST /:id/files` - Upload files to a resource.                        |
 | `fileDelete`  | RouteConfig      | `POST /:id/delete-files` - Delete files from a resource.               |
+| `seriesWrite` | SeriesWriteRouteConfig | `POST /:id/series`, `POST /series` - Write time series points ([timeseries.md](./timeseries.md)). |
+| `seriesQuery` | RouteConfig      | `GET /:id/series`, `POST /series/query` - Query time series points.     |
+| `seriesDelete`| RouteConfig      | `POST /:id/delete-series` - Delete the time series points of a range.   |
 | `bulkCreate`  | BulkRouteConfig  | `POST /bulk` - Create many (disabled by default).                      |
 | `bulkUpdate`  | BulkRouteConfig  | `PATCH /bulk` - Update many (disabled by default).                     |
 | `bulkReplace` | BulkRouteConfig  | `PUT /bulk` - Replace many (enabled along with `bulkUpdate`).          |

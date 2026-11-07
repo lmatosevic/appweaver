@@ -12,6 +12,7 @@ export * from './security/create-auth-resources';
 export * from './security/helper';
 export * from './seeder';
 export * from './storage/file-service';
+export * from './timeseries';
 export * from './types/auth';
 export * from './types/generated';
 export * from './types/storage';

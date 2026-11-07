@@ -7,13 +7,15 @@ import {
   isResourceModel,
   relinkResourceModels,
   ResourceModel,
-  appConfig
+  appConfig,
+  PROVIDER_AUTO
 } from '@appweaver/common';
 import {
   discoverModules,
   EnabledModule,
   isModuleEnabled
 } from '@appweaver/core';
+import { timeseriesConfig } from '@appweaver/core/config';
 
 /**
  * Loads and parses the `package.json` file located in the CLI project package directory.
@@ -231,4 +233,29 @@ function declarationFiles(directory: string): string[] {
     }
     return entry.name.endsWith('.d.ts') ? [entryPath] : [];
   });
+}
+
+/** The time series providers writing the points to the series tables of the database. */
+const DATABASE_SERIES_PROVIDERS = ['database', 'timescale'];
+
+/**
+ * Checks if the points of the time series go to the series tables of the database (the `database` and `timescale`
+ * providers), so the Prisma schema has them. With `auto`, they do unless an enabled module provides another
+ * `TimeSeries` driver selected by `auto`, i.e. the package of another store.
+ *
+ * @param {EnabledModule[]} modules - The enabled modules.
+ * @return {boolean} `true` when the database holds the points.
+ */
+export function seriesInDatabase(modules: EnabledModule[]): boolean {
+  const provider = timeseriesConfig.PROVIDER;
+  if (provider !== PROVIDER_AUTO) {
+    return DATABASE_SERIES_PROVIDERS.includes(provider);
+  }
+
+  return !modules.some(({ module }) =>
+    (module.providers ?? []).some(
+      (entry) =>
+        entry.contract.name === 'TimeSeries' && (entry.auto ?? true) === true
+    )
+  );
 }

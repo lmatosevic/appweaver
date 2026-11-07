@@ -66,7 +66,8 @@ export const ModelName = {
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
-  File: 'File'
+  File: 'File',
+  TeamSeries: 'TeamSeries'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -317,6 +318,19 @@ export const FileScalarFieldEnum = {
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
+
+
+export const TeamSeriesScalarFieldEnum = {
+  resourceId: 'resourceId',
+  time: 'time',
+  open: 'open',
+  unassigned: 'unassigned',
+  overdue: 'overdue',
+  firstResponseMinutes: 'firstResponseMinutes',
+  breached: 'breached'
+} as const
+
+export type TeamSeriesScalarFieldEnum = (typeof TeamSeriesScalarFieldEnum)[keyof typeof TeamSeriesScalarFieldEnum]
 
 
 export const SortOrder = {

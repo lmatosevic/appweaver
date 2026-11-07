@@ -110,6 +110,10 @@
               "default": "<srcPath>/main.ts",
               "type": "string"
             },
+            "tasksDirPath": {
+              "default": "<srcPath>/tasks",
+              "type": "string"
+            },
             "modulesPattern": {
               "default": "<srcPath>/modules/*/module.ts",
               "type": "string"
@@ -364,6 +368,9 @@
                 },
                 "storage": {
                   "$ref": "#/definitions/logLevel"
+                },
+                "timeseries": {
+                  "$ref": "#/definitions/logLevel"
                 }
               }
             },
@@ -566,6 +573,70 @@
             "cache": {
               "default": true,
               "type": "boolean"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            }
+          }
+        },
+        "timeseries": {
+          "type": "object",
+          "properties": {
+            "ingest": {
+              "default": "direct",
+              "anyOf": [
+                {
+                  "const": "direct",
+                  "type": "string"
+                },
+                {
+                  "const": "queue",
+                  "type": "string"
+                },
+                {
+                  "const": "auto",
+                  "type": "string"
+                }
+              ]
+            },
+            "maxPointsPerWrite": {
+              "default": 5000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxPointsPerQuery": {
+              "default": 10000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxResourcesPerQuery": {
+              "default": 100,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "queueName": {
+              "default": "timeseries",
+              "type": "string"
+            },
+            "queueBatchSize": {
+              "default": 1000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "queueConcurrency": {
+              "default": 1,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "queueWorker": {
+              "default": true,
+              "type": "boolean"
+            },
+            "accessCacheTtl": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
             },
             "provider": {
               "default": "auto",
