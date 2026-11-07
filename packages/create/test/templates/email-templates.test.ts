@@ -30,7 +30,8 @@ const emails: [string, Record<string, unknown>][] = [
   ['emails/verify-email', { link: 'https://app.test/verify?token=1' }],
   ['emails/password-reset', { link: 'https://app.test/reset?token=1' }],
   ['emails/two-factor-code', { code: '123456', expiresInMinutes: 1 }],
-  ['emails/two-factor-code', { code: '123456', expiresInMinutes: 5 }]
+  ['emails/two-factor-code', { code: '123456', expiresInMinutes: 5 }],
+  ['emails/recovery-code-used', {}]
 ];
 
 describe('email templates', () => {
@@ -127,7 +128,7 @@ describe('email templates', () => {
       .readdirSync(inlinedDir, { recursive: true })
       .map((file) => path.join(inlinedDir, String(file)))
       .filter((filePath) => filePath.endsWith('.hbs'));
-    expect(templateFiles).toHaveLength(8);
+    expect(templateFiles).toHaveLength(10);
 
     for (const filePath of templateFiles) {
       const inlined = inlineTranslations(

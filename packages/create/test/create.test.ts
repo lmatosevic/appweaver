@@ -274,6 +274,14 @@ describe('create', () => {
       );
     });
 
+    test('generates the account SMS templates', () => {
+      for (const sms of ['two-factor-code', 'verify-phone']) {
+        expect(read('my-app', 'templates', 'sms', `${sms}.txt.hbs`)).toContain(
+          '{{t "sms.'
+        );
+      }
+    });
+
     test('creates the reports directory', () => {
       expect(exists('my-app', 'reports')).toBe(true);
     });
@@ -729,6 +737,21 @@ describe('create', () => {
       expect(config).not.toHaveProperty('queue');
     });
 
+    test('adds the Twilio SMS sender, logging the messages in dev and test', async () => {
+      await run('MyApp', '--no-install', '--agent', 'none', '--add', 'sms');
+
+      const { dependencies } = readJson('my-app', 'package.json');
+      expect(dependencies).toHaveProperty('@appweaver/twilio');
+
+      const { config, environments } = readJson('my-app', 'appweaver.json');
+      expect(config).not.toHaveProperty('sms');
+      expect(environments.dev.sms).toEqual({ provider: 'json' });
+      expect(environments.test.sms).toEqual({ provider: 'json' });
+      expect(read('my-app', '.env')).toContain(
+        'SMS_TWILIO_ACCOUNT_SID=\nSMS_TWILIO_AUTH_TOKEN=\nSMS_SENDER=\n'
+      );
+    });
+
     test('adds the modules a module requires', async () => {
       const logs = await run(
         'MyApp',
@@ -790,9 +813,9 @@ describe('create', () => {
       expect(exists('my-app', 'templates', 'layouts', 'email.html.hbs')).toBe(
         true
       );
-      expect(readJson('my-app', 'locales', 'en.json')).toEqual(
-        defaultTranslations
-      );
+      expect(readJson('my-app', 'locales', 'en.json')).toEqual({
+        emails: defaultTranslations.emails
+      });
     });
 
     test('writes no email templates without the mailer', async () => {

@@ -5,7 +5,9 @@ import {
   ErrorCode,
   RecaptchaConfig,
   RouteSchema,
-  TurnstileConfig
+  StringEnum,
+  TurnstileConfig,
+  TwoFactorMethodType
 } from '@appweaver/common';
 import {
   basicAuthConfig,
@@ -33,7 +35,14 @@ export const AuthenticationResponse = Type.Object(
       example: 'eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNTBl'
     }),
     expiresIn: Type.Number({ example: 604800 }),
-    refreshExpiresIn: Type.Number({ example: 5184000 })
+    refreshExpiresIn: Type.Number({ example: 5184000 }),
+    twoFactorMethods: Type.Optional(
+      Type.Array(StringEnum(TwoFactorMethodType), {
+        description:
+          'The 2FA methods of the user, the first being the default, set on the tokens of the 2fa scope',
+        example: ['totp', 'email']
+      })
+    )
   },
   { $id: 'AuthenticationResponse' }
 );

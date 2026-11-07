@@ -1,20 +1,20 @@
 import { AuthType } from '@appweaver/common';
-import { accountConfig, twoFactorConfig } from '../security-config';
+import { accountConfig } from '../security-config';
 import {
   resetPasswordSchema,
-  send2FACodeSchema,
   sendEmailVerificationSchema,
+  sendPhoneVerificationSchema,
   sendResetPasswordSchema,
-  verify2FACodeSchema,
   verifyEmailRedirectSchema,
-  verifyEmailSchema
+  verifyEmailSchema,
+  verifyPhoneSchema
 } from './account-schema';
 import { AccountService, VerificationType } from './account-service';
 import { inject } from '@appweaver/core';
 import { Server } from '../../types/server';
 
 /**
- * Registers the account routes: email verification, password reset, and two-factor authentication.
+ * Registers the account routes: email and phone verification, and password reset.
  *
  * @param {Server} server - The server to register the routes on.
  */
@@ -143,26 +143,24 @@ export function accountRoutes(server: Server): void {
     );
   }
 
-  if (twoFactorConfig.ENABLED) {
+  if (accountConfig.VERIFY_PHONE_ENABLED) {
     server.post(
-      '/send-2fa-code',
+      '/send-verify-phone',
       {
-        schema: send2FACodeSchema,
+        schema: sendPhoneVerificationSchema,
         onRequest: authenticate([AuthType.Jwt]),
         config: {
           rateLimit: {
             secure: true,
-            max: 10,
+            max: 5,
             timeWindow: 900000 // 15 minutes
           }
         }
       },
       async (request, reply) => {
-        const authUser = currentUser();
-
-        const response = await accountService.send2FACode(
-          authUser,
-          request.body.purpose
+        const response = await accountService.sendPhoneVerification(
+          currentUser(),
+          request.body.phoneNumber
         );
 
         return reply.send(response);
@@ -170,9 +168,9 @@ export function accountRoutes(server: Server): void {
     );
 
     server.post(
-      '/verify-2fa-code',
+      '/verify-phone',
       {
-        schema: verify2FACodeSchema,
+        schema: verifyPhoneSchema,
         onRequest: authenticate([AuthType.Jwt]),
         config: {
           rateLimit: {
@@ -182,12 +180,13 @@ export function accountRoutes(server: Server): void {
         }
       },
       async (request, reply) => {
-        const response = await accountService.verify2FACode(
+        const message = await accountService.verifyPhone(
+          currentUser(),
           request.body.challengeId,
           request.body.code
         );
 
-        return reply.send(response);
+        return reply.send({ message });
       }
     );
   }

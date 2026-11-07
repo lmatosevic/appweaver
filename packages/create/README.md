@@ -16,7 +16,7 @@
 
 `@appweaver/create` generates a ready-to-run Appweaver project for Node or Bun: the source layout, configuration files
 per environment, a seeded admin user, the test setup, the agent skill files for the chosen AI agent, and the optional
-modules (Redis, queue, scheduler, mailer, templates, locales, Docker files). It also creates
+modules (Redis, queue, scheduler, mailer, SMS, templates, locales, Docker files). It also creates
 [module packages](#module-packages), the drivers and features published to npm.
 
 ## Usage
@@ -62,6 +62,7 @@ refused). A module installs its packages, and a module required by an added one 
 | `queue`          | `@appweaver/bullmq`, requires `redis`                                                                          | in-memory queue                             |
 | `scheduler`      | `@appweaver/cron`                                                                                              | scheduler disabled                          |
 | `mailer`         | `@appweaver/nodemailer`, the account email templates with `templates`, their texts with `locales`              | mailer disabled                             |
+| `sms`            | `@appweaver/twilio`, the `json` SMS sender in dev and test, the Twilio keys of `.env`                          | SMS 2FA and phone verification disabled     |
 | `templates`      | `@appweaver/handlebars` and `templates/`                                                                       | no template engine                          |
 | `locales`        | `locales/en.json`, empty without the mailer                                                                    | English texts written into the templates    |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                | no Docker files                             |

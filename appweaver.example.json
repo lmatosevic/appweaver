@@ -134,10 +134,33 @@
           "enabled": true,
           "ottTtl": 1800000
         },
+        "verifyPhone": {
+          "enabled": true,
+          "ottTtl": 600000
+        },
         "2fa": {
           "enabled": true,
           "forced": false,
-          "ottTtl": 300000
+          "ottTtl": 300000,
+          "methods": ["email", "sms", "totp"],
+          "defaultMethod": "email",
+          "codeLength": 6,
+          "maxAttempts": 5,
+          "keepDatabaseTable": false,
+          "recoveryCodes": {
+            "enabled": true,
+            "count": 10,
+            "length": 16,
+            "notifyOnUse": true
+          },
+          "totp": {
+            "issuer": "Appweaver",
+            "encryptionKey": "",
+            "digits": 6,
+            "period": 30,
+            "window": 1,
+            "setupTtl": 600000
+          }
         }
       },
       "recaptcha": {
@@ -336,6 +359,18 @@
         "secure": false,
         "user": "no-reply@appweaver.co",
         "password": ""
+      }
+    },
+    "sms": {
+      "sender": "+15005550006",
+      "provider": "auto",
+      "twilio": {
+        "accountSid": "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "authToken": "",
+        "messagingServiceSid": "",
+        "apiUrl": "https://api.twilio.com",
+        "statusUrl": "https://status.twilio.com/api/v2/status.json",
+        "timeout": 10000
       }
     },
     "template": {

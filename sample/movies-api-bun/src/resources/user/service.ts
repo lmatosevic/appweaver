@@ -1,4 +1,3 @@
-import { TwoFactorAuth } from '@appweaver/common';
 import { createAuthService } from '@appweaver/data';
 import db from '@db/client';
 import { Role } from '@/features/access/roles';
@@ -17,7 +16,6 @@ export default createAuthService({
       displayName:
         [data?.firstName, data?.lastName].filter(Boolean).join(' ') ||
         email.split('@')[0],
-      twoFactorAuth: TwoFactorAuth.None,
       roles: [{ id: member.id }]
     };
   },

@@ -282,13 +282,6 @@ export type BoolFilter<$PrismaModel = never> = {
   not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
 }
 
-export type EnumEmployeeTwoFactorAuthFilter<$PrismaModel = never> = {
-  equals?: $Enums.EmployeeTwoFactorAuth | Prisma.EnumEmployeeTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.EmployeeTwoFactorAuth[]
-  notIn?: $Enums.EmployeeTwoFactorAuth[]
-  not?: Prisma.NestedEnumEmployeeTwoFactorAuthFilter<$PrismaModel> | $Enums.EmployeeTwoFactorAuth
-}
-
 export type EnumEmployeeEmploymentTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.EmployeeEmploymentType | Prisma.EnumEmployeeEmploymentTypeFieldRefInput<$PrismaModel>
   in?: $Enums.EmployeeEmploymentType[]
@@ -315,16 +308,6 @@ export type BoolWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedBoolFilter<$PrismaModel>
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
-}
-
-export type EnumEmployeeTwoFactorAuthWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.EmployeeTwoFactorAuth | Prisma.EnumEmployeeTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.EmployeeTwoFactorAuth[]
-  notIn?: $Enums.EmployeeTwoFactorAuth[]
-  not?: Prisma.NestedEnumEmployeeTwoFactorAuthWithAggregatesFilter<$PrismaModel> | $Enums.EmployeeTwoFactorAuth
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumEmployeeTwoFactorAuthFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumEmployeeTwoFactorAuthFilter<$PrismaModel>
 }
 
 export type EnumLeaveRequestTypeFilter<$PrismaModel = never> = {
@@ -475,6 +458,23 @@ export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedJsonFilter<$PrismaModel>
   _max?: Prisma.NestedJsonFilter<$PrismaModel>
+}
+
+export type EnumTwoFactorMethodTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.TwoFactorMethodType | Prisma.EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.TwoFactorMethodType[]
+  notIn?: $Enums.TwoFactorMethodType[]
+  not?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel> | $Enums.TwoFactorMethodType
+}
+
+export type EnumTwoFactorMethodTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TwoFactorMethodType | Prisma.EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.TwoFactorMethodType[]
+  notIn?: $Enums.TwoFactorMethodType[]
+  not?: Prisma.NestedEnumTwoFactorMethodTypeWithAggregatesFilter<$PrismaModel> | $Enums.TwoFactorMethodType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel>
 }
 
 export type NestedIntFilter<$PrismaModel = never> = {
@@ -751,13 +751,6 @@ export type NestedBoolFilter<$PrismaModel = never> = {
   not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
 }
 
-export type NestedEnumEmployeeTwoFactorAuthFilter<$PrismaModel = never> = {
-  equals?: $Enums.EmployeeTwoFactorAuth | Prisma.EnumEmployeeTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.EmployeeTwoFactorAuth[]
-  notIn?: $Enums.EmployeeTwoFactorAuth[]
-  not?: Prisma.NestedEnumEmployeeTwoFactorAuthFilter<$PrismaModel> | $Enums.EmployeeTwoFactorAuth
-}
-
 export type NestedEnumEmployeeEmploymentTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.EmployeeEmploymentType | Prisma.EnumEmployeeEmploymentTypeFieldRefInput<$PrismaModel>
   in?: $Enums.EmployeeEmploymentType[]
@@ -784,16 +777,6 @@ export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedBoolFilter<$PrismaModel>
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
-}
-
-export type NestedEnumEmployeeTwoFactorAuthWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.EmployeeTwoFactorAuth | Prisma.EnumEmployeeTwoFactorAuthFieldRefInput<$PrismaModel>
-  in?: $Enums.EmployeeTwoFactorAuth[]
-  notIn?: $Enums.EmployeeTwoFactorAuth[]
-  not?: Prisma.NestedEnumEmployeeTwoFactorAuthWithAggregatesFilter<$PrismaModel> | $Enums.EmployeeTwoFactorAuth
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumEmployeeTwoFactorAuthFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumEmployeeTwoFactorAuthFilter<$PrismaModel>
 }
 
 export type NestedEnumLeaveRequestTypeFilter<$PrismaModel = never> = {
@@ -900,6 +883,23 @@ export type NestedJsonFilterBase<$PrismaModel = never> = {
   array_starts_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
   array_ends_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
+export type NestedEnumTwoFactorMethodTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.TwoFactorMethodType | Prisma.EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.TwoFactorMethodType[]
+  notIn?: $Enums.TwoFactorMethodType[]
+  not?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel> | $Enums.TwoFactorMethodType
+}
+
+export type NestedEnumTwoFactorMethodTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TwoFactorMethodType | Prisma.EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.TwoFactorMethodType[]
+  notIn?: $Enums.TwoFactorMethodType[]
+  not?: Prisma.NestedEnumTwoFactorMethodTypeWithAggregatesFilter<$PrismaModel> | $Enums.TwoFactorMethodType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTwoFactorMethodTypeFilter<$PrismaModel>
 }
 
 

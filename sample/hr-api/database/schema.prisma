@@ -102,27 +102,30 @@ model Employee {
   terminatedAt   DateTime?
   passwordHash   String?
   verifiedEmail  Boolean                @default(false)
-  twoFactorAuth  EmployeeTwoFactorAuth  @default(None)
+  phoneNumber    String?
+  verifiedPhone  Boolean                @default(false)
   enabled        Boolean                @default(true)
   logoutAt       DateTime?
 
   /// Related columns
-  department           Department?         @relation("DepartmentEmployeesEmployee", fields: [departmentId], references: [id])
-  departmentId         Int?
-  position             Position?           @relation("EmployeePositionPosition", fields: [positionId], references: [id])
-  positionId           Int?
-  manager              Employee?           @relation("EmployeeManagerEmployee", fields: [managerId], references: [id])
-  managerId            String?
-  reports              Employee[]          @relation("EmployeeManagerEmployee")
-  headOf               Department?         @relation("DepartmentHeadEmployee")
-  leaveBalances        LeaveBalance[]      @relation("EmployeeLeaveBalancesLeaveBalance")
-  leaveRequests        LeaveRequest[]      @relation("EmployeeLeaveRequestsLeaveRequest")
-  decidedLeaveRequests LeaveRequest[]      @relation("EmployeeDecidedLeaveRequestsLeaveRequest")
-  documents            EmployeeDocument[]  @relation("EmployeeDocumentEmployeeEmployee")
-  compensations        Compensation[]      @relation("CompensationEmployeeEmployee")
-  reviews              PerformanceReview[] @relation("EmployeeReviewsPerformanceReview")
-  writtenReviews       PerformanceReview[] @relation("EmployeeWrittenReviewsPerformanceReview")
-  roles                Role[]              @relation("EmployeeRolesRole")
+  department             Department?             @relation("DepartmentEmployeesEmployee", fields: [departmentId], references: [id])
+  departmentId           Int?
+  position               Position?               @relation("EmployeePositionPosition", fields: [positionId], references: [id])
+  positionId             Int?
+  manager                Employee?               @relation("EmployeeManagerEmployee", fields: [managerId], references: [id])
+  managerId              String?
+  reports                Employee[]              @relation("EmployeeManagerEmployee")
+  headOf                 Department?             @relation("DepartmentHeadEmployee")
+  leaveBalances          LeaveBalance[]          @relation("EmployeeLeaveBalancesLeaveBalance")
+  leaveRequests          LeaveRequest[]          @relation("EmployeeLeaveRequestsLeaveRequest")
+  decidedLeaveRequests   LeaveRequest[]          @relation("EmployeeDecidedLeaveRequestsLeaveRequest")
+  documents              EmployeeDocument[]      @relation("EmployeeDocumentEmployeeEmployee")
+  compensations          Compensation[]          @relation("CompensationEmployeeEmployee")
+  reviews                PerformanceReview[]     @relation("EmployeeReviewsPerformanceReview")
+  writtenReviews         PerformanceReview[]     @relation("EmployeeWrittenReviewsPerformanceReview")
+  roles                  Role[]                  @relation("EmployeeRolesRole")
+  twoFactorMethods       TwoFactorMethod[]       @relation("EmployeeTwoFactorMethodsTwoFactorMethod")
+  twoFactorRecoveryCodes TwoFactorRecoveryCode[] @relation("EmployeeTwoFactorRecoveryCodesTwoFactorRecoveryCode")
 
   /// File columns
   avatar   File? @relation("EmployeeAvatarFile", fields: [avatarId], references: [id])
@@ -142,13 +145,15 @@ model Employee {
   createdFiles              File[]              @relation("FileCreatedByEmployee")
 
   /// Soft deleted models referenced with deletedById column
-  deletedCompensations      Compensation[]      @relation("CompensationDeletedByEmployee")
-  deletedEmployeeDocuments  EmployeeDocument[]  @relation("EmployeeDocumentDeletedByEmployee")
-  deletedEmployees          Employee[]          @relation("EmployeeDeletedByEmployee")
-  deletedLeaveBalances      LeaveBalance[]      @relation("LeaveBalanceDeletedByEmployee")
-  deletedLeaveRequests      LeaveRequest[]      @relation("LeaveRequestDeletedByEmployee")
-  deletedPerformanceReviews PerformanceReview[] @relation("PerformanceReviewDeletedByEmployee")
-  deletedFiles              File[]              @relation("FileDeletedByEmployee")
+  deletedCompensations          Compensation[]          @relation("CompensationDeletedByEmployee")
+  deletedEmployeeDocuments      EmployeeDocument[]      @relation("EmployeeDocumentDeletedByEmployee")
+  deletedEmployees              Employee[]              @relation("EmployeeDeletedByEmployee")
+  deletedLeaveBalances          LeaveBalance[]          @relation("LeaveBalanceDeletedByEmployee")
+  deletedLeaveRequests          LeaveRequest[]          @relation("LeaveRequestDeletedByEmployee")
+  deletedPerformanceReviews     PerformanceReview[]     @relation("PerformanceReviewDeletedByEmployee")
+  deletedTwoFactorMethods       TwoFactorMethod[]       @relation("TwoFactorMethodDeletedByEmployee")
+  deletedTwoFactorRecoveryCodes TwoFactorRecoveryCode[] @relation("TwoFactorRecoveryCodeDeletedByEmployee")
+  deletedFiles                  File[]                  @relation("FileDeletedByEmployee")
 
   /// Audit columns
   updatedAt   DateTime  @updatedAt
@@ -296,6 +301,48 @@ model OneTimeToken {
   @@index([expiresAt])
 }
 
+model TwoFactorMethod {
+  id           Int                 @id @default(autoincrement())
+  type         TwoFactorMethodType
+  priority     Int                 @default(0)
+  secret       String?
+  confirmedAt  DateTime?
+  lastUsedStep Int?
+
+  /// Related columns
+  employee   Employee @relation("EmployeeTwoFactorMethodsTwoFactorMethod", fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId String
+
+  /// Audit columns
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+  deletedBy   Employee? @relation("TwoFactorMethodDeletedByEmployee", fields: [deletedById], references: [id])
+  deletedById String?
+
+  @@unique([employeeId, type])
+  @@index([deletedById])
+}
+
+model TwoFactorRecoveryCode {
+  id       Int       @id @default(autoincrement())
+  codeHash String    @unique
+  usedAt   DateTime?
+
+  /// Related columns
+  employee   Employee @relation("EmployeeTwoFactorRecoveryCodesTwoFactorRecoveryCode", fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId String
+
+  /// Audit columns
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+  deletedBy   Employee? @relation("TwoFactorRecoveryCodeDeletedByEmployee", fields: [deletedById], references: [id])
+  deletedById String?
+
+  @@index([employeeId])
+  @@index([deletedById])
+}
+
 model Role {
   id   Int    @id @default(autoincrement())
   name String @unique
@@ -406,11 +453,6 @@ enum EmployeeStatus {
   Terminated
 }
 
-enum EmployeeTwoFactorAuth {
-  None
-  Email
-}
-
 enum LeaveRequestType {
   Annual
   Sick
@@ -436,4 +478,10 @@ enum PositionLevel {
   Senior
   Lead
   Principal
+}
+
+enum TwoFactorMethodType {
+  email
+  sms
+  totp
 }

@@ -21,6 +21,7 @@ import {
   hasRole,
   hasRoles,
   isOAuth2Enabled,
+  isTwoFactorEnabled,
   needsRehash,
   resourceAuthModel,
   resourceAuthService,
@@ -275,6 +276,30 @@ describe('helper', () => {
       configOverrides.SECURITY_OAUTH2_GITHUB_ENABLED = true;
 
       expect(isOAuth2Enabled()).toBe(true);
+    });
+  });
+
+  describe('isTwoFactorEnabled', () => {
+    afterEach(() => {
+      delete configOverrides.SECURITY_ACCOUNT_2FA_ENABLED;
+      delete configOverrides.SECURITY_ACCOUNT_2FA_KEEP_DATABASE_TABLE;
+    });
+
+    test('reports enabled by default', () => {
+      expect(isTwoFactorEnabled()).toBe(true);
+    });
+
+    test('reports disabled when 2FA is turned off', () => {
+      configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = false;
+
+      expect(isTwoFactorEnabled()).toBe(false);
+    });
+
+    test('reports enabled when the database table is kept', () => {
+      configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = false;
+      configOverrides.SECURITY_ACCOUNT_2FA_KEEP_DATABASE_TABLE = true;
+
+      expect(isTwoFactorEnabled()).toBe(true);
     });
   });
 

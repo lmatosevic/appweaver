@@ -165,23 +165,26 @@ model Ticket {
 }
 
 model User {
-  id            Int               @id @default(autoincrement())
-  name          String            @db.VarChar(100)
-  email         String            @unique @db.VarChar(255)
-  available     Boolean           @default(true)
+  id            Int       @id @default(autoincrement())
+  name          String    @db.VarChar(100)
+  email         String    @unique @db.VarChar(255)
+  available     Boolean   @default(true)
   passwordHash  String?
-  verifiedEmail Boolean           @default(false)
-  twoFactorAuth UserTwoFactorAuth @default(None)
-  enabled       Boolean           @default(true)
+  verifiedEmail Boolean   @default(false)
+  phoneNumber   String?   @db.VarChar(16)
+  verifiedPhone Boolean   @default(false)
+  enabled       Boolean   @default(true)
   logoutAt      DateTime?
 
   /// Related columns
-  team            Team?           @relation("TeamMembersUser", fields: [teamId], references: [id])
-  teamId          Int?
-  assignedTickets Ticket[]        @relation("TicketAssigneeUser")
-  messages        TicketMessage[] @relation("TicketMessageAuthorUser")
-  roles           Role[]          @relation("UserRolesRole")
-  apiKeys         ApiKey[]        @relation("UserApiKeysApiKey")
+  team                   Team?                   @relation("TeamMembersUser", fields: [teamId], references: [id])
+  teamId                 Int?
+  assignedTickets        Ticket[]                @relation("TicketAssigneeUser")
+  messages               TicketMessage[]         @relation("TicketMessageAuthorUser")
+  roles                  Role[]                  @relation("UserRolesRole")
+  apiKeys                ApiKey[]                @relation("UserApiKeysApiKey")
+  twoFactorMethods       TwoFactorMethod[]       @relation("UserTwoFactorMethodsTwoFactorMethod")
+  twoFactorRecoveryCodes TwoFactorRecoveryCode[] @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode")
 
   /// Ownership models referenced with createdById column
   createdCannedResponses CannedResponse[] @relation("CannedResponseCreatedByUser")
@@ -246,6 +249,40 @@ model OneTimeToken {
   createdAt DateTime @default(now())
 
   @@index([expiresAt])
+}
+
+model TwoFactorMethod {
+  id           Int                 @id @default(autoincrement())
+  type         TwoFactorMethodType
+  priority     Int                 @default(0)
+  secret       String?
+  confirmedAt  DateTime?
+  lastUsedStep Int?
+
+  /// Related columns
+  user   User @relation("UserTwoFactorMethodsTwoFactorMethod", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  /// Audit columns
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([userId, type])
+}
+
+model TwoFactorRecoveryCode {
+  id       Int       @id @default(autoincrement())
+  codeHash String    @unique @db.VarChar(64)
+  usedAt   DateTime?
+
+  /// Related columns
+  user   User @relation("UserTwoFactorRecoveryCodesTwoFactorRecoveryCode", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  /// Audit columns
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Role {
@@ -352,7 +389,8 @@ enum TicketChannel {
   Api
 }
 
-enum UserTwoFactorAuth {
-  None
-  Email
+enum TwoFactorMethodType {
+  email
+  sms
+  totp
 }

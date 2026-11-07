@@ -4,3 +4,4 @@ export * from './base-module';
 export * from './files-client';
 export * from './health-client';
 export * from './resource-client';
+export * from './two-factor-client';

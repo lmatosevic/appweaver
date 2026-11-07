@@ -18,7 +18,9 @@ import {
   HEALTH_MODULE_TYPE,
   HEALTH_TYPES,
   RESOURCE_MODULE_TYPE,
-  RESOURCE_TYPES
+  RESOURCE_TYPES,
+  TWO_FACTOR_MODULE_TYPE,
+  TWO_FACTOR_TYPES
 } from '../constants';
 
 /**
@@ -533,6 +535,10 @@ function combineModuleTypes(typeContent: string, schema: OpenAPI3): string {
   // (e.g., { statusResponse: AccountStatusResponse })
   const accountTypes: Record<string, string> = {};
 
+  // Map of used two-factor authentication types in generated schema
+  // (e.g., { verifyRequest: TwoFactorVerifyRequest })
+  const twoFactorTypes: Record<string, string> = {};
+
   // Map of used health types in generated schema
   // (e.g., { checkResponse: HealthCheckResponse })
   const healthTypes: Record<string, string> = {};
@@ -631,6 +637,14 @@ function combineModuleTypes(typeContent: string, schema: OpenAPI3): string {
     typeContent
   );
 
+  // Find all used two-factor authentication types
+  collectUsedTypes(
+    TWO_FACTOR_TYPES,
+    twoFactorTypes,
+    (type) => `TwoFactor${capitalize(type)}`,
+    typeContent
+  );
+
   // Find all used health types
   collectUsedTypes(
     HEALTH_TYPES,
@@ -643,6 +657,7 @@ function combineModuleTypes(typeContent: string, schema: OpenAPI3): string {
   const moduleTypes: string[] = [
     buildModuleType(AUTH_MODULE_TYPE, authTypes),
     buildModuleType(ACCOUNT_MODULE_TYPE, accountTypes),
+    buildModuleType(TWO_FACTOR_MODULE_TYPE, twoFactorTypes),
     buildModuleType(HEALTH_MODULE_TYPE, healthTypes),
     ...Object.entries(resourceTypes).map(([name, types]) =>
       buildModuleType(`${name}${RESOURCE_MODULE_TYPE}`, types)

@@ -462,6 +462,9 @@
                 "scheduler": {
                   "$ref": "#/definitions/logLevel"
                 },
+                "sms": {
+                  "$ref": "#/definitions/logLevel"
+                },
                 "storage": {
                   "$ref": "#/definitions/logLevel"
                 }
@@ -675,6 +678,20 @@
         "security": {
           "type": "object",
           "properties": {
+            "account": {
+              "type": "object",
+              "properties": {
+                "2fa": {
+                  "type": "object",
+                  "properties": {
+                    "keepDatabaseTable": {
+                      "default": false,
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            },
             "apiKey": {
               "type": "object",
               "properties": {
@@ -753,6 +770,18 @@
                   "type": "boolean"
                 }
               }
+            }
+          }
+        },
+        "sms": {
+          "type": "object",
+          "properties": {
+            "sender": {
+              "type": "string"
+            },
+            "provider": {
+              "default": "auto",
+              "type": "string"
             }
           }
         },

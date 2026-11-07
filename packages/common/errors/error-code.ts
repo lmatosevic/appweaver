@@ -78,6 +78,14 @@ export enum ErrorCode {
   AccountFeatureUnavailable = 'ACCOUNT_FEATURE_UNAVAILABLE',
   AccountEmailAlreadyVerified = 'ACCOUNT_EMAIL_ALREADY_VERIFIED',
   AccountPasswordNotSet = 'ACCOUNT_PASSWORD_NOT_SET',
+  AccountEmailNotVerified = 'ACCOUNT_EMAIL_NOT_VERIFIED',
+  AccountPhoneNotVerified = 'ACCOUNT_PHONE_NOT_VERIFIED',
+  AccountPhoneAlreadyVerified = 'ACCOUNT_PHONE_ALREADY_VERIFIED',
+  Account2FAMethodUnavailable = 'ACCOUNT_2FA_METHOD_UNAVAILABLE',
+  Account2FAMethodNotEnabled = 'ACCOUNT_2FA_METHOD_NOT_ENABLED',
+  Account2FAMethodAlreadyEnabled = 'ACCOUNT_2FA_METHOD_ALREADY_ENABLED',
+  Account2FACodeInvalid = 'ACCOUNT_2FA_CODE_INVALID',
+  Account2FATooManyAttempts = 'ACCOUNT_2FA_TOO_MANY_ATTEMPTS',
 
   // OAuth2
   OAuth2ProviderError = 'OAUTH2_PROVIDER_ERROR',
@@ -123,6 +131,10 @@ export enum ErrorCode {
   MailerSendFailed = 'MAILER_SEND_FAILED',
   MailerJobNotFound = 'MAILER_JOB_NOT_FOUND',
   MailerSenderMissing = 'MAILER_SENDER_MISSING',
+
+  // SMS
+  SmsSendFailed = 'SMS_SEND_FAILED',
+  SmsJobNotFound = 'SMS_JOB_NOT_FOUND',
 
   // Templates
   TemplateNotFound = 'TEMPLATE_NOT_FOUND',

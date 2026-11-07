@@ -41,6 +41,9 @@
       "path": "./testing/tsconfig.build.json"
     },
     {
+      "path": "./twilio/tsconfig.build.json"
+    },
+    {
       "path": "./web/tsconfig.build.json"
     }
   ]

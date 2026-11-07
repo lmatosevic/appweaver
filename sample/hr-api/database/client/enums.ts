@@ -58,14 +58,6 @@ export const EmployeeStatus = {
 export type EmployeeStatus = (typeof EmployeeStatus)[keyof typeof EmployeeStatus]
 
 
-export const EmployeeTwoFactorAuth = {
-  None: 'None',
-  Email: 'Email'
-} as const
-
-export type EmployeeTwoFactorAuth = (typeof EmployeeTwoFactorAuth)[keyof typeof EmployeeTwoFactorAuth]
-
-
 export const LeaveRequestType = {
   Annual: 'Annual',
   Sick: 'Sick',
@@ -103,3 +95,12 @@ export const PositionLevel = {
 } as const
 
 export type PositionLevel = (typeof PositionLevel)[keyof typeof PositionLevel]
+
+
+export const TwoFactorMethodType = {
+  email: 'email',
+  sms: 'sms',
+  totp: 'totp'
+} as const
+
+export type TwoFactorMethodType = (typeof TwoFactorMethodType)[keyof typeof TwoFactorMethodType]

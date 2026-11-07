@@ -173,6 +173,19 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     ],
     disabledConfig: []
   },
+  sms: {
+    name: 'sms',
+    description:
+      'Twilio SMS sender of the SMS 2FA codes and the phone verification, otherwise disabled',
+    packages: ['@appweaver/twilio'],
+    requires: [],
+    // Logged instead of sent while developing and testing, without a Twilio account
+    enabledConfig: () => [
+      ['environments.dev.sms.provider', 'json'],
+      ['environments.test.sms.provider', 'json']
+    ],
+    disabledConfig: []
+  },
   templates: {
     name: 'templates',
     description:

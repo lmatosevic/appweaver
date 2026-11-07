@@ -16,7 +16,10 @@ import {
   HEALTH_OPERATIONS,
   PROBLEM_DETAILS_TITLE,
   RESOURCE_MODULE_TYPE,
-  RESOURCE_OPERATIONS
+  RESOURCE_OPERATIONS,
+  TWO_FACTOR_MODULE_TYPE,
+  TWO_FACTOR_OPERATION_PATHS,
+  TWO_FACTOR_OPERATIONS
 } from '../constants';
 
 type SchemaRoutes = {
@@ -24,6 +27,7 @@ type SchemaRoutes = {
   resourceMethods: Record<string, Record<string, HttpMethod[]>>;
   auth: string[];
   account: string[];
+  twoFactor: string[];
   health: string[];
   files: string[];
   custom: { method: HttpMethod; path: string; operationName: string }[];
@@ -83,6 +87,7 @@ export async function generateClient(
     resourceMethods: {},
     auth: [],
     account: [],
+    twoFactor: [],
     health: [],
     files: [],
     custom: []
@@ -192,6 +197,19 @@ export async function generateClient(
     clientMethods.push({
       name: 'account',
       expression: `this.accountClient${genericTypes}('${config.routePrefixes.account}')`
+    });
+  }
+
+  // Add two-factor authentication client
+  if (schemaRoutes.twoFactor.length > 0) {
+    const genericTypes = makeGenericTypes(
+      TWO_FACTOR_MODULE_TYPE,
+      TWO_FACTOR_OPERATIONS,
+      schemaRoutes.twoFactor
+    );
+    clientMethods.push({
+      name: 'twoFactor',
+      expression: `this.twoFactorClient${genericTypes}('${config.routePrefixes.twoFactor}')`
     });
   }
 
@@ -506,16 +524,33 @@ function routeDetails(
   config: RoutePathConfig
 ): RouteDetails {
   try {
-    const prefixChecks: [RouteType, string, Record<string, HttpMethod>][] = [
+    const prefixChecks: [
+      RouteType,
+      string,
+      Record<string, HttpMethod>,
+      Record<string, string>?
+    ][] = [
       ['auth', config.routePrefixes.auth, AUTH_OPERATIONS],
+      [
+        'twoFactor',
+        config.routePrefixes.twoFactor,
+        TWO_FACTOR_OPERATIONS,
+        TWO_FACTOR_OPERATION_PATHS
+      ],
       ['account', config.routePrefixes.account, ACCOUNT_OPERATIONS],
       ['health', config.routePrefixes.health, HEALTH_OPERATIONS],
       ['files', config.routePrefixes.files, FILE_OPERATIONS]
     ];
 
     // Try to detect predefined module-specific routes
-    for (const [routeType, prefix, operations] of prefixChecks) {
-      const operationName = routeOperation(path, method, prefix, operations);
+    for (const [routeType, prefix, operations, paths] of prefixChecks) {
+      const operationName = routeOperation(
+        path,
+        method,
+        prefix,
+        operations,
+        paths
+      );
       if (operationName) {
         return { type: routeType, operationName };
       }
@@ -597,28 +632,32 @@ function createOperationName(
  * @param {HttpMethod} method - The HTTP method to be matched (e.g., GET, POST).
  * @param {string} prefix - The prefix to be removed from the path before processing.
  * @param {Record<string, HttpMethod>} operations - A record mapping operation names to their corresponding HTTP methods.
+ * @param {Record<string, string>} [paths={}] - The paths of the operations whose name is not their path.
  * @return {string | undefined} The matching operation name, or `undefined` if no match is found.
  */
 function routeOperation(
   path: string,
   method: HttpMethod,
   prefix: string,
-  operations: Record<string, HttpMethod>
+  operations: Record<string, HttpMethod>,
+  paths: Record<string, string> = {}
 ): string | undefined {
-  if (!path.startsWith(prefix)) {
+  if (!path.startsWith(`${prefix}/`)) {
     return undefined;
   }
 
-  const normalizedRoute = path
-    .replace(prefix, '')
-    .replace(/^\//, '')
-    .replace(/\/\{[\w*]+}$/, '')
-    .replace(/-/g, '')
-    .toLowerCase();
+  const normalize = (route: string) => route.replace(/[-/]/g, '').toLowerCase();
+  const normalizedRoute = normalize(
+    path
+      .slice(prefix.length)
+      .replace(/^\//, '')
+      .replace(/\/\{[\w*]+}$/, '')
+  );
 
   return Object.entries(operations).find(
     ([operation, operationMethod]) =>
-      normalizedRoute === operation.toLowerCase() && method === operationMethod
+      normalizedRoute === normalize(paths[operation] ?? operation) &&
+      method === operationMethod
   )?.[0];
 }
 

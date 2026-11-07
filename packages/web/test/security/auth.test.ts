@@ -84,6 +84,10 @@ jest.mock('../../security/account', () => ({
   accountRoutes: async () => undefined
 }));
 
+jest.mock('../../security/two-factor', () => ({
+  twoFactorRoutes: async () => undefined
+}));
+
 jest.mock('../../security/oauth2', () => ({
   extractTestUserInfo: jest.fn(),
   testOAuth2: jest.requireActual('fastify-plugin')(async (server: any) => {

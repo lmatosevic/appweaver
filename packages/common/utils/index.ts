@@ -1,3 +1,4 @@
+export * from './crypto-util';
 export * from './array-util';
 export * from './module-util';
 export * from './object-util';

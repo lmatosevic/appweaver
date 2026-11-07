@@ -42,23 +42,32 @@ describe('access-util', () => {
 
     test('allows the 2FA verification route only for the 2FA scope', () => {
       expect(
-        checkScopeAccess('/auth/account/verify-2fa-code', AuthScope.TwoFA)
+        checkScopeAccess('/auth/account/2fa/verify', AuthScope.TwoFA)
       ).toBe(true);
-      expect(
-        checkScopeAccess('/auth/account/verify-2fa-code', AuthScope.Auth)
-      ).toBe(false);
+      expect(checkScopeAccess('/auth/account/2fa/verify', AuthScope.Auth)).toBe(
+        false
+      );
       expect(checkScopeAccess('/api/posts', AuthScope.TwoFA)).toBe(false);
     });
 
-    test('allows the 2FA code request route only for the 2FA scope', () => {
+    test('allows the 2FA challenge route only for the 2FA scope', () => {
       expect(
-        checkScopeAccess('/auth/account/send-2fa-code', AuthScope.TwoFA)
+        checkScopeAccess('/auth/account/2fa/challenge', AuthScope.TwoFA)
       ).toBe(true);
       expect(
-        checkScopeAccess('/auth/account/send-2fa-code', AuthScope.Auth)
+        checkScopeAccess('/auth/account/2fa/challenge', AuthScope.Auth)
       ).toBe(false);
       expect(
-        checkScopeAccess('/auth/account/send-2fa-code', AuthScope.Refresh)
+        checkScopeAccess('/auth/account/2fa/challenge', AuthScope.Refresh)
+      ).toBe(false);
+    });
+
+    test('allows the 2FA method routes only for the auth scope', () => {
+      expect(
+        checkScopeAccess('/auth/account/2fa/methods', AuthScope.Auth)
+      ).toBe(true);
+      expect(
+        checkScopeAccess('/auth/account/2fa/methods', AuthScope.TwoFA)
       ).toBe(false);
     });
 

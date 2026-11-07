@@ -184,7 +184,15 @@ describe('apply-modules', () => {
       async (database, runtime) => {
         const created = await create([...moduleNames], { database, runtime });
         const added = await create([], { database, runtime });
-        await add(added, 'docker', 'locales', 'redis', 'templates', 'mailer');
+        await add(
+          added,
+          'docker',
+          'locales',
+          'redis',
+          'templates',
+          'mailer',
+          'sms'
+        );
         await add(added, 'data', 'scheduler', 'queue', 'web');
 
         expect(snapshot(added)).toEqual(snapshot(created));
@@ -241,9 +249,9 @@ describe('apply-modules', () => {
 
       await add(dir, 'mailer');
 
-      expect(JSON.parse(read(dir, 'locales/en.json'))).toEqual(
-        defaultTranslations
-      );
+      expect(JSON.parse(read(dir, 'locales/en.json'))).toEqual({
+        emails: defaultTranslations.emails
+      });
     });
 
     test('keeps the existing translations, unless forced', async () => {
@@ -268,7 +276,7 @@ describe('apply-modules', () => {
       await files.commit();
 
       expect(JSON.parse(read(dir, 'locales/en.json'))).toEqual({
-        ...defaultTranslations,
+        emails: defaultTranslations.emails,
         page: { title: 'Home' }
       });
     });

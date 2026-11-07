@@ -31,9 +31,12 @@ describe('memory-security-store', () => {
       );
 
       expect(token).toMatch(/^[\da-f]{64}$/);
-      await expect(memory.get(tokenKey('verifyEmail', token))).resolves.toEqual(
-        { userId: 7 }
-      );
+      await expect(
+        memory.get(tokenKey('verifyEmail', token))
+      ).resolves.toMatchObject({
+        data: { userId: 7 },
+        expiresAt: expect.any(Number)
+      });
     });
 
     test('expires the token after the given ttl', async () => {
@@ -88,6 +91,72 @@ describe('memory-security-store', () => {
       await expect(
         store.useOneTimeToken(token, 'twoFA', validate('123456'))
       ).resolves.toEqual({ code: '123456' });
+    });
+
+    test('replaces the data of a token failing validation', async () => {
+      const token = await store.generateOneTimeToken(
+        'twoFA',
+        { attempts: 0 },
+        60_000
+      );
+      const fail = (value: { attempts: number }) => ({
+        valid: false,
+        message: 'Invalid code',
+        data: { attempts: value.attempts + 1 }
+      });
+
+      await expect(store.useOneTimeToken(token, 'twoFA', fail)).rejects.toThrow(
+        'Invalid code'
+      );
+      await expect(store.useOneTimeToken(token, 'twoFA', fail)).rejects.toThrow(
+        'Invalid code'
+      );
+      await expect(store.useOneTimeToken(token, 'twoFA')).resolves.toEqual({
+        attempts: 2
+      });
+    });
+
+    test('revokes a token failing validation', async () => {
+      const token = await store.generateOneTimeToken('twoFA', {}, 60_000);
+
+      await expect(
+        store.useOneTimeToken(token, 'twoFA', () => ({
+          valid: false,
+          message: 'Too many attempts',
+          revoke: true
+        }))
+      ).rejects.toThrow('Too many attempts');
+      await expect(store.useOneTimeToken(token, 'twoFA')).rejects.toThrow(
+        'Invalid or expired token provided'
+      );
+    });
+
+    test('throws the error of a failed validation', async () => {
+      const token = await store.generateOneTimeToken('twoFA', {}, 60_000);
+      const error = new Error('Custom');
+
+      await expect(
+        store.useOneTimeToken(token, 'twoFA', () => ({
+          valid: false,
+          message: 'Invalid',
+          error
+        }))
+      ).rejects.toBe(error);
+    });
+
+    test('removes a token expiring during its validation', async () => {
+      const token = await store.generateOneTimeToken('twoFA', {}, 60_000);
+      const key = tokenKey('twoFA', token);
+      await memory.set(key, { data: {}, expiresAt: Date.now() - 1 }, 60_000);
+
+      await expect(
+        store.useOneTimeToken(token, 'twoFA', () => ({
+          valid: false,
+          message: 'Invalid',
+          data: {}
+        }))
+      ).rejects.toThrow('Invalid');
+      await expect(memory.has(key)).resolves.toBe(false);
     });
 
     test('lets only one of concurrent uses consume the token', async () => {

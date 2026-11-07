@@ -9,6 +9,7 @@ export * from './health/health-service';
 export * from './locale';
 export * from './mailer/email-service';
 export * from './mailer/utils/email-util';
+export * from './sms/sms-service';
 export * from './template/register-template';
 export * from './types/application-context';
 export * from './utils/schema-util';

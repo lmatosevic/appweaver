@@ -11,11 +11,11 @@ import {
   ResourceId,
   RouteConfig,
   SecurityStore,
-  TwoFactorAuth,
+  uncapitalize,
   AuthError,
   ContextError
 } from '@appweaver/common';
-import { jwtConfig, securityConfig, twoFactorConfig } from './security-config';
+import { jwtConfig, securityConfig } from './security-config';
 import {
   passwordConfig,
   checkPassword,
@@ -31,15 +31,23 @@ import {
   RegistrationDataFn,
   RegistrationFiles,
   RegistrationFilesFn,
-  UserAdditionalData
+  UserAdditionalData,
+  TwoFactorMethod,
+  TwoFactorMethodResourceService
 } from '@appweaver/data';
 import {
   cacheConfig,
+  currentAuthSource,
   inject,
   injectCreated,
+  injectService,
   CacheService
 } from '@appweaver/core';
 import { checkScopeAccess } from './access-util';
+import {
+  effectiveTwoFactorMethods,
+  isTwoFactorRequired
+} from './two-factor/utils/method-util';
 import { OAuth2Service } from './oauth2/oauth2-service';
 import type { HttpServer } from '../server/http-server';
 import { AuthOTTData, AuthTokens, JwtPayload } from '../types/http-auth';
@@ -64,6 +72,12 @@ export class AuthService {
   private readonly _oauth2Service = inject(OAuth2Service, false);
   /** @internal */
   private readonly _events = inject(Events);
+  /** Optional, since an application with 2FA disabled has no methods.
+   * @internal */
+  private readonly _twoFactorMethodService = injectService(
+    'TwoFactorMethod',
+    false
+  ) as TwoFactorMethodResourceService | undefined;
 
   constructor() {
     // Evicts the users changed outside of this service as well, e.g. through
@@ -89,7 +103,9 @@ export class AuthService {
   public async findById(id: ResourceId): Promise<AuthUser | null> {
     try {
       if (!cacheConfig.ENABLED || securityConfig.CACHE_TTL < 0) {
-        return withoutPolicies(() => this._authUserService.find(id));
+        return await this.withTwoFactorMethods(
+          await withoutPolicies(() => this._authUserService.find(id))
+        );
       }
 
       const cacheKey = this.authCacheKey(id);
@@ -99,8 +115,8 @@ export class AuthService {
         return value;
       }
 
-      const authUser = await withoutPolicies(() =>
-        this._authUserService.find(id)
+      const authUser = await this.withTwoFactorMethods(
+        await withoutPolicies(() => this._authUserService.find(id))
       );
 
       await this._cacheService.addToCache(
@@ -124,8 +140,10 @@ export class AuthService {
   public async findByUsername(username: string): Promise<AuthUser | null> {
     try {
       if (!cacheConfig.ENABLED || securityConfig.CACHE_TTL < 0) {
-        return await withoutPolicies(() =>
-          this._authUserService.single({ email: username })
+        return await this.withTwoFactorMethods(
+          await withoutPolicies(() =>
+            this._authUserService.single({ email: username })
+          )
         );
       }
 
@@ -136,8 +154,10 @@ export class AuthService {
         return value;
       }
 
-      const authUser = await withoutPolicies(() =>
-        this._authUserService.single({ email: username })
+      const authUser = await this.withTwoFactorMethods(
+        await withoutPolicies(() =>
+          this._authUserService.single({ email: username })
+        )
       );
 
       if (authUser) {
@@ -235,7 +255,8 @@ export class AuthService {
    * @param {string} currentPassword - The current password of the authenticated user.
    * @param {string} newPassword - The new password to be set for the authenticated user.
    * @return {Promise<AuthTokens>} A promise that resolves to the new authentication tokens after the password is
-   * successfully changed.
+   * successfully changed, of the `auth` scope and the source of the current session, since the user passed 2FA to
+   * call it.
    * @throws {AuthError} `AUTH_PASSWORD_INVALID` if the current password does not match the stored password hash.
    */
   public async changePassword(
@@ -274,7 +295,11 @@ export class AuthService {
 
     logger.debug({ id: authUser.id }, 'Password changed successfully');
 
-    return this.login(authUser.email, newPassword);
+    return this.generateAuthTokens(
+      authUser,
+      AuthScope.Auth,
+      currentAuthSource() ?? AuthSource.Password
+    );
   }
 
   /**
@@ -369,8 +394,8 @@ export class AuthService {
 
   /**
    * Authenticates a user based on the provided username and password and generate access tokens.
-   * If 2FA is forced at configuration level or auth user has enabled 2FA, then generate JWT with 2FA scope,
-   * otherwise return regular JWT with authentication scope.
+   * If 2FA is forced at configuration level or auth user has enabled a 2FA method, then generate JWT with 2FA scope,
+   * listing the methods of the user, otherwise return regular JWT with authentication scope.
    *
    * @param {string} username - The username of the user attempting to log in.
    * @param {string} password - The password of the user attempting to log in.
@@ -381,10 +406,7 @@ export class AuthService {
   public async login(username: string, password: string): Promise<AuthTokens> {
     const authUser = await this.authenticate(username, password);
 
-    if (
-      twoFactorConfig.ENABLED &&
-      (twoFactorConfig.FORCED || authUser.twoFactorAuth !== TwoFactorAuth.None)
-    ) {
+    if (isTwoFactorRequired(authUser)) {
       return this.generateAuthTokens(authUser, AuthScope.TwoFA);
     }
 
@@ -393,7 +415,8 @@ export class AuthService {
 
   /**
    * Exchanges an existing token for new authentication tokens. When the one-time token was issued for an OAuth2
-   * sign-in that needs confirming, the account password must be supplied alongside it.
+   * sign-in that needs confirming, the account password must be supplied alongside it. The tokens of a user who has
+   * to pass 2FA have the `2fa` scope, unless the one-time token was issued by a passed 2FA challenge.
    *
    * @param {string} token - The token to be exchanged for new authentication tokens.
    * @param {string} [password] - The account password, required when the token was flagged for confirmation.
@@ -410,7 +433,8 @@ export class AuthService {
       authSource,
       providerAccountId,
       scope,
-      passwordRequired
+      passwordRequired,
+      twoFactorVerified
     } = await this._securityStore.useOneTimeToken<AuthOTTData>(
       token,
       AuthOTTPurpose.Authentication
@@ -445,6 +469,10 @@ export class AuthService {
 
     logger.debug({ id: authUser.id }, 'User token exchanged');
 
+    if (!twoFactorVerified && isTwoFactorRequired(authUser)) {
+      return this.generateAuthTokens(authUser, AuthScope.TwoFA, authSource);
+    }
+
     return this.generateAuthTokens(authUser, AuthScope.Auth, authSource);
   }
 
@@ -460,6 +488,7 @@ export class AuthService {
    *                                - `refreshToken` (string): The refresh token for acquiring new access tokens.
    *                                - `expiresIn` (number): The expiration time (in seconds) of the access token.
    *                                - `refreshExpiresIn` (number): The expiration time (in seconds) of the refresh token.
+   *                                - `twoFactorMethods` (string[]): The 2FA methods of the user, for the `2fa` scope.
    * @throws {ContextError} `CONTEXT_SERVER_UNAVAILABLE` if the server instance is not initialized.
    */
   public async generateAuthTokens(
@@ -482,19 +511,28 @@ export class AuthService {
       sub: authUser.id
     };
 
+    // A token of the 2fa scope is never refreshed into the auth scope, so its refresh token keeps the 2fa scope and
+    // the expiration of the access token
+    const twoFactor = scope === AuthScope.TwoFA;
     const expiresIn = jwtConfig.EXPIRES_IN;
-    const refreshExpiresIn = jwtConfig.REFRESH_EXPIRES_IN;
+    const refreshExpiresIn = twoFactor
+      ? expiresIn
+      : jwtConfig.REFRESH_EXPIRES_IN;
 
     // The signer sets the `iat` claim, in seconds like the expiration
     const accessToken = server.jwt.sign(jwtPayload, { expiresIn });
     const refreshToken = server.jwt.sign(
-      { ...jwtPayload, scope: AuthScope.Refresh },
+      { ...jwtPayload, scope: twoFactor ? AuthScope.TwoFA : AuthScope.Refresh },
       { expiresIn: refreshExpiresIn }
     );
 
     logger.debug({ id: authUser.id }, 'Access tokens generated');
 
-    return { accessToken, refreshToken, expiresIn, refreshExpiresIn };
+    const tokens = { accessToken, refreshToken, expiresIn, refreshExpiresIn };
+
+    return twoFactor
+      ? { ...tokens, twoFactorMethods: effectiveTwoFactorMethods(authUser) }
+      : tokens;
   }
 
   /**
@@ -508,6 +546,28 @@ export class AuthService {
     logger.debug({ id }, 'User logout');
 
     return !!(await this.updateAuthUser(id, { logoutAt: new Date() }));
+  }
+
+  /**
+   * Removes the cached state of users, so the next lookup reads them again, i.e. after their 2FA methods changed.
+   *
+   * @param {...(AuthUser | undefined)} authUsers - The users to evict, by their id and their email.
+   * @return {Promise<void>} A promise that resolves once the users are evicted.
+   */
+  public async evictCachedUsers(
+    ...authUsers: (AuthUser | undefined)[]
+  ): Promise<void> {
+    const keys = new Set<string>();
+    for (const authUser of authUsers) {
+      if (authUser) {
+        keys.add(this.authCacheKey(authUser.id));
+        keys.add(this.authCacheKey(authUser.email));
+      }
+    }
+
+    for (const key of keys) {
+      await this._cacheService.removeCachedValue(key);
+    }
   }
 
   /**
@@ -616,21 +676,30 @@ export class AuthService {
     }
   }
 
-  /** @internal */
-  private async evictCachedUsers(
-    ...authUsers: (AuthUser | undefined)[]
-  ): Promise<void> {
-    const keys = new Set<string>();
-    for (const authUser of authUsers) {
-      if (authUser) {
-        keys.add(this.authCacheKey(authUser.id));
-        keys.add(this.authCacheKey(authUser.email));
-      }
+  /**
+   * Adds the confirmed 2FA methods of a user, by their priority, as the `twoFactorMethods` of the auth user.
+   *
+   * @internal
+   */
+  private async withTwoFactorMethods(
+    authUser: AuthUser | null
+  ): Promise<AuthUser | null> {
+    const service = this._twoFactorMethodService;
+    if (!authUser || !service) {
+      return authUser;
     }
 
-    for (const key of keys) {
-      await this._cacheService.removeCachedValue(key);
-    }
+    const authForeignKey = `${uncapitalize(this._authUserService.modelName)}Id`;
+    const items: TwoFactorMethod[] = await service.client.findMany({
+      where: { [authForeignKey]: authUser.id }
+    });
+
+    const twoFactorMethods = items
+      .filter((method) => method.confirmedAt)
+      .sort((a, b) => a.priority - b.priority)
+      .map((method) => method.type);
+
+    return { ...authUser, twoFactorMethods };
   }
 
   /** @internal */

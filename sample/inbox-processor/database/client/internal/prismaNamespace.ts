@@ -400,6 +400,8 @@ export const ModelName = {
   Entry: 'Entry',
   User: 'User',
   OneTimeToken: 'OneTimeToken',
+  TwoFactorMethod: 'TwoFactorMethod',
+  TwoFactorRecoveryCode: 'TwoFactorRecoveryCode',
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
@@ -419,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "entry" | "user" | "oneTimeToken" | "role" | "permission" | "seeder" | "file"
+    modelProps: "entry" | "user" | "oneTimeToken" | "twoFactorMethod" | "twoFactorRecoveryCode" | "role" | "permission" | "seeder" | "file"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -642,6 +644,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.OneTimeTokenCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.OneTimeTokenCountAggregateOutputType> | number
+        }
+      }
+    }
+    TwoFactorMethod: {
+      payload: Prisma.$TwoFactorMethodPayload<ExtArgs>
+      fields: Prisma.TwoFactorMethodFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TwoFactorMethodFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TwoFactorMethodFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        findFirst: {
+          args: Prisma.TwoFactorMethodFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TwoFactorMethodFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        findMany: {
+          args: Prisma.TwoFactorMethodFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>[]
+        }
+        create: {
+          args: Prisma.TwoFactorMethodCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        createMany: {
+          args: Prisma.TwoFactorMethodCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TwoFactorMethodCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>[]
+        }
+        delete: {
+          args: Prisma.TwoFactorMethodDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        update: {
+          args: Prisma.TwoFactorMethodUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        deleteMany: {
+          args: Prisma.TwoFactorMethodDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TwoFactorMethodUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TwoFactorMethodUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>[]
+        }
+        upsert: {
+          args: Prisma.TwoFactorMethodUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorMethodPayload>
+        }
+        aggregate: {
+          args: Prisma.TwoFactorMethodAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTwoFactorMethod>
+        }
+        groupBy: {
+          args: Prisma.TwoFactorMethodGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TwoFactorMethodGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TwoFactorMethodCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TwoFactorMethodCountAggregateOutputType> | number
+        }
+      }
+    }
+    TwoFactorRecoveryCode: {
+      payload: Prisma.$TwoFactorRecoveryCodePayload<ExtArgs>
+      fields: Prisma.TwoFactorRecoveryCodeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TwoFactorRecoveryCodeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TwoFactorRecoveryCodeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload>
+        }
+        findFirst: {
+          args: Prisma.TwoFactorRecoveryCodeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TwoFactorRecoveryCodeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload>
+        }
+        findMany: {
+          args: Prisma.TwoFactorRecoveryCodeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload>[]
+        }
+        create: {
+          args: Prisma.TwoFactorRecoveryCodeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload>
+        }
+        createMany: {
+          args: Prisma.TwoFactorRecoveryCodeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TwoFactorRecoveryCodeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload>[]
+        }
+        delete: {
+          args: Prisma.TwoFactorRecoveryCodeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload>
+        }
+        update: {
+          args: Prisma.TwoFactorRecoveryCodeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload>
+        }
+        deleteMany: {
+          args: Prisma.TwoFactorRecoveryCodeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TwoFactorRecoveryCodeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TwoFactorRecoveryCodeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload>[]
+        }
+        upsert: {
+          args: Prisma.TwoFactorRecoveryCodeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwoFactorRecoveryCodePayload>
+        }
+        aggregate: {
+          args: Prisma.TwoFactorRecoveryCodeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTwoFactorRecoveryCode>
+        }
+        groupBy: {
+          args: Prisma.TwoFactorRecoveryCodeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TwoFactorRecoveryCodeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TwoFactorRecoveryCodeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TwoFactorRecoveryCodeCountAggregateOutputType> | number
         }
       }
     }
@@ -1004,7 +1154,8 @@ export const UserScalarFieldEnum = {
   email: 'email',
   passwordHash: 'passwordHash',
   verifiedEmail: 'verifiedEmail',
-  twoFactorAuth: 'twoFactorAuth',
+  phoneNumber: 'phoneNumber',
+  verifiedPhone: 'verifiedPhone',
   enabled: 'enabled',
   logoutAt: 'logoutAt',
   avatarId: 'avatarId',
@@ -1026,6 +1177,32 @@ export const OneTimeTokenScalarFieldEnum = {
 } as const
 
 export type OneTimeTokenScalarFieldEnum = (typeof OneTimeTokenScalarFieldEnum)[keyof typeof OneTimeTokenScalarFieldEnum]
+
+
+export const TwoFactorMethodScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  priority: 'priority',
+  secret: 'secret',
+  confirmedAt: 'confirmedAt',
+  lastUsedStep: 'lastUsedStep',
+  userId: 'userId',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type TwoFactorMethodScalarFieldEnum = (typeof TwoFactorMethodScalarFieldEnum)[keyof typeof TwoFactorMethodScalarFieldEnum]
+
+
+export const TwoFactorRecoveryCodeScalarFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  usedAt: 'usedAt',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type TwoFactorRecoveryCodeScalarFieldEnum = (typeof TwoFactorRecoveryCodeScalarFieldEnum)[keyof typeof TwoFactorRecoveryCodeScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
@@ -1195,9 +1372,9 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'UserTwoFactorAuth'
+ * Reference to a field of type 'TwoFactorMethodType'
  */
-export type EnumUserTwoFactorAuthFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserTwoFactorAuth'>
+export type EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TwoFactorMethodType'>
     
 
 
@@ -1361,6 +1538,8 @@ export type GlobalOmitConfig = {
   entry?: Prisma.EntryOmit
   user?: Prisma.UserOmit
   oneTimeToken?: Prisma.OneTimeTokenOmit
+  twoFactorMethod?: Prisma.TwoFactorMethodOmit
+  twoFactorRecoveryCode?: Prisma.TwoFactorRecoveryCodeOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
   seeder?: Prisma.SeederOmit

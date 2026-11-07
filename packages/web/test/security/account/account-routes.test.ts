@@ -15,7 +15,11 @@ describe('account-routes', () => {
     define(
       {
         sendResetPassword: jest.fn().mockResolvedValue('Sent'),
-        resetPassword: jest.fn().mockResolvedValue('Reset')
+        resetPassword: jest.fn().mockResolvedValue('Reset'),
+        sendPhoneVerification: jest
+          .fn()
+          .mockResolvedValue({ challengeId: 'challenge', expiresIn: 600000 }),
+        verifyPhone: jest.fn().mockResolvedValue('Phone number verified')
       } as any,
       AccountService,
       'override'
@@ -46,6 +50,39 @@ describe('account-routes', () => {
   });
 
   describe('accountRoutes', () => {
+    test('sends a phone verification code', async () => {
+      const response = await server.inject({
+        method: 'POST',
+        url: '/send-verify-phone',
+        payload: { phoneNumber: '+385911234567' }
+      });
+
+      expect(response.json()).toEqual({
+        challengeId: 'challenge',
+        expiresIn: 600000
+      });
+    });
+
+    test('rejects a phone number outside the E.164 format', async () => {
+      const response = await server.inject({
+        method: 'POST',
+        url: '/send-verify-phone',
+        payload: { phoneNumber: '091 123 4567' }
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    test('verifies a phone number', async () => {
+      const response = await server.inject({
+        method: 'POST',
+        url: '/verify-phone',
+        payload: { challengeId: 'challenge', code: '123456' }
+      });
+
+      expect(response.json()).toEqual({ message: 'Phone number verified' });
+    });
+
     test('verifies the bot checks of the send reset password action', async () => {
       await server.inject({
         method: 'POST',

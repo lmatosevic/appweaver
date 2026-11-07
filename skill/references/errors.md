@@ -78,27 +78,28 @@ cases apart by their `code` instead of parsing messages:
 Every class extends the abstract `AppweaverError` of `@appweaver/common` and accepts only the codes of its module, by
 their prefix:
 
-| Class                | Package             | Codes            | Raised by                                                       |
-|----------------------|---------------------|------------------|-----------------------------------------------------------------|
-| `RequestError`       | `@appweaver/common` | request codes    | The API layer, or the application for a rejected request        |
-| `ConfigurationError` | `@appweaver/common` | `CONFIGURATION_` | Invalid configuration and model definitions                     |
-| `ApplicationError`   | `@appweaver/common` | any              | The application, with its own codes (see below)                 |
-| `ContextError`       | `@appweaver/common` | `CONTEXT_`       | The dependency injection container                              |
-| `ModuleError`        | `@appweaver/common` | `MODULE_`        | The module discovery and the provider selection at startup      |
-| `DatabaseError`      | `@appweaver/common` | `DATABASE_`      | The database operations, translated from the Prisma errors      |
-| `ResourceError`      | `@appweaver/common` | `RESOURCE_`      | The resource services and their query, sort and relation inputs |
-| `AuthError`          | `@appweaver/common` | `AUTH_`          | The authentication and authorization                            |
-| `AccountError`       | `@appweaver/common` | `ACCOUNT_`       | The account service (email verification, password reset, 2FA)   |
-| `OAuth2Error`        | `@appweaver/common` | `OAUTH2_`        | The OAuth2 sign-in                                              |
-| `RecaptchaError`     | `@appweaver/common` | `RECAPTCHA_`     | The reCAPTCHA verification                                      |
-| `TurnstileError`     | `@appweaver/common` | `TURNSTILE_`     | The Cloudflare Turnstile verification                           |
-| `FileError`          | `@appweaver/common` | `FILE_`          | The file service and storage                                    |
-| `ExportError`        | `@appweaver/common` | `EXPORT_`        | The data export                                                 |
-| `QueueError`         | `@appweaver/common` | `QUEUE_`         | The queues                                                      |
-| `MailerError`        | `@appweaver/common` | `MAILER_`        | The email service, wrapping the error of the mailer             |
-| `TemplateError`      | `@appweaver/common` | `TEMPLATE_`      | The template engine: a missing, unreadable or failing template  |
-| `LocaleError`        | `@appweaver/common` | `LOCALE_`        | The locale service: an unreadable file or an invalid message    |
-| `LockError`          | `@appweaver/common` | `LOCK_`          | A lock that could not be acquired                               |
+| Class                | Package             | Codes            | Raised by                                                                                |
+|----------------------|---------------------|------------------|------------------------------------------------------------------------------------------|
+| `RequestError`       | `@appweaver/common` | request codes    | The API layer, or the application for a rejected request                                 |
+| `ConfigurationError` | `@appweaver/common` | `CONFIGURATION_` | Invalid configuration and model definitions                                              |
+| `ApplicationError`   | `@appweaver/common` | any              | The application, with its own codes (see below)                                          |
+| `ContextError`       | `@appweaver/common` | `CONTEXT_`       | The dependency injection container                                                       |
+| `ModuleError`        | `@appweaver/common` | `MODULE_`        | The module discovery and the provider selection at startup                               |
+| `DatabaseError`      | `@appweaver/common` | `DATABASE_`      | The database operations, translated from the Prisma errors                               |
+| `ResourceError`      | `@appweaver/common` | `RESOURCE_`      | The resource services and their query, sort and relation inputs                          |
+| `AuthError`          | `@appweaver/common` | `AUTH_`          | The authentication and authorization                                                     |
+| `AccountError`       | `@appweaver/common` | `ACCOUNT_`       | The account and 2FA services (email and phone verification, password reset, 2FA methods) |
+| `OAuth2Error`        | `@appweaver/common` | `OAUTH2_`        | The OAuth2 sign-in                                                                       |
+| `RecaptchaError`     | `@appweaver/common` | `RECAPTCHA_`     | The reCAPTCHA verification                                                               |
+| `TurnstileError`     | `@appweaver/common` | `TURNSTILE_`     | The Cloudflare Turnstile verification                                                    |
+| `FileError`          | `@appweaver/common` | `FILE_`          | The file service and storage                                                             |
+| `ExportError`        | `@appweaver/common` | `EXPORT_`        | The data export                                                                          |
+| `QueueError`         | `@appweaver/common` | `QUEUE_`         | The queues                                                                               |
+| `MailerError`        | `@appweaver/common` | `MAILER_`        | The email service, wrapping the error of the mailer                                      |
+| `SmsError`           | `@appweaver/common` | `SMS_`           | An SMS sender, i.e. a message Twilio rejects                                             |
+| `TemplateError`      | `@appweaver/common` | `TEMPLATE_`      | The template engine: a missing, unreadable or failing template                           |
+| `LocaleError`        | `@appweaver/common` | `LOCALE_`        | The locale service: an unreadable file or an invalid message                             |
+| `LockError`          | `@appweaver/common` | `LOCK_`          | A lock that could not be acquired                                                        |
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
@@ -177,6 +178,14 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `ACCOUNT_FEATURE_UNAVAILABLE`        | 501    | Account feature unavailable           |
 | `ACCOUNT_EMAIL_ALREADY_VERIFIED`     | 409    | Email already verified                |
 | `ACCOUNT_PASSWORD_NOT_SET`           | 403    | Password not set                      |
+| `ACCOUNT_EMAIL_NOT_VERIFIED`         | 403    | Email not verified                    |
+| `ACCOUNT_PHONE_NOT_VERIFIED`         | 403    | Phone number not verified             |
+| `ACCOUNT_PHONE_ALREADY_VERIFIED`     | 409    | Phone number already verified         |
+| `ACCOUNT_2FA_METHOD_UNAVAILABLE`     | 400    | 2FA method unavailable                |
+| `ACCOUNT_2FA_METHOD_NOT_ENABLED`     | 400    | 2FA method not enabled                |
+| `ACCOUNT_2FA_METHOD_ALREADY_ENABLED` | 409    | 2FA method already enabled            |
+| `ACCOUNT_2FA_CODE_INVALID`           | 400    | Invalid 2FA code                      |
+| `ACCOUNT_2FA_TOO_MANY_ATTEMPTS`      | 429    | Too many 2FA attempts                 |
 | `OAUTH2_PROVIDER_ERROR`              | 502    | OAuth2 provider error                 |
 | `OAUTH2_EMAIL_UNAVAILABLE`           | 403    | OAuth2 email unavailable              |
 | `OAUTH2_REGISTRATION_DISABLED`       | 403    | OAuth2 registration disabled          |
@@ -208,6 +217,8 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `MAILER_SEND_FAILED`                 | 502    | Email sending failed                  |
 | `MAILER_JOB_NOT_FOUND`               | 500    | Email job not found                   |
 | `MAILER_SENDER_MISSING`              | 500    | Email sender missing                  |
+| `SMS_SEND_FAILED`                    | 502    | SMS sending failed                    |
+| `SMS_JOB_NOT_FOUND`                  | 500    | SMS job not found                     |
 | `TEMPLATE_NOT_FOUND`                 | 500    | Template not found                    |
 | `TEMPLATE_RENDER_FAILED`             | 500    | Template rendering failed             |
 | `TEMPLATE_LOAD_FAILED`               | 500    | Template loading failed               |

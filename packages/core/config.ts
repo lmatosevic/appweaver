@@ -8,5 +8,6 @@ export * from './memory/memory-config';
 export * from './queue/queue-config';
 export * from './scheduler/scheduler-config';
 export * from './security/security-store-config';
+export * from './sms/sms-config';
 export * from './storage/storage-config';
 export * from './template/template-config';

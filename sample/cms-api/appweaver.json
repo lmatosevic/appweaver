@@ -48,7 +48,11 @@
       },
       "account": {
         "2fa": {
-          "enabled": true
+          "enabled": true,
+          "totp": {
+            "issuer": "CMS",
+            "encryptionKey": "${TOTP_ENCRYPTION_KEY}"
+          }
         }
       }
     },
@@ -113,6 +117,18 @@
       },
       "export": {
         "batchSize": 2
+      },
+      "sms": {
+        "provider": "json"
+      },
+      "security": {
+        "account": {
+          "2fa": {
+            "totp": {
+              "encryptionKey": "test-totp-encryption-key"
+            }
+          }
+        }
       }
     }
   }

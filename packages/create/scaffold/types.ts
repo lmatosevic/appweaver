@@ -7,6 +7,7 @@ export const moduleNames = [
   'queue',
   'scheduler',
   'mailer',
+  'sms',
   'templates',
   'locales',
   'docker'
