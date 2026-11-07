@@ -435,6 +435,8 @@ Requires `NODE_ENV=test`.
 | `--temp-dir <dir>` | Directory of the temporary test data | `./temp` |
 | `--verbose`        | Print verbose output                 | `false`  |
 
+The test database of a server (PostgreSQL, MySQL, SQL Server) is kept, since `weaver test setup` resets it.
+
 ---
 
 ## `weaver upgrade`

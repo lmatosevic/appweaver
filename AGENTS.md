@@ -819,6 +819,8 @@ weaver test teardown [options]
 | `--temp-dir <dir>` | Temporary directory | `./temp` |
 | `--verbose`        | Verbose output      | false    |
 
+The test database of a server (PostgreSQL, MySQL, SQL Server) is kept, since `weaver test setup` resets it.
+
 ---
 
 ### `weaver upgrade` (alias: `up`)
