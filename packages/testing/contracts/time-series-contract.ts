@@ -224,6 +224,44 @@ export function testTimeSeriesContract(
       ]);
     });
 
+    test('sums an integer field past 32 bits', async () => {
+      await write([
+        { resourceId: ids[0], time: at(1), values: { count: 2_000_000_000 } },
+        { resourceId: ids[0], time: at(2), values: { count: 2_000_000_000 } },
+        { resourceId: ids[0], time: at(3), values: { count: 2_000_000_000 } }
+      ]);
+
+      const points = await store.query(model, {
+        resourceIds: [ids[0]],
+        fields: ['count'],
+        aggregate: 'sum'
+      });
+
+      expect(points.map((point) => point.values.count)).toEqual([
+        6_000_000_000
+      ]);
+    });
+
+    test('rounds a bucket down before the epoch', async () => {
+      const time = new Date(Date.UTC(1969, 11, 31, 23, 30));
+      await write([{ resourceId: ids[0], time, values: { count: 1 } }]);
+
+      const points = await store.query(model, {
+        resourceIds: [ids[0]],
+        fields: ['count'],
+        bucket: 3600,
+        aggregate: 'sum'
+      });
+
+      expect(points.map((point) => point.time)).toEqual([
+        new Date(Date.UTC(1969, 11, 31, 23))
+      ]);
+      // A store sharing its table with a retention test keeps no old point
+      if (store.supportsDelete) {
+        await store.delete(model, { resourceIds: [ids[0]] });
+      }
+    });
+
     test('deletes the points of a time range', async () => {
       if (!store.supportsDelete) {
         return;

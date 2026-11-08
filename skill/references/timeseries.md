@@ -267,6 +267,16 @@ The service checks no policy, like the resource services called by the applicati
 `normalizeQuery` validate the input the way the routes do. The `TimeSeriesService` is defined only when a store is
 provided, so `inject(TimeSeriesService, false)` is `undefined` with `timeseries.provider: none`.
 
+## Limitations
+
+- The buckets have a fixed width in UTC, so no time zones or calendar months. A point has millisecond precision.
+- An `int` field is 32 bits, and a value is read as a JavaScript number, so a total past 2^53 loses precision.
+- A `null` value never clears a stored one, delete the point instead.
+- While the queue is down a queued write responds `503`, and a write from an event handler is lost unless it handles
+  the error.
+- A soft deleted resource keeps its points until their retention, unreachable through the routes.
+- TimescaleDB: the retention drops whole chunks, and the type of a field cannot change once a chunk is compressed.
+
 ## Testing
 
 Select the `memory` store in the `test` environment, unless the end-to-end tests run on the store of production:

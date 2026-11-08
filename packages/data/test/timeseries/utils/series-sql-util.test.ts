@@ -72,7 +72,10 @@ describe('series-sql-util', () => {
         DatabaseType.MySQL,
         'ON DUPLICATE KEY UPDATE `temperature` = COALESCE(VALUES(`temperature`), `temperature`)'
       ],
-      [DatabaseType.SQLServer, 'MERGE INTO [SensorSeries] AS t USING (VALUES']
+      [
+        DatabaseType.SQLServer,
+        'MERGE INTO [SensorSeries] WITH (HOLDLOCK) AS t USING (VALUES'
+      ]
     ])('merges the points into the stored ones on %s', (type, expected) => {
       const [statement] = upsertStatements(seriesDialect(type), model, [point]);
 
@@ -134,7 +137,11 @@ describe('series-sql-util', () => {
         `date_bin(INTERVAL '3600 seconds', "time", TIMESTAMP '1970-01-01 00:00:00')`,
         'AVG(CAST("online" AS INTEGER))'
       ],
-      [DatabaseType.Sqlite, `/ 3600) * 3600, 'unixepoch')`, 'AVG("online")'],
+      [
+        DatabaseType.Sqlite,
+        `% 3600) + 3600) % 3600), 'unixepoch')`,
+        'AVG("online")'
+      ],
       [
         DatabaseType.MySQL,
         'TIMESTAMPADD(SECOND, FLOOR(TIMESTAMPDIFF(SECOND',
@@ -155,6 +162,24 @@ describe('series-sql-util', () => {
       expect(statement.sql).toContain(bucket);
       expect(statement.sql).toContain(average);
       expect(statement.sql).toContain('GROUP BY');
+    });
+
+    test('sums the integers of SQL Server as big integers, past the range of its INT', () => {
+      const sumOf = (type: DatabaseType) =>
+        selectStatement(
+          seriesDialect(type),
+          {
+            ...model,
+            fields: { ...model.fields, count: { type: 'int' } }
+          },
+          { resourceIds: [1], aggregate: 'sum' }
+        ).sql;
+
+      const sqlServer = sumOf(DatabaseType.SQLServer);
+      expect(sqlServer).toContain('SUM(CAST([count] AS BIGINT))');
+      expect(sqlServer).toContain('SUM([temperature])');
+      expect(sqlServer).toContain('SUM(CAST([online] AS INT))');
+      expect(sumOf(DatabaseType.PostgreSQL)).toContain('SUM("count")');
     });
 
     test('aggregates the whole range without a bucket, the count of a field and the first value', () => {

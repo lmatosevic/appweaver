@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
@@ -114,9 +114,10 @@ function clientDir(type: DatabaseType): string {
   fs.mkdirSync(path.dirname(schemaPath), { recursive: true });
   fs.writeFileSync(
     schemaPath,
-    `datasource db {\n  provider = "${type}"\n}\n\ngenerator client {\n  provider = "prisma-client"\n  output = "${output}"\n}\n`
+    `datasource db {\n  provider = "${type}"\n}\n\ngenerator client {\n  provider = "prisma-client"\n  output = "${output.replace(/\\/g, '/')}"\n}\n`
   );
-  execFileSync('npx', ['prisma', 'generate', '--schema', schemaPath], {
+  // Through a shell, since npx is a script on Windows
+  execSync(`npx prisma generate --schema "${schemaPath}"`, {
     stdio: 'ignore'
   });
   return output;

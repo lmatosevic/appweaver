@@ -24,6 +24,8 @@ export type SeriesDialect = {
   numeric: (column: string, field: SeriesField) => string;
   /** The argument of `AVG`, computed in floating point */
   average: (column: string) => string;
+  /** The argument of `SUM`, so a total of an integer field fits */
+  sum: (column: string, field: SeriesField) => string;
   /** Limits the rows of an ordered query */
   limit: (count: number) => string;
   /** Writes the rows of the columns into the quoted table, merging a row into the stored one of the same resource
@@ -37,6 +39,10 @@ export type SeriesDialect = {
 };
 
 const ansiQuote = (name: string) => `"${name.replace(/"/g, '""')}"`;
+
+// The integer division truncates toward zero, which would round up before the epoch
+const floorSeconds = (seconds: string, width: number) =>
+  `(${seconds} - ((${seconds} % ${width}) + ${width}) % ${width})`;
 
 const toInteger = (column: string, field: SeriesField) =>
   field.type === 'boolean' ? `CAST(${column} AS INTEGER)` : column;
@@ -68,6 +74,7 @@ export const postgresDialect: SeriesDialect = {
     `date_bin(INTERVAL '${width} seconds', ${column}, TIMESTAMP '1970-01-01 00:00:00')`,
   numeric: toInteger,
   average: (column) => column,
+  sum: (column) => column,
   limit: (count) => `LIMIT ${count}`,
   upsert: conflictUpsert
 };
@@ -78,9 +85,10 @@ export const sqliteDialect: SeriesDialect = {
   table: ansiQuote,
   // The times are stored as ISO 8601 text with a `+00:00` offset, the bucket written back the same way
   bucket: (column, width) =>
-    `strftime('%Y-%m-%dT%H:%M:%S.000+00:00', (CAST(strftime('%s', ${column}) AS INTEGER) / ${width}) * ${width}, 'unixepoch')`,
+    `strftime('%Y-%m-%dT%H:%M:%S.000+00:00', ${floorSeconds(`CAST(strftime('%s', ${column}) AS INTEGER)`, width)}, 'unixepoch')`,
   numeric: (column) => column,
   average: (column) => column,
+  sum: (column) => column,
   limit: (count) => `LIMIT ${count}`,
   upsert: conflictUpsert
 };
@@ -97,6 +105,7 @@ export const mysqlDialect: SeriesDialect = {
   numeric: (column, field) =>
     field.type === 'boolean' ? `CAST(${column} AS SIGNED)` : column,
   average: (column) => column,
+  sum: (column) => column,
   limit: (count) => `LIMIT ${count}`,
   upsert: (table, columns, fields, rows) =>
     sqltag`INSERT INTO ${raw(table)} (${raw(columns.map(mysqlQuote).join(', '))}) VALUES ${rows} ON DUPLICATE KEY UPDATE ${raw(
@@ -117,12 +126,18 @@ export const mssqlDialect: SeriesDialect = {
   quote: mssqlQuote,
   table: mssqlQuote,
   bucket: (column, width) => {
-    const start = `(DATEDIFF_BIG(SECOND, CAST('1970-01-01' AS DATETIME2), ${column}) / ${width} * ${width})`;
+    const start = floorSeconds(
+      `DATEDIFF_BIG(SECOND, CAST('1970-01-01' AS DATETIME2), ${column})`,
+      width
+    );
     return `DATEADD(SECOND, CAST(${start} % 86400 AS INT), DATEADD(DAY, CAST(${start} / 86400 AS INT), CAST('1970-01-01' AS DATETIME2)))`;
   },
   numeric: (column, field) =>
     field.type === 'boolean' ? `CAST(${column} AS INT)` : column,
   average: (column) => `CAST(${column} AS FLOAT)`,
+  // SUM of an INT is an INT, overflowing past 2^31
+  sum: (column, field) =>
+    field.type === 'int' ? `CAST(${column} AS BIGINT)` : column,
   limit: (count) => `OFFSET 0 ROWS FETCH NEXT ${count} ROWS ONLY`,
   upsert: (table, columns, fields, rows) => {
     const quoted = columns.map(mssqlQuote);
@@ -134,7 +149,8 @@ export const mssqlDialect: SeriesDialect = {
           )
           .join(', ')} `
       : '';
-    return sqltag`MERGE INTO ${raw(table)} AS t USING (VALUES ${rows}) AS s (${raw(quoted.join(', '))}) ON ${raw(
+    // A MERGE without the lock fails on a key two of them insert at once
+    return sqltag`MERGE INTO ${raw(table)} WITH (HOLDLOCK) AS t USING (VALUES ${rows}) AS s (${raw(quoted.join(', '))}) ON ${raw(
       `t.${mssqlQuote('resourceId')} = s.${mssqlQuote('resourceId')} AND t.${mssqlQuote('time')} = s.${mssqlQuote('time')}`
     )} ${raw(update)}WHEN NOT MATCHED THEN INSERT (${raw(quoted.join(', '))}) VALUES (${raw(
       quoted.map((column) => `s.${column}`).join(', ')
@@ -355,9 +371,14 @@ function aggregateExpression(
     return `COUNT(${column})`;
   }
   const value = dialect.numeric(column, field);
-  return aggregate === 'avg'
-    ? `AVG(${dialect.average(value)})`
-    : `${aggregate.toUpperCase()}(${value})`;
+  switch (aggregate) {
+    case 'avg':
+      return `AVG(${dialect.average(value)})`;
+    case 'sum':
+      return `SUM(${dialect.sum(value, field)})`;
+    default:
+      return `${aggregate.toUpperCase()}(${value})`;
+  }
 }
 
 /**
