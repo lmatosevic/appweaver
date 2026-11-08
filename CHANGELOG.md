@@ -1,3 +1,21 @@
+## [2.5.0](https://github.com/lmatosevic/appweaver/compare/v2.4.1...v2.5.0) (2026-11-08)
+
+### Features
+
+* implement createTask factory function for creating and running application one-shot tasks ([595b65b](https://github.com/lmatosevic/appweaver/commit/595b65b1acddb43562b74fbc254e274f10b7f7cb))
+* multi-method 2FA with SMS (Twilio), authenticator apps (TOTP) and recovery codes ([df8f36e](https://github.com/lmatosevic/appweaver/commit/df8f36ef77b5b113309a6b700ace0d1731b28d0b))
+* time series fields of the resource models ([d8c391f](https://github.com/lmatosevic/appweaver/commit/d8c391ff9da0fc4c3dfd967af410566bdd23100b))
+
+### Bug Fixes
+
+* conditionally show account, 2fa and verification routes if underlying module is enabled ([c55674a](https://github.com/lmatosevic/appweaver/commit/c55674a7313c72fae4741db96f92a7fb930b0c5b))
+* fix SQL Server schema generation for enums and relations ([d9571ae](https://github.com/lmatosevic/appweaver/commit/d9571ae3000ba8953717971202a04eda9a022f04))
+* fix time-series ingestion bugs ([8f0fe7d](https://github.com/lmatosevic/appweaver/commit/8f0fe7db68efc87bcfb547bf20704f747b587760))
+* make optional phone number when sending verify SMS message ([c41537d](https://github.com/lmatosevic/appweaver/commit/c41537db281761bc7c3c344689cd71aa8b8e9b5f))
+* normalize 2FA enums to PascalCase standard ([1509d7b](https://github.com/lmatosevic/appweaver/commit/1509d7b8a485c38a23f107f4031877a60c26414c))
+* optimize templates module import ([47c649e](https://github.com/lmatosevic/appweaver/commit/47c649e5c1c16458f4dd2be6e093a564fd448c9a))
+* security package updates ([ef3a5a0](https://github.com/lmatosevic/appweaver/commit/ef3a5a05e91889366ada3b2aeac052b37560a8e5))
+
 ## [2.4.1](https://github.com/lmatosevic/appweaver/compare/v2.4.0...v2.4.1) (2026-11-01)
 
 ### Bug Fixes
