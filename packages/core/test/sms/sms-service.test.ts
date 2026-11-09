@@ -7,6 +7,7 @@ import {
   SmsSender,
   TemplateEngine
 } from '@appweaver/common';
+import { context } from '../../context';
 import { define } from '../../context/dependency-injection';
 import { SmsService } from '../../sms';
 import { resetContext } from '../fixtures/context-fixture';
@@ -193,6 +194,15 @@ describe('sms-service', () => {
         code: ErrorCode.SmsSendFailed,
         details: { provider: 'Object' }
       });
+    });
+
+    test('names the selected provider in the error', async () => {
+      context.modules.providers.set(SmsSender.name, 'twilio');
+      sender.sendSms.mockRejectedValue(new Error('Socket closed'));
+
+      await expect(
+        worker({ data: { to: '+1', text: 'Hi' } })
+      ).rejects.toMatchObject({ details: { provider: 'twilio' } });
     });
   });
 

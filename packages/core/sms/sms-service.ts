@@ -11,6 +11,7 @@ import {
   TemplateError,
   TemplateSms
 } from '@appweaver/common';
+import { selectedProvider } from '../app/load-providers';
 import { inject } from '../context';
 import { smsConfig } from './sms-config';
 
@@ -189,7 +190,10 @@ export class SmsService {
       throw new SmsError(
         ErrorCode.SmsSendFailed,
         'SMS sending failed',
-        { provider: this._smsSender.constructor.name },
+        {
+          provider:
+            selectedProvider(SmsSender) ?? this._smsSender.constructor.name
+        },
         { cause: e }
       );
     }

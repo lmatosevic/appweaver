@@ -67,8 +67,8 @@ export abstract class Mailer implements IHealthCheck {
    * Sends an email using the provided email object.
    *
    * @param {Email} data - The email payload including recipients, subject, and body.
-   * @return {Promise<boolean>} A promise that resolves to `true` if sent successfully, otherwise should throw an
-   * error.
+   * @return {Promise<boolean>} A promise that resolves to `true` if sent successfully, otherwise should throw a
+   * `MailerError` with the `MAILER_SEND_FAILED` code.
    */
   abstract sendEmail(data: Email): Promise<boolean>;
 
