@@ -46,29 +46,28 @@ type Key = {
   section: ConfigSectionDefinition;
 };
 
-/** Every flattened key of the sections the framework modules list, with the `app` and `log` sections of common. */
-function frameworkKeys(): Map<string, Key> {
-  const listed = new Set(modules.flatMap((module) => module.config ?? []));
-  const keys = new Map<string, Key>();
-  for (const section of configSections.values()) {
-    if (
-      !listed.has(section.values) &&
-      !['app', 'log'].includes(section.section)
-    ) {
-      continue;
-    }
-    for (const [key, property] of Object.entries(section.schema.properties)) {
-      keys.set(section.prefix + key, { name: key, property, section });
-    }
-  }
-  return keys;
-}
+/** The sections the framework modules list, with the `app` and `log` sections of common. */
+const listed = new Set(modules.flatMap((module) => module.config ?? []));
+const sections = [...configSections.values()].filter(
+  (section) =>
+    listed.has(section.values) || ['app', 'log'].includes(section.section)
+);
+
+/** Every flattened key of the sections. */
+const keys = new Map<string, Key>(
+  sections.flatMap((section) =>
+    Object.entries(section.schema.properties).map(
+      ([name, property]) =>
+        [section.prefix + name, { name, property, section }] as const
+    )
+  )
+);
 
 const isRecord = (property: TSchema) =>
   property.type === 'object' && property.patternProperties !== undefined;
 
 /** The flattened key a raw name belongs to: its own, or the record key of a record entry (`LOG_LEVELS_DATABASE`). */
-function ownerKey(keys: Map<string, Key>, name: string): string | undefined {
+function ownerKey(name: string): string | undefined {
   if (keys.has(name)) {
     return name;
   }
@@ -78,10 +77,7 @@ function ownerKey(keys: Map<string, Key>, name: string): string | undefined {
 }
 
 /** Validates the raw values of every section with its schema, returning the errors by key. */
-function sectionErrors(
-  keys: Map<string, Key>,
-  values: Map<string, unknown>
-): string[] {
+function sectionErrors(values: Map<string, unknown>): string[] {
   const inputs = new Map<ConfigSectionDefinition, Record<string, unknown>>();
   for (const [key, value] of values) {
     const { name, section } = keys.get(key)!;
@@ -106,8 +102,6 @@ function sectionErrors(
 }
 
 describe('config-examples', () => {
-  const keys = frameworkKeys();
-
   test('collects the sections of every framework module', () => {
     expect(keys.has('SERVER_PORT')).toBe(true);
     expect(keys.has('SMS_TWILIO_ACCOUNT_SID')).toBe(true);
@@ -119,11 +113,7 @@ describe('config-examples', () => {
     const flattened = loadConfigFromFile(Type.Object({}), examplePath) ?? {};
 
     test('writes every key in the form of the config schema', () => {
-      const schema = buildConfigSchema(
-        [...configSections.values()].filter((section) =>
-          [...keys.values()].some((key) => key.section === section)
-        )
-      );
+      const schema = buildConfigSchema(sections);
 
       const unknown: string[] = [];
       const walk = (value: unknown, node: any, at: string) => {
@@ -153,7 +143,7 @@ describe('config-examples', () => {
       const unknown: string[] = [];
       for (const [rawKey, value] of Object.entries(flattened)) {
         const name = rawKey.replace(/^_appweaver_/, '');
-        const key = ownerKey(keys, name);
+        const key = ownerKey(name);
         if (!key) {
           unknown.push(name);
         } else if (isRecord(keys.get(key)!.property)) {
@@ -165,7 +155,7 @@ describe('config-examples', () => {
       }
 
       expect(unknown).toEqual([]);
-      expect(sectionErrors(keys, values)).toEqual([]);
+      expect(sectionErrors(values)).toEqual([]);
     });
   });
 
@@ -207,7 +197,7 @@ describe('config-examples', () => {
       }
 
       expect(unknown).toEqual([]);
-      expect(sectionErrors(keys, values)).toEqual([]);
+      expect(sectionErrors(values)).toEqual([]);
     });
   });
 

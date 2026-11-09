@@ -8,8 +8,8 @@ export class {{CLASS_NAME}} extends SmsSender {
 
   public async sendSms(message: SmsMessage): Promise<boolean> {
     void {{CONFIG_NAME}}.EXAMPLE;
-    // A message the service rejects throws an `SmsError` with the `SMS_SEND_FAILED` code and the provider name. The
-    // sender is the `sms.sender` config when missing, the default sender of the service without one.
+    // A rejected message throws an SmsError with SMS_SEND_FAILED and the provider name. Without `from`, send from
+    // the default sender of the service.
     this.sent.push(message);
     return true;
   }

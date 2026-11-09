@@ -33,38 +33,27 @@ export class SmtpMailer extends Mailer {
   /**
    * Sends an email through the SMTP server.
    *
-   * @param {Email} data - The email to send.
-   * @return {Promise<boolean>} `true` once the server accepts the email.
-   * @throws {MailerError} `MAILER_SEND_FAILED` if the server rejects the email or cannot be reached, with the SMTP
-   * response code as the `status` and the error code of Nodemailer as the `providerCode`, `MAILER_SENDER_MISSING` if
-   * the email has no sender.
+   * @throws {MailerError} `MAILER_SEND_FAILED` if the server rejects the email, with its SMTP response code as the
+   * `status`, `MAILER_SENDER_MISSING` if the email has no sender.
    */
   public async sendEmail(data: Email): Promise<boolean> {
     const { providerOptions, ...email } = completeEmail(data);
 
-    let info: { messageId?: string; response?: string };
-    try {
-      info = await this._transporter.sendMail({
-        ...providerOptions,
-        ...email
+    const info = await this._transporter
+      .sendMail({ ...providerOptions, ...email })
+      .catch((e: { responseCode?: number; code?: string }) => {
+        throw new MailerError(
+          ErrorCode.MailerSendFailed,
+          `SMTP server rejected the email: ${errorMessage(e)}`,
+          {
+            provider: 'smtp',
+            subject: email.subject,
+            status: e.responseCode,
+            providerCode: e.code
+          },
+          { cause: e }
+        );
       });
-    } catch (e) {
-      const { responseCode, code } = e as {
-        responseCode?: number;
-        code?: string;
-      };
-      throw new MailerError(
-        ErrorCode.MailerSendFailed,
-        `SMTP server rejected the email: ${errorMessage(e)}`,
-        {
-          provider: 'smtp',
-          subject: email.subject,
-          status: responseCode,
-          providerCode: code
-        },
-        { cause: e }
-      );
-    }
     logger.debug(
       { messageId: info.messageId, response: info.response },
       'SMTP message accepted'

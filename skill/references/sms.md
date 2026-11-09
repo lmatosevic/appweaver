@@ -104,12 +104,11 @@ during a major or critical outage.
 
 ### A driver of another provider
 
-A driver of another service (Infobip, Vonage, MessageBird, ...) extends `SmsSender` (`sendSms`, `checkHealth`), and
-throws an `SmsError` with the `SMS_SEND_FAILED` code, its `provider` name and the `status` and `providerCode` of the
-service, when the service rejects a message, like `TwilioSms` does. A message without a `from` is sent from the default
-sender of the service. It is tested with `testSmsContract` of `@appweaver/testing`, and
-`npm create @appweaver module <package> -- --contract sms` scaffolds it as a module package with its config section
-`sms.<name>` and the contract test:
+A driver of another service (Infobip, Vonage, ...) extends `SmsSender` (`sendSms`, `checkHealth`), sends a message
+without `from` from the default sender of the service, and throws an `SmsError` (`SMS_SEND_FAILED` with its
+`provider` name, and the `status` and `providerCode` of the service) when the service rejects a message.
+`npm create @appweaver module <package> -- --contract sms` scaffolds it as a module package with its `sms.<name>`
+config section, tested with `testSmsContract`:
 
 ```sh
 npm create @appweaver module @acme/appweaver-vonage "Vonage SMS sender" -- --contract sms

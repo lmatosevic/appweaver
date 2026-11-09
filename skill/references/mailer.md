@@ -90,12 +90,11 @@ Verifies that the mail transport is reachable (`transporter.verify()` for SMTP).
 
 #### A driver of another provider
 
-A driver of another service (Postmark, SES, SendGrid, ...) extends `Mailer` (`sendEmail`, `checkHealth`), fills the
-sender and the HTML body an email may leave out with `completeEmail` of `@appweaver/core`, and throws a `MailerError`
-with the `MAILER_SEND_FAILED` code, its `provider` name and the `status` and `providerCode` of the service, when the
-service rejects an email, like `SmtpMailer` does with the SMTP response code. It is tested with `testMailerContract` of
-`@appweaver/testing`, and `npm create @appweaver module <package> -- --contract mailer` scaffolds it as a module
-package, see [modules](./modules.md#creating-a-module-package).
+A driver of another service (Postmark, SES, ...) extends `Mailer` (`sendEmail`, `checkHealth`), completes the email
+with `completeEmail` of `@appweaver/core` (the sender and the HTML body), and throws a `MailerError`
+(`MAILER_SEND_FAILED` with its `provider` name, and the `status` and `providerCode` of the service) when the service
+rejects an email. `npm create @appweaver module <package> -- --contract mailer` scaffolds it as a module package
+tested with `testMailerContract`, see [modules](./modules.md#creating-a-module-package).
 
 ---
 
@@ -223,10 +222,9 @@ const sent = await emailService.sendEmailAndWait({
 
 ---
 
-The worker sends the queued email with the `Mailer`, so an error of the driver fails the job with
-`MAILER_SEND_FAILED`: a `MailerError` of the driver is kept, and any other error is wrapped in one naming the selected
-provider (`details.provider`, i.e. `smtp`) and the subject. A queue returning a job without an id fails
-`sendEmailAndWait` with `MAILER_JOB_NOT_FOUND`, though the email may still be sent.
+A failed send fails the job with `MAILER_SEND_FAILED`: a `MailerError` of the driver is kept, any other error is
+wrapped in one naming the selected provider (`details.provider`, i.e. `smtp`) and the subject. A queue returning a
+job without an id fails `sendEmailAndWait` with `MAILER_JOB_NOT_FOUND`, though the email may still be sent.
 
 ---
 

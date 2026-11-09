@@ -1108,7 +1108,8 @@ A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module 
 add` on Bun) and prints the providers and requirements of its manifest. `new <name>` creates a local module (kebab-case
 name) with its `module.ts`, `config.ts` (the camelCase section of the name) and `main.ts`, enabled without config. A
 reusable module goes into a package of its own, created with `npm create @appweaver module <package> -- --contract
-storage|mailer|sms|none`, i.e. a Postmark mailer or an Infobip or Vonage SMS sender (see [modules.md](references/modules.md#creating-a-module-package)).
+storage|mailer|sms|none`, i.e. a Postmark mailer or a Vonage SMS sender (see
+[modules.md](references/modules.md#creating-a-module-package)).
 
 ### Run tests
 

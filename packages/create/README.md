@@ -106,8 +106,8 @@ The package is a module enabled by installing it: its `package.json` has the `ap
 `appweaver-module` keyword, with `@appweaver/common` and `@appweaver/core` as peer dependencies. It holds the manifest
 (`src/module.ts`), a config section (`src/config.ts`), and either a driver class (`GcsStorage`, `PostmarkMailer`,
 `VonageSms`) with a test running the contract suite of `@appweaver/testing`, or the startup code of a feature module
-(`src/main.ts`), with the TypeScript and Jest setup. The short name, without the scope and the `appweaver-` prefix (`gcs`), is the name of
-its provider and of its config section (`storage.gcs` for a storage driver, `sms.vonage` for an SMS sender).
+(`src/main.ts`), with the TypeScript and Jest setup. The short name, without the scope and the `appweaver-` prefix
+(`gcs`), is the name of its provider and of its config section (`storage.gcs`, `sms.vonage`).
 
 ```sh
 cd appweaver-gcs

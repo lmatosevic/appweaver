@@ -123,7 +123,7 @@ When adding or changing a config key, make sure to also update all the following
 
 The `config-examples` test of `packages/cli` checks them against the sections of every framework module: the JSON
 example in the form of the schema with valid values, `.env.example` listing every key with valid values, and
-`configuration.md` naming every key. A new framework package with config is added to its `modules`.
+`configuration.md` naming every key. A new framework package with config is added to the `modules` of the test.
 
 ### Errors
 
@@ -335,8 +335,8 @@ file. They use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` gl
 and Bun, and create a fresh driver for every test.
 `InMemory`, `RedisMemory` (on `ioredis-mock`, which runs its Lua scripts), `FilesystemStorage`, `MemoryQueue`,
 `JsonMailer`, `SmtpMailer` (on a mocked transport), `JsonSms`, `TwilioSms` (on a mocked `fetch`), `CronScheduler`,
-`MemoryTimeSeries`, `DatabaseTimeSeries`
-and `TimescaleTimeSeries` (on SQLite, and on the databases of `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`,
+`MemoryTimeSeries`, `DatabaseTimeSeries` and `TimescaleTimeSeries` (on SQLite, and on the databases of
+`TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`,
 `TIMESERIES_TEST_SQLSERVER_URL` and `TIMESERIES_TEST_TIMESCALE_URL` when set) run them, and so does the test of a driver package scaffolded with
 `npm create @appweaver module`. A change of a contract's shared behavior goes into its
 suite, so every driver is held to it.
@@ -438,7 +438,7 @@ from `templates/module-package/common/` and the directory of its contract:
 - `src/module.ts` (the manifest, with the framework range), `src/config.ts` (its section) and `src/index.ts`
 - for a driver, the class `<Name>Storage` (`src/storage.ts`), `<Name>Mailer` (`src/mailer.ts`) or `<Name>Sms`
   (`src/sms.ts`), a working in-memory stub, and a test running the contract suite of `@appweaver/testing`; for a
-  feature module (`none`, the default), `src/main.ts` and a test of the manifest, checking its `loggers` against the sources
+  feature module (`none`, the default), `src/main.ts` and a test checking the `loggers` of its manifest
 - `tsconfig.json`, `tsconfig.build.json`, `jest.config.json`, `.gitignore` (the template is `gitignore`, since npm
   leaves the `.gitignore` files out of a published package) and `README.md`
 

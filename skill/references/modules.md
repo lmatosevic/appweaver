@@ -327,7 +327,7 @@ export default defineModule({
   `@appweaver/core/drivers` (the in-process drivers) and `@appweaver/core/internal` (the application `context`, the
   transaction scope, `LifecycleManager` and `loadProviders`, which can change in a minor release, so pin the
   `framework` range). Node refuses a deep import such as `@appweaver/core/context/context`.
-- A driver nests its config section under its contract (`storage.gcs`, like `mailer.smtp` and `sms.twilio`), any other module takes its
+- A driver nests its config section under its contract (`storage.gcs`, like `mailer.smtp`), any other module takes its
   own top-level section. Two packages may define the same section path with their own keys (`healthCheck` in core and
   web, `security.oauth2` in data and web), but a flattened key belongs to one section only.
 
