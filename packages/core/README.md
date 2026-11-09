@@ -20,16 +20,18 @@
   `appweaver.module` field (`@appweaver/data`, `@appweaver/web`, the drivers), the local `src/modules/*/module.ts`,
   and the paths of `app.modules`. A driver is selected by name in its `provider` key, `auto` by default.
 - **Application** – `createApp`, the lifecycle hooks (`onInit`, `onReady`, `onShutdown`, `onDestroy`), the health
-  listener of the applications without a server, and `weaver run` tasks.
+  listener of the applications without a server, and the `weaver run` tasks of `createTask`.
 - **Dependency injection** – `define`, `inject`, `injectService` and `isDefined`, the auth user context with
   `runAs`, and the transaction scope with `afterCommit`.
-- **In-process drivers** – the memory, the cache, the queue, the node events, the `local` file storage and the `json`
-  mailer, with `EmailService`, the locale service and the template registration.
+- **In-process drivers** – the memory, the cache, the queue, the node events, the `local` file storage, the `json`
+  mailer and SMS sender (writing into the log, for development and tests) and the `memory` time series.
+- **Services** – `EmailService` and `SmsService` (sending through the queue, from the templates of the application),
+  `CacheService`, `HealthService`, `TimeSeriesService`, the locale service and the template registration.
 
 The database, the resources and the auth data model are in [`@appweaver/data`](https://www.npmjs.com/package/@appweaver/data),
 the HTTP server in [`@appweaver/web`](https://www.npmjs.com/package/@appweaver/web), and the drivers in
-`@appweaver/redis`, `@appweaver/bullmq`, `@appweaver/cron`, `@appweaver/nodemailer`, `@appweaver/handlebars` and
-`@appweaver/sharp`.
+`@appweaver/redis`, `@appweaver/bullmq`, `@appweaver/cron`, `@appweaver/nodemailer`, `@appweaver/twilio`,
+`@appweaver/handlebars` and `@appweaver/sharp`.
 
 ## Installation
 

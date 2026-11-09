@@ -117,8 +117,13 @@ framework package is added to its manifest, which the `module` test of the packa
 When adding or changing a config key, make sure to also update all the following files:
 
 - **skill/references/configuration.md**: Skill for configuration usage by AI agents
-- **appweaver.example.json**: example defaults as JSON properties
+- **appweaver.example.json**: example defaults as JSON properties, each by its camelCase name in the object of its
+  section, the form of the JSON Schema (`security.account.verifyEmailEnabled`, not `verifyEmail.enabled`)
 - **.env.example**: example defaults as env variables
+
+The `config-examples` test of `packages/cli` checks them against the sections of every framework module: the JSON
+example in the form of the schema with valid values, `.env.example` listing every key with valid values, and
+`configuration.md` naming every key. A new framework package with config is added to its `modules`.
 
 ### Errors
 
@@ -324,12 +329,13 @@ path into another package. Jest maps every `@appweaver/*` import to the sources 
 `jest.config.json`), so the tests need no build and share one instance of each module.
 
 The contract suites of `contracts/` test a driver against the behavior every driver of its contract shares:
-`testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract`, `testMailerContract` and
-`testSmsContract` and
-`testTimeSeriesContract`, each called as `(name, () => driver)` at the top level of a test file. They use the `describe`, `test`, `beforeEach`,
-`afterEach` and `expect` globals, so they run under Jest, Vitest and Bun, and create a fresh driver for every test.
+`testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract`, `testMailerContract`,
+`testSmsContract` and `testTimeSeriesContract`, each called as `(name, () => driver)` at the top level of a test
+file. They use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
+and Bun, and create a fresh driver for every test.
 `InMemory`, `RedisMemory` (on `ioredis-mock`, which runs its Lua scripts), `FilesystemStorage`, `MemoryQueue`,
-`JsonMailer`, `JsonSms`, `TwilioSms` (on a mocked `fetch`), `CronScheduler`, `MemoryTimeSeries`, `DatabaseTimeSeries`
+`JsonMailer`, `SmtpMailer` (on a mocked transport), `JsonSms`, `TwilioSms` (on a mocked `fetch`), `CronScheduler`,
+`MemoryTimeSeries`, `DatabaseTimeSeries`
 and `TimescaleTimeSeries` (on SQLite, and on the databases of `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`,
 `TIMESERIES_TEST_SQLSERVER_URL` and `TIMESERIES_TEST_TIMESCALE_URL` when set) run them, and so does the test of a driver package scaffolded with
 `npm create @appweaver module`. A change of a contract's shared behavior goes into its
@@ -420,9 +426,9 @@ version (`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the pu
 | `templates/modules/<name>/`         | The files of a module, deleted when it is removed                                                                    |
 | `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates` and `sms+templates` hold the account templates)        |
 | `templates/translations/en.json`    | The English texts of the scaffolded templates, merged into `locales/en.json` with the mailer                         |
-| `templates/module-package/`         | The files of every module package (`common/`), and those of each contract (`storage/`, `mailer/`, `none/`)           |
+| `templates/module-package/`         | The files of every module package (`common/`), and those of each contract (`storage/`, `mailer/`, `sms/`, `none/`)   |
 
-**Module packages**: `create-appweaver module <package> [description] [--contract storage|mailer|none] [-o dir]`
+**Module packages**: `create-appweaver module <package> [description] [--contract storage|mailer|sms|none] [-o dir]`
 (selected by `module` as the first argument) creates a package in `-o` (by default the package name without its scope)
 from `templates/module-package/common/` and the directory of its contract:
 
@@ -430,16 +436,17 @@ from `templates/module-package/common/` and the directory of its contract:
   `@appweaver/common`, `@appweaver/core` and TypeBox as peer dependencies, `@appweaver/testing` and the test tooling
   (the `scaffoldDependencies` versions) as dev dependencies
 - `src/module.ts` (the manifest, with the framework range), `src/config.ts` (its section) and `src/index.ts`
-- for a driver, the class `<Name>Storage` (`src/storage.ts`) or `<Name>Mailer` (`src/mailer.ts`), a working in-memory
-  stub, and a test running the contract suite of `@appweaver/testing`; for a feature module (`none`, the default),
-  `src/main.ts` and a test of the manifest, checking its `loggers` against the sources
+- for a driver, the class `<Name>Storage` (`src/storage.ts`), `<Name>Mailer` (`src/mailer.ts`) or `<Name>Sms`
+  (`src/sms.ts`), a working in-memory stub, and a test running the contract suite of `@appweaver/testing`; for a
+  feature module (`none`, the default), `src/main.ts` and a test of the manifest, checking its `loggers` against the sources
 - `tsconfig.json`, `tsconfig.build.json`, `jest.config.json`, `.gitignore` (the template is `gitignore`, since npm
   leaves the `.gitignore` files out of a published package) and `README.md`
 
 The short name (`moduleShortName`) strips the scope and the `appweaver-` prefix (`@acme/appweaver-gcs` → `gcs`) and is
-the provider name. The config section is `<contract>.<name>` for a driver (`storage.gcs`), `<name>` for a feature
-module, both in camelCase. Only `storage` and `mailer` have a driver template, a driver of another contract starts as a
-feature module.
+the provider name. The config section is `<contract>.<name>` for a driver (`storage.gcs`, `sms.vonage`), `<name>` for
+a feature module, both in camelCase. Only `storage`, `mailer` and `sms` have a driver template, a driver of another
+contract starts as a feature module. A new driver template is a directory of `templates/module-package/`, its contract
+in `moduleContracts` and its class suffix in `classSuffixes` (`scaffold/create-module-package.ts`).
 
 A template file can have runtime-specific variants:
 

@@ -56,8 +56,9 @@ const results = await smsService.sendSmsBulkAndWait(
 ```
 
 The worker sends the queued message with the `SmsSender`, so an error of the driver fails the job with
-`SMS_SEND_FAILED` (an error that is not an `SmsError` is wrapped in one naming the driver class). A queue returning a
-job without an id fails `sendSmsAndWait` with `SMS_JOB_NOT_FOUND`, though the message may still be sent.
+`SMS_SEND_FAILED`: an `SmsError` of the driver is kept, and any other error is wrapped in one naming the selected
+provider (`details.provider`, i.e. `twilio`). A queue returning a job without an id fails `sendSmsAndWait` with
+`SMS_JOB_NOT_FOUND`, though the message may still be sent.
 
 ### Templates
 
@@ -98,9 +99,24 @@ const sender = inject(SmsSender, false);
 await sender?.sendSms({ to: '+385911234567', text: 'Hello' });
 ```
 
-A driver of another provider extends `SmsSender` (`sendSms`, `checkHealth`) and is tested with `testSmsContract` of
-`@appweaver/testing`, see [modules](./modules.md#testing-a-driver). The health check of `TwilioSms` reads the status
-page of Twilio (`SMS_TWILIO_STATUS_URL`), reporting the sender down during a major or critical outage.
+The health check of `TwilioSms` reads the status page of Twilio (`SMS_TWILIO_STATUS_URL`), reporting the sender down
+during a major or critical outage.
+
+### A driver of another provider
+
+A driver of another service (Infobip, Vonage, MessageBird, ...) extends `SmsSender` (`sendSms`, `checkHealth`), and
+throws an `SmsError` with the `SMS_SEND_FAILED` code, its `provider` name and the `status` and `providerCode` of the
+service, when the service rejects a message, like `TwilioSms` does. A message without a `from` is sent from the default
+sender of the service. It is tested with `testSmsContract` of `@appweaver/testing`, and
+`npm create @appweaver module <package> -- --contract sms` scaffolds it as a module package with its config section
+`sms.<name>` and the contract test:
+
+```sh
+npm create @appweaver module @acme/appweaver-vonage "Vonage SMS sender" -- --contract sms
+```
+
+An application installs it with `weaver module add @acme/appweaver-vonage`, which selects it with `sms.provider`
+`auto` (or `"sms": { "provider": "vonage" }` beside another SMS driver), see [modules](./modules.md#package-modules).
 
 ## Configuration
 

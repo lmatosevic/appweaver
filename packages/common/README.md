@@ -24,7 +24,10 @@
 - **Types** – the resource model, query filter, sort, aggregate, policy, and route types, and the `ResourceRegistry`
   that `weaver generate` fills so the factories infer the model types from a model name.
 - **Infrastructure contracts** – the abstract `Database`, `Cache`, `Memory`, `Queue`, `Scheduler`, `Storage`,
-  `Mailer`, `Events`, `TemplateEngine`, `ImageProcessor`, and `SecurityStore` classes the drivers implement.
+  `Mailer`, `SmsSender`, `Events`, `TemplateEngine`, `ImageProcessor`, `SecurityStore` and `TimeSeries` classes the
+  drivers implement.
+- **Errors** – `AppweaverError` and its subclasses (`ResourceError`, `MailerError`, `SmsError`, ...), each carrying an
+  `ErrorCode` and its typed details, which `@appweaver/web` responds with as RFC 9457 problem details.
 - **Modules** – `defineModule`, the manifest of a module declaring its contracts, providers, services, setup,
   resources and startup code, the same format for the framework's own modules, npm packages, and the `src/modules/`
   of an app.

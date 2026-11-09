@@ -16,7 +16,7 @@
 
 `@appweaver/create` generates a ready-to-run Appweaver project for Node or Bun: the source layout, configuration files
 per environment, a seeded admin user, the test setup, the agent skill files for the chosen AI agent, and the optional
-modules (Redis, queue, scheduler, mailer, SMS, templates, locales, Docker files). It also creates
+modules (Redis, queue, scheduler, mailer, SMS, templates, locales, time series, Docker files). It also creates
 [module packages](#module-packages), the drivers and features published to npm.
 
 ## Usage
@@ -93,20 +93,21 @@ npm create @appweaver module <package> [description] -- [options]
 
 ```sh
 npm create @appweaver module @acme/appweaver-gcs "Google Cloud Storage driver" -- --contract storage
+npm create @appweaver module @acme/appweaver-vonage "Vonage SMS sender" -- --contract sms
 npx @appweaver/create module @acme/appweaver-audit
 ```
 
-| Flag                     | Description                                                                   | Default                        |
-|--------------------------|-------------------------------------------------------------------------------|--------------------------------|
-| `-o, --output-dir <dir>` | Output directory                                                              | package name without its scope |
-| `--contract <contract>`  | The contract its driver implements: `storage`, `mailer`, `none` for a feature | `none`                         |
+| Flag                     | Description                                                            | Default                        |
+|--------------------------|------------------------------------------------------------------------|--------------------------------|
+| `-o, --output-dir <dir>` | Output directory                                                       | package name without its scope |
+| `--contract <contract>`  | The contract its driver implements: `storage`, `mailer`, `sms`, `none` | `none`                         |
 
 The package is a module enabled by installing it: its `package.json` has the `appweaver.module` field and the
 `appweaver-module` keyword, with `@appweaver/common` and `@appweaver/core` as peer dependencies. It holds the manifest
-(`src/module.ts`), a config section (`src/config.ts`), and either a driver class (`GcsStorage`, `<Name>Mailer`) with a
-test running the contract suite of `@appweaver/testing`, or the startup code of a feature module (`src/main.ts`), with
-the TypeScript and Jest setup. The short name, without the scope and the `appweaver-` prefix (`gcs`), is the name of
-its provider and of its config section (`storage.gcs` for a storage driver).
+(`src/module.ts`), a config section (`src/config.ts`), and either a driver class (`GcsStorage`, `PostmarkMailer`,
+`VonageSms`) with a test running the contract suite of `@appweaver/testing`, or the startup code of a feature module
+(`src/main.ts`), with the TypeScript and Jest setup. The short name, without the scope and the `appweaver-` prefix (`gcs`), is the name of
+its provider and of its config section (`storage.gcs` for a storage driver, `sms.vonage` for an SMS sender).
 
 ```sh
 cd appweaver-gcs

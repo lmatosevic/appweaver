@@ -517,7 +517,8 @@ config (see `references/resources.md`).
 
 The `update` config covers both `PATCH /:id` (partial update) and `PUT /:id` (full replace: required fields must be
 present, omitted ones reset to their `default` or `null`). The `replace` config inherits it and overrides it for
-`PUT /:id` only (i.e. `replace: { roles: ['Admin'] }` or `replace: { exclude: true }`).
+`PUT /:id` only (i.e. `replace: { roles: ['Admin'] }` or `replace: { exclude: true }`). Likewise the `update`
+`omit`/`pick` of the model shapes the input of both routes, so they always accept the same fields.
 
 The bulk routes (`POST`, `PATCH`, `PUT`, `DELETE` on `/bulk`) are disabled by default. Enable them globally with
 `RESOURCE_BULK_*_ENABLED`, or per resource with `bulkCreate`/`bulkUpdate`/`bulkDelete: { exclude: false }`
@@ -1107,7 +1108,7 @@ A name that is not a scaffold module, with a scope, a `-` or a `/`, is a module 
 add` on Bun) and prints the providers and requirements of its manifest. `new <name>` creates a local module (kebab-case
 name) with its `module.ts`, `config.ts` (the camelCase section of the name) and `main.ts`, enabled without config. A
 reusable module goes into a package of its own, created with `npm create @appweaver module <package> -- --contract
-storage|mailer|none` (see [modules.md](references/modules.md#creating-a-module-package)).
+storage|mailer|sms|none`, i.e. a Postmark mailer or an Infobip or Vonage SMS sender (see [modules.md](references/modules.md#creating-a-module-package)).
 
 ### Run tests
 
