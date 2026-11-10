@@ -17,6 +17,7 @@ first-party module does.
 | `@appweaver/cron`       | Installed                    | The `cron` scheduler                                                                                                                 |
 | `@appweaver/nodemailer` | Installed                    | The `smtp` mailer                                                                                                                    |
 | `@appweaver/twilio`     | Installed                    | The `twilio` SMS sender (`SmsSender`), with the REST API of Twilio and no SDK                                                        |
+| `@appweaver/opentelemetry` | Installed                 | The OpenTelemetry SDK (`TelemetryService`) exporting the traces, metrics and logs over OTLP, see [telemetry](./telemetry.md)         |
 | `@appweaver/handlebars` | Installed                    | The `handlebars` template engine                                                                                                     |
 | `@appweaver/sharp`      | Installed                    | The `sharp` image processor                                                                                                          |
 

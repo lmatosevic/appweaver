@@ -397,6 +397,48 @@
         "timeout": 10000
       }
     },
+    "telemetry": {
+      "enabled": true,
+      "logCorrelation": true,
+      "serviceName": "",
+      "serviceVersion": "",
+      "resourceAttributes": [],
+      "exporter": "otlp",
+      "endpoint": "http://localhost:4318",
+      "headers": [],
+      "protocol": "http/protobuf",
+      "timeout": 10000,
+      "traces": {
+        "enabled": true,
+        "sampleRatio": 1,
+        "endpoint": ""
+      },
+      "metrics": {
+        "enabled": true,
+        "interval": 60000,
+        "endpoint": ""
+      },
+      "logs": {
+        "enabled": false,
+        "level": "info",
+        "endpoint": ""
+      },
+      "http": {
+        "ignorePaths": [],
+        "healthCheck": false
+      },
+      "instrumentations": {
+        "http": true,
+        "database": true,
+        "queue": true,
+        "scheduler": true,
+        "mailer": true,
+        "sms": true,
+        "cache": true,
+        "task": true,
+        "fetch": true
+      }
+    },
     "template": {
       "path": "./templates",
       "cache": true,

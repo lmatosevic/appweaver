@@ -43,8 +43,9 @@ Tests are located in `packages/*/test` and use **Jest** with **SWC** for fast ex
 - **Package sources**: the `moduleNameMapper` of `jest.config.json` maps every `@appweaver/*` import (and subpath) to
   the sources of its package, so the tests need no build and the tests of every package share one instance of each
   module. A new package is added to both of its patterns
-- **Test helpers**: `resetContext`, `linkModels`, `createDatabaseStub`, `prismaError`, `sourceLoggerNames` and
-  `cliConventionViolations` of `@appweaver/testing` (`packages/testing`), shared by the tests of every package
+- **Test helpers**: `resetContext`, `linkModels`, `createDatabaseStub`, `prismaError`, `sourceLoggerNames`,
+  `cliConventionViolations` and `recordTelemetry` of `@appweaver/testing` (`packages/testing`), shared by the tests of
+  every package
 - **Contract suites**: the test of a driver runs the suite of its contract from `@appweaver/testing`, i.e.
   `testStorageContract('FilesystemStorage', () => new FilesystemStorage())` (see `packages/testing`)
 
@@ -120,6 +121,34 @@ When adding or changing a config key, make sure to also update all the following
 - **appweaver.example.json**: example defaults as JSON properties
 - **.env.example**: example defaults as env variables
 
+### Telemetry
+
+The framework is instrumented with OpenTelemetry through `@opentelemetry/api` alone, a dependency of
+`@appweaver/common` only, which records nothing until an SDK is registered. `packages/common/telemetry` holds the
+helpers every package instruments with, and re-exports the few parts of the API they need (`SpanKind`,
+`SpanStatusCode`, `Span`), so no other framework package imports `@opentelemetry/api`:
+
+- `telemetry.ts`: `withSpan`, `startSpan`, `runInTraceContext`, `failSpan`, `currentSpan`, `currentTraceId`,
+  `injectTraceContext` / `extractTraceContext`, and the lazy instruments `telemetryCounter`, `telemetryUpDownCounter`
+  and `telemetryHistogram`, created again once an SDK is registered since the metrics API has no proxy
+- `queue-telemetry.ts`: `traceQueueSend` and `traceQueueProcess`, which every `Queue` driver wraps its send and its
+  worker processor with, storing the carrier with the job
+- `telemetry-config.ts`: the `telemetry` section (`ENABLED`, `LOG_CORRELATION`) and `telemetry.instrumentations`, one
+  switch per instrumented part, read with `telemetryEnabled('queue')`
+
+The instrumented parts are the HTTP server (`web/telemetry/http-telemetry.ts`, the server span of a request started in
+an `onRequest` hook and made active in the `createAsyncResource` of the request context), the Prisma client
+(`data/database/telemetry-extension.ts`, a `$allOperations` query extension), the queues (`memory`, `bullmq`), the
+`cron` scheduler, `EmailService`, `SmsService`, `CacheService` (metrics only) and `weaver run`. The logger adds the
+`trace_id` of the active span to every record, and `addLogDestination` lets the SDK module receive the records.
+
+The SDK is the `@appweaver/opentelemetry` module (`packages/opentelemetry`), never a contract with providers: OTLP is
+the standard every backend ingests, and `configureTelemetry` covers the rest. When instrumenting a new part:
+
+- add its switch to `telemetryInstrumentationsConfig` and the `TelemetryInstrumentation` type
+- name the spans and the attributes by the OpenTelemetry semantic conventions, the framework ones with `appweaver.`
+- test it with `recordTelemetry` of `@appweaver/testing`, and document it in `skill/references/telemetry.md`
+
 ### Errors
 
 Code outside the API layer never throws an HTTP error. Every module throws a subclass of the abstract `AppweaverError`
@@ -146,6 +175,7 @@ on it:
 | `@appweaver/data`                                                 | Prisma, the resources, the auth data model, `FileService`, the seeders and the CSV export    |
 | `@appweaver/web`                                                  | The Fastify server, the resource routes, the authentication, the problem details and Swagger |
 | `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, ... | One driver each, carrying the library it wraps as a dependency                               |
+| `@appweaver/opentelemetry`                                        | The OpenTelemetry SDK exporting the traces, metrics and logs of the instrumentation          |
 | `@appweaver/testing`                                              | The test helpers shared by the packages                                                      |
 
 The directories moved as they were, so a file keeps its path within its package (`core/server/register-route.ts` is
@@ -225,7 +255,7 @@ loads the resources of the application, then the `resources` of the modules.
 
 | Module      | Purpose                                                                                                                                            |
 |-------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `database/` | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction` and `toDatabaseError`                                   |
+| `database/` | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction`, `toDatabaseError` and the telemetry extension          |
 | `resource/` | Resource loading (`loadResources`), `ResourceService`, the model, filter, sort and aggregate schemas, the query `utils/`                           |
 | `factory/`  | `createModel`, `createPolicy` and `createService`                                                                                                  |
 | `security/` | The auth data model (`createAuthModel`, `hashPassword`, `hasRole`, ...), its config, the auth models (`resources/`), the `database` security store |
@@ -293,6 +323,7 @@ the resource routes of the application (`RESOURCE_ROUTES_PATTERN`), then the `we
 | `storage/`  | The file routes                                                                                                                                                                               |
 | `timeseries/` | The time series routes of the models with `series` fields and their schemas                                                                                                                   |
 | `template/` | The template preview route of development                                                                                                                                                     |
+| `telemetry/` | The OpenTelemetry server spans and metrics of the requests (`registerHttpTelemetry`, `requestSpan`) and their `telemetry.http` config                                                        |
 | `types/`    | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                                                               |
 
 ### Driver packages
@@ -312,13 +343,33 @@ the Twilio SDK.
 | `@appweaver/handlebars` | `HandlebarsTemplateEngine` | `handlebars` (`TemplateEngine`) | —                               |
 | `@appweaver/sharp`      | `SharpImageProcessor`      | `sharp` (`ImageProcessor`)      | —                               |
 
+### `packages/opentelemetry`
+
+The OpenTelemetry SDK module (`@appweaver/opentelemetry`), carrying the SDK packages (`@opentelemetry/sdk-trace`,
+`sdk-metrics`, `sdk-logs`, the OTLP HTTP exporters and the `fetch` instrumentation) as dependencies. It has no
+contract and no provider: its manifest lists its config sections and one lifecycle service.
+
+| File                     | Purpose                                                                                                              |
+|--------------------------|----------------------------------------------------------------------------------------------------------------------|
+| `config.ts`              | The module keys of `telemetry` (service, exporter, endpoint, headers), `telemetry.traces`, `.metrics` and `.logs`    |
+| `sdk.ts`                 | `startTelemetry`: the resource, the providers, the exporters of the config, the global registration and the shutdown |
+| `configure-telemetry.ts` | `configureTelemetry`, the functions changing the `TelemetryOptions` the SDK is started with                          |
+| `log-bridge.ts`          | `createLogBridge`, emitting the pino records of `addLogDestination` as OpenTelemetry log records                     |
+| `telemetry-service.ts`   | `TelemetryService`, starting the SDK on `onInit` and flushing and stopping it on `onDestroy`                         |
+
+The exporter defaults to `otlp`, and to `none` in the `test` environment. An endpoint or a header the config leaves
+out is read by the exporters from the standard `OTEL_EXPORTER_OTLP_*` environment variables. An SDK already registered
+is left in place. The versions of the `@opentelemetry/*` packages move together: the `3.x` SDK packages, the `0.30x`
+exporters and the API version the SDK peers on, the same in the root, `common`, `testing` and this package.
+
 ### `packages/testing`
 
 `@appweaver/testing` holds the test helpers of the packages and their modules: `resetContext` (clears the application
 context between tests), `linkModels` (links the models defined in a test), `createDatabaseStub` (records the queries of
 a stubbed Prisma client), `prismaError` and `sourceLoggerNames` (the `createLogger` names of a source directory, the
-`loggers` of a manifest are checked against) and `cliConventionViolations` (the violations of the CLI conventions by a
-Commander program, see **CLI conventions**). The tests of `data`, `web` and the drivers import them from
+`loggers` of a manifest are checked against), `cliConventionViolations` (the violations of the CLI conventions by a
+Commander program, see **CLI conventions**) and `recordTelemetry` (an in-memory OpenTelemetry SDK, reading the spans
+and the metrics a test records). The tests of `data`, `web` and the drivers import them from
 `@appweaver/testing`, and the other packages by their names (`@appweaver/core`, `@appweaver/data`), never by a relative
 path into another package. Jest maps every `@appweaver/*` import to the sources of its package (`moduleNameMapper` of
 `jest.config.json`), so the tests need no build and share one instance of each module.
@@ -387,12 +438,13 @@ adds the optional modules selected: the default ones (`defaultModules` of `scaff
 with the `--add <modules...>` ones, or every module with `--all`, minus the `--exclude <modules...>` ones, which leave
 out the default modules too, with or without `--all` (`--exclude data web` for the core application alone). The
 modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `sms`,
-`templates`, `locales`, `timeseries` (requires `data`) and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module
+`templates`, `locales`, `timeseries` (requires `data`), `telemetry` and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module
 adds its
 packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
 `projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`), `@appweaver/twilio` (`sms`, with the `json`
-sender in dev and test and the Twilio keys of `.env`) and `@appweaver/handlebars` (`templates`), every
+sender in dev and test and the Twilio keys of `.env`), `@appweaver/handlebars` (`templates`) and
+`@appweaver/opentelemetry` (`telemetry`, with the OTLP endpoint and telemetry off in test), every
 `@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
 `--database`, `--host` and `--port` configure `data` and `web` only (`ProjectContext`), and `weaver module add` takes
 `--database` for `data`. The `User` auth model and its admin seeder come with `web`, which brings the authentication, so
@@ -641,7 +693,7 @@ unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any ne
 ### `weaver module` (alias: `mod`)
 
 Add and remove the optional modules of `@appweaver/create` (`data`, `web`, `redis`, `queue`, `scheduler`, `mailer`,
-`sms`, `templates`, `locales`, `timeseries`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`,
+`sms`, `templates`, `locales`, `timeseries`, `telemetry`, `docker`) in the current project, with the scaffold templates of `@appweaver/create/scaffold`,
 install
 module packages, and create local modules.
 
@@ -1132,8 +1184,8 @@ This runs the following steps automatically:
 4. **Changelog** (`@semantic-release/changelog`) — appends notes to `CHANGELOG.md`.
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
-   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `handlebars`, `sharp`, `testing`, `cli`,
-   `client` and `create`.
+   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `opentelemetry`, `handlebars`, `sharp`,
+   `testing`, `cli`, `client` and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
@@ -1150,6 +1202,7 @@ This runs the following steps automatically:
     cd packages/cron/dist       && npm publish
     cd packages/nodemailer/dist && npm publish
     cd packages/twilio/dist     && npm publish
+    cd packages/opentelemetry/dist && npm publish
     cd packages/handlebars/dist && npm publish
     cd packages/sharp/dist      && npm publish
     cd packages/testing/dist    && npm publish

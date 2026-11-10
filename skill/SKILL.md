@@ -96,6 +96,7 @@ with `data` and `web`:
 | `templates`      | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                                       | no template engine                           |
 | `locales`        | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates     |
 | `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)         |
+| `telemetry`      | `@appweaver/opentelemetry`, the OTLP endpoint, telemetry off in the `test` environment                          | no telemetry exported                        |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                              |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
@@ -852,6 +853,27 @@ worth seeing in the
 production logs (a scheduled job's result, an order placed), `debug` for the details of how it got there. See
 [logging.md](references/logging.md) for the levels the framework logs at, its loggers and the config.
 
+### Telemetry
+
+The framework records OpenTelemetry traces and metrics on its own: the HTTP requests, the database operations, the
+queue jobs (in the trace of their sender), the scheduled jobs, the emails, the text messages and the tasks. They are
+exported once the `telemetry` module is added (`weaver module add telemetry`, `@appweaver/opentelemetry`), over OTLP
+to the `telemetry.endpoint`, and every log record carries the `trace_id` of its span. Add spans and metrics of the
+application with the helpers of `@appweaver/common`, never with a vendor SDK:
+
+```ts
+import { currentSpan, telemetryCounter, withSpan } from '@appweaver/common';
+
+const invoices = telemetryCounter('billing.invoices');
+
+currentSpan()?.setAttribute('order.id', orderId); // the span of the request or the job
+const pdf = await withSpan('invoice render', { attributes: { 'order.id': orderId } }, () => render(orderId));
+invoices().add(1);
+```
+
+See [telemetry.md](references/telemetry.md) for what is recorded, the config, the backends (`configureTelemetry`) and
+`recordTelemetry` of `@appweaver/testing`.
+
 ### Registering a custom model
 
 Use `registerModel` to register a custom [TypeBox](https://github.com/sinclairzx81/typebox) schema as a named model.
@@ -1178,3 +1200,4 @@ npm run lint  # eslint "./**/*.ts"
 - Generating an HTTP client for using API: [client.md](references/client.md)
 - Errors & error responses: [errors.md](references/errors.md)
 - Time series fields, stores & routes: [timeseries.md](references/timeseries.md)
+- OpenTelemetry traces, metrics & logs: [telemetry.md](references/telemetry.md)

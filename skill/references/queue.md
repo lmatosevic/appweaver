@@ -176,6 +176,15 @@ type QueueJob<Data, Response> = {
 
 ---
 
+## Tracing
+
+A job carries the OpenTelemetry trace context of the code that sent it, so the request, the `send <queue>` span, the
+`process <queue>` span of every attempt and everything the worker does are one trace, across processes. Nothing is
+needed in the application code, see [telemetry](./telemetry.md). A custom `Queue` driver wraps its send and its
+processor with `traceQueueSend` and `traceQueueProcess` of `@appweaver/common`.
+
+---
+
 ## Configuration
 
 | Key                            | Type     | Default   | Description                                                                                                  |
