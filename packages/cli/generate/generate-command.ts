@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import path from 'node:path';
-import { configSections } from '@appweaver/common';
+import { configSections, hasGeo } from '@appweaver/common';
 import { isModuleEnabled } from '@appweaver/core';
 import { writeConfigSchema } from '../config/config-schema';
 import { generateTypes } from './generate-types';
@@ -110,9 +110,11 @@ export function generateCommand(program: Command): void {
       let typeGenerateResult: number = 0;
       let schemaGenerateResult: number = 0;
       if (targets.types || targets.prismaSchema) {
-        const { databaseConfig, resourceConfig } = await importPackage<
-          typeof import('@appweaver/data/config')
-        >('@appweaver/data/config', 'generate');
+        const { databaseConfig, resourceConfig, spatialProvider } =
+          await importPackage<typeof import('@appweaver/data/config')>(
+            '@appweaver/data/config',
+            'generate'
+          );
 
         const registeredByModules = new Set<string>();
         const { models } = await loadModels(
@@ -157,7 +159,10 @@ export function generateCommand(program: Command): void {
             command.getOptionValue('clientDir') ??
               databaseConfig.CLIENT_OUTPUT_DIR_PATH,
             quiet,
-            seriesInDatabase(modules)
+            seriesInDatabase(modules),
+            Object.values(models).some((model) => hasGeo(model.config))
+              ? spatialProvider()
+              : 'database'
           );
         }
       }

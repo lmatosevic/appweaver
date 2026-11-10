@@ -2,9 +2,17 @@ import { TObject, TSchema, Type } from '@sinclair/typebox';
 import { AuditFields, capitalize, ResourceModel } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { createSchemaModel } from '@appweaver/core';
+import {
+  GeoLatLngSchema,
+  GeoPositionSchema,
+  geometrySchema
+} from '../../spatial/geo-schema';
 
 /** The schema name the shared field condition object is registered under. */
 export const QUERY_CONDITION_SCHEMA_NAME = 'QueryCondition';
+
+/** The schema name the shared geo field condition object is registered under. */
+export const GEO_CONDITION_SCHEMA_NAME = 'GeoCondition';
 
 /**
  * Resolves the schema name the query filter of a model is registered under.
@@ -116,6 +124,60 @@ export const QueryConditionSchema: TObject = Type.Object(
 );
 
 /**
+ * The shared schema of a geo field condition object, holding the spatial
+ * operators. Operators combined inside the same object must all match, and
+ * the distances are in meters.
+ */
+export const GeoConditionSchema: TObject = Type.Object(
+  {
+    _near: Operator(
+      Type.Object({
+        point: Type.Union([
+          GeoPositionSchema(),
+          GeoLatLngSchema(),
+          geometrySchema('Point')
+        ]),
+        maxDistance: Type.Number({ minimum: 0 }),
+        minDistance: Type.Optional(Type.Number({ minimum: 0 }))
+      }),
+      'Matches geometries within maxDistance meters of the point (and at least minDistance away)'
+    ),
+    _within: Operator(
+      Type.Union([geometrySchema('Polygon'), geometrySchema('MultiPolygon')]),
+      'Matches geometries covered by the GeoJSON polygon or multi polygon'
+    ),
+    _withinBox: Operator(
+      Type.Tuple([
+        Type.Number({ minimum: -180, maximum: 180 }),
+        Type.Number({ minimum: -90, maximum: 90 }),
+        Type.Number({ minimum: -180, maximum: 180 }),
+        Type.Number({ minimum: -90, maximum: 90 })
+      ]),
+      'Matches geometries covered by the box [minLng, minLat, maxLng, maxLat]'
+    ),
+    _intersects: Operator(
+      Type.Union([
+        geometrySchema('Point'),
+        geometrySchema('MultiPoint'),
+        geometrySchema('LineString'),
+        geometrySchema('MultiLineString'),
+        geometrySchema('Polygon'),
+        geometrySchema('MultiPolygon')
+      ]),
+      'Matches geometries sharing at least a point with the GeoJSON geometry'
+    ),
+    _exists: Operator(
+      Type.Boolean(),
+      'Matches records with a geometry (true) or without one (false)'
+    )
+  },
+  {
+    description:
+      'Geo field condition object combining spatial operators on a single geo field'
+  }
+);
+
+/**
  * Builds the query filter schema of a resource model, mirroring the WHERE part
  * of a database query. Every filterable field of the model is declared
  * explicitly, so the request validation rejects every other field (including
@@ -191,6 +253,17 @@ export function buildQueryFilterSchema(model: ResourceModel): TObject {
         : scalarValue(`Filter by the ${fieldName} field`);
   }
 
+  for (const [fieldName, geo] of Object.entries(model.config.geo ?? {})) {
+    if (geo.hidden) {
+      continue;
+    }
+    properties[fieldName] = Type.Optional(
+      Type.Union([Type.Null(), Type.Ref(GEO_CONDITION_SCHEMA_NAME)], {
+        description: `Filter by the ${fieldName} geo field with the spatial operators, or null for no value`
+      })
+    );
+  }
+
   for (const [fieldName, relation] of Object.entries(
     model.config.relations ?? {}
   )) {
@@ -255,6 +328,7 @@ export function registerQueryFilterSchemas(): void {
   createSchemaModel(QueryConditionSchema, {
     name: QUERY_CONDITION_SCHEMA_NAME
   });
+  createSchemaModel(GeoConditionSchema, { name: GEO_CONDITION_SCHEMA_NAME });
 
   for (const model of context.resource.models.values()) {
     createSchemaModel(buildQueryFilterSchema(model), {

@@ -135,3 +135,10 @@ export class TimeSeriesError<
 > extends AppweaverError<C> {
   public readonly module = 'timeseries';
 }
+
+/** An error of a geo field, i.e. an invalid geometry or spatial filter. */
+export class SpatialError<
+  C extends ModuleErrorCode<'SPATIAL'> = ModuleErrorCode<'SPATIAL'>
+> extends AppweaverError<C> {
+  public readonly module = 'spatial';
+}

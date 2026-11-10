@@ -1,5 +1,8 @@
 import { createModel } from '../../../factory/create-model';
-import { mapQueryFilter } from '../../../resource/utils/filter-util';
+import {
+  mapQueryFilter,
+  ResolvedFilterConditions
+} from '../../../resource/utils/filter-util';
 import { resetContext } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';
 
@@ -40,6 +43,23 @@ describe('filter-util', () => {
   });
 
   describe('mapQueryFilter', () => {
+    test('adds the conditions a field was resolved into to its level', () => {
+      expect(
+        map({
+          title: 'A',
+          _and: [{ views: 1 }],
+          location: new ResolvedFilterConditions([{ id: { in: [1, 2] } }]),
+          author: {
+            home: new ResolvedFilterConditions([{ id: { in: [3] } }])
+          }
+        })
+      ).toEqual({
+        title: 'A',
+        AND: [{ views: 1 }, { id: { in: [1, 2] } }],
+        author: { AND: [{ id: { in: [3] } }] }
+      });
+    });
+
     test('returns an empty clause for an empty filter', () => {
       expect(map({})).toEqual({});
     });

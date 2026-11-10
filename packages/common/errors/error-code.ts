@@ -163,7 +163,12 @@ export enum ErrorCode {
   TimeSeriesTooManyPoints = 'TIMESERIES_TOO_MANY_POINTS',
   TimeSeriesTooManyResources = 'TIMESERIES_TOO_MANY_RESOURCES',
   TimeSeriesForbidden = 'TIMESERIES_FORBIDDEN',
-  TimeSeriesUnsupported = 'TIMESERIES_UNSUPPORTED'
+  TimeSeriesUnsupported = 'TIMESERIES_UNSUPPORTED',
+
+  // Spatial
+  SpatialInvalidGeometry = 'SPATIAL_INVALID_GEOMETRY',
+  SpatialInvalidFilter = 'SPATIAL_INVALID_FILTER',
+  SpatialTooManyCandidates = 'SPATIAL_TOO_MANY_CANDIDATES'
 }
 
 /** The error codes starting with the prefix of a module, i.e. `'RESOURCE'`. */

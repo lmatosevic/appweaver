@@ -218,6 +218,11 @@ export class ExportService {
         }
       }
 
+      // A geometry is written as its GeoJSON
+      if (resourceModel.config.geo?.[key] && isPlainObject(value)) {
+        value = JSON.stringify(value);
+      }
+
       // Recursively map relation and file fields if the value is an object.
       // Arrays of plain values are written as a single column below.
       if (isPlainObject(value) || (isArrayValue && isPlainObject(value[0]))) {

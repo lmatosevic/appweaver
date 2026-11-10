@@ -191,3 +191,23 @@ describe('sort schema', () => {
     expect(status).toBe(400);
   });
 });
+
+describe('sort schema of the geo fields', () => {
+  test('sorts by the distance of a visible geo field', async () => {
+    resetContext();
+    createModel({
+      name: 'Store',
+      geo: {
+        location: { type: 'point' },
+        secret: { type: 'point', hidden: true }
+      }
+    });
+    const app = await server('Store');
+    expect(await validated(app, { location: 'desc' })).toEqual({
+      status: 200,
+      body: { sort: { location: 'desc' } }
+    });
+    expect((await validated(app, { secret: 'asc' })).status).toBe(400);
+    await app.close();
+  });
+});

@@ -1,5 +1,6 @@
 import fsp from 'node:fs/promises';
 import { Command } from 'commander';
+import { hasGeo } from '@appweaver/common';
 import { storageConfig } from '@appweaver/core/config';
 import { generatePrismaSchema } from '../generate';
 import {
@@ -59,9 +60,11 @@ export function testingCommand(program: Command): void {
       );
 
       const quiet = !command.getOptionValue('verbose');
-      const { databaseConfig, resourceConfig } = await importPackage<
-        typeof import('@appweaver/data/config')
-      >('@appweaver/data/config', 'test setup');
+      const { databaseConfig, resourceConfig, spatialProvider } =
+        await importPackage<typeof import('@appweaver/data/config')>(
+          '@appweaver/data/config',
+          'test setup'
+        );
 
       const tempDir = command.getOptionValue('tempDir');
 
@@ -108,7 +111,10 @@ export function testingCommand(program: Command): void {
         schemaPath,
         clientPath,
         quiet,
-        seriesInDatabase(modules)
+        seriesInDatabase(modules),
+        Object.values(models).some((model) => hasGeo(model.config))
+          ? spatialProvider()
+          : 'database'
       );
       if (generateStatus !== 0) {
         console.error('Failed to generate Prisma schema');

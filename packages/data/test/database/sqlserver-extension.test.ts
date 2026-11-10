@@ -131,6 +131,26 @@ describe('sqlserver-extension', () => {
       }
     );
 
+    test('serializes and parses the GeoJSON of a geo field', async () => {
+      createModel({ name: 'Store', geo: { location: { type: 'point' } } });
+      const point = { type: 'Point', coordinates: [1, 2] };
+
+      const { query } = await run('Store', 'create', {
+        data: { location: point }
+      });
+      expect(query).toHaveBeenCalledWith({
+        data: { location: JSON.stringify(point) }
+      });
+
+      const { value } = await run(
+        'Store',
+        'findFirst',
+        {},
+        { id: 1, location: JSON.stringify(point) }
+      );
+      expect(value).toEqual({ id: 1, location: point });
+    });
+
     test('stores the null sentinels of Prisma as null', async () => {
       const { query } = await run('Post', 'update', {
         where: { id: 1 },

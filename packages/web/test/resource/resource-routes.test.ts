@@ -486,6 +486,42 @@ describe('resource-routes', () => {
         );
       });
 
+      test('documents the spatial errors of a model with geo fields only', () => {
+        const codes = (route: any) =>
+          Object.values(route.response['4xx'][ERROR_CODES_EXTENSION]).flat();
+        const plain = createSchema('Post', {} as any, {} as any);
+        expect(codes(plain.createSchema)).not.toContain(
+          ErrorCode.SpatialInvalidGeometry
+        );
+
+        createModel({
+          name: 'Store',
+          geo: { location: { type: 'point' } }
+        });
+        linkModels();
+        const schema = createSchema('Store', {} as any, {} as any);
+        expect(codes(schema.createSchema)).toContain(
+          ErrorCode.SpatialInvalidGeometry
+        );
+        expect(codes(schema.updateSchema)).toContain(
+          ErrorCode.SpatialInvalidGeometry
+        );
+        for (const route of [
+          schema.querySchema,
+          schema.queryGetSchema,
+          schema.aggregateSchema,
+          schema.aggregateGetSchema,
+          schema.exportSchema
+        ]) {
+          expect(codes(route)).toEqual(
+            expect.arrayContaining([
+              ErrorCode.SpatialInvalidFilter,
+              ErrorCode.SpatialTooManyCandidates
+            ])
+          );
+        }
+      });
+
       test('documents both operations on the same path', async () => {
         app = await server({}, true);
         const document = (app as any).swagger();

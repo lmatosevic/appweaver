@@ -31,6 +31,9 @@ import {
   VirtualConfig,
   ConfigurationError,
   ErrorCode,
+  GEO_FIELD_GEOMETRIES,
+  GeoConfig,
+  geoColumns,
   parseDuration
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
@@ -40,6 +43,7 @@ import {
   idSchema as buildIdSchema,
   idValueSchema
 } from '../resource/model-schema';
+import { geoFieldSchema } from '../spatial/geo-schema';
 
 const logger = createLogger('resource');
 
@@ -56,13 +60,15 @@ export function createModel<
   S extends string,
   R extends string,
   F extends string,
-  V extends string
+  V extends string,
+  G extends string
 >(
-  modelConfig: ResourceModelConfig<S, R, F, V>,
+  modelConfig: ResourceModelConfig<S, R, F, V, never, G>,
   override: boolean = false
 ): ResourceModel {
   const config = normalizeRelations(modelConfig);
   validateSeries(config);
+  validateGeo(config);
   const resourceModel = buildModel(config);
 
   logger.debug({ modelName: resourceModel.name }, 'Created resource model');
@@ -162,6 +168,52 @@ function validateSeries(config: ResourceModelConfig): void {
   }
 }
 
+/**
+ * Checks the geo fields of a model: their types, and names taken by no other field of the model, nor by the columns
+ * the field keeps beside its own (`<field>MinLng`, `<field>Geom`, ...).
+ *
+ * @throws {ConfigurationError} For a geo field with an unknown type or a name taken by another field.
+ */
+function validateGeo(config: ResourceModelConfig): void {
+  const taken = new Set([
+    'id',
+    ...Object.keys(config.scalars ?? {}),
+    ...Object.keys(config.relations ?? {}),
+    ...Object.keys(config.files ?? {}),
+    ...Object.keys(config.virtual ?? {})
+  ]);
+  const geoFields = Object.keys(config.geo ?? {});
+
+  for (const [field, geo] of Object.entries(config.geo ?? {})) {
+    if (!GEO_FIELD_GEOMETRIES[geo?.type]) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `Geo field '${config.name}.${field}' has the type '${geo?.type}', not one of ${Object.keys(GEO_FIELD_GEOMETRIES).join(', ')}`
+      );
+    }
+    const names = [field, ...Object.values(geoColumns(field))];
+    const conflict = names.find(
+      (name) => taken.has(name) || (name !== field && geoFields.includes(name))
+    );
+    if (conflict || !/^[A-Za-z]\w*$/.test(field)) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `Geo field '${config.name}.${field}' must be an identifier taken by no other field` +
+          (conflict ? `, but '${conflict}' is another field of the model` : '')
+      );
+    }
+  }
+}
+
+/** The geo fields of a model, as their output values or their input ones. */
+function buildGeoSchema(geo: GeoConfig = {}, input: boolean = false): TObject {
+  const properties: Record<string, TSchema> = {};
+  for (const [name, field] of Object.entries(geo)) {
+    properties[name] = geoFieldSchema(field, input);
+  }
+  return Type.Object(properties);
+}
+
 /** The values of the series fields, each optional and nullable, a null leaving the stored value unchanged. */
 function buildSeriesModel(series?: SeriesConfig): TObject {
   const properties: Record<string, TSchema> = {};
@@ -194,11 +246,14 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
   const virtualSchema = buildScalarsSchema(config?.virtual);
   const filesSchema = buildFilesSchema(config?.files);
   const relationsSchema = buildRelationsSchema(config?.relations);
+  const geoSchema = buildGeoSchema(config?.geo);
+  const geoInputSchema = buildGeoSchema(config?.geo, true);
 
   const readModel = Type.Composite(
     [
       idSchema,
       scalarsSchema,
+      geoSchema,
       virtualSchema,
       relationsSchema,
       filesSchema,
@@ -218,13 +273,19 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
   const filesModel = Type.Composite([filesSchema], { $id: `${name}Files` });
 
   const baseReadModel = omitOrPickScalars(
-    Type.Composite([idSchema, scalarsSchema, virtualSchema, auditSchema]),
+    Type.Composite([
+      idSchema,
+      scalarsSchema,
+      geoSchema,
+      virtualSchema,
+      auditSchema
+    ]),
     config.read
   );
 
   const createModel = omitOrPickScalars(
     resolveDefaultScalars(
-      Type.Composite([scalarsSchema, virtualSchema]),
+      Type.Composite([scalarsSchema, geoInputSchema, virtualSchema]),
       config
     ),
     config.create
@@ -232,7 +293,9 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
 
   const updateModel = omitOrPickScalars(
     resolveDefaultScalars(
-      Type.Partial(Type.Composite([scalarsSchema, virtualSchema])),
+      Type.Partial(
+        Type.Composite([scalarsSchema, geoInputSchema, virtualSchema])
+      ),
       config
     ),
     config.update
@@ -243,7 +306,11 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
   // resource. The virtual fields are no part of it, so they stay optional
   const replaceModel = omitOrPickScalars(
     resolveDefaultScalars(
-      Type.Composite([scalarsSchema, Type.Partial(virtualSchema)]),
+      Type.Composite([
+        scalarsSchema,
+        geoInputSchema,
+        Type.Partial(virtualSchema)
+      ]),
       config
     ),
     config.update

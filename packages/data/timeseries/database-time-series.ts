@@ -18,6 +18,7 @@ import { inject } from '@appweaver/core';
 import { databaseConfig } from '../database/database-config';
 import { toDatabaseError } from '../database/database-error';
 import { PrismaDatabase } from '../database/prisma-database';
+import { postgresSchema } from '../database/utils/schema-util';
 import { databaseSeriesConfig } from './database-series-config';
 import {
   deleteStatement,
@@ -221,16 +222,4 @@ function seconds(duration: string, option: string): number {
     );
   }
   return value;
-}
-
-/** The `schema` parameter of a PostgreSQL URL, which the Prisma client leaves out of the raw queries. */
-function postgresSchema(type: DatabaseType): string | undefined {
-  if (type !== DatabaseType.PostgreSQL) {
-    return undefined;
-  }
-  try {
-    return new URL(databaseConfig.URL).searchParams.get('schema') ?? undefined;
-  } catch {
-    return undefined;
-  }
 }

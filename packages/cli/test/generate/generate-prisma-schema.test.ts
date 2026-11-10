@@ -1225,6 +1225,77 @@ describe('generate-schema', () => {
       expect(schema).not.toContain('@@map("SensorSeries")');
     });
 
+    test('stores a geo field as its GeoJSON and its bounding box', async () => {
+      const { status, schema } = await generate({
+        Store: model('Store', {
+          geo: {
+            location: { type: 'point' },
+            area: { type: 'polygon', required: false, index: false }
+          }
+        })
+      });
+
+      expect(status).toBe(0);
+      expect(schema).toMatch(/location\s+Json\n/);
+      expect(schema).toMatch(/locationMinLng\s+Float\?/);
+      expect(schema).toMatch(/locationMaxLat\s+Float\?/);
+      expect(schema).toMatch(/area\s+Json\?/);
+      expect(schema).toContain('@@index([locationMinLng, locationMinLat])');
+      expect(schema).not.toContain('@@index([areaMinLng, areaMinLat])');
+      expect(schema).not.toContain('postgis');
+    });
+
+    test('stores a geo field in a PostGIS geometry column', async () => {
+      databaseType = 'postgresql';
+      const status = await generatePrismaSchema(
+        {
+          Store: model('Store', {
+            geo: {
+              location: { type: 'point' },
+              shape: { type: 'geometry', required: false, index: false }
+            }
+          })
+        },
+        schemaPath,
+        clientPath,
+        true,
+        true,
+        'postgis'
+      );
+      const schema = fs.readFileSync(path.join(tempDir, schemaPath), 'utf8');
+
+      expect(status).toBe(0);
+      expect(schema).toContain('  extensions = [postgis]');
+      expect(schema).toMatch(/previewFeatures\s+= \["postgresqlExtensions"\]/);
+      expect(schema).toMatch(
+        /locationGeom\s+Unsupported\("geometry\(Point, 4326\)"\)\?/
+      );
+      expect(schema).toMatch(
+        /shapeGeom\s+Unsupported\("geometry\(Geometry, 4326\)"\)\?/
+      );
+      expect(schema).toContain('@@index([locationGeom], type: Gist)');
+      expect(schema).not.toContain('@@index([shapeGeom], type: Gist)');
+      expect(schema).not.toContain('MinLng');
+    });
+
+    test('stores the GeoJSON of SQL Server in a string column', async () => {
+      databaseType = 'sqlserver';
+      const status = await generatePrismaSchema(
+        { Store: model('Store', { geo: { location: { type: 'point' } } }) },
+        schemaPath,
+        clientPath,
+        true,
+        true,
+        'postgis'
+      );
+      const schema = fs.readFileSync(path.join(tempDir, schemaPath), 'utf8');
+
+      expect(status).toBe(0);
+      expect(schema).toMatch(/location\s+String\s+@db\.NVarChar\(Max\)/);
+      expect(schema).toMatch(/locationMinLng\s+Float\?/);
+      expect(schema).toMatch(/previewFeatures\s+= \["partialIndexes"\]/);
+    });
+
     test('maps the series table of a model with a table name', async () => {
       const { schema } = await generate({
         Sensor: model('Sensor', {

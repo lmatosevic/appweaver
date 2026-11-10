@@ -101,6 +101,7 @@ their prefix:
 | `LocaleError`        | `@appweaver/common` | `LOCALE_`        | The locale service: an unreadable file or an invalid message                             |
 | `LockError`          | `@appweaver/common` | `LOCK_`          | A lock that could not be acquired                                                        |
 | `TimeSeriesError`    | `@appweaver/common` | `TIMESERIES_`    | The time series service and stores: invalid points and queries                           |
+| `SpatialError`       | `@appweaver/common` | `SPATIAL_`       | The geo fields: invalid geometries and spatial filters                                   |
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
@@ -239,6 +240,9 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `TIMESERIES_TOO_MANY_RESOURCES`      | 400    | Too many time series resources        |
 | `TIMESERIES_FORBIDDEN`               | 403    | Time series access forbidden          |
 | `TIMESERIES_UNSUPPORTED`             | 501    | Time series operation not supported   |
+| `SPATIAL_INVALID_GEOMETRY`           | 400    | Invalid geometry                      |
+| `SPATIAL_INVALID_FILTER`             | 400    | Invalid spatial filter                |
+| `SPATIAL_TOO_MANY_CANDIDATES`        | 400    | Too many spatial matches              |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 

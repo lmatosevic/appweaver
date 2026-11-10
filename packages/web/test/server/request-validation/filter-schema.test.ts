@@ -4,6 +4,8 @@ import { context } from '@appweaver/core/internal';
 import {
   createModel,
   buildQueryFilterSchema,
+  GEO_CONDITION_SCHEMA_NAME,
+  GeoConditionSchema,
   QUERY_CONDITION_SCHEMA_NAME,
   QueryConditionSchema,
   queryFilterName
@@ -26,6 +28,7 @@ async function server(schemaName: string): Promise<FastifyInstance> {
     ...QueryConditionSchema,
     $id: QUERY_CONDITION_SCHEMA_NAME
   });
+  app.addSchema({ ...GeoConditionSchema, $id: GEO_CONDITION_SCHEMA_NAME });
   for (const model of context.resource.models.values()) {
     app.addSchema({
       ...buildQueryFilterSchema(model),
@@ -333,5 +336,80 @@ describe('filter schema', () => {
     const { body } = await validated(app!, { searchText: 'news' });
 
     expect(body).toEqual({ searchText: 'news' });
+  });
+});
+
+describe('filter schema of the geo fields', () => {
+  let app: FastifyInstance;
+
+  beforeEach(async () => {
+    resetContext();
+    createModel({
+      name: 'Store',
+      geo: {
+        location: { type: 'point' },
+        secret: { type: 'point', hidden: true }
+      }
+    });
+    app = await server(queryFilterName('Store'));
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  test('accepts the spatial operators and a null', async () => {
+    for (const location of [
+      null,
+      { _near: { point: [15.9, 45.8], maxDistance: 1000 } },
+      { _near: { point: { lat: 45.8, lng: 15.9 }, maxDistance: 1000 } },
+      {
+        _near: {
+          point: { type: 'Point', coordinates: [15.9, 45.8] },
+          maxDistance: 10,
+          minDistance: 1
+        }
+      },
+      { _withinBox: [15, 45, 16, 46], _exists: true },
+      {
+        _within: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 0]
+            ]
+          ]
+        }
+      },
+      {
+        _intersects: {
+          type: 'LineString',
+          coordinates: [
+            [0, 0],
+            [1, 1]
+          ]
+        }
+      }
+    ]) {
+      const { status, body } = await validated(app, { location });
+      expect(status).toBe(200);
+      expect(body).toEqual({ location });
+    }
+  });
+
+  test('rejects the other operators, the invalid values and the hidden fields', async () => {
+    for (const filter of [
+      { location: { _eq: 1 } },
+      { location: { _near: { point: [200, 0], maxDistance: 1 } } },
+      { location: { _near: { point: [0, 0] } } },
+      { location: { _withinBox: [0, 0, 1] } },
+      { location: { _within: { type: 'Point', coordinates: [0, 0] } } },
+      { secret: null }
+    ]) {
+      expect((await validated(app, filter)).status).toBe(400);
+    }
   });
 });

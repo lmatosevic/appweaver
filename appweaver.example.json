@@ -365,6 +365,11 @@
         "setupTimeout": 60000
       }
     },
+    "spatial": {
+      "provider": "auto",
+      "maxCandidates": 10000,
+      "maxVertices": 10000
+    },
     "scheduler": {
       "autoStartJob": true,
       "provider": "auto"

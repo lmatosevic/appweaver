@@ -1,3 +1,5 @@
+import { GeoFilterOperators, GeoGeometry } from './geo';
+
 /** A primitive value that can be compared inside a query filter. */
 export type FilterScalar = string | number | boolean | Date;
 
@@ -83,34 +85,37 @@ export type RelationId<T> = T extends { id: infer I } ? I : number;
  * the operator objects, plain values are still supported: a bare value matches
  * by equality, a list of values by inclusion (or as an inclusive `[min, max]`
  * range for numeric and date fields), a bare value or list on a relation
- * matches by id, and a nested object filters the related model recursively.
+ * matches by id, a nested object filters the related model recursively, and a
+ * geo field takes the spatial operators.
  */
 export type FilterValue<V> =
-  NonNullable<V> extends Array<infer E>
-    ? NonNullable<E> extends object
-      ?
-          | QueryFilter<NonNullable<E>>
-          | QueryFilter<NonNullable<E>>[]
-          | RelationFilterOperators<NonNullable<E>>
-          | RelationId<NonNullable<E>>
-          | RelationId<NonNullable<E>>[]
-          | null
-      : ArrayFilterOperators<NonNullable<E>> | E | E[] | null
-    : NonNullable<V> extends Date
-      ?
-          | Date
-          | string
-          | (Date | string)[]
-          | FilterOperators<Date | string>
-          | null
-      : NonNullable<V> extends object
+  NonNullable<V> extends GeoGeometry
+    ? GeoFilterOperators | null
+    : NonNullable<V> extends Array<infer E>
+      ? NonNullable<E> extends object
         ?
-            | QueryFilter<NonNullable<V>>
-            | FilterOperators<never>
-            | RelationId<NonNullable<V>>
-            | RelationId<NonNullable<V>>[]
+            | QueryFilter<NonNullable<E>>
+            | QueryFilter<NonNullable<E>>[]
+            | RelationFilterOperators<NonNullable<E>>
+            | RelationId<NonNullable<E>>
+            | RelationId<NonNullable<E>>[]
             | null
-        : V | NonNullable<V>[] | FilterOperators<NonNullable<V>> | null;
+        : ArrayFilterOperators<NonNullable<E>> | E | E[] | null
+      : NonNullable<V> extends Date
+        ?
+            | Date
+            | string
+            | (Date | string)[]
+            | FilterOperators<Date | string>
+            | null
+        : NonNullable<V> extends object
+          ?
+              | QueryFilter<NonNullable<V>>
+              | FilterOperators<never>
+              | RelationId<NonNullable<V>>
+              | RelationId<NonNullable<V>>[]
+              | null
+          : V | NonNullable<V>[] | FilterOperators<NonNullable<V>> | null;
 
 /**
  * A typed query filter for a resource model, mirroring the WHERE part of a

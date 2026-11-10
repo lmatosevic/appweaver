@@ -13,6 +13,73 @@ describe('create-model', () => {
   });
 
   describe('createModel', () => {
+    test('takes the geo fields as GeoJSON, a point input as a { lat, lng } too', () => {
+      const model = createModel({
+        name: 'Store',
+        geo: {
+          location: { type: 'point', description: 'Where it is' },
+          area: { type: 'polygon', required: false },
+          shape: { type: 'geometry', hidden: true }
+        },
+        update: { omit: ['shape'] }
+      });
+      const point = { type: 'Point', coordinates: [15.9, 45.8] };
+      const latLng = { lat: 45.8, lng: 15.9 };
+
+      expect(Value.Check(model.readModel.properties.location, point)).toBe(
+        true
+      );
+      expect(Value.Check(model.readModel.properties.location, latLng)).toBe(
+        false
+      );
+      expect(model.readModel.properties.location.description).toBe(
+        'Where it is'
+      );
+      expect(model.readModel.properties.area.nullable).toBe(true);
+      expect(model.readModel.properties.shape.hidden).toBe(true);
+
+      expect(Value.Check(model.createModel.properties.location, latLng)).toBe(
+        true
+      );
+      expect(Value.Check(model.createModel.properties.shape, latLng)).toBe(
+        true
+      );
+      expect(model.createModel.required).toEqual(['location', 'shape']);
+      expect(Object.keys(model.updateModel.properties)).toEqual([
+        'location',
+        'area'
+      ]);
+      expect(
+        Value.Check(model.createModel.properties.location, {
+          type: 'Point',
+          coordinates: [200, 0]
+        })
+      ).toBe(false);
+    });
+
+    test.each([
+      [{ location: { type: 'circle' } }, "has the type 'circle'"],
+      [{ name: { type: 'point' } }, "'name' is another field"],
+      [
+        { location: { type: 'point' }, locationGeom: { type: 'point' } },
+        "'locationGeom' is another field"
+      ],
+      [{ 'bad-name': { type: 'point' } }, 'must be an identifier']
+    ])('rejects the geo fields %j', (geo, message) => {
+      expect(() =>
+        createModel({
+          name: 'Store',
+          scalars: { name: { type: 'string' } },
+          geo: geo as any
+        })
+      ).toThrow(
+        expect.objectContaining({
+          code: ErrorCode.ConfigurationInvalid,
+          message: expect.stringContaining(message)
+        })
+      );
+    });
+
     test('builds the series values of a model, each optional and nullable', () => {
       const model = createModel({
         name: 'Sensor',
