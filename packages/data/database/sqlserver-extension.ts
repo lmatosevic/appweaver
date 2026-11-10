@@ -1,16 +1,12 @@
 import {
-  capitalize,
   emulatedForeignKeys,
   ForeignKey,
-  isArray,
-  isPlainObject,
-  isResourceAuthModel,
   ResourceModel,
   sqlServerForeignKeys,
   uncapitalize
 } from '@appweaver/common';
 import { context, currentTransaction } from '@appweaver/core/internal';
-import { mapResultRecords, mapWriteArgs } from './utils/write-data-util';
+import { mapResultRecords, mapWriteArgs } from '../utils/write-data-util';
 
 /** The database the extension runs its queries on. */
 export type ExtendedDatabase = {
@@ -28,8 +24,6 @@ type SqlServerSchema = {
   deleteActions: Set<string>;
   /** The JSON fields of every model */
   jsonFields: Map<string, Set<string>>;
-  /** The related model of every relation, file and audit field of every model */
-  relatedModels: Map<string, Map<string, string>>;
 };
 
 // The operations whose result holds no records
@@ -147,7 +141,7 @@ async function applyDeleteActions(
 
 /** Serializes the JSON fields of the data a write operation stores. */
 function serializeArgs(modelName: string, operation: string, args: any): any {
-  return mapWriteArgs(modelName, operation, args, serializeRecord, relatedOf);
+  return mapWriteArgs(modelName, operation, args, serializeRecord);
 }
 
 /** Serializes the JSON fields of the data of a record. */
@@ -163,11 +157,6 @@ function serializeRecord(
     }
   }
   return serialized;
-}
-
-/** The related model of every relation, file and audit field of a model. */
-function relatedOf(modelName: string): Map<string, string> | undefined {
-  return sqlServerSchema().relatedModels.get(modelName);
 }
 
 /** Serializes a JSON value, storing the null sentinels of Prisma as null. */
@@ -189,7 +178,7 @@ function isNullSentinel(value: unknown): boolean {
 
 /** Parses the JSON fields of the records of a result, and of their included relations. */
 function parseJsonFields(modelName: string, result: any): any {
-  return mapResultRecords(modelName, result, parseRecord, relatedOf);
+  return mapResultRecords(modelName, result, parseRecord);
 }
 
 /** Parses the JSON fields of a record. */
@@ -241,9 +230,7 @@ function sqlServerSchema(): SqlServerSchema {
   }
 
   const models = Object.fromEntries(loaded.map((m) => [m.name, m]));
-  const authModel = Object.values(models).find(isResourceAuthModel);
   const jsonFields = new Map<string, Set<string>>();
-  const relatedModels = new Map<string, Map<string, string>>();
 
   for (const model of Object.values(models)) {
     jsonFields.set(
@@ -256,29 +243,13 @@ function sqlServerSchema(): SqlServerSchema {
         ...Object.keys(model.config.geo ?? {})
       ])
     );
-
-    const related = new Map<string, string>();
-    for (const [field, relation] of Object.entries(
-      model.config.relations ?? {}
-    )) {
-      related.set(field, capitalize(relation.model));
-    }
-    for (const field of Object.keys(model.config.files ?? {})) {
-      related.set(field, 'File');
-    }
-    if (authModel) {
-      related.set('createdBy', authModel.name);
-      related.set('deletedBy', authModel.name);
-    }
-    relatedModels.set(model.name, related);
   }
 
   const foreignKeys = sqlServerForeignKeys(models);
   const schema = {
     foreignKeys,
     deleteActions: deleteActionModels(foreignKeys),
-    jsonFields,
-    relatedModels
+    jsonFields
   };
   cached = { models: loaded, schema };
   return schema;

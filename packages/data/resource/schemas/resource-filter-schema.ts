@@ -1,5 +1,10 @@
 import { TObject, TSchema, Type } from '@sinclair/typebox';
-import { AuditFields, capitalize, ResourceModel } from '@appweaver/common';
+import {
+  AuditFields,
+  capitalize,
+  GEO_FIELD_GEOMETRIES,
+  ResourceModel
+} from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { createSchemaModel } from '@appweaver/core';
 import {
@@ -156,14 +161,7 @@ export const GeoConditionSchema: TObject = Type.Object(
       'Matches geometries covered by the box [minLng, minLat, maxLng, maxLat]'
     ),
     _intersects: Operator(
-      Type.Union([
-        geometrySchema('Point'),
-        geometrySchema('MultiPoint'),
-        geometrySchema('LineString'),
-        geometrySchema('MultiLineString'),
-        geometrySchema('Polygon'),
-        geometrySchema('MultiPolygon')
-      ]),
+      Type.Union(GEO_FIELD_GEOMETRIES.geometry.map(geometrySchema)),
       'Matches geometries sharing at least a point with the GeoJSON geometry'
     ),
     _exists: Operator(

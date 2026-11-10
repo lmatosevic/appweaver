@@ -32,6 +32,16 @@ export const GEO_FIELD_GEOMETRIES: Record<GeoFieldType, GeoGeometryType[]> = {
   ]
 };
 
+/** Checks and normalizes the coordinates of each GeoJSON type. */
+const COORDINATES: Record<GeoGeometryType, (value: unknown) => unknown> = {
+  Point: (value) => position(value),
+  MultiPoint: (value) => positions(value, 1),
+  LineString: (value) => positions(value, 2),
+  MultiLineString: (value) => list(value, 1).map((line) => positions(line, 2)),
+  Polygon: (value) => polygon(value),
+  MultiPolygon: (value) => list(value, 1).map(polygon)
+};
+
 /** The columns a geo field keeps beside its GeoJSON column: its bounding box, or its PostGIS geometry. */
 export type GeoColumns = {
   minLng: string;
@@ -98,36 +108,10 @@ export function normalizeGeometry(
     );
   }
 
-  const coordinates = value.coordinates;
-  let geometry: GeoGeometry;
-  switch (geometryType) {
-    case 'Point':
-      geometry = { type: 'Point', coordinates: position(coordinates) };
-      break;
-    case 'MultiPoint':
-      geometry = { type: 'MultiPoint', coordinates: positions(coordinates, 1) };
-      break;
-    case 'LineString':
-      geometry = { type: 'LineString', coordinates: positions(coordinates, 2) };
-      break;
-    case 'MultiLineString':
-      geometry = {
-        type: 'MultiLineString',
-        coordinates: list(coordinates, 1).map((line) => positions(line, 2))
-      };
-      break;
-    case 'Polygon':
-      geometry = { type: 'Polygon', coordinates: polygon(coordinates) };
-      break;
-    case 'MultiPolygon':
-      geometry = {
-        type: 'MultiPolygon',
-        coordinates: list(coordinates, 1).map(polygon)
-      };
-      break;
-    default:
-      throw new Error(`unknown GeoJSON type ${geometryType}`);
-  }
+  const geometry = {
+    type: geometryType,
+    coordinates: COORDINATES[geometryType](value.coordinates)
+  } as GeoGeometry;
 
   const count = geometryPositions(geometry).length;
   if (count > maxVertices) {

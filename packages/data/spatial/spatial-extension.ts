@@ -1,29 +1,19 @@
 import { DbNull } from '@prisma/client/runtime/client';
 import {
-  capitalize,
   ErrorCode,
   geoColumns,
   GeoConfig,
   geometryBox,
-  isResourceAuthModel,
   normalizeGeometry,
-  ResourceModel,
   SpatialError
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
+import { mapResultRecords, mapWriteArgs } from '../utils/write-data-util';
 import {
-  mapResultRecords,
-  mapWriteArgs
-} from '../database/utils/write-data-util';
-import { spatialConfig, spatialProvider } from './spatial-config';
-
-/** What the extension knows of the models, derived from the loaded resources. */
-type SpatialSchema = {
-  /** The geo fields of every model declaring some */
-  geoFields: Map<string, GeoConfig>;
-  /** The related model of every relation, file and audit field of every model */
-  relatedModels: Map<string, Map<string, string>>;
-};
+  spatialConfig,
+  SpatialProvider,
+  spatialProvider
+} from './spatial-config';
 
 // The operations whose result holds no records
 const COUNT_OPERATIONS = new Set([
@@ -35,8 +25,6 @@ const COUNT_OPERATIONS = new Set([
   'deleteMany'
 ]);
 
-let cached: { models: ResourceModel[]; schema: SpatialSchema } | undefined;
-
 /**
  * Creates the Prisma client extension of the geo fields. Every write checks the values of the geo fields and
  * normalizes them into GeoJSON geometries (a `{ lat, lng }` object into a point), storing a null as the database null
@@ -47,20 +35,19 @@ let cached: { models: ResourceModel[]; schema: SpatialSchema } | undefined;
  * @return {Object} The Prisma client extension.
  */
 export function spatialExtension(): any {
-  // Resolved on the first geo write, so an application without geo fields
-  // never reads the provider
-  let boxes: boolean | undefined;
+  // Resolved on the first query, once the config is loaded
+  let provider: SpatialProvider | undefined;
+  const boxes = () => (provider ??= spatialProvider()) === 'database';
 
   const normalizeRecord = (
     modelName: string,
     data: Record<string, any>
   ): Record<string, any> => {
-    const geoFields = spatialSchema().geoFields.get(modelName);
+    const geoFields = geoFieldsOf(modelName);
     if (!geoFields) {
       return data;
     }
 
-    boxes ??= spatialProvider() === 'database';
     const normalized: Record<string, any> = { ...data };
     for (const [field, geo] of Object.entries(geoFields)) {
       const value = data[field];
@@ -73,7 +60,7 @@ export function spatialExtension(): any {
         : normalizeValue(modelName, field, value, geo.type);
       normalized[field] = geometry ?? DbNull;
 
-      if (boxes) {
+      if (boxes()) {
         const columns = geoColumns(field);
         const box = geometry ? geometryBox(geometry) : [null, null, null, null];
         normalized[columns.minLng] = box[0];
@@ -89,7 +76,7 @@ export function spatialExtension(): any {
     modelName: string,
     record: Record<string, any>
   ): Record<string, any> => {
-    const geoFields = spatialSchema().geoFields.get(modelName);
+    const geoFields = geoFieldsOf(modelName);
     for (const field of Object.keys(geoFields ?? {})) {
       const columns = geoColumns(field);
       delete record[columns.minLng];
@@ -105,16 +92,11 @@ export function spatialExtension(): any {
     query: {
       $allModels: {
         async $allOperations({ model, operation, args, query }: any) {
-          if (spatialSchema().geoFields.size === 0) {
-            return query(args);
-          }
-
           const result = await query(
-            mapWriteArgs(model, operation, args, normalizeRecord, relatedOf)
+            mapWriteArgs(model, operation, args, normalizeRecord)
           );
-          boxes ??= spatialProvider() === 'database';
-          return boxes && !COUNT_OPERATIONS.has(operation)
-            ? mapResultRecords(model, result, stripRecord, relatedOf)
+          return boxes() && !COUNT_OPERATIONS.has(operation)
+            ? mapResultRecords(model, result, stripRecord)
             : result;
         }
       }
@@ -154,49 +136,7 @@ function isNullValue(value: unknown): boolean {
   );
 }
 
-/** The related model of every relation, file and audit field of a model. */
-function relatedOf(modelName: string): Map<string, string> | undefined {
-  return spatialSchema().relatedModels.get(modelName);
-}
-
-/** Derives the schema of the loaded models, recomputed when the models change. */
-function spatialSchema(): SpatialSchema {
-  const loaded = [
-    ...(context.resource.models as Map<string, ResourceModel>).values()
-  ];
-  if (
-    cached?.models.length === loaded.length &&
-    cached.models.every((model, i) => model === loaded[i])
-  ) {
-    return cached.schema;
-  }
-
-  const authModel = loaded.find(isResourceAuthModel);
-  const geoFields = new Map<string, GeoConfig>();
-  const relatedModels = new Map<string, Map<string, string>>();
-
-  for (const model of loaded) {
-    if (Object.keys(model.config.geo ?? {}).length > 0) {
-      geoFields.set(model.name, model.config.geo!);
-    }
-
-    const related = new Map<string, string>();
-    for (const [field, relation] of Object.entries(
-      model.config.relations ?? {}
-    )) {
-      related.set(field, capitalize(relation.model));
-    }
-    for (const field of Object.keys(model.config.files ?? {})) {
-      related.set(field, 'File');
-    }
-    if (authModel) {
-      related.set('createdBy', authModel.name);
-      related.set('deletedBy', authModel.name);
-    }
-    relatedModels.set(model.name, related);
-  }
-
-  const schema = { geoFields, relatedModels };
-  cached = { models: loaded, schema };
-  return schema;
+/** The geo fields of a loaded model. */
+function geoFieldsOf(modelName: string): GeoConfig | undefined {
+  return context.resource.models.get(modelName)?.config.geo;
 }

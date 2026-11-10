@@ -14,7 +14,7 @@ import {
 } from '@appweaver/common';
 import { databaseConfig } from '../database/database-config';
 import { PrismaDatabase } from '../database/prisma-database';
-import { postgresSchema } from '../database/utils/schema-util';
+import { postgresSchema } from '../utils/schema-util';
 
 const logger = createLogger('spatial');
 
@@ -27,6 +27,9 @@ export type GeoModel = {
   /** The geo fields */
   fields: GeoConfig;
 };
+
+/** The maximum milliseconds the triggers of PostGIS take to set up. */
+const SETUP_TIMEOUT = 60_000;
 
 /** The records a batch of the `database` engine reads. */
 const SCAN_BATCH = 1000;
@@ -183,20 +186,27 @@ export class PostgisSpatialEngine extends SpatialEngine {
       );
     }
 
-    await this._db.transaction(async (tx) => {
-      await tx.$executeRawUnsafe(
-        `SELECT pg_advisory_xact_lock(hashtext('appweaver:spatial'))`
-      );
-      for (const model of models) {
-        for (const statement of triggerStatements(
-          this.table(model.table),
-          model.table,
-          Object.keys(model.fields)
-        )) {
-          await tx.$executeRawUnsafe(statement);
+    const fn = this.table('appweaver_geo_sync');
+    await this._db.transaction(
+      async (tx) => {
+        await tx.$executeRawUnsafe(
+          `SELECT pg_advisory_xact_lock(hashtext('appweaver:spatial'))`
+        );
+        await tx.$executeRawUnsafe(triggerFunction(fn));
+        for (const model of models) {
+          for (const statement of triggerStatements(
+            this.table(model.table),
+            model.table,
+            fn,
+            Object.keys(model.fields)
+          )) {
+            await tx.$executeRawUnsafe(statement);
+          }
         }
-      }
-    });
+      },
+      // The geometries of a large table written for the first time
+      { timeout: SETUP_TIMEOUT }
+    );
     logger.debug(
       { models: models.map((model) => model.name) },
       'Spatial geometry triggers set up'
@@ -253,7 +263,7 @@ export class PostgisSpatialEngine extends SpatialEngine {
     );
   }
 
-  /** The quoted table, qualified by the schema of the connection when it has one. @internal */
+  /** The quoted name of a table or a function, qualified by the schema of the connection when it has one. @internal */
   private table(name: string): string {
     return this._schema ? `${quote(this._schema)}.${quote(name)}` : quote(name);
   }
@@ -277,52 +287,64 @@ function geometryParam(
 }
 
 /**
- * The statements creating the trigger function and the trigger writing the geometry columns of a table from the
- * GeoJSON of its geo fields, then writing the columns of the records missing them.
+ * The function of the triggers writing the geometry columns from the GeoJSON of the geo fields, given as the arguments
+ * of a trigger. It skips a field whose geometry column no longer exists, so a migration can drop a geo field before the
+ * application updates the trigger, and an update leaving the GeoJSON unchanged.
+ *
+ * @param {string} name - The quoted function name, qualified by its schema.
+ * @return {string} The statement creating the function.
+ */
+export function triggerFunction(name: string): string {
+  return `CREATE OR REPLACE FUNCTION ${name}() RETURNS trigger AS $$
+DECLARE
+  data jsonb := to_jsonb(NEW);
+  changes jsonb := '{}';
+  field text;
+BEGIN
+  FOREACH field IN ARRAY TG_ARGV LOOP
+    CONTINUE WHEN NOT data ? (field || 'Geom')
+      OR (TG_OP = 'UPDATE' AND to_jsonb(OLD) -> field IS NOT DISTINCT FROM data -> field);
+    changes := changes || jsonb_build_object(field || 'Geom',
+      CASE WHEN jsonb_typeof(data -> field) = 'object'
+        THEN encode(ST_AsEWKB(ST_SetSRID(ST_GeomFromGeoJSON(data -> field), 4326)), 'hex') END);
+  END LOOP;
+  RETURN jsonb_populate_record(NEW, changes);
+END
+$$ LANGUAGE plpgsql`;
+}
+
+/**
+ * The statements creating the trigger of a table, calling the trigger function with its geo fields, then writing the
+ * geometry of the records missing it.
  *
  * @param {string} table - The quoted table, qualified by its schema.
  * @param {string} tableName - The table name.
+ * @param {string} fn - The quoted trigger function, qualified by its schema.
  * @param {string[]} fields - The geo fields.
  * @return {string[]} The statements.
  */
 export function triggerStatements(
   table: string,
   tableName: string,
+  fn: string,
   fields: string[]
 ): string[] {
-  const name = triggerName(tableName);
-  const geometry = (field: string) =>
-    `CASE WHEN ${field} IS NULL OR jsonb_typeof(${field}::jsonb) = 'null' THEN NULL ` +
-    `ELSE ST_SetSRID(ST_GeomFromGeoJSON(${field}::text), 4326) END`;
-
-  const assignments = fields
-    .map(
-      (field) =>
-        `  NEW.${quote(geoColumns(field).geom)} := ${geometry(`NEW.${quote(field)}`)};`
-    )
-    .join('\n');
-  const schema = table.includes('.') ? `${table.split('.')[0]}.` : '';
-  const fn = `${schema}${quote(name)}`;
+  // Within the 63 characters of a PostgreSQL name
+  const trigger = quote(`${tableName.slice(0, 50)}_geo_sync`);
+  const args = fields.map((field) => `'${field.replace(/'/g, "''")}'`);
 
   return [
-    `CREATE OR REPLACE FUNCTION ${fn}() RETURNS trigger AS $$\nBEGIN\n${assignments}\n  RETURN NEW;\nEND\n$$ LANGUAGE plpgsql`,
-    `DROP TRIGGER IF EXISTS ${quote(name)} ON ${table}`,
-    `CREATE TRIGGER ${quote(name)} BEFORE INSERT OR UPDATE OF ${fields
-      .map(quote)
-      .join(', ')} ON ${table} FOR EACH ROW EXECUTE FUNCTION ${fn}()`,
+    `DROP TRIGGER IF EXISTS ${trigger} ON ${table}`,
+    `CREATE TRIGGER ${trigger} BEFORE INSERT OR UPDATE ON ${table} FOR EACH ROW EXECUTE FUNCTION ${fn}(${args.join(', ')})`,
     ...fields.map((field) => {
+      const json = quote(field);
       const geom = quote(geoColumns(field).geom);
       return (
-        `UPDATE ${table} SET ${geom} = ${geometry(quote(field))} ` +
-        `WHERE ${geom} IS NULL AND ${quote(field)} IS NOT NULL AND jsonb_typeof(${quote(field)}::jsonb) <> 'null'`
+        `UPDATE ${table} SET ${geom} = ST_SetSRID(ST_GeomFromGeoJSON(${json}::jsonb), 4326) ` +
+        `WHERE ${geom} IS NULL AND jsonb_typeof(${json}::jsonb) = 'object'`
       );
     })
   ];
-}
-
-/** The name of the trigger and the function of a table, within the 63 characters of a PostgreSQL name. */
-function triggerName(table: string): string {
-  return `${table.slice(0, 50)}_geo_sync`;
 }
 
 function quote(name: string): string {

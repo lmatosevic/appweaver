@@ -18,7 +18,7 @@ import { inject } from '@appweaver/core';
 import { databaseConfig } from '../database/database-config';
 import { toDatabaseError } from '../database/database-error';
 import { PrismaDatabase } from '../database/prisma-database';
-import { postgresSchema } from '../database/utils/schema-util';
+import { postgresSchema } from '../utils/schema-util';
 import { databaseSeriesConfig } from './database-series-config';
 import {
   deleteStatement,

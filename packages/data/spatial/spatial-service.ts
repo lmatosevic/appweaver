@@ -78,7 +78,7 @@ export class SpatialService implements OnInit {
    * @throws {ConfigurationError} When the engine refuses its setup, i.e. without the PostGIS extension.
    */
   public async onInit(): Promise<void> {
-    if (this.models().length === 0) {
+    if (!hasGeoModels()) {
       return;
     }
     try {
@@ -123,7 +123,7 @@ export class SpatialService implements OnInit {
     modelName: string
   ): Promise<ResolvedSpatialFilter> {
     const distances = new Map<string, Map<unknown, number>>();
-    if (!isPlainObject(filter) || this.models().length === 0) {
+    if (!isPlainObject(filter) || !hasGeoModels()) {
       return { filter, distances };
     }
     const resolved = await this.resolveLevel(
@@ -320,6 +320,13 @@ export class SpatialService implements OnInit {
       });
     return this._setup;
   }
+}
+
+/** Whether a loaded model declares geo fields. */
+function hasGeoModels(): boolean {
+  return [...context.resource.models.values()].some((model) =>
+    hasGeo(model.config)
+  );
 }
 
 /** The geo fields of a model and its table. */

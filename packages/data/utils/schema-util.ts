@@ -1,5 +1,5 @@
 import { DatabaseType } from '@appweaver/common';
-import { databaseConfig } from '../database-config';
+import { databaseConfig } from '../database/database-config';
 
 /**
  * The `schema` parameter of a PostgreSQL URL, which the Prisma client leaves out of the raw queries.

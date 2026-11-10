@@ -148,10 +148,11 @@ describe('spatial-engine', () => {
       const statements = tx.$executeRawUnsafe.mock.calls.map((c) => c[0]);
       expect(statements[0]).toContain('pg_advisory_xact_lock');
       expect(statements[1]).toContain(
-        'CREATE OR REPLACE FUNCTION "geo"."Store_geo_sync"()'
+        'CREATE OR REPLACE FUNCTION "geo"."appweaver_geo_sync"()'
       );
-      expect(statements[3]).toContain(
-        'BEFORE INSERT OR UPDATE OF "location", "area" ON "geo"."Store"'
+      expect(statements[3]).toBe(
+        'CREATE TRIGGER "Store_geo_sync" BEFORE INSERT OR UPDATE ON "geo"."Store" ' +
+          `FOR EACH ROW EXECUTE FUNCTION "geo"."appweaver_geo_sync"('location', 'area')`
       );
       expect(statements).toHaveLength(6);
     });
@@ -208,15 +209,16 @@ describe('spatial-engine', () => {
   });
 
   describe('triggerStatements', () => {
-    test('writes the geometry of each field and fills the missing ones', () => {
-      const statements = triggerStatements('"Store"', 'Store', ['location']);
-      expect(statements[0]).toContain(
-        'NEW."locationGeom" := CASE WHEN NEW."location" IS NULL'
-      );
-      expect(statements).toHaveLength(4);
-      expect(statements[3]).toContain(
-        'UPDATE "Store" SET "locationGeom" = CASE WHEN "location" IS NULL'
-      );
+    test('replaces the trigger of a table and fills the missing geometries', () => {
+      const statements = triggerStatements('"Store"', 'Store', '"fn"', [
+        'location'
+      ]);
+      expect(statements).toEqual([
+        'DROP TRIGGER IF EXISTS "Store_geo_sync" ON "Store"',
+        `CREATE TRIGGER "Store_geo_sync" BEFORE INSERT OR UPDATE ON "Store" FOR EACH ROW EXECUTE FUNCTION "fn"('location')`,
+        'UPDATE "Store" SET "locationGeom" = ST_SetSRID(ST_GeomFromGeoJSON("location"::jsonb), 4326) ' +
+          `WHERE "locationGeom" IS NULL AND jsonb_typeof("location"::jsonb) = 'object'`
+      ]);
     });
   });
 });
@@ -323,6 +325,29 @@ const postgisUrl = process.env.SPATIAL_TEST_POSTGIS_URL;
         10
       );
       expect(intersects.map((match) => match.id)).toEqual([2]);
+
+      // An update keeps the geometry in line, a JSON null clears it
+      await client.$executeRawUnsafe(
+        `UPDATE "SpatialContract" SET "location" = '{"type":"Point","coordinates":[5,5]}', "area" = 'null' WHERE "id" = 2`
+      );
+      const updated: unknown[] = await client.$queryRawUnsafe(
+        'SELECT ST_AsText("locationGeom") AS geom, ST_AsText("areaGeom") AS area FROM "SpatialContract" WHERE "id" = 2'
+      );
+      expect(updated).toEqual([{ geom: 'POINT(5 5)', area: null }]);
     }, 60_000);
+
+    test('lets a migration drop a geo field the trigger still names', async () => {
+      const client = db.client<any>();
+      await client.$executeRawUnsafe(
+        'ALTER TABLE "SpatialContract" DROP COLUMN "area", DROP COLUMN "areaGeom"'
+      );
+      await client.$executeRawUnsafe(
+        `INSERT INTO "SpatialContract" ("location") VALUES ('{"type":"Point","coordinates":[7,7]}')`
+      );
+      const rows: unknown[] = await client.$queryRawUnsafe(
+        'SELECT ST_AsText("locationGeom") AS geom FROM "SpatialContract" ORDER BY "id" DESC LIMIT 1'
+      );
+      expect(rows).toEqual([{ geom: 'POINT(7 7)' }]);
+    });
   }
 );

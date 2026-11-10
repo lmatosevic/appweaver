@@ -1,5 +1,5 @@
 import { configOverrides, DatabaseType } from '@appweaver/common';
-import { postgresSchema } from '../../../database/utils/schema-util';
+import { postgresSchema } from '../../utils/schema-util';
 
 describe('schema-util', () => {
   afterEach(() => {

@@ -156,8 +156,8 @@ describe('spatial-extension', () => {
   });
 });
 
-describe('spatial-extension without geo fields', () => {
-  test('passes every query through', async () => {
+describe('spatial-extension of a model without geo fields', () => {
+  test('passes its queries through', async () => {
     resetContext();
     const query = jest.fn(async (args: any) => args);
     const args = { data: { location: 'x' } };
@@ -168,6 +168,6 @@ describe('spatial-extension without geo fields', () => {
         args,
         query
       })
-    ).resolves.toBe(args);
+    ).resolves.toEqual(args);
   });
 });

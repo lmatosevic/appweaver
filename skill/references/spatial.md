@@ -110,10 +110,9 @@ matching ids are ordered in memory, so the pages, the cursors and the total coun
 
 A spatial operator is resolved into the ids of the records it matches before the rest of the query runs, so:
 
-- An operator matching more records than `spatial.maxCandidates` (`10000`, at most `2000` on SQL Server, under its limit
-  of query parameters) fails with `SPATIAL_TOO_MANY_CANDIDATES` (400). The limit counts the records matching the
-  operator alone, before the other conditions of the filter and the read restrictions, so narrow it down (a smaller
-  radius or box).
+- An operator matching more records than `spatial.maxCandidates` (`10000`, at most `2000` on SQL Server) fails with
+  `SPATIAL_TOO_MANY_CANDIDATES` (400). The limit counts the records matching the operator alone, before the other
+  conditions and the read restrictions, so narrow it down with a smaller radius or box.
 - An invalid operator fails with `SPATIAL_INVALID_FILTER` (400).
 - The longitude and latitude are taken as planar coordinates by `_within`, `_withinBox` and `_intersects`, like the
   `geometry` type of PostGIS: an edge of a polygon is a straight line in degrees, not a great circle, and a geometry
@@ -133,15 +132,15 @@ run `weaver generate` and create a migration after changing it.
 `spatial.provider` to `database` on a PostgreSQL server without PostGIS.
 
 **PostGIS**: the generated schema declares the extension (`extensions = [postgis]`, with the `postgresqlExtensions`
-preview feature of Prisma), so the first migration creates it with `CREATE EXTENSION IF NOT EXISTS "postgis"`, which
-needs a server with PostGIS installed, i.e. the `postgis/postgis` Docker image (or `timescale/timescaledb-ha`, which
-has both TimescaleDB and PostGIS). When the application starts, the `SpatialService` creates a trigger per table,
-`<table>_geo_sync`, writing the geometry column from the GeoJSON one on every insert and update, and fills the
-geometry of the records missing it, under an advisory lock. The trigger is not part of the Prisma schema, so it causes
-no migration drift, and the database user needs the right to create functions and triggers.
+preview feature of Prisma), so the first migration runs `CREATE EXTENSION IF NOT EXISTS "postgis"`, which needs a
+server with PostGIS installed, i.e. the `postgis/postgis` Docker image (or `timescale/timescaledb-ha`, which has both
+TimescaleDB and PostGIS). At startup, `SpatialService` creates the trigger `<table>_geo_sync` of each table, writing the
+geometry columns from the GeoJSON on every insert and update, and fills the geometries missing. The trigger is not part
+of the Prisma schema, so it causes no migration drift, and a migration can drop a geo field before the next start
+updates it. The database user needs the right to create functions and triggers.
 
 **Database**: the data layer writes the bounding box columns of a geo field on every write through the Prisma client
-and leaves them out of the results. A record written with plain SQL needs them written too.
+and leaves them out of the results, so a record written with plain SQL needs them written too.
 
 On SQL Server, the GeoJSON column is a `NVARCHAR(MAX)` serialized by the data layer, like a `json` scalar.
 
