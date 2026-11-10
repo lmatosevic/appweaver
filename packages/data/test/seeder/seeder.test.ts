@@ -163,9 +163,7 @@ describe('seeder', () => {
       expect(logged(warn)).toContain('has different checksum');
       expect(logged(warn)).toContain('seeder removed does not exist');
       expect(logged(log)).toContain('Fix: seeder checksum would be updated');
-      expect(logged(log)).toContain(
-        'Fix: seeder would be removed from database'
-      );
+      expect(logged(log)).toContain('Fix: would remove seeder from database');
       expect(logged(log)).toContain('No pending seeders to execute');
       expect(table.update).not.toHaveBeenCalled();
       expect(table.delete).not.toHaveBeenCalled();

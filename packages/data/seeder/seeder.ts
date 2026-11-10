@@ -101,14 +101,16 @@ export class Seeder extends LifecycleManager {
             `Warning: seeder ${seederName} has different checksum: ${checksum}, expected checksum: ${seeder.checksum}`
           );
 
-          if (this._fixWarnings && this._dryRun) {
-            console.log('Fix: seeder checksum would be updated');
-          } else if (this._fixWarnings) {
+          if (this._fixWarnings && !this._dryRun) {
             await this._db.client().seeder.update({
               where: { id: seeder.id },
               data: { checksum }
             });
-            console.log('Fix: seeder checksum updated');
+          }
+          if (this._fixWarnings) {
+            console.log(
+              `Fix: seeder checksum ${this._dryRun ? 'would be ' : ''}updated`
+            );
           }
 
           console.log('');
@@ -118,16 +120,11 @@ export class Seeder extends LifecycleManager {
 
       if (this._dryRun) {
         console.log(`Would seed ${seederName}`);
-        console.log('');
-        calledSeedersCount++;
-        continue;
+      } else {
+        console.log(`Seeding ${seederName}...`);
+        await this.executeSeeder(seederFile);
+        console.log(`${seederName} seeded`);
       }
-
-      console.log(`Seeding ${seederName}...`);
-
-      await this.executeSeeder(seederFile);
-
-      console.log(`${seederName} seeded`);
       console.log('');
 
       calledSeedersCount++;
@@ -144,11 +141,13 @@ export class Seeder extends LifecycleManager {
         `Warning: seeder ${seeder.seederName} does not exist but is present in database table`
       );
 
-      if (this._fixWarnings && this._dryRun) {
-        console.log('Fix: seeder would be removed from database');
-      } else if (this._fixWarnings) {
+      if (this._fixWarnings && !this._dryRun) {
         await this._db.client().seeder.delete({ where: { id: seeder.id } });
-        console.log('Fix: removed seeder from database');
+      }
+      if (this._fixWarnings) {
+        console.log(
+          `Fix: ${this._dryRun ? 'would remove' : 'removed'} seeder from database`
+        );
       }
 
       console.log('');

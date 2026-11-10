@@ -75,22 +75,12 @@ export async function readMigrations(
  * @return {string[]} The names of the pending migrations.
  */
 export function pendingMigrationNames(output: string): string[] {
-  const lines = output.split(/\r?\n/);
-  const start = lines.findIndex((line) =>
-    /have not yet been applied:/.test(line)
-  );
-  if (start === -1) {
-    return [];
-  }
-
-  const names: string[] = [];
-  for (const line of lines.slice(start + 1)) {
-    if (!line.trim()) {
-      break;
-    }
-    names.push(line.trim());
-  }
-  return names;
+  const listed =
+    /have not yet been applied:\r?\n([\s\S]*?)(?:\r?\n\s*\r?\n|$)/.exec(output);
+  return (listed?.[1] ?? '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
 }
 
 /** The migrations of the directory, in the order Prisma applies them. */

@@ -190,15 +190,13 @@ weaver migrate|mge [options]
 Apply all pending database migrations (`prisma migrate deploy`). It creates no migration and never prompts, which
 makes it the command to run in CI, in containers, and in production.
 
-| Option      | Description                                                       | Default |
-|-------------|-------------------------------------------------------------------|---------|
+| Option      | Description                                                      | Default |
+|-------------|------------------------------------------------------------------|---------|
 | `--dry-run` | Print the pending migrations and their SQL without applying them | `false` |
 
-Prisma has no dry run of `migrate deploy`, so `--dry-run` reads the pending migrations from `prisma migrate status`
-and prints the `migration.sql` of each one from `DATABASE_MIGRATIONS_DIR_PATH`, without changing the database. A
-database that does not exist yet has every migration of the directory pending. A status error, like a failed
-migration or an unreachable database, is printed with the exit code of Prisma. Run it in CI before `weaver migrate` to
-review what a deployment applies:
+`--dry-run` reads the pending migrations from `prisma migrate status` (Prisma has no dry run of `migrate deploy`) and
+prints the `migration.sql` of each one, without changing the database. A status error, like a failed migration or an
+unreachable database, is printed with the exit code of Prisma. Review what a deployment applies before running it:
 
 ```sh
 NODE_ENV=prod weaver migrate --dry-run
@@ -418,10 +416,9 @@ The seeders of the enabled modules (their `seeders` directory) run first, each r
 (`billing/1-plans`), then the seeders of the application. A missing seeders directory is skipped with a warning, and
 its recorded seeders are not reported as deleted; the command fails only when no directory is accessible.
 
-With `--dry-run`, the seeders are listed (`Would seed 1-users`) but neither imported nor run, and nothing is recorded.
-The checksum and deleted file warnings are still reported, and with `--fix-warnings` the fixes are printed
-(`Fix: seeder checksum would be updated`) instead of applied. It still reads the seeders table, so the database must be
-reachable and migrated.
+With `--dry-run`, the pending seeders are listed but not run, and nothing is written: the warnings are still reported,
+and the `--fix-warnings` fixes printed instead of applied. It reads the seeders table, so the database must be
+migrated.
 
 ---
 

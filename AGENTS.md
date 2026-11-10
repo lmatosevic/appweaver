@@ -766,10 +766,11 @@ weaver seed [options]
 | `--fix-warnings`       | Fix seeder warnings (wrong checksum, deleted seeder files) | false                 |
 | `--dry-run`            | Print the pending seeders and the warnings to fix          | false                 |
 
-With `--dry-run` (the `dryRun` of `createSeeder`), the `Seeder` lists the pending seeders without importing them, and
-reports the warnings and the fixes it would make without writing to the database. The seeders of the enabled modules run first, each recorded under its module name (`billing/1-plans`), then the
+The seeders of the enabled modules run first, each recorded under its module name (`billing/1-plans`), then the
 seeders of the application. A missing seeders directory is skipped with a warning (its recorded seeders are not
-reported as deleted), and only no accessible directory at all stops the command.
+reported as deleted), and only no accessible directory at all stops the command. With `--dry-run` (the `dryRun` of
+`createSeeder`), the `Seeder` lists the pending seeders without importing them, and reports the warnings and the fixes
+it would make without writing to the database.
 
 ---
 
