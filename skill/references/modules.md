@@ -7,19 +7,19 @@ first-party module does.
 
 ## First-party modules
 
-| Module                  | Enabled                      | Brings                                                                                                                               |
-|-------------------------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `@appweaver/core`       | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer, `json` SMS sender, `memory` time series |
-| `@appweaver/data`       | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store, the `database` and `timescale` time series |
-| `@appweaver/web`        | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account, 2FA (`TwoFactorService`) and OAuth2 services                             |
-| `@appweaver/redis`      | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                                   |
-| `@appweaver/bullmq`     | Installed (requires `redis`) | The `bullmq` queue                                                                                                                   |
-| `@appweaver/cron`       | Installed                    | The `cron` scheduler                                                                                                                 |
-| `@appweaver/nodemailer` | Installed                    | The `smtp` mailer                                                                                                                    |
-| `@appweaver/twilio`     | Installed                    | The `twilio` SMS sender (`SmsSender`), with the REST API of Twilio and no SDK                                                        |
-| `@appweaver/opentelemetry` | Installed                 | The OpenTelemetry SDK (`TelemetryService`) exporting the traces, metrics and logs over OTLP, see [telemetry](./telemetry.md)         |
-| `@appweaver/handlebars` | Installed                    | The `handlebars` template engine                                                                                                     |
-| `@appweaver/sharp`      | Installed                    | The `sharp` image processor                                                                                                          |
+| Module                     | Enabled                      | Brings                                                                                                                                                     |
+|----------------------------|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `@appweaver/core`          | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer, `json` SMS sender, `memory` time series |
+| `@appweaver/data`          | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store, the `database` and `timescale` time series                             |
+| `@appweaver/web`           | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account, 2FA (`TwoFactorService`) and OAuth2 services                                                   |
+| `@appweaver/redis`         | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                                                         |
+| `@appweaver/bullmq`        | Installed (requires `redis`) | The `bullmq` queue                                                                                                                                         |
+| `@appweaver/cron`          | Installed                    | The `cron` scheduler                                                                                                                                       |
+| `@appweaver/nodemailer`    | Installed                    | The `smtp` mailer                                                                                                                                          |
+| `@appweaver/twilio`        | Installed                    | The `twilio` SMS sender (`SmsSender`), with the REST API of Twilio and no SDK                                                                              |
+| `@appweaver/opentelemetry` | Installed                    | The OpenTelemetry SDK (`TelemetryService`) exporting the traces, metrics and logs over OTLP, see [telemetry](./telemetry.md)                               |
+| `@appweaver/handlebars`    | Installed                    | The `handlebars` template engine                                                                                                                           |
+| `@appweaver/sharp`         | Installed                    | The `sharp` image processor                                                                                                                                |
 
 Every first-party module but core is a package of its own, enabled like any [package module](#package-modules): by
 being a dependency of the application's `package.json`. A driver package carries the library it wraps as a dependency,

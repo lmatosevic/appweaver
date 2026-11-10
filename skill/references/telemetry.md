@@ -17,16 +17,16 @@ There is no telemetry contract and no provider per vendor: OTLP is the standard 
 
 ## What is recorded
 
-| Part (`telemetry.instrumentations.<key>`) | Spans                                                                                                                   | Metrics                                                    |
-|-------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
-| `http` (`@appweaver/web`)                 | A server span per request, `GET /api/posts/:id`, continuing the `traceparent` header, with the status and the `user.id` | `http.server.request.duration`, `http.server.active_requests` |
-| `database` (`@appweaver/data`)            | A client span per Prisma operation, `findMany Post` or `$queryRaw`, without the query and its arguments                 | `db.client.operation.duration`                             |
-| `queue` (`memory`, `bullmq`)              | A producer span `send <queue>` and a consumer span `process <queue>` per attempt, in the trace of the sender            | `messaging.client.sent.messages`, `messaging.process.duration` |
-| `scheduler` (`@appweaver/cron`)           | The root span of a new trace per run, `scheduler <name>`                                                                | `appweaver.scheduler.job.duration`                         |
-| `mailer`, `sms`                           | A client span per sent email (`mailer send`) and text message (`sms send`), inside the span of their queue job          | —                                                          |
+| Part (`telemetry.instrumentations.<key>`) | Spans                                                                                                                   | Metrics                                                              |
+|-------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
+| `http` (`@appweaver/web`)                 | A server span per request, `GET /api/posts/:id`, continuing the `traceparent` header, with the status and the `user.id` | `http.server.request.duration`, `http.server.active_requests`        |
+| `database` (`@appweaver/data`)            | A client span per Prisma operation, `findMany Post` or `$queryRaw`, without the query and its arguments                 | `db.client.operation.duration`                                       |
+| `queue` (`memory`, `bullmq`)              | A producer span `send <queue>` and a consumer span `process <queue>` per attempt, in the trace of the sender            | `messaging.client.sent.messages`, `messaging.process.duration`       |
+| `scheduler` (`@appweaver/cron`)           | The root span of a new trace per run, `scheduler <name>`                                                                | `appweaver.scheduler.job.duration`                                   |
+| `mailer`, `sms`                           | A client span per sent email (`mailer send`) and text message (`sms send`), inside the span of their queue job          | —                                                                    |
 | `cache`                                   | —                                                                                                                       | `appweaver.cache.requests` (`appweaver.cache.result`: `hit`, `miss`) |
-| `task` (`weaver run`)                     | The root span of the task, `task <name>`, exported when the task ends                                                   | —                                                          |
-| `fetch` (`@appweaver/opentelemetry`)      | A client span per outbound `fetch` request, which also sends the `traceparent` header. Node.js only                     | `http.client.request.duration`                             |
+| `task` (`weaver run`)                     | The root span of the task, `task <name>`, exported when the task ends                                                   | —                                                                    |
+| `fetch` (`@appweaver/opentelemetry`)      | A client span per outbound `fetch` request, which also sends the `traceparent` header. Node.js only                     | `http.client.request.duration`                                       |
 
 The names and the attributes follow the OpenTelemetry semantic conventions (`http.*`, `db.*`, `messaging.*`), the ones
 of the framework are prefixed with `appweaver.`.
@@ -100,27 +100,27 @@ export async function issueInvoice(orderId: number) {
 }
 ```
 
-| Helper                                                                | Purpose                                                                                       |
-|-----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| `withSpan(name, options, fn)`                                         | Runs `fn` in a span, the parent of what it calls. `options`: `kind`, `attributes`, `root`, `parent` |
-| `startSpan(name, options)` / `runInTraceContext(context, fn)`         | A span ended by the caller, and running code as its child                                     |
-| `currentSpan()` / `currentTraceId()`                                  | The active span and the id of its trace                                                       |
-| `telemetryCounter` / `telemetryUpDownCounter` / `telemetryHistogram`  | Declare a metric once at module level, call the result to record: `counter().add(1)`          |
-| `injectTraceContext()` / `extractTraceContext(carrier)`               | Carry a trace through a transport of your own (a message, a file, a webhook)                  |
-| `traceQueueSend` / `traceQueueProcess`                                | The producer and consumer spans of a custom `Queue` driver                                    |
-| `telemetryEnabled(part?)`                                             | Whether telemetry, or one part of it, is on                                                   |
-| `telemetryTracer()` / `telemetryMeter()`                              | The tracer and the meter, for anything else                                                   |
+| Helper                                                               | Purpose                                                                                             |
+|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `withSpan(name, options, fn)`                                        | Runs `fn` in a span, the parent of what it calls. `options`: `kind`, `attributes`, `root`, `parent` |
+| `startSpan(name, options)` / `runInTraceContext(context, fn)`        | A span ended by the caller, and running code as its child                                           |
+| `currentSpan()` / `currentTraceId()`                                 | The active span and the id of its trace                                                             |
+| `telemetryCounter` / `telemetryUpDownCounter` / `telemetryHistogram` | Declare a metric once at module level, call the result to record: `counter().add(1)`                |
+| `injectTraceContext()` / `extractTraceContext(carrier)`              | Carry a trace through a transport of your own (a message, a file, a webhook)                        |
+| `traceQueueSend` / `traceQueueProcess`                               | The producer and consumer spans of a custom `Queue` driver                                          |
+| `telemetryEnabled(part?)`                                            | Whether telemetry, or one part of it, is on                                                         |
+| `telemetryTracer()` / `telemetryMeter()`                             | The tracer and the meter, for anything else                                                         |
 
 Keep span names free of ids and other high-cardinality values, put them into attributes. For the full API install
 `@opentelemetry/api` (the version of `@appweaver/common`), it shares the same global SDK.
 
 ## Backends
 
-| Route              | How                                                                                           | Use for                                                                    |
-|--------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| OTLP config        | `telemetry.endpoint` and `telemetry.headers`, or the `OTEL_EXPORTER_OTLP_*` variables         | Honeycomb, Datadog, Sentry, Grafana, New Relic, an OpenTelemetry Collector |
-| `configureTelemetry` | Add or replace exporters, processors, the sampler, the id generator, instrumentations       | A vendor exporter, AWS X-Ray ids and propagator, Prisma engine spans       |
-| Own SDK            | Do not install `@appweaver/opentelemetry`, start the SDK of the vendor before the application | `dd-trace`, the Sentry SDK, the Azure Monitor distro, ADOT                 |
+| Route                | How                                                                                           | Use for                                                                    |
+|----------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| OTLP config          | `telemetry.endpoint` and `telemetry.headers`, or the `OTEL_EXPORTER_OTLP_*` variables         | Honeycomb, Datadog, Sentry, Grafana, New Relic, an OpenTelemetry Collector |
+| `configureTelemetry` | Add or replace exporters, processors, the sampler, the id generator, instrumentations         | A vendor exporter, AWS X-Ray ids and propagator, Prisma engine spans       |
+| Own SDK              | Do not install `@appweaver/opentelemetry`, start the SDK of the vendor before the application | `dd-trace`, the Sentry SDK, the Azure Monitor distro, ADOT                 |
 
 ```jsonc
 // Honeycomb

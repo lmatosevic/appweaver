@@ -8,29 +8,30 @@ It runs on PostgreSQL with the TimescaleDB extension and Redis, the production-l
 
 ## What it showcases
 
-| Feature                                                                                                             | Where                                                                                                             |
-|---------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| PostgreSQL, and Redis for the cache, the rate limits, and the queue (docker-compose)                                | [`docker-compose.yml`](docker-compose.yml), [`appweaver.json`](appweaver.json)                                    |
-| **Time series** of the products (price, stock, units sold) in a TimescaleDB hypertable, compressed and retained     | [`resources/product/model.ts`](src/resources/product/model.ts)                                                    |
-| The points queued for a BullMQ worker once the checkout commits, and dropped with a failed one                      | [`features/catalog/product-history.ts`](src/features/catalog/product-history.ts)                                  |
-| The lowest price of the last 30 days (EU Omnibus directive), from the price history                                 | [`features/catalog/lowest-price-route.ts`](src/features/catalog/lowest-price-route.ts)                            |
-| A transactional checkout: conditional stock reservation, coupon redemption, price copy                              | [`features/checkout/checkout.ts`](src/features/checkout/checkout.ts)                                              |
-| Pure, unit tested pricing rules (cents, discounts, free shipping)                                                   | [`features/checkout/pricing.ts`](src/features/checkout/pricing.ts)                                                |
-| A resource event emitted by hand, feeding a **BullMQ** payment worker                                               | [`features/payments/payment-worker.ts`](src/features/payments/payment-worker.ts)                                  |
-| **API key** authentication for a machine client (the warehouse)                                                     | [`features/orders/order-routes.ts`](src/features/orders/order-routes.ts)                                          |
-| An order state machine with conflict-safe transitions                                                               | [`features/orders/order-status.ts`](src/features/orders/order-status.ts)                                          |
-| A scheduled job cancelling unpaid orders and releasing their stock                                                  | [`features/orders/unpaid-orders-job.ts`](src/features/orders/unpaid-orders-job.ts)                                |
-| A public registration route with reCAPTCHA (when enabled) and rate limiting                                         | [`features/checkout/register-route.ts`](src/features/checkout/register-route.ts)                                  |
-| Order emails from Handlebars templates in the language of the order (`en`, `de`), with custom helpers               | [`templates/emails/`](templates/emails), [`features/orders/order-emails.ts`](src/features/orders/order-emails.ts) |
-| The preferred language of the customer, copied onto the order at checkout unless the checkout asks for another      | [`features/checkout/checkout.ts`](src/features/checkout/checkout.ts)                                              |
-| Cache invalidation after writes made past the resource services                                                     | checkout, payments, and order status                                                                              |
-| Read restrictions: the storefront sees active products, customers their own orders                                  | product and order policies                                                                                        |
-| A `cuid(2)` string id for orders, and order lines copying the product at checkout                                   | order and order item models                                                                                       |
-| Case-insensitive text search (`mode: 'insensitive'`, PostgreSQL)                                                    | [`resources/product/service.ts`](src/resources/product/service.ts)                                                |
-| Verified purchase reviews, and public rating aggregates                                                             | [`resources/review/service.ts`](src/resources/review/service.ts)                                                  |
-| Sales reports through the aggregate route, CSV exports of orders and products                                       | order and product routes                                                                                          |
-| Product image galleries with image processing                                                                       | [`resources/product/model.ts`](src/resources/product/model.ts)                                                    |
-| Application error codes (`OUT_OF_STOCK`, ...) documented per route, a taken email answered by the unique constraint | [`errors.ts`](src/errors.ts), [`features/checkout/register-route.ts`](src/features/checkout/register-route.ts)    |
+| Feature                                                                                                                                         | Where                                                                                                                  |
+|-------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| PostgreSQL, and Redis for the cache, the rate limits, and the queue (docker-compose)                                                            | [`docker-compose.yml`](docker-compose.yml), [`appweaver.json`](appweaver.json)                                         |
+| **Time series** of the products (price, stock, units sold) in a TimescaleDB hypertable, compressed and retained                                 | [`resources/product/model.ts`](src/resources/product/model.ts)                                                         |
+| The points queued for a BullMQ worker once the checkout commits, and dropped with a failed one                                                  | [`features/catalog/product-history.ts`](src/features/catalog/product-history.ts)                                       |
+| The lowest price of the last 30 days (EU Omnibus directive), from the price history                                                             | [`features/catalog/lowest-price-route.ts`](src/features/catalog/lowest-price-route.ts)                                 |
+| A transactional checkout: conditional stock reservation, coupon redemption, price copy                                                          | [`features/checkout/checkout.ts`](src/features/checkout/checkout.ts)                                                   |
+| Pure, unit tested pricing rules (cents, discounts, free shipping)                                                                               | [`features/checkout/pricing.ts`](src/features/checkout/pricing.ts)                                                     |
+| A resource event emitted by hand, feeding a **BullMQ** payment worker                                                                           | [`features/payments/payment-worker.ts`](src/features/payments/payment-worker.ts)                                       |
+| **API key** authentication for a machine client (the warehouse)                                                                                 | [`features/orders/order-routes.ts`](src/features/orders/order-routes.ts)                                               |
+| An order state machine with conflict-safe transitions                                                                                           | [`features/orders/order-status.ts`](src/features/orders/order-status.ts)                                               |
+| **OpenTelemetry**: one trace from the checkout request through the BullMQ payment job to its email, a custom span and metric, the logs exported | [`appweaver.json`](appweaver.json), [`features/payments/payment-gateway.ts`](src/features/payments/payment-gateway.ts) |
+| A scheduled job cancelling unpaid orders and releasing their stock                                                                              | [`features/orders/unpaid-orders-job.ts`](src/features/orders/unpaid-orders-job.ts)                                     |
+| A public registration route with reCAPTCHA (when enabled) and rate limiting                                                                     | [`features/checkout/register-route.ts`](src/features/checkout/register-route.ts)                                       |
+| Order emails from Handlebars templates in the language of the order (`en`, `de`), with custom helpers                                           | [`templates/emails/`](templates/emails), [`features/orders/order-emails.ts`](src/features/orders/order-emails.ts)      |
+| The preferred language of the customer, copied onto the order at checkout unless the checkout asks for another                                  | [`features/checkout/checkout.ts`](src/features/checkout/checkout.ts)                                                   |
+| Cache invalidation after writes made past the resource services                                                                                 | checkout, payments, and order status                                                                                   |
+| Read restrictions: the storefront sees active products, customers their own orders                                                              | product and order policies                                                                                             |
+| A `cuid(2)` string id for orders, and order lines copying the product at checkout                                                               | order and order item models                                                                                            |
+| Case-insensitive text search (`mode: 'insensitive'`, PostgreSQL)                                                                                | [`resources/product/service.ts`](src/resources/product/service.ts)                                                     |
+| Verified purchase reviews, and public rating aggregates                                                                                         | [`resources/review/service.ts`](src/resources/review/service.ts)                                                       |
+| Sales reports through the aggregate route, CSV exports of orders and products                                                                   | order and product routes                                                                                               |
+| Product image galleries with image processing                                                                                                   | [`resources/product/model.ts`](src/resources/product/model.ts)                                                         |
+| Application error codes (`OUT_OF_STOCK`, ...) documented per route, a taken email answered by the unique constraint                             | [`errors.ts`](src/errors.ts), [`features/checkout/register-route.ts`](src/features/checkout/register-route.ts)         |
 
 ## Getting started
 
@@ -51,6 +52,22 @@ The seeder prints the generated admin password (`admin@webshop.example.com`) and
 key, it is not shown again. The demo customers `olivia@example.com` and `daniel@example.com` sign in with `Passw0rd!`.
 The coupons are `WELCOME10` (10 %), `SAVE5` (5 EUR off from 30 EUR), `LAUNCH25` (25 %, limited), and the expired
 `SUMMER20`.
+
+### Traces
+
+The sample exports its OpenTelemetry traces, metrics and logs over OTLP (the `telemetry` of
+[`appweaver.json`](appweaver.json), the `@appweaver/opentelemetry` module). Start Jaeger to look at them, on
+http://localhost:16686:
+
+```bash
+docker compose up -d jaeger
+```
+
+Place an order and open its trace: the `POST /api/checkout` request with its database operations, the `send payments`
+span of the queued job, then, in the same trace, the `process payments` span of the worker with the `payment charge`
+span of [`payment-gateway.ts`](src/features/payments/payment-gateway.ts) and the order email. Every log record carries
+the `trace_id` of its span, and an error response its `traceId`. Without Jaeger running the exports fail silently, and
+the `test` environment turns telemetry off.
 
 The emails are written to the log by the JSON mailer (the `mailer` of [`appweaver.json`](appweaver.json)), so the sample
 needs no SMTP server. All the amounts are in cents.

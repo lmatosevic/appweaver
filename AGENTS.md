@@ -253,19 +253,19 @@ useful to library users directly. Helpers internal to a single module go in that
 The database module (`@appweaver/data`), built on Prisma, with `@prisma/client` as a peer dependency. Its `setup`
 loads the resources of the application, then the `resources` of the modules.
 
-| Module      | Purpose                                                                                                                                            |
-|-------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `database/` | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction`, `toDatabaseError` and the telemetry extension          |
-| `resource/` | Resource loading (`loadResources`), `ResourceService`, the model, filter, sort and aggregate schemas, the query `utils/`                           |
-| `factory/`  | `createModel`, `createPolicy` and `createService`                                                                                                  |
-| `security/` | The auth data model (`createAuthModel`, `hashPassword`, `hasRole`, ...), its config, the auth models (`resources/`), the `database` security store |
-| `storage/`  | `FileService`, the File model and the image config                                                                                                 |
-| `seeder/`   | `createSeeder` and the Seeder model                                                                                                                |
-| `export/`   | `ExportService` (CSV)                                                                                                                              |
+| Module        | Purpose                                                                                                                                                        |
+|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `database/`   | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction`, `toDatabaseError` and the telemetry extension                      |
+| `resource/`   | Resource loading (`loadResources`), `ResourceService`, the model, filter, sort and aggregate schemas, the query `utils/`                                       |
+| `factory/`    | `createModel`, `createPolicy` and `createService`                                                                                                              |
+| `security/`   | The auth data model (`createAuthModel`, `hashPassword`, `hasRole`, ...), its config, the auth models (`resources/`), the `database` security store             |
+| `storage/`    | `FileService`, the File model and the image config                                                                                                             |
+| `seeder/`     | `createSeeder` and the Seeder model                                                                                                                            |
+| `export/`     | `ExportService` (CSV)                                                                                                                                          |
 | `timeseries/` | The `database` and `timescale` drivers of `TimeSeries` (the `<Model>Series` tables, SQL per database, the retention deletes, the hypertables) and their config |
-| `types/`    | The auth and storage types, and the generated types of the framework models (`generated.ts`)                                                       |
-| `utils/`    | Helpers shared by the modules or meant for library users: export, file, model, policy and virtual field utilities                                  |
-| `prisma/`   | The generated Prisma schema, client and migration of the framework models                                                                          |
+| `types/`      | The auth and storage types, and the generated types of the framework models (`generated.ts`)                                                                   |
+| `utils/`      | Helpers shared by the modules or meant for library users: export, file, model, policy and virtual field utilities                                              |
+| `prisma/`     | The generated Prisma schema, client and migration of the framework models                                                                                      |
 
 **Data development scripts** (run from `packages/data`):
 
@@ -311,20 +311,20 @@ The HTTP module (`@appweaver/web`), built on Fastify. Its manifest `requires` `@
 the resource routes of the application (`RESOURCE_ROUTES_PATTERN`), then the `web` part of every module. It augments
 `Application` with `app.server` and `app.spec()`.
 
-| Module      | Purpose                                                                                                                                                                                       |
-|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `server/`   | Fastify server creation, the `HttpServer` lifecycle service, `registerRoute`, `registerPlugin`, `registerModel`, Swagger/OpenAPI                                                              |
-| `resource/` | The resource routes and their schemas, the route loader (the `setup`) and the route `utils/`                                                                                                  |
-| `factory/`  | `createRoutes`                                                                                                                                                                                |
-| `security/` | Authentication and authorization — `AuthService`, JWT, OAuth2, API key, basic auth, reCAPTCHA, Turnstile, account management, 2FA (`two-factor/`: `TwoFactorService`, TOTP), `access-util.ts` |
-| `errors/`   | The API error layer: error code to HTTP status map (`errorHttpMap`), RFC 9457 problem details, error handler and `errorResponses` schemas                                                     |
-| `health/`   | The health check routes and their config                                                                                                                                                      |
-| `cache/`    | The response caching of the routes                                                                                                                                                            |
-| `storage/`  | The file routes                                                                                                                                                                               |
+| Module        | Purpose                                                                                                                                                                                       |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `server/`     | Fastify server creation, the `HttpServer` lifecycle service, `registerRoute`, `registerPlugin`, `registerModel`, Swagger/OpenAPI                                                              |
+| `resource/`   | The resource routes and their schemas, the route loader (the `setup`) and the route `utils/`                                                                                                  |
+| `factory/`    | `createRoutes`                                                                                                                                                                                |
+| `security/`   | Authentication and authorization — `AuthService`, JWT, OAuth2, API key, basic auth, reCAPTCHA, Turnstile, account management, 2FA (`two-factor/`: `TwoFactorService`, TOTP), `access-util.ts` |
+| `errors/`     | The API error layer: error code to HTTP status map (`errorHttpMap`), RFC 9457 problem details, error handler and `errorResponses` schemas                                                     |
+| `health/`     | The health check routes and their config                                                                                                                                                      |
+| `cache/`      | The response caching of the routes                                                                                                                                                            |
+| `storage/`    | The file routes                                                                                                                                                                               |
 | `timeseries/` | The time series routes of the models with `series` fields and their schemas                                                                                                                   |
-| `template/` | The template preview route of development                                                                                                                                                     |
-| `telemetry/` | The OpenTelemetry server spans and metrics of the requests (`registerHttpTelemetry`, `requestSpan`) and their `telemetry.http` config                                                        |
-| `types/`    | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                                                               |
+| `template/`   | The template preview route of development                                                                                                                                                     |
+| `telemetry/`  | The OpenTelemetry server spans and metrics of the requests (`registerHttpTelemetry`, `requestSpan`) and their `telemetry.http` config                                                         |
+| `types/`      | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                                                               |
 
 ### Driver packages
 
@@ -1115,15 +1115,15 @@ start.sh seed         # Seed the database
 Scaffolded with `@appweaver/create`, each showcases a different part of the framework and documents it in its own
 `README.md`. They follow the `cms-api` workflow above, with the differences listed here.
 
-| Sample                   | Runtime | Database           | Showcases                                                                                                  |
-|--------------------------|---------|--------------------|------------------------------------------------------------------------------------------------------------|
-| `sample/webshop-api`     | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails, product price and stock time series in a TimescaleDB hypertable |
-| `sample/hr-api`          | Node    | SQL Server         | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades        |
-| `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, SMS 2FA of the admin, team workload time series with a retention |
-| `sample/movies-api-bun`  | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                     |
-| `sample/inbox-processor` | Node    | SQLite + Redis     | A file and API fed BullMQ pipeline with retries, a local module with a watcher service and routes          |
-| `sample/reports-worker`  | Node    | SQLite             | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener            |
-| `sample/loan-calculator` | Node    | —                  | Core only (no data, no web): a local module, its config, a cached calculator service, `weaver run` tasks   |
+| Sample                   | Runtime | Database           | Showcases                                                                                                                                                                                                                                         |
+|--------------------------|---------|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `sample/webshop-api`     | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails, product price and stock time series in a TimescaleDB hypertable, OpenTelemetry traces across the request and the payment job (Jaeger) |
+| `sample/hr-api`          | Node    | SQL Server         | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades                                                                                                                                               |
+| `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, SMS 2FA of the admin, team workload time series with a retention                                                                                                      |
+| `sample/movies-api-bun`  | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                                                                                                                                                            |
+| `sample/inbox-processor` | Node    | SQLite + Redis     | A file and API fed BullMQ pipeline with retries, a local module with a watcher service and routes                                                                                                                                                 |
+| `sample/reports-worker`  | Node    | SQLite             | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener                                                                                                                                                   |
+| `sample/loan-calculator` | Node    | —                  | Core only (no data, no web): a local module, its config, a cached calculator service, `weaver run` tasks                                                                                                                                          |
 
 - `reports-worker` (`--add scheduler docker --exclude web`) and `loan-calculator` (`--exclude data web`) show the
   applications without a

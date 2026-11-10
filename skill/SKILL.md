@@ -85,19 +85,19 @@ out any module, with or without `--all`: `--exclude web` for a database worker w
 for the core application alone, i.e. a one-shot task (`weaver run`). `--database`, `--host` and `--port` apply only
 with `data` and `web`:
 
-| Module           | Adds                                                                                                            | Without it                                   |
-|------------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------------|
-| `data` (default) | `@appweaver/data`, `@appweaver/sharp`, Prisma, `database/`, the generated types, the test database              | no database, no resources                    |
-| `web` (default)  | `@appweaver/web` (requires `data`), the server config, the `User` auth resource and its admin seeder, `public/` | no HTTP server, no auth model                |
-| `redis`          | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service                                    | memory, cache and rate limit in the process  |
-| `queue`          | `@appweaver/bullmq` (requires `redis`, added along with it)                                                     | in-memory queue                              |
-| `scheduler`      | `@appweaver/cron`                                                                                               | scheduler disabled                           |
-| `mailer`         | `@appweaver/nodemailer`                                                                                         | mailer disabled (no email routes)            |
-| `templates`      | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                                       | no template engine                           |
-| `locales`        | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates     |
-| `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)         |
-| `telemetry`      | `@appweaver/opentelemetry`, the OTLP endpoint, telemetry off in the `test` environment                          | no telemetry exported                        |
-| `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                              |
+| Module           | Adds                                                                                                            | Without it                                  |
+|------------------|-----------------------------------------------------------------------------------------------------------------|---------------------------------------------|
+| `data` (default) | `@appweaver/data`, `@appweaver/sharp`, Prisma, `database/`, the generated types, the test database              | no database, no resources                   |
+| `web` (default)  | `@appweaver/web` (requires `data`), the server config, the `User` auth resource and its admin seeder, `public/` | no HTTP server, no auth model               |
+| `redis`          | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service                                    | memory, cache and rate limit in the process |
+| `queue`          | `@appweaver/bullmq` (requires `redis`, added along with it)                                                     | in-memory queue                             |
+| `scheduler`      | `@appweaver/cron`                                                                                               | scheduler disabled                          |
+| `mailer`         | `@appweaver/nodemailer`                                                                                         | mailer disabled (no email routes)           |
+| `templates`      | `@appweaver/handlebars`, `templates/`, the account emails with the mailer                                       | no template engine                          |
+| `locales`        | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates    |
+| `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)        |
+| `telemetry`      | `@appweaver/opentelemetry`, the OTLP endpoint, telemetry off in the `test` environment                          | no telemetry exported                       |
+| `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                             |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
 next option.
