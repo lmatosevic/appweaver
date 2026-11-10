@@ -139,9 +139,10 @@ Create new migrations:
 weaver migration new <migration_name>
 ```
 
-Run pending migrations:
+Run pending migrations, or print them with their SQL first:
 
 ```bash
+weaver migrate --dry-run
 weaver migrate
 ```
 

@@ -68,31 +68,36 @@ export function runProcess(
 }
 
 /**
- * Executes a shell command and collects its standard output, discarding the error output.
+ * Executes a shell command and collects its standard and error output.
  *
  * @param {string} cmd - The command to execute.
  * @param {string[]} [args=[]] - An array of arguments to pass to the command.
- * @return {Promise<{ code: number; stdout: string }>} A promise that resolves with the exit code and the output.
+ * @return {Promise<{ code: number; stdout: string; stderr: string }>} A promise that resolves with the exit code and
+ * the outputs.
  */
 export function runProcessOutput(
   cmd: string,
   args: string[] = []
-): Promise<{ code: number; stdout: string }> {
+): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
     const child = spawn(command, {
-      stdio: ['ignore', 'pipe', 'ignore'],
+      stdio: ['ignore', 'pipe', 'pipe'],
       shell: true,
       env: { ...process.env, WEAVER_CLI: undefined }
     });
 
     let stdout = '';
+    let stderr = '';
     child.stdout.on('data', (chunk) => {
       stdout += chunk;
     });
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk;
+    });
 
     child.on('error', reject);
-    child.on('close', (code) => resolve({ code: code ?? 99, stdout }));
+    child.on('close', (code) => resolve({ code: code ?? 99, stdout, stderr }));
   });
 }
 

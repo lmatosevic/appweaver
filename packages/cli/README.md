@@ -28,9 +28,9 @@ npm install @appweaver/cli
 It is a dependency rather than a dev dependency, as in a scaffolded project, since a production image runs
 `weaver start` and `weaver migrate`.
 
-The CLI needs only `@appweaver/core`. `weaver generate`, `weaver seed` and `weaver test setup` use the
-`@appweaver/data` package of the project, `weaver openapi` its `@appweaver/web`, and they exit naming the package when
-it is missing.
+The CLI needs only `@appweaver/core`. `weaver generate`, `weaver migrate --dry-run`, `weaver seed` and
+`weaver test setup` use the `@appweaver/data` package of the project, `weaver openapi` its `@appweaver/web`, and they
+exit naming the package when it is missing.
 
 ## Usage
 
@@ -40,7 +40,9 @@ weaver start --watch                # start in watch mode, restarting on changes
 weaver generate                     # generate types and the Prisma schema from the models
 weaver migration new <name>         # create a database migration
 weaver migrate                      # apply the pending migrations
+weaver migrate --dry-run            # print the pending migrations and their SQL, without applying them
 weaver seed --build-project         # build the project, then run the seeders
+weaver seed --dry-run               # print the pending seeders, without running them
 weaver openapi --format yaml        # export the OpenAPI specification
 weaver run reports:daily 2026-10    # run a task of src/tasks/ by its name with the application, then exit
 weaver run                          # list the tasks of the application and the modules

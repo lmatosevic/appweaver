@@ -346,9 +346,9 @@ suite, so every driver is held to it.
 The `weaver` CLI tool. Entry point: `weaver.ts` → compiled to `dist/weaver.js`.
 
 It needs only `@appweaver/core`. `@appweaver/data` and `@appweaver/web` are optional peer dependencies, loaded lazily by
-the commands needing them (`importPackage` of `utils/package-util.ts`): `generate`, `test setup` and `seed` need data,
-`openapi` needs web. Without the package, they exit with `weaver <command> needs the <package> package` (`openapi`
-with a message naming the disabled `@appweaver/web` module).
+the commands needing them (`importPackage` of `utils/package-util.ts`): `generate`, `test setup`, `seed` and
+`migrate --dry-run` need data, `openapi` needs web. Without the package, they exit with
+`weaver <command> needs the <package> package` (`openapi` with a message naming the disabled `@appweaver/web` module).
 
 See **Section 5** for the full command reference.
 
@@ -602,10 +602,13 @@ models of a module package whose declaration files already augment `ResourceRegi
 Apply pending database migrations (production / CI).
 
 ```
-weaver migrate
+weaver migrate [--dry-run]
 ```
 
-Executes `prisma migrate deploy`.
+Executes `prisma migrate deploy`. Prisma has no dry run of it, so `--dry-run` (`migrate/plan-migrations.ts`) parses
+the pending migrations from the output of `prisma migrate status` (all the migrations of `DATABASE_MIGRATIONS_DIR_PATH`
+on `P1003`, a database that does not exist) and prints the `migration.sql` of each one. Any other status failure is
+printed with the exit code of Prisma.
 
 ---
 
@@ -761,8 +764,10 @@ weaver seed [options]
 | `--seeders-dir <dir>`  | Seeders directory                                          | from config           |
 | `--continue-on-error`  | Continue on seeder errors                                  | false                 |
 | `--fix-warnings`       | Fix seeder warnings (wrong checksum, deleted seeder files) | false                 |
+| `--dry-run`            | Print the pending seeders and the warnings to fix          | false                 |
 
-The seeders of the enabled modules run first, each recorded under its module name (`billing/1-plans`), then the
+With `--dry-run` (the `dryRun` of `createSeeder`), the `Seeder` lists the pending seeders without importing them, and
+reports the warnings and the fixes it would make without writing to the database. The seeders of the enabled modules run first, each recorded under its module name (`billing/1-plans`), then the
 seeders of the application. A missing seeders directory is skipped with a warning (its recorded seeders are not
 reported as deleted), and only no accessible directory at all stops the command.
 

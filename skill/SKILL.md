@@ -1006,6 +1006,7 @@ The framework models are generated only when used: `Role`, `Permission`, `ApiKey
 
 ```sh
 weaver migrate                        # run pending migrations
+weaver migrate --dry-run              # print the pending migrations and their SQL, without applying them
 weaver migration new <name>           # create a new migration
 weaver migration reset                # reset database (prompts confirmation)
 weaver migration reset --yes --force  # force reset, skip confirmation
@@ -1019,6 +1020,7 @@ weaver seed --build-project                                # build project first
 weaver seed --build-project --project tsconfig.build.json  # tsconfig file used for the build
 weaver seed --continue-on-error                            # continue if a seeder throws error
 weaver seed --fix-warnings                                 # fix all warnings like invalid checksum or missing seeder
+weaver seed --dry-run                                      # print the pending seeders, without running them
 ```
 
 ### Generate OpenAPI specification

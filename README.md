@@ -333,8 +333,8 @@ weaver build                      # compile TypeScript
 weaver start --watch              # dev server with hot reload
 weaver generate                   # generate types + Prisma schema from models
 weaver migration new <name>       # create a new database migration
-weaver migrate                    # apply pending migrations
-weaver seed                       # seed the database
+weaver migrate                    # apply pending migrations (--dry-run prints them and their SQL)
+weaver seed                       # seed the database (--dry-run lists the pending seeders)
 weaver openapi                    # export OpenAPI spec to openapi.json
 weaver run reports:daily          # run a one-shot task of src/tasks/ by its name (weaver run lists them)
 weaver module add redis docker    # add modules to the project (list, add, remove)

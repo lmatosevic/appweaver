@@ -34,7 +34,8 @@ export class Seeder extends LifecycleManager {
     private readonly _dirPath: string,
     private readonly _continueOnError: boolean = false,
     private readonly _fixWarnings: boolean = false,
-    private readonly _moduleSeeders: ModuleSeeders[] = []
+    private readonly _moduleSeeders: ModuleSeeders[] = [],
+    private readonly _dryRun: boolean = false
   ) {
     super();
   }
@@ -42,7 +43,8 @@ export class Seeder extends LifecycleManager {
   /**
    * Executes the seeders by discovering, validating, and running seeder files.
    * Logs the seeding process, including warnings for checksum mismatches
-   * and files that do not exist but are present in the database table.
+   * and files that do not exist but are present in the database table. A dry
+   * run only logs the seeders it would execute and the warnings it would fix.
    *
    * @return Resolves when all seeders have been processed. Logs relevant
    * information during execution.
@@ -99,7 +101,9 @@ export class Seeder extends LifecycleManager {
             `Warning: seeder ${seederName} has different checksum: ${checksum}, expected checksum: ${seeder.checksum}`
           );
 
-          if (this._fixWarnings) {
+          if (this._fixWarnings && this._dryRun) {
+            console.log('Fix: seeder checksum would be updated');
+          } else if (this._fixWarnings) {
             await this._db.client().seeder.update({
               where: { id: seeder.id },
               data: { checksum }
@@ -109,6 +113,13 @@ export class Seeder extends LifecycleManager {
 
           console.log('');
         }
+        continue;
+      }
+
+      if (this._dryRun) {
+        console.log(`Would seed ${seederName}`);
+        console.log('');
+        calledSeedersCount++;
         continue;
       }
 
@@ -133,7 +144,9 @@ export class Seeder extends LifecycleManager {
         `Warning: seeder ${seeder.seederName} does not exist but is present in database table`
       );
 
-      if (this._fixWarnings) {
+      if (this._fixWarnings && this._dryRun) {
+        console.log('Fix: seeder would be removed from database');
+      } else if (this._fixWarnings) {
         await this._db.client().seeder.delete({ where: { id: seeder.id } });
         console.log('Fix: removed seeder from database');
       }
@@ -141,12 +154,16 @@ export class Seeder extends LifecycleManager {
       console.log('');
     }
 
+    const seeders = `${calledSeedersCount} seeder${calledSeedersCount === 1 ? '' : 's'}`;
     if (calledSeedersCount === 0) {
       console.log(`No pending seeders to execute`);
+    } else if (this._dryRun) {
+      console.log(`${seeders} would be executed`);
     } else {
-      console.log(
-        `Executed ${calledSeedersCount} seeder${calledSeedersCount === 1 ? '' : 's'}`
-      );
+      console.log(`Executed ${seeders}`);
+    }
+    if (this._dryRun) {
+      console.log('Dry run, the database was not changed.');
     }
   }
 

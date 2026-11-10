@@ -136,6 +136,41 @@ describe('seeder', () => {
       expect(table.delete).toHaveBeenCalledWith({ where: { id: 7 } });
     });
 
+    test('lists the pending seeders on a dry run, without running or recording them', async () => {
+      const ran = jest.fn();
+      seederFile('1-users.ts', { users: ran });
+      seederFile('2-posts.ts', { posts: ran });
+
+      await new Seeder(dir, false, false, [], true).seed();
+
+      expect(ran).not.toHaveBeenCalled();
+      expect(table.create).not.toHaveBeenCalled();
+      expect(logged(log)).toContain('Would seed 1-users');
+      expect(logged(log)).toContain('Would seed 2-posts');
+      expect(logged(log)).toContain('2 seeders would be executed');
+      expect(logged(log)).toContain('Dry run, the database was not changed.');
+    });
+
+    test('reports the warnings it would fix on a dry run, without fixing them', async () => {
+      seederFile('1-users.ts', { users: jest.fn() });
+      records.push(
+        { id: 1, seederName: '1-users', checksum: 'old' },
+        { id: 7, seederName: 'removed', checksum: 'x' }
+      );
+
+      await new Seeder(dir, false, true, [], true).seed();
+
+      expect(logged(warn)).toContain('has different checksum');
+      expect(logged(warn)).toContain('seeder removed does not exist');
+      expect(logged(log)).toContain('Fix: seeder checksum would be updated');
+      expect(logged(log)).toContain(
+        'Fix: seeder would be removed from database'
+      );
+      expect(logged(log)).toContain('No pending seeders to execute');
+      expect(table.update).not.toHaveBeenCalled();
+      expect(table.delete).not.toHaveBeenCalled();
+    });
+
     test('stops on a failing seeder, unless continuing on errors', async () => {
       seederFile('1-users.ts', {
         users: async () => {
