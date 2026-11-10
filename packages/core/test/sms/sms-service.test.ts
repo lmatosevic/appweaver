@@ -5,8 +5,10 @@ import {
   Queue,
   SmsError,
   SmsSender,
+  SpanKind,
   TemplateEngine
 } from '@appweaver/common';
+import { recordTelemetry, TelemetryRecorder } from '@appweaver/testing';
 import { define } from '../../context/dependency-injection';
 import { SmsService } from '../../sms';
 import { resetContext } from '../fixtures/context-fixture';
@@ -308,6 +310,35 @@ describe('sms-service', () => {
           template: 'sms/code'
         })
       ).rejects.toMatchObject({ code: ErrorCode.ConfigurationInvalid });
+    });
+  });
+
+  describe('telemetry', () => {
+    let telemetry: TelemetryRecorder;
+    const sms = { to: '+385911234567', text: 'Hello' };
+
+    beforeEach(() => {
+      telemetry = recordTelemetry();
+    });
+
+    afterEach(async () => {
+      await telemetry.stop();
+      delete configOverrides.TELEMETRY_INSTRUMENTATIONS_SMS;
+    });
+
+    test('sends a message in a client span', async () => {
+      expect(await worker({ id: '1', data: sms })).toBe(true);
+
+      const span = telemetry.span('sms send');
+      expect(span.kind).toBe(SpanKind.CLIENT);
+      expect(span.attributes).toEqual({ 'appweaver.sms.provider': 'Object' });
+    });
+
+    test('sends without a span with the instrumentation off', async () => {
+      configOverrides.TELEMETRY_INSTRUMENTATIONS_SMS = false;
+
+      expect(await worker({ id: '1', data: sms })).toBe(true);
+      expect(telemetry.spans()).toHaveLength(0);
     });
   });
 });

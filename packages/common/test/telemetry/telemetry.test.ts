@@ -119,7 +119,8 @@ describe('telemetry', () => {
       telemetry = recordTelemetry();
       const error = new ResourceError(
         ErrorCode.ResourceNotFound,
-        'Post not found'
+        'Post not found',
+        { model: 'Post', id: 1 }
       );
 
       expect(() =>

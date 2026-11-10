@@ -45,7 +45,10 @@ describe('http-telemetry', () => {
       return request.body;
     });
     server.get('/api/missing', async () => {
-      throw new ResourceError(ErrorCode.ResourceNotFound, 'Post not found');
+      throw new ResourceError(ErrorCode.ResourceNotFound, 'Post not found', {
+        model: 'Post',
+        id: 1
+      });
     });
     server.get('/api/broken', async () => {
       throw new TypeError('boom');

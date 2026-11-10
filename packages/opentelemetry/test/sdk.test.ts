@@ -1,3 +1,36 @@
+// The OTLP exporters record the options they are created with
+function mockOtlpExporter(signal: string) {
+  return jest.fn((options: object) => ({
+    signal,
+    options,
+    export: jest.fn((_items: unknown, done: (result: object) => void) =>
+      done({ code: 0 })
+    ),
+    forceFlush: jest.fn(async () => undefined),
+    shutdown: jest.fn(async () => undefined),
+    selectAggregationTemporality: () => 1,
+    selectAggregation: () => ({ type: 0 })
+  }));
+}
+jest.mock('@opentelemetry/exporter-trace-otlp-proto', () => ({
+  OTLPTraceExporter: mockOtlpExporter('traces:proto')
+}));
+jest.mock('@opentelemetry/exporter-trace-otlp-http', () => ({
+  OTLPTraceExporter: mockOtlpExporter('traces:json')
+}));
+jest.mock('@opentelemetry/exporter-metrics-otlp-proto', () => ({
+  OTLPMetricExporter: mockOtlpExporter('metrics:proto')
+}));
+jest.mock('@opentelemetry/exporter-metrics-otlp-http', () => ({
+  OTLPMetricExporter: mockOtlpExporter('metrics:json')
+}));
+jest.mock('@opentelemetry/exporter-logs-otlp-proto', () => ({
+  OTLPLogExporter: mockOtlpExporter('logs:proto')
+}));
+jest.mock('@opentelemetry/exporter-logs-otlp-http', () => ({
+  OTLPLogExporter: mockOtlpExporter('logs:json')
+}));
+
 import { context, metrics, propagation, trace } from '@opentelemetry/api';
 import {
   InMemoryLogRecordExporter,
@@ -18,7 +51,12 @@ import {
   telemetryCounter,
   withSpan
 } from '@appweaver/common';
-import { configureTelemetry } from '../configure-telemetry';
+import { OTLPLogExporter as JsonLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-proto';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
+import { OTLPTraceExporter as JsonTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import { configureTelemetry, TelemetryOptions } from '../configure-telemetry';
 import { startTelemetry, TelemetrySdk } from '../sdk';
 
 describe('startTelemetry', () => {
@@ -162,5 +200,175 @@ describe('startTelemetry', () => {
     expect(sdk!.tracerProvider).toBeUndefined();
     expect(sdk!.meterProvider).toBeUndefined();
     expect(spans.getFinishedSpans()).toHaveLength(0);
+  });
+});
+
+describe('startTelemetry exporters', () => {
+  let sdk: TelemetrySdk | undefined;
+  let options: TelemetryOptions;
+  let remove: () => void;
+
+  const created = (exporter: unknown) =>
+    (exporter as jest.Mock).mock.calls.map(([value]) => value);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    remove = configureTelemetry((value) => (options = value));
+  });
+
+  afterEach(async () => {
+    remove();
+    await sdk?.shutdown();
+    sdk = undefined;
+    for (const key of Object.keys(configOverrides)) {
+      delete configOverrides[key];
+    }
+  });
+
+  test('creates no exporter with the none exporter', async () => {
+    configOverrides.TELEMETRY_LOGS_ENABLED = true;
+
+    sdk = await startTelemetry();
+
+    expect(options.spanProcessors).toHaveLength(0);
+    expect(options.metricReaders).toHaveLength(0);
+    expect(options.logRecordProcessors).toHaveLength(0);
+    expect(options.sampler.toString()).toContain(
+      'ParentBased{root=AlwaysOnSampler,'
+    );
+  });
+
+  test('exports to the standard output with the console exporter', async () => {
+    configOverrides.TELEMETRY_EXPORTER = 'console';
+    configOverrides.TELEMETRY_LOGS_ENABLED = true;
+
+    sdk = await startTelemetry();
+
+    expect(options.spanProcessors[0].constructor.name).toBe(
+      'SimpleSpanProcessor'
+    );
+    expect(options.metricReaders).toHaveLength(1);
+    expect(options.logRecordProcessors[0].constructor.name).toBe(
+      'SimpleLogRecordProcessor'
+    );
+  });
+
+  test('leaves the endpoint and the headers of OTLP to the OTEL environment variables by default', async () => {
+    configOverrides.TELEMETRY_EXPORTER = 'otlp';
+
+    sdk = await startTelemetry();
+
+    expect(created(OTLPTraceExporter)).toEqual([{ timeoutMillis: 10_000 }]);
+    expect(created(OTLPMetricExporter)).toEqual([{ timeoutMillis: 10_000 }]);
+    // The logs are not exported by default
+    expect(created(OTLPLogExporter)).toEqual([]);
+    expect(options.spanProcessors[0].constructor.name).toBe(
+      'BatchSpanProcessor'
+    );
+  });
+
+  test('exports every signal to the configured endpoint with the headers', async () => {
+    configOverrides.TELEMETRY_EXPORTER = 'otlp';
+    configOverrides.TELEMETRY_ENDPOINT = 'https://otlp.example.com/';
+    configOverrides.TELEMETRY_HEADERS = [
+      'x-api-key=secret=value',
+      ' x-dataset = shop ',
+      'no-value'
+    ];
+    configOverrides.TELEMETRY_TIMEOUT = 2000;
+    configOverrides.TELEMETRY_METRICS_ENDPOINT =
+      'https://metrics.example.com/m';
+    configOverrides.TELEMETRY_LOGS_ENABLED = true;
+
+    sdk = await startTelemetry();
+
+    const headers = { 'x-api-key': 'secret=value', 'x-dataset': 'shop' };
+    expect(created(OTLPTraceExporter)).toEqual([
+      {
+        timeoutMillis: 2000,
+        url: 'https://otlp.example.com/v1/traces',
+        headers
+      }
+    ]);
+    expect(created(OTLPMetricExporter)).toEqual([
+      { timeoutMillis: 2000, url: 'https://metrics.example.com/m', headers }
+    ]);
+    expect(created(OTLPLogExporter)).toEqual([
+      { timeoutMillis: 2000, url: 'https://otlp.example.com/v1/logs', headers }
+    ]);
+  });
+
+  test('encodes the requests as JSON with the http/json protocol', async () => {
+    configOverrides.TELEMETRY_EXPORTER = 'otlp';
+    configOverrides.TELEMETRY_PROTOCOL = 'http/json';
+    configOverrides.TELEMETRY_LOGS_ENABLED = true;
+
+    sdk = await startTelemetry();
+
+    expect(created(JsonTraceExporter)).toHaveLength(1);
+    expect(created(JsonLogExporter)).toHaveLength(1);
+    expect(created(OTLPTraceExporter)).toHaveLength(0);
+  });
+
+  test('samples the configured ratio of the new traces', async () => {
+    configOverrides.TELEMETRY_TRACES_SAMPLE_RATIO = 0.25;
+
+    sdk = await startTelemetry();
+
+    expect(options.sampler.toString()).toContain(
+      'ParentBased{root=TraceIdRatioBased{0.25},'
+    );
+  });
+
+  test('traces the fetch requests on Node unless switched off', async () => {
+    sdk = await startTelemetry();
+    expect(
+      options.instrumentations.map((entry) => entry.instrumentationName)
+    ).toEqual(['@opentelemetry/instrumentation-undici']);
+    await sdk!.shutdown();
+
+    configOverrides.TELEMETRY_INSTRUMENTATIONS_FETCH = false;
+    sdk = await startTelemetry();
+    expect(options.instrumentations).toEqual([]);
+    await sdk!.shutdown();
+
+    delete configOverrides.TELEMETRY_INSTRUMENTATIONS_FETCH;
+    configOverrides.APP_RUNTIME = 'bun';
+    sdk = await startTelemetry();
+    expect(options.instrumentations).toEqual([]);
+  });
+
+  test('logs a failing flush and shutdown instead of throwing', async () => {
+    const warn = jest
+      .spyOn(createLogger('telemetry'), 'warn')
+      .mockImplementation();
+    remove();
+    remove = configureTelemetry((value) => {
+      value.spanProcessors.push({
+        onStart: () => undefined,
+        onEnd: () => undefined,
+        forceFlush: async () => {
+          throw new Error('collector down');
+        },
+        shutdown: async () => {
+          throw new Error('collector down');
+        }
+      });
+    });
+    sdk = await startTelemetry();
+
+    await expect(sdk!.forceFlush()).resolves.toBeUndefined();
+    await expect(sdk!.shutdown()).resolves.toBeUndefined();
+    sdk = undefined;
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.objectContaining({ err: expect.anything() }),
+      'OpenTelemetry flush failed'
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.anything(),
+      'OpenTelemetry shutdown failed'
+    );
+    warn.mockRestore();
   });
 });

@@ -60,9 +60,13 @@ jest.mock('bullmq', () => {
 
 import { EventEmitter } from 'node:events';
 import { Queue, Worker } from 'bullmq';
-import { ErrorCode, Memory } from '@appweaver/common';
+import { currentTraceId, ErrorCode, Memory, withSpan } from '@appweaver/common';
 import { define } from '@appweaver/core';
-import { resetContext } from '@appweaver/testing';
+import {
+  recordTelemetry,
+  resetContext,
+  TelemetryRecorder
+} from '@appweaver/testing';
 import { BullQueue } from '../bull-queue';
 
 /** A stub of the ioredis connection a queue processor is given. */
@@ -308,5 +312,90 @@ describe('bull-queue', () => {
       expect(result.message).toContain('Redis connection is not ready');
       await queue.onDestroy();
     });
+  });
+});
+
+describe('bull-queue telemetry', () => {
+  let telemetry: TelemetryRecorder;
+  let queue: BullQueue;
+
+  beforeEach(() => {
+    resetContext();
+    queues().length = 0;
+    workers().length = 0;
+    define({ createClient: () => new FakeConnection() }, Memory);
+    telemetry = recordTelemetry();
+    queue = new BullQueue();
+  });
+
+  afterEach(async () => {
+    await telemetry.stop();
+    resetContext();
+  });
+
+  test('stores the trace context of the sender with the job, continued by the worker', async () => {
+    const orders = queue.get('orders');
+    orders.addWorker(async () => currentTraceId());
+
+    const job = await withSpan('checkout', {}, () =>
+      orders.sendJob({ id: 1 }, 'charge', { delay: 5 })
+    );
+
+    const send = telemetry.span('send orders');
+    // The field BullMQ keeps the propagation metadata of a job in
+    expect((job.opts as any).delay).toBe(5);
+    expect(JSON.parse((job.opts as any).telemetry.metadata)).toEqual({
+      traceparent: `00-${send.spanContext().traceId}-${send.spanContext().spanId}-01`
+    });
+
+    const traceId = await workers()[0].processor({ ...job, attemptsMade: 1 });
+
+    const process = telemetry.span('process orders');
+    expect(traceId).toBe(send.spanContext().traceId);
+    expect(process.parentSpanContext?.spanId).toBe(send.spanContext().spanId);
+    expect(process.attributes).toMatchObject({
+      'messaging.system': 'bullmq',
+      'messaging.message.id': job.id,
+      'appweaver.queue.job.name': 'charge',
+      'appweaver.queue.job.attempt': 2
+    });
+  });
+
+  test('sends a bulk of jobs in one span, each carrying its context', async () => {
+    const orders = queue.get('orders');
+
+    const jobs = await orders.sendBulkJobs([{ data: 1 }, { data: 2 }]);
+
+    const send = telemetry.span('send orders');
+    expect(send.attributes['messaging.batch.message_count']).toBe(2);
+    for (const job of jobs) {
+      expect((job.opts as any).telemetry.metadata).toContain(
+        send.spanContext().traceId
+      );
+    }
+  });
+
+  test('processes a job without a readable trace context in a new trace', async () => {
+    const orders = queue.get('orders');
+    orders.addWorker(async () => true);
+
+    for (const opts of [undefined, {}, { telemetry: { metadata: '{bad' } }]) {
+      await workers()[0].processor({
+        id: '9',
+        name: 'x',
+        attemptsMade: 0,
+        opts
+      });
+    }
+    await workers()[0].processor({
+      id: '9',
+      name: 'x',
+      attemptsMade: 0,
+      opts: { telemetry: { metadata: '"text"' } }
+    });
+
+    const spans = telemetry.spans();
+    expect(spans).toHaveLength(4);
+    expect(spans.every((span) => !span.parentSpanContext)).toBe(true);
   });
 });
