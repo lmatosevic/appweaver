@@ -29,6 +29,7 @@ import {
   swaggerConfig
 } from './server/server-config';
 import { templatePreviewConfig } from './template/template-preview-config';
+import { httpTelemetryConfig } from './telemetry/http-telemetry-config';
 
 /** The HTTP server with the authentication. */
 export default defineModule({
@@ -60,7 +61,8 @@ export default defineModule({
     oauth2AppleConfig,
     oauth2MicrosoftConfig,
     oauth2CustomConfig,
-    templatePreviewConfig
+    templatePreviewConfig,
+    httpTelemetryConfig
   ],
   loggers: ['resource', 'security', 'server', 'template'],
   services: [

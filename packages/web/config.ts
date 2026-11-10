@@ -3,3 +3,4 @@ export * from './health/health-check-config';
 export * from './security/security-config';
 export * from './server/server-config';
 export * from './template/template-preview-config';
+export * from './telemetry/http-telemetry-config';

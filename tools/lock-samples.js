@@ -29,6 +29,7 @@ const lockedPackages = [
   'handlebars',
   'sharp',
   'twilio',
+  'opentelemetry',
   'testing',
   'cli',
   'client',

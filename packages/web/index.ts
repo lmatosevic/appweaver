@@ -14,5 +14,6 @@ export * from './security/oauth2/oauth2-util';
 export * from './server';
 export * from './storage/file-route';
 export * from './template/template-preview-route';
+export * from './telemetry/http-telemetry';
 export * from './types/http-auth';
 export * from './types/server';

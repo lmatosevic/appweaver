@@ -11,7 +11,10 @@ import {
   TemplateEmail,
   TemplateEngine,
   MailerError,
-  TemplateError
+  SpanKind,
+  TemplateError,
+  telemetryEnabled,
+  withSpan
 } from '@appweaver/common';
 import { inject } from '../context';
 import { mailerConfig } from './mailer-config';
@@ -226,7 +229,20 @@ export class EmailService implements OnInit {
   /** @internal */
   private async processEmail(job: QueueJob<Email, boolean>): Promise<boolean> {
     try {
-      return await this._mailer.sendEmail(job.data);
+      if (!telemetryEnabled('mailer')) {
+        return await this._mailer.sendEmail(job.data);
+      }
+      return await withSpan(
+        'mailer send',
+        {
+          kind: SpanKind.CLIENT,
+          attributes: {
+            'appweaver.mailer.provider': this._mailer.constructor.name,
+            'appweaver.mailer.recipients': [job.data.to].flat().length
+          }
+        },
+        () => this._mailer.sendEmail(job.data)
+      );
     } catch (e) {
       throw new MailerError(
         ErrorCode.MailerSendFailed,

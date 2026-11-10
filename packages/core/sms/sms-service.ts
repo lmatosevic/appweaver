@@ -7,9 +7,12 @@ import {
   SmsError,
   SmsMessage,
   SmsSender,
+  SpanKind,
+  telemetryEnabled,
   TemplateEngine,
   TemplateError,
-  TemplateSms
+  TemplateSms,
+  withSpan
 } from '@appweaver/common';
 import { inject } from '../context';
 import { smsConfig } from './sms-config';
@@ -181,7 +184,19 @@ export class SmsService {
     job: QueueJob<SmsMessage, boolean>
   ): Promise<boolean> {
     try {
-      return await this._smsSender.sendSms(job.data);
+      if (!telemetryEnabled('sms')) {
+        return await this._smsSender.sendSms(job.data);
+      }
+      return await withSpan(
+        'sms send',
+        {
+          kind: SpanKind.CLIENT,
+          attributes: {
+            'appweaver.sms.provider': this._smsSender.constructor.name
+          }
+        },
+        () => this._smsSender.sendSms(job.data)
+      );
     } catch (e) {
       if (e instanceof SmsError) {
         throw e;

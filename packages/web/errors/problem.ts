@@ -6,6 +6,7 @@ import {
   FieldError,
   isAppweaverError,
   createLogger,
+  currentTraceId,
   ModuleErrorCode,
   ProblemDetails,
   RequestError,
@@ -14,8 +15,10 @@ import {
   AuthError,
   FileError,
   ErrorHttpMapping,
-  findErrorTranslator
+  findErrorTranslator,
+  spanTraceId
 } from '@appweaver/common';
+import { requestSpan } from '../telemetry/http-telemetry';
 import { errorHttpMapping } from './error-http-map';
 
 const logger = createLogger('server');
@@ -129,6 +132,8 @@ export function toProblem(
     delete details.errors;
   }
 
+  const traceId = spanTraceId(requestSpan(request)) ?? currentTraceId();
+
   return {
     type: errorType(code),
     title: mapping.title,
@@ -137,6 +142,7 @@ export function toProblem(
     detail,
     instance: request?.url.split('?')[0],
     requestId: request?.id,
+    ...(traceId ? { traceId } : {}),
     ...(errors.length > 0 ? { errors } : {}),
     ...(Object.keys(details).length > 0 ? { details } : {})
   };

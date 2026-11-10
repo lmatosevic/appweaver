@@ -6,12 +6,14 @@ import {
   IsolationLevel,
   createLogger,
   resolveDatabaseType,
+  telemetryEnabled,
   TransactionOptions,
   DatabaseError
 } from '@appweaver/common';
 import { databaseConfig } from './database-config';
 import { createClient } from './create-client';
 import { sqlServerExtension } from './sqlserver-extension';
+import { telemetryExtension } from './telemetry-extension';
 import { Prisma, PrismaClient } from '../prisma/client/client';
 import {
   currentTransaction,
@@ -178,11 +180,15 @@ export class PrismaDatabase extends Database {
   /** @internal */
   private clientInstance(): PrismaClient {
     if (!this._client) {
-      const client = createClient();
       const dbType = resolveDatabaseType(
         databaseConfig.TYPE,
         databaseConfig.URL
       );
+      let client = createClient();
+      // Extended first, so the span of an operation covers only its query
+      if (telemetryEnabled('database')) {
+        client = client.$extends(telemetryExtension(dbType)) as PrismaClient;
+      }
       this._client =
         dbType === DatabaseType.SQLServer
           ? (client.$extends(sqlServerExtension(this)) as PrismaClient)
