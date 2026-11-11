@@ -80,6 +80,25 @@ describe('create-model', () => {
       );
     });
 
+    test('leaves a hidden nullable json scalar out of the inputs and outputs', () => {
+      const model = createModel({
+        name: 'Post',
+        scalars: {
+          title: { type: 'string' },
+          meta: { type: 'json', required: false, hidden: true }
+        }
+      });
+
+      for (const schema of [
+        model.readOneModel,
+        model.readManyModel,
+        model.createOneModel,
+        model.updateOneModel
+      ]) {
+        expect(Object.keys(schema.properties)).not.toContain('meta');
+      }
+    });
+
     test('builds the series values of a model, each optional and nullable', () => {
       const model = createModel({
         name: 'Sensor',
