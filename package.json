@@ -29,7 +29,7 @@
     "test": "jest --forceExit --detectOpenHandles --coverage",
     "test:typecheck": "tsc -p tsconfig.test.json",
     "format": "prettier --write \"packages/**/*.ts\" \"sample/**/*.ts\"",
-    "lint": "eslint \"{packages,sample}/**/*.ts\"",
+    "lint": "node tools/lint.js",
     "lint:fix": "npm run lint -- --fix",
     "check:circular": "madge --circular packages",
     "prerelease": "node tools/check-tokens.js && npm run build -- --sourceMap false",

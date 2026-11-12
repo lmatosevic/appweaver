@@ -73,7 +73,10 @@ describe('Feature Verification', () => {
     - **Formatting**: The project uses **Prettier**. Run `npm run format` to format the codebase after every task that
       involves code changes.
     - **Linting**: The project uses **ESLint**. Run `npm run lint` to check for issues and `npm run lint -- --fix` to
-      automatically fix what's possible.
+      automatically fix what's possible. It runs `tools/lint.js`, which lints the packages and every sample in an
+      ESLint process of its own, with a 4 GB heap: typescript-eslint keeps the program of every project it opens, so a
+      single `eslint "{packages,sample}/**/*.ts"` needs over 3 GB and runs out of memory under the default heap of
+      Node. Files given to it are linted in one run, `npm run lint -- packages/web/server/*.ts`.
     - **Circular dependencies**: Run `npm run check:circular` to check the package sources for import cycles with
       madge (`.madgerc`). It skips the type-only and dynamic imports, which never run at load time, so it fails only on
       a cycle of runtime imports. A shorter import through a directory barrel (`index.ts`) loads every module of the
