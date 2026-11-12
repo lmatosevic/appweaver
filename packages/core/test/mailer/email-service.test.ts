@@ -124,6 +124,17 @@ describe('email-service', () => {
       await expect(worker({ id: '1', data: email })).rejects.toBe(error);
     });
 
+    test('keeps the mailer error of a driver with its own copy of the errors', async () => {
+      const error = Object.assign(new Error('Rejected'), {
+        code: ErrorCode.MailerSendFailed,
+        module: 'mailer',
+        details: { provider: 'postmark', status: 422 }
+      });
+      mailer.sendEmail.mockRejectedValueOnce(error);
+
+      await expect(worker({ id: '1', data: email })).rejects.toBe(error);
+    });
+
     test('wraps another error of the driver in a mailer error', async () => {
       const cause = new Error('SMTP down');
       mailer.sendEmail.mockRejectedValueOnce(cause);

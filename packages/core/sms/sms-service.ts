@@ -2,6 +2,7 @@ import {
   ConfigurationError,
   createLogger,
   ErrorCode,
+  isAppweaverError,
   Queue,
   QueueJob,
   SmsError,
@@ -184,7 +185,8 @@ export class SmsService {
     try {
       return await this._smsSender.sendSms(job.data);
     } catch (e) {
-      if (e instanceof SmsError) {
+      // Also of a driver package with its own copy of the common package
+      if (isAppweaverError(e) && e.module === 'sms') {
         throw e;
       }
       throw new SmsError(

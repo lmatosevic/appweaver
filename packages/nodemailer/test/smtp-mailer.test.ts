@@ -52,6 +52,7 @@ describe('smtp-mailer', () => {
       expect(error).toBeInstanceOf(MailerError);
       expect(error).toMatchObject({
         code: ErrorCode.MailerSendFailed,
+        message: 'SMTP server rejected the email: Mailbox unavailable',
         details: {
           provider: 'smtp',
           subject: 'Welcome',
@@ -59,6 +60,18 @@ describe('smtp-mailer', () => {
           providerCode: 'EENVELOPE'
         },
         cause
+      });
+    });
+
+    test('wraps a failed connection in a mailer error', async () => {
+      sendMail.mockRejectedValue(
+        Object.assign(new Error('connect ECONNREFUSED'), { code: 'ESOCKET' })
+      );
+
+      await expect(new SmtpMailer().sendEmail(email)).rejects.toMatchObject({
+        code: ErrorCode.MailerSendFailed,
+        message: 'SMTP request failed: connect ECONNREFUSED',
+        details: { provider: 'smtp', providerCode: 'ESOCKET' }
       });
     });
 

@@ -34,7 +34,7 @@ export class SmtpMailer extends Mailer {
    * Sends an email through the SMTP server.
    *
    * @throws {MailerError} `MAILER_SEND_FAILED` if the server rejects the email, with its SMTP response code as the
-   * `status`, `MAILER_SENDER_MISSING` if the email has no sender.
+   * `status`, or cannot be reached, `MAILER_SENDER_MISSING` if the email has no sender.
    */
   public async sendEmail(data: Email): Promise<boolean> {
     const { providerOptions, ...email } = completeEmail(data);
@@ -44,7 +44,7 @@ export class SmtpMailer extends Mailer {
       .catch((e: { responseCode?: number; code?: string }) => {
         throw new MailerError(
           ErrorCode.MailerSendFailed,
-          `SMTP server rejected the email: ${errorMessage(e)}`,
+          `SMTP ${e.responseCode ? 'server rejected the email' : 'request failed'}: ${errorMessage(e)}`,
           {
             provider: 'smtp',
             subject: email.subject,

@@ -3,6 +3,7 @@ import {
   Email,
   ErrorCode,
   createLogger,
+  isAppweaverError,
   LIFECYCLE,
   Mailer,
   OnInit,
@@ -229,7 +230,8 @@ export class EmailService implements OnInit {
     try {
       return await this._mailer.sendEmail(job.data);
     } catch (e) {
-      if (e instanceof MailerError) {
+      // Also of a driver package with its own copy of the common package
+      if (isAppweaverError(e) && e.module === 'mailer') {
         throw e;
       }
       throw new MailerError(
