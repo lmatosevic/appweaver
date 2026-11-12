@@ -346,8 +346,8 @@ suite, so every driver is held to it.
 The `weaver` CLI tool. Entry point: `weaver.ts` → compiled to `dist/weaver.js`.
 
 It needs only `@appweaver/core`. `@appweaver/data` and `@appweaver/web` are optional peer dependencies, loaded lazily by
-the commands needing them (`importPackage` of `utils/package-util.ts`): `generate`, `test setup`, `seed` and
-`migrate --dry-run` need data, `openapi` needs web. Without the package, they exit with
+the commands needing them (`importPackage` of `utils/package-util.ts`): `generate`, `test setup`, `seed`,
+`migrate --dry-run` and `migration check` need data, `openapi` needs web. Without the package, they exit with
 `weaver <command> needs the <package> package` (`openapi` with a message naming the disabled `@appweaver/web` module).
 
 See **Section 5** for the full command reference.
@@ -628,6 +628,27 @@ weaver migration new <name>
 ```
 
 Executes `prisma migrate dev --name <name>`.
+
+#### `weaver migration check`
+
+Check whether the models need a new migration, printing the SQL `weaver migration new` would create.
+
+```
+weaver migration check [options]
+```
+
+| Option                      | Description                                        | Default     |
+|-----------------------------|----------------------------------------------------|-------------|
+| `--model-pattern <pattern>` | Glob of the model files                            | from config |
+| `--no-prune`                | Keep the framework models not used                 | pruned      |
+
+`migration/check-migration.ts` builds the Prisma schema from the models with `buildPrismaSchema` (the content
+`generatePrismaSchema` writes), so a schema file out of date with the models is told apart, writes it to a temporary
+file and runs `prisma migrate diff --from-config-datasource --to-schema <file> --script --exit-code`. The database
+stands for the migrations, since Prisma diffs a migrations directory only with a shadow database URL, so the check
+first fails on pending migrations (`planMigrations`). A project without a migration and a database is compared
+`--from-empty`. It exits with `0` (no migration needed), `1` (needed, the SQL is printed) or `2` (the check cannot
+run), like `diff`.
 
 #### `weaver migration reset`
 

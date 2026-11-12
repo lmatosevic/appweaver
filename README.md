@@ -332,6 +332,7 @@ The `weaver` CLI drives the entire developer workflow.
 weaver build                      # compile TypeScript
 weaver start --watch              # dev server with hot reload
 weaver generate                   # generate types + Prisma schema from models
+weaver migration check            # check whether the models need a new migration
 weaver migration new <name>       # create a new database migration
 weaver migrate                    # apply pending migrations (--dry-run prints them and their SQL)
 weaver seed                       # seed the database (--dry-run lists the pending seeders)

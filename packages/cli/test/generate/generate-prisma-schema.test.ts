@@ -35,7 +35,10 @@ jest.mock('../../utils', () => {
   };
 });
 
-import { generatePrismaSchema } from '../../generate/generate-prisma-schema';
+import {
+  buildPrismaSchema,
+  generatePrismaSchema
+} from '../../generate/generate-prisma-schema';
 
 /** Creates a minimal resource model as produced by `createModel`. */
 function model(
@@ -1489,6 +1492,21 @@ describe('generate-schema', () => {
           'onDelete: SetNull, onUpdate: NoAction)'
         );
       });
+    });
+  });
+
+  describe('buildPrismaSchema', () => {
+    test('builds the schema generatePrismaSchema writes, without a file or the client', async () => {
+      const models = {
+        Post: model('Post', { scalars: { title: { type: 'string' } } })
+      };
+
+      const built = buildPrismaSchema(models, schemaPath, clientPath);
+
+      expect(fs.existsSync(path.join(tempDir, schemaPath))).toBe(false);
+      expect(runProcess).not.toHaveBeenCalled();
+      expect(built).toContain('model Post {');
+      expect(built).toBe((await generate(models)).schema);
     });
   });
 });

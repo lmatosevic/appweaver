@@ -212,14 +212,49 @@ NODE_ENV=prod weaver migrate --dry-run
 weaver migration|mgn [options] [command]
 ```
 
-Create the database migrations and reset the database.
+Create and check the database migrations, and reset the database. They are development commands, run against the
+local database.
 
 **Subcommands:**
 
-| Command           | Description                                  |
-|-------------------|----------------------------------------------|
-| `new <name>`      | Create a new database migration and apply it |
-| `reset [options]` | Reset the database                           |
+| Command           | Description                                                  |
+|-------------------|--------------------------------------------------------------|
+| `new <name>`      | Create a new database migration and apply it                 |
+| `check [options]` | Check whether the models need a new migration, print its SQL |
+| `reset [options]` | Reset the database                                           |
+
+### `weaver migration check`
+
+Tells whether the models changed without a migration, like `makemigrations --check` of Django. It builds the Prisma
+schema from the model files without writing it, compares it with the local database (`prisma migrate diff`, read-only)
+and prints the SQL `weaver migration new` would create.
+
+| Option                      | Description                                        | Default     |
+|-----------------------------|----------------------------------------------------|-------------|
+| `--model-pattern <pattern>` | Glob pattern of the model files                    | from config |
+| `--no-prune`                | Keep the framework models the project does not use | pruned      |
+
+| Exit code | Meaning                                                                                  |
+|-----------|------------------------------------------------------------------------------------------|
+| `0`       | No migration is needed                                                                   |
+| `1`       | A migration is needed, its SQL is printed                                                |
+| `2`       | The check cannot run: pending migrations (run `weaver migrate`), an unreachable database |
+
+```sh
+weaver migration check
+# A migration is needed, it would run:
+#
+# -- AlterTable
+# ALTER TABLE "Category" ADD COLUMN "color" TEXT;
+#
+# Create it with: weaver generate && weaver migration new <name>
+```
+
+- The database must have every migration applied, since it stands for the migrations: a change made to it by hand
+  shows up as a difference.
+- The schema comes from the models, so the check also catches a model changed without `weaver generate`, and then
+  names `weaver generate` in the command to run.
+- In CI, run it after `weaver migrate` on the database of the job, to fail a change that lacks its migration.
 
 ### `weaver migration reset`
 
