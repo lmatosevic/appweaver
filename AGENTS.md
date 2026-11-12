@@ -233,9 +233,9 @@ loads the resources of the application, then the `resources` of the modules.
 | `seeder/`   | `createSeeder` and the Seeder model                                                                                                                |
 | `export/`   | `ExportService` (CSV)                                                                                                                              |
 | `timeseries/` | The `database` and `timescale` drivers of `TimeSeries` (the `<Model>Series` tables, SQL per database, the retention deletes, the hypertables) and their config |
-| `spatial/`  | The `geo` fields: `SpatialService` (the spatial filters), the `postgis` and `database` engines, the Prisma extension normalizing the geometries, the `spatial` config |
+| `spatial/`  | The `geo` fields: `SpatialService` (the spatial filters), the `postgis` and `database` engines, the Prisma extension writing the geometries and their bounding boxes, the `spatial` config |
 | `types/`    | The auth and storage types, and the generated types of the framework models (`generated.ts`)                                                       |
-| `utils/`    | Helpers shared by the modules or meant for library users: export, file, model, policy and virtual field utilities                                  |
+| `utils/`    | Helpers shared by the modules or meant for library users: export, file, model, policy and virtual field utilities, the write data mapping of the Prisma extensions |
 | `prisma/`   | The generated Prisma schema, client and migration of the framework models                                                                          |
 
 **Data development scripts** (run from `packages/data`):

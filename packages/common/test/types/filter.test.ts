@@ -1,4 +1,5 @@
 import { QueryFilter, RelationId } from '../../types/filter';
+import { GeoPoint, GeoPolygon } from '../../types/geo';
 
 type Author = { id: string; name: string };
 type Tag = { id: number; name: string };
@@ -24,6 +25,24 @@ describe('QueryFilter', () => {
     const wrong: QueryFilter<Post> = { tags: ['1'] };
 
     expect([filter, wrong]).toHaveLength(2);
+  });
+});
+
+describe('QueryFilter of a geo field', () => {
+  type Store = { id: number; location: GeoPoint; area?: GeoPolygon | null };
+
+  test('takes the spatial operators', () => {
+    const near: QueryFilter<Store> = {
+      location: { _near: { point: { lat: 45.8, lng: 15.9 }, maxDistance: 500 } }
+    };
+    const box: QueryFilter<Store> = {
+      location: { _withinBox: [15, 45, 16, 46] },
+      area: null
+    };
+    // @ts-expect-error a geo field takes no comparison operator
+    const wrong: QueryFilter<Store> = { location: { _eq: 1 } };
+
+    expect([near, box, wrong]).toHaveLength(3);
   });
 });
 

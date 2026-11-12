@@ -1245,7 +1245,7 @@ describe('generate-schema', () => {
       expect(schema).not.toContain('postgis');
     });
 
-    test('stores a geo field in a PostGIS geometry column', async () => {
+    test('adds the PostGIS geometry column of a geo field', async () => {
       databaseType = 'postgresql';
       const status = await generatePrismaSchema(
         {
@@ -1275,7 +1275,10 @@ describe('generate-schema', () => {
       );
       expect(schema).toContain('@@index([locationGeom], type: Gist)');
       expect(schema).not.toContain('@@index([shapeGeom], type: Gist)');
-      expect(schema).not.toContain('MinLng');
+      // The bounding box columns too, which the box filters query
+      expect(schema).toMatch(/shapeMaxLat\s+Float\?/);
+      expect(schema).toContain('@@index([locationMinLng, locationMinLat])');
+      expect(schema).not.toContain('@@index([shapeMinLng, shapeMinLat])');
     });
 
     test('stores the GeoJSON of SQL Server in a string column', async () => {

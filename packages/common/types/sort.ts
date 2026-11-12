@@ -1,16 +1,20 @@
+import { GeoGeometry } from './geo';
+
 /** The sort direction of a single field. */
 export type SortDirection = 'asc' | 'desc';
 
 /**
  * The sort value accepted for a single field of the sorted model. Scalar fields
- * take a sort direction, to-one relations take a nested sort object, and
+ * take a sort direction, to-one relations take a nested sort object,
  * to-many relations take a sort direction applied to their related record
- * count (the same as their `<relation>Count` field).
+ * count (the same as their `<relation>Count` field), and geo fields take a
+ * sort direction applied to their distance from the point of their `_near`
+ * filter.
  */
 export type SortValue<V> =
   NonNullable<V> extends Array<any>
     ? SortDirection
-    : NonNullable<V> extends Date
+    : NonNullable<V> extends Date | GeoGeometry
       ? SortDirection
       : NonNullable<V> extends object
         ? QuerySortObject<NonNullable<V>>

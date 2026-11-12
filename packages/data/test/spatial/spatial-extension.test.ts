@@ -1,10 +1,5 @@
 import { DbNull, JsonNull } from '@prisma/client/runtime/client';
-import {
-  configOverrides,
-  DatabaseType,
-  ErrorCode,
-  SpatialError
-} from '@appweaver/common';
+import { ErrorCode, SpatialError } from '@appweaver/common';
 import { linkModels, resetContext } from '@appweaver/testing';
 import { createModel } from '../../factory/create-model';
 import { spatialExtension } from '../../spatial/spatial-extension';
@@ -31,7 +26,6 @@ describe('spatial-extension', () => {
 
   beforeEach(() => {
     resetContext();
-    configOverrides.DATABASE_TYPE = DatabaseType.Sqlite;
     createModel({
       name: 'Store',
       scalars: { name: { type: 'string' } },
@@ -49,11 +43,6 @@ describe('spatial-extension', () => {
       }
     });
     linkModels();
-  });
-
-  afterEach(() => {
-    delete configOverrides.DATABASE_TYPE;
-    delete configOverrides.SPATIAL_PROVIDER;
   });
 
   describe('spatialExtension', () => {
@@ -135,18 +124,6 @@ describe('spatial-extension', () => {
         field: 'location',
         reason: 'longitude 500 is not between -180 and 180'
       });
-    });
-
-    test('writes no bounding box with the postgis provider', async () => {
-      configOverrides.DATABASE_TYPE = DatabaseType.PostgreSQL;
-      const { args, value } = await run(
-        'Store',
-        'create',
-        { data: { name: 'A', location: point } },
-        { id: 1, location: point }
-      );
-      expect(args.data).toEqual({ name: 'A', location: point });
-      expect(value).toEqual({ id: 1, location: point });
     });
 
     test('passes the queries of a model without geo fields through', async () => {

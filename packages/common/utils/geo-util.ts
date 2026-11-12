@@ -42,7 +42,7 @@ const COORDINATES: Record<GeoGeometryType, (value: unknown) => unknown> = {
   MultiPolygon: (value) => list(value, 1).map(polygon)
 };
 
-/** The columns a geo field keeps beside its GeoJSON column: its bounding box, or its PostGIS geometry. */
+/** The columns a geo field keeps beside its GeoJSON column: its bounding box, and its PostGIS geometry. */
 export type GeoColumns = {
   minLng: string;
   minLat: string;
@@ -123,9 +123,20 @@ export function normalizeGeometry(
 }
 
 /**
+ * The name of the field holding the distance of a geo field from the point of its `_near` filter, i.e.
+ * `locationDistance`.
+ *
+ * @param {string} field - The geo field name.
+ * @return {string} The distance field name.
+ */
+export function distanceFieldName(field: string): string {
+  return `${field}Distance`;
+}
+
+/**
  * Normalizes the operator of a geo field filter into its spatial condition.
  *
- * @param {string} operator - The operator, `_near`, `_within`, `_withinBox` or `_intersects`.
+ * @param {string} operator - The operator, `_near`, `_within` or `_intersects`.
  * @param {unknown} value - The value of the operator.
  * @param {number} [maxVertices=Infinity] - The maximum number of positions of a geometry of the condition.
  * @return {SpatialCondition} The condition.
@@ -178,22 +189,6 @@ export function spatialCondition(
           | GeoMultiPolygon
       };
     }
-    case '_withinBox': {
-      const box = isArray(value) ? value.map(Number) : [];
-      if (
-        box.length !== 4 ||
-        !box.every(Number.isFinite) ||
-        box[0] > box[2] ||
-        box[1] > box[3]
-      ) {
-        throw new Error(
-          '_withinBox expects [minLng, minLat, maxLng, maxLat] with min values not above the max ones'
-        );
-      }
-      position([box[0], box[1]]);
-      position([box[2], box[3]]);
-      return { operator: 'withinBox', box: box as GeoBox };
-    }
     case '_intersects':
       return {
         operator: 'intersects',
@@ -202,6 +197,31 @@ export function spatialCondition(
     default:
       throw new Error(`unknown spatial operator ${operator}`);
   }
+}
+
+/**
+ * Checks the bounding box of a `_withinBox` operator, and splits a box crossing the antimeridian (its `minLng` above
+ * its `maxLng`) into the two boxes on its sides.
+ *
+ * @param {unknown} value - The `[minLng, minLat, maxLng, maxLat]` box.
+ * @return {GeoBox[]} The box, or its two parts.
+ * @throws {Error} With the reason the value is not a bounding box.
+ */
+export function normalizeBox(value: unknown): GeoBox[] {
+  const box = isArray(value) ? value.map(Number) : [];
+  if (box.length !== 4 || !box.every(Number.isFinite) || box[1] > box[3]) {
+    throw new Error(
+      '_withinBox expects [minLng, minLat, maxLng, maxLat] with its minLat not above its maxLat'
+    );
+  }
+  const [minLng, minLat] = position([box[0], box[1]]);
+  const [maxLng, maxLat] = position([box[2], box[3]]);
+  return minLng > maxLng
+    ? [
+        [minLng, minLat, 180, maxLat],
+        [-180, minLat, maxLng, maxLat]
+      ]
+    : [[minLng, minLat, maxLng, maxLat]];
 }
 
 /**
@@ -269,27 +289,40 @@ export function boxPolygon([
 }
 
 /**
- * The bounding box of the area within a distance of a point, covering every longitude near a pole.
+ * The bounding boxes of the area within a distance of a point: one box, covering every longitude near a pole, or the
+ * two boxes on the sides of the antimeridian for an area crossing it.
  *
  * @param {GeoPosition} point - The point.
  * @param {number} distance - The distance in meters.
- * @return {GeoBox} The box.
+ * @return {GeoBox[]} The boxes.
  */
-export function distanceBox([lng, lat]: GeoPosition, distance: number): GeoBox {
+export function distanceBoxes(
+  [lng, lat]: GeoPosition,
+  distance: number
+): GeoBox[] {
   const latDelta = toDegrees(distance / EARTH_RADIUS);
   const minLat = Math.max(-90, lat - latDelta);
   const maxLat = Math.min(90, lat + latDelta);
   const cos = Math.cos(toRadians(Math.max(Math.abs(minLat), Math.abs(maxLat))));
   const lngDelta = cos > 1e-12 ? latDelta / cos : 360;
   if (lngDelta >= 180) {
-    return [-180, minLat, 180, maxLat];
+    return [[-180, minLat, 180, maxLat]];
   }
-  return [
-    Math.max(-180, lng - lngDelta),
-    minLat,
-    Math.min(180, lng + lngDelta),
-    maxLat
-  ];
+
+  const [minLng, maxLng] = [lng - lngDelta, lng + lngDelta];
+  if (minLng < -180) {
+    return [
+      [minLng + 360, minLat, 180, maxLat],
+      [-180, minLat, maxLng, maxLat]
+    ];
+  }
+  if (maxLng > 180) {
+    return [
+      [minLng, minLat, 180, maxLat],
+      [-180, minLat, maxLng - 360, maxLat]
+    ];
+  }
+  return [[minLng, minLat, maxLng, maxLat]];
 }
 
 /**
@@ -313,7 +346,7 @@ export function geoDistance(a: GeoPosition, b: GeoPosition): number {
 /**
  * The distance from a point to the nearest point of a geometry, `0` inside a polygon. The distance to a point is the
  * great circle one, the distance to a segment is measured on a plane tangent at the point, close to the great circle
- * one over the distances of a city.
+ * one over the distances of a city. A geometry crossing the antimeridian is not supported.
  *
  * @param {GeoGeometry} geometry - The geometry.
  * @param {GeoPosition} point - The point.
@@ -453,29 +486,22 @@ export function matchSpatialCondition(
     }
     case 'within':
       return geometryCoveredBy(geometry, condition.geometry);
-    case 'withinBox':
-      return geometryCoveredBy(geometry, boxPolygon(condition.box));
     case 'intersects':
       return geometryIntersects(geometry, condition.geometry);
   }
 }
 
 /**
- * The bounding box a geometry matching a spatial condition lies in, or overlaps for an `intersects` or a `near`
- * condition.
+ * The bounding boxes a geometry matching a spatial condition lies in (`within`) or overlaps (`near`, `intersects`):
+ * one box, or two for a `near` condition crossing the antimeridian.
  *
  * @param {SpatialCondition} condition - The condition.
- * @return {GeoBox} The box.
+ * @return {GeoBox[]} The boxes.
  */
-export function conditionBox(condition: SpatialCondition): GeoBox {
-  switch (condition.operator) {
-    case 'near':
-      return distanceBox(condition.point, condition.maxDistance);
-    case 'withinBox':
-      return condition.box;
-    default:
-      return geometryBox(condition.geometry);
-  }
+export function conditionBoxes(condition: SpatialCondition): GeoBox[] {
+  return condition.operator === 'near'
+    ? distanceBoxes(condition.point, condition.maxDistance)
+    : [geometryBox(condition.geometry)];
 }
 
 function isLatLng(value: unknown): value is { lat: number; lng: number } {
@@ -655,8 +681,9 @@ function segmentDistance(
   b: GeoPosition
 ): number {
   const cos = Math.cos(toRadians(point[1]));
+  // The shorter way around, for a segment on the other side of the antimeridian
   const project = ([lng, lat]: GeoPosition): [number, number] => [
-    toRadians(lng - point[0]) * cos * EARTH_RADIUS,
+    toRadians(((lng - point[0] + 540) % 360) - 180) * cos * EARTH_RADIUS,
     toRadians(lat - point[1]) * EARTH_RADIUS
   ];
   const [ax, ay] = project(a);

@@ -34,6 +34,7 @@ import {
   GEO_FIELD_GEOMETRIES,
   GeoConfig,
   geoColumns,
+  distanceFieldName,
   parseDuration
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
@@ -170,7 +171,7 @@ function validateSeries(config: ResourceModelConfig): void {
 
 /**
  * Checks the geo fields of a model: their types, and names taken by no other field of the model, nor by the columns
- * the field keeps beside its own (`<field>MinLng`, `<field>Geom`, ...).
+ * the field keeps beside its own (`<field>MinLng`, `<field>Geom`, ...) and its distance (`<field>Distance`).
  *
  * @throws {ConfigurationError} For a geo field with an unknown type or a name taken by another field.
  */
@@ -191,7 +192,11 @@ function validateGeo(config: ResourceModelConfig): void {
         `Geo field '${config.name}.${field}' has the type '${geo?.type}', not one of ${Object.keys(GEO_FIELD_GEOMETRIES).join(', ')}`
       );
     }
-    const names = [field, ...Object.values(geoColumns(field))];
+    const names = [
+      field,
+      ...Object.values(geoColumns(field)),
+      distanceFieldName(field)
+    ];
     const conflict = names.find(
       (name) => taken.has(name) || (name !== field && geoFields.includes(name))
     );
@@ -205,13 +210,40 @@ function validateGeo(config: ResourceModelConfig): void {
   }
 }
 
-/** The geo fields of a model, as their output values or their input ones. */
+/**
+ * The geo fields of a model, as their input values, or as their output ones, each field followed by its distance from
+ * the point of its `_near` filter, which a query filtering by it returns.
+ */
 function buildGeoSchema(geo: GeoConfig = {}, input: boolean = false): TObject {
   const properties: Record<string, TSchema> = {};
   for (const [name, field] of Object.entries(geo)) {
     properties[name] = geoFieldSchema(field, input);
+    if (!input && !field.hidden) {
+      properties[distanceFieldName(name)] = Type.Optional(
+        Type.Number({
+          minimum: 0,
+          description: `Distance of ${name} in meters from the point of its _near filter`
+        })
+      );
+    }
   }
   return Type.Object(properties);
+}
+
+/** The read restrictions of a model, the distance of a geo field left out or picked with its field. */
+function readOperationConfig(
+  config: ResourceModelConfig
+): OperationConfig | undefined {
+  const withDistances = (fields?: string[]) =>
+    fields?.flatMap((field) =>
+      config.geo?.[field] ? [field, distanceFieldName(field)] : [field]
+    );
+  return (
+    config.read && {
+      omit: withDistances(config.read.omit),
+      pick: withDistances(config.read.pick)
+    }
+  );
 }
 
 /** The values of the series fields, each optional and nullable, a null leaving the stored value unchanged. */
@@ -280,7 +312,7 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
       virtualSchema,
       auditSchema
     ]),
-    config.read
+    readOperationConfig(config)
   );
 
   const createModel = omitOrPickScalars(

@@ -1,19 +1,16 @@
-import { AnyNull } from '@prisma/client/runtime/client';
 import {
   capitalize,
   createLogger,
   Database,
-  DatabaseType,
   ErrorCode,
-  geoColumns,
   hasGeo,
   isAppweaverError,
   isArray,
   isPlainObject,
   LIFECYCLE,
+  normalizeBox,
   OnInit,
   ResourceModel,
-  resolveDatabaseType,
   SpatialCondition,
   spatialCondition,
   SpatialError,
@@ -21,7 +18,6 @@ import {
 } from '@appweaver/common';
 import { inject } from '@appweaver/core';
 import { context } from '@appweaver/core/internal';
-import { databaseConfig } from '../database/database-config';
 import { PrismaDatabase } from '../database/prisma-database';
 import { fingerprintAs } from '../resource/utils/cursor-util';
 import { ResolvedFilterConditions } from '../resource/utils/filter-util';
@@ -36,31 +32,32 @@ import {
   PostgisSpatialEngine,
   SpatialEngine
 } from './spatial-engine';
+import { boxWithinFilter, existsFilter } from './utils/box-util';
 
 const logger = createLogger('spatial');
 
 // The operators combining nested filters of the same model
 const LOGICAL_OPERATORS = new Set(['_and', '_or', '_not', '_nor']);
 const QUANTIFIERS = new Set(['_some', '_every', '_none']);
-const SPATIAL_OPERATORS = new Set([
-  '_near',
-  '_within',
-  '_withinBox',
-  '_intersects'
-]);
+// The operators a spatial engine matches
+const ENGINE_OPERATORS = new Set(['_near', '_within', '_intersects']);
+
+/** The distances in meters of the records matching the `_near` operator of a geo field, by the field and the id. */
+export type SpatialDistances = Map<string, Map<unknown, number>>;
 
 /** A query filter with its spatial operators resolved. */
 export type ResolvedSpatialFilter = {
   /** The filter, every geo field condition replaced by its database conditions */
   filter: any;
-  /** The distances in meters of the records matching the `_near` operator of each geo field of the top level */
-  distances: Map<string, Map<unknown, number>>;
+  /** The distances of the `_near` operators of the top level of the filter */
+  distances: SpatialDistances;
 };
 
 /**
- * Resolves the spatial operators of the query filters (`_near`, `_within`, `_withinBox`, `_intersects`) into the ids
- * of the matching records, with the `postgis` or the `database` engine of the `spatial.provider` config, and sets up
- * the engine when the application starts.
+ * Resolves the conditions of the geo fields of the query filters into database conditions: `_withinBox` and `_exists`
+ * into conditions of the bounding box columns, and `_near`, `_within` and `_intersects` into the ids of the records
+ * matched by the `postgis` or the `database` engine of the `spatial.provider` config. It sets up the engine when the
+ * application starts.
  */
 export class SpatialService implements OnInit {
   static [LIFECYCLE] = true;
@@ -108,21 +105,21 @@ export class SpatialService implements OnInit {
   }
 
   /**
-   * Resolves the spatial operators of a query filter, on its top level, in its logical operators and in the filters
-   * of its relations, into the ids of the matching records. A `null` or an `_exists` of a geo field becomes a null
-   * check of its column.
+   * Resolves the conditions of the geo fields of a query filter, on its top level, in its logical operators and in
+   * the filters of its relations.
    *
    * @param {any} filter - The query filter.
    * @param {string} modelName - The model the filter is matched against.
    * @return {Promise<ResolvedSpatialFilter>} The resolved filter, and the distances of the `_near` matches.
    * @throws {SpatialError} `SPATIAL_INVALID_FILTER` for an invalid operator of a geo field, and
-   * `SPATIAL_TOO_MANY_CANDIDATES` when a condition matches more records than `spatial.maxCandidates`.
+   * `SPATIAL_TOO_MANY_CANDIDATES` when a `_near`, `_within` or `_intersects` operator matches more records than
+   * `spatial.maxCandidates`.
    */
   public async resolveFilter(
     filter: any,
     modelName: string
   ): Promise<ResolvedSpatialFilter> {
-    const distances = new Map<string, Map<unknown, number>>();
+    const distances: SpatialDistances = new Map();
     if (!isPlainObject(filter) || !hasGeoModels()) {
       return { filter, distances };
     }
@@ -180,7 +177,7 @@ export class SpatialService implements OnInit {
   private async resolveLevel(
     filter: any,
     modelName: string,
-    distances: Map<string, Map<unknown, number>>,
+    distances: SpatialDistances,
     topLevel: boolean
   ): Promise<any> {
     if (isArray(filter)) {
@@ -229,16 +226,16 @@ export class SpatialService implements OnInit {
     modelName: string,
     field: string,
     value: unknown,
-    distances?: Map<string, Map<unknown, number>>
+    distances?: SpatialDistances
   ): Promise<ResolvedFilterConditions> {
     if (value === null) {
-      return new ResolvedFilterConditions([this.existsCondition(field, false)]);
+      return new ResolvedFilterConditions([existsFilter(field, false)]);
     }
     if (!isPlainObject(value)) {
       throw invalidFilter(
         modelName,
         field,
-        'expected an object of the spatial operators _near, _within, _withinBox, _intersects or _exists'
+        'expected an object of the operators _near, _within, _withinBox, _intersects or _exists'
       );
     }
 
@@ -246,11 +243,11 @@ export class SpatialService implements OnInit {
     for (const [operator, operand] of Object.entries(value)) {
       if (operator === '_exists') {
         conditions.push(
-          this.existsCondition(field, operand !== false && operand !== 'false')
+          existsFilter(field, operand !== false && operand !== 'false')
         );
         continue;
       }
-      if (!SPATIAL_OPERATORS.has(operator)) {
+      if (operator !== '_withinBox' && !ENGINE_OPERATORS.has(operator)) {
         throw invalidFilter(
           modelName,
           field,
@@ -260,6 +257,10 @@ export class SpatialService implements OnInit {
 
       let condition: SpatialCondition;
       try {
+        if (operator === '_withinBox') {
+          conditions.push(boxWithinFilter(field, normalizeBox(operand)));
+          continue;
+        }
         condition = spatialCondition(
           operator,
           operand,
@@ -276,6 +277,8 @@ export class SpatialService implements OnInit {
           new Map(matches.map((match) => [match.id, match.distance!]))
         );
       }
+      // Fingerprinted as the operator, so a cursor outlives a change of the
+      // records it matches
       const ids = fingerprintAs(
         matches.map((match) => match.id),
         { [field]: { [operator]: operand } }
@@ -283,22 +286,6 @@ export class SpatialService implements OnInit {
       conditions.push({ id: { in: ids } });
     }
     return new ResolvedFilterConditions(conditions);
-  }
-
-  /** The condition of the records with a value of a geo field, or without one. @internal */
-  private existsCondition(field: string, exists: boolean): any {
-    // The bounding box columns are null exactly when the geometry is, while
-    // the JSON null of the GeoJSON column needs the null sentinel of Prisma,
-    // except on SQL Server, where it is a string column
-    if (spatialProvider() === 'database') {
-      const column = geoColumns(field).minLng;
-      return { [column]: exists ? { not: null } : null };
-    }
-    const type = resolveDatabaseType(databaseConfig.TYPE, databaseConfig.URL);
-    const nullValue = type === DatabaseType.SQLServer ? null : AnyNull;
-    return {
-      [field]: exists ? { not: nullValue } : { equals: nullValue }
-    };
   }
 
   /** @internal */

@@ -1,7 +1,8 @@
 import {
   boxPolygon,
-  conditionBox,
-  distanceBox,
+  conditionBoxes,
+  distanceBoxes,
+  distanceFieldName,
   EARTH_RADIUS,
   geoColumns,
   geoDistance,
@@ -14,6 +15,7 @@ import {
   GeoPolygon,
   hasGeo,
   matchSpatialCondition,
+  normalizeBox,
   normalizeGeometry,
   spatialCondition
 } from '../../index';
@@ -45,6 +47,12 @@ describe('geo-util', () => {
         maxLat: 'locationMaxLat',
         geom: 'locationGeom'
       });
+    });
+  });
+
+  describe('distanceFieldName', () => {
+    test('names the distance of a geo field', () => {
+      expect(distanceFieldName('location')).toBe('locationDistance');
     });
   });
 
@@ -190,7 +198,7 @@ describe('geo-util', () => {
       ).toThrow('minDistance');
     });
 
-    test('normalizes the _within, _withinBox and _intersects operators', () => {
+    test('normalizes the _within and _intersects operators', () => {
       const polygon = square(0, 0, 1, 1);
       expect(spatialCondition('_within', polygon)).toEqual({
         operator: 'within',
@@ -204,10 +212,6 @@ describe('geo-util', () => {
         operator: 'within',
         geometry: multi
       });
-      expect(spatialCondition('_withinBox', [0, 0, '1', 1])).toEqual({
-        operator: 'withinBox',
-        box: [0, 0, 1, 1]
-      });
       expect(spatialCondition('_intersects', point(1, 1))).toEqual({
         operator: 'intersects',
         geometry: point(1, 1)
@@ -216,16 +220,29 @@ describe('geo-util', () => {
 
     test('rejects the invalid operators', () => {
       expect(() => spatialCondition('_within', point(1, 1))).toThrow('Polygon');
-      expect(() => spatialCondition('_withinBox', [1, 0, 0, 1])).toThrow(
-        '_withinBox expects'
+      expect(() => spatialCondition('_withinBox', [0, 0, 1, 1])).toThrow(
+        'unknown'
       );
-      expect(() => spatialCondition('_withinBox', 'x')).toThrow(
-        '_withinBox expects'
-      );
-      expect(() => spatialCondition('_withinBox', [0, 0, 200, 1])).toThrow(
-        'longitude 200'
-      );
-      expect(() => spatialCondition('_eq', 1)).toThrow('unknown');
+    });
+  });
+
+  describe('normalizeBox', () => {
+    test('checks a box, its values as numbers', () => {
+      expect(normalizeBox([0, 0, '1', 1])).toEqual([[0, 0, 1, 1]]);
+    });
+
+    test('splits a box crossing the antimeridian', () => {
+      expect(normalizeBox([170, -5, -170, 5])).toEqual([
+        [170, -5, 180, 5],
+        [-180, -5, -170, 5]
+      ]);
+    });
+
+    test('rejects the values that are no box', () => {
+      expect(() => normalizeBox('x')).toThrow('_withinBox expects');
+      expect(() => normalizeBox([0, 0, 1])).toThrow('_withinBox expects');
+      expect(() => normalizeBox([0, 1, 1, 0])).toThrow('minLat');
+      expect(() => normalizeBox([0, 0, 200, 1])).toThrow('longitude 200');
     });
   });
 
@@ -258,7 +275,7 @@ describe('geo-util', () => {
     });
   });
 
-  describe('geoDistance / distanceBox', () => {
+  describe('geoDistance / distanceBoxes', () => {
     test('measures the great circle distance', () => {
       // A degree of latitude is a 360th of the circumference
       expect(geoDistance([0, 0], [0, 1])).toBeCloseTo(
@@ -272,7 +289,9 @@ describe('geo-util', () => {
     });
 
     test('bounds the area within a distance of a point', () => {
-      const [minLng, minLat, maxLng, maxLat] = distanceBox([10, 45], 10_000);
+      const boxes = distanceBoxes([10, 45], 10_000);
+      expect(boxes).toHaveLength(1);
+      const [minLng, minLat, maxLng, maxLat] = boxes[0];
       expect(geoDistance([10, 45], [10, maxLat])).toBeCloseTo(10_000, 0);
       expect(geoDistance([10, 45], [10, minLat])).toBeCloseTo(10_000, 0);
       expect(maxLng - 10).toBeCloseTo(10 - minLng, 9);
@@ -280,12 +299,22 @@ describe('geo-util', () => {
     });
 
     test('covers every longitude near a pole', () => {
-      expect(distanceBox([0, 89.99], 10_000)).toEqual([
-        -180,
-        expect.any(Number),
-        180,
-        90
+      expect(distanceBoxes([0, 89.99], 10_000)).toEqual([
+        [-180, expect.any(Number), 180, 90]
       ]);
+    });
+
+    test('splits an area crossing the antimeridian in two boxes', () => {
+      const east = distanceBoxes([179.9, 0], 50_000);
+      expect(east).toHaveLength(2);
+      expect(east[0][0]).toBeCloseTo(179.45, 2);
+      expect(east[0][2]).toBe(180);
+      expect(east[1][0]).toBe(-180);
+      expect(east[1][2]).toBeCloseTo(-179.65, 2);
+
+      const west = distanceBoxes([-179.9, 0], 50_000);
+      expect(west[0][0]).toBeCloseTo(179.65, 2);
+      expect(west[1][2]).toBeCloseTo(-179.45, 2);
     });
   });
 
@@ -304,6 +333,12 @@ describe('geo-util', () => {
         geoDistance([0, 0], [0, 1]),
         6
       );
+    });
+
+    test('measures to a line on the other side of the antimeridian', () => {
+      expect(
+        geometryDistance(line([-179.9, -1], [-179.9, 1]), [179.9, 0])
+      ).toBeCloseTo(geoDistance([179.9, 0], [-179.9, 0]), 0);
     });
   });
 
@@ -399,7 +434,7 @@ describe('geo-util', () => {
     });
   });
 
-  describe('matchSpatialCondition / conditionBox', () => {
+  describe('matchSpatialCondition / conditionBoxes', () => {
     test('returns the distance of a near match', () => {
       const near = spatialCondition('_near', {
         point: [0, 0],
@@ -420,21 +455,18 @@ describe('geo-util', () => {
           })
         )
       ).toBe(false);
-      expect(conditionBox(near)).toEqual(distanceBox([0, 0], 200_000));
+      expect(conditionBoxes(near)).toEqual(distanceBoxes([0, 0], 200_000));
     });
 
-    test('matches the within, withinBox and intersects conditions', () => {
+    test('matches the within and intersects conditions', () => {
       const within = spatialCondition('_within', square(0, 0, 2, 2));
       expect(matchSpatialCondition(point(1, 1), within)).toBe(true);
-      expect(conditionBox(within)).toEqual([0, 0, 2, 2]);
-
-      const box = spatialCondition('_withinBox', [0, 0, 2, 2]);
-      expect(matchSpatialCondition(point(3, 1), box)).toBe(false);
-      expect(conditionBox(box)).toEqual([0, 0, 2, 2]);
+      expect(matchSpatialCondition(point(3, 1), within)).toBe(false);
+      expect(conditionBoxes(within)).toEqual([[0, 0, 2, 2]]);
 
       const intersects = spatialCondition('_intersects', line([0, 0], [4, 4]));
       expect(matchSpatialCondition(square(1, 0, 2, 3), intersects)).toBe(true);
-      expect(conditionBox(intersects)).toEqual([0, 0, 4, 4]);
+      expect(conditionBoxes(intersects)).toEqual([[0, 0, 4, 4]]);
     });
   });
 });

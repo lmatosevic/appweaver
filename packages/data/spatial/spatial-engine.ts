@@ -1,6 +1,6 @@
 import {
   ConfigurationError,
-  conditionBox,
+  conditionBoxes,
   createLogger,
   ErrorCode,
   geoColumns,
@@ -15,6 +15,8 @@ import {
 import { databaseConfig } from '../database/database-config';
 import { PrismaDatabase } from '../database/prisma-database';
 import { postgresSchema } from '../utils/schema-util';
+import { spatialConfig } from './spatial-config';
+import { boxOverlapFilter, boxWithinFilter } from './utils/box-util';
 
 const logger = createLogger('spatial');
 
@@ -28,14 +30,20 @@ export type GeoModel = {
   fields: GeoConfig;
 };
 
-/** The maximum milliseconds the triggers of PostGIS take to set up. */
-const SETUP_TIMEOUT = 60_000;
+/** The trigger keeping the geometry columns of a table in line with its GeoJSON. */
+export type GeometryTrigger = {
+  /** The source of its function, compared with the one in the database */
+  source: string;
+  /** The statements creating the function and the trigger, then writing the geometries missing */
+  statements: string[];
+};
 
 /** The records a batch of the `database` engine reads. */
 const SCAN_BATCH = 1000;
 
 /**
- * Finds the records whose geo field matches a spatial condition, for the spatial filters of the resource queries.
+ * Finds the records whose geo field matches a spatial condition, for the `_near`, `_within` and `_intersects`
+ * operators of the resource queries.
  */
 export abstract class SpatialEngine {
   constructor(protected readonly _db: PrismaDatabase) {}
@@ -53,7 +61,7 @@ export abstract class SpatialEngine {
    * @param {GeoModel} model - The model.
    * @param {string} field - The geo field.
    * @param {SpatialCondition} condition - The condition.
-   * @param {number} limit - The number of matches past which the search stops, returning `limit + 1` of them.
+   * @param {number} limit - The number of matches past which the search stops, returning more than `limit` of them.
    * @return {Promise<SpatialMatch[]>} The matches, with their distances in meters for a `near` condition.
    */
   abstract match(
@@ -78,7 +86,11 @@ export class DatabaseSpatialEngine extends SpatialEngine {
     limit: number
   ): Promise<SpatialMatch[]> {
     const delegate = this._db.client<any>()[uncapitalize(model.name)];
-    const where = this.boxFilter(model, field, condition);
+    const boxes = conditionBoxes(condition);
+    const where =
+      condition.operator === 'within'
+        ? boxWithinFilter(field, boxes)
+        : boxOverlapFilter(field, boxes, model.fields[field].type === 'point');
 
     const matches: SpatialMatch[] = [];
     let cursor: unknown;
@@ -114,41 +126,6 @@ export class DatabaseSpatialEngine extends SpatialEngine {
 
     return condition.operator === 'near' ? sortByDistance(matches) : matches;
   }
-
-  /** The condition of the bounding box columns of the records a condition may match. @internal */
-  private boxFilter(
-    model: GeoModel,
-    field: string,
-    condition: SpatialCondition
-  ): Record<string, any> {
-    const [minLng, minLat, maxLng, maxLat] = conditionBox(condition);
-    const columns = geoColumns(field);
-
-    // A geometry covered by the box has its own box inside it
-    if (condition.operator === 'within' || condition.operator === 'withinBox') {
-      return {
-        [columns.minLng]: { gte: minLng, lte: maxLng },
-        [columns.minLat]: { gte: minLat, lte: maxLat },
-        [columns.maxLng]: { lte: maxLng },
-        [columns.maxLat]: { lte: maxLat }
-      };
-    }
-
-    // A point keeps the same minimum and maximum, so its box lies inside the
-    // box of the condition, which an index on the minimums narrows best
-    if (model.fields[field]?.type === 'point') {
-      return {
-        [columns.minLng]: { gte: minLng, lte: maxLng },
-        [columns.minLat]: { gte: minLat, lte: maxLat }
-      };
-    }
-    return {
-      [columns.minLng]: { lte: maxLng },
-      [columns.minLat]: { lte: maxLat },
-      [columns.maxLng]: { gte: minLng },
-      [columns.maxLat]: { gte: minLat }
-    };
-  }
 }
 
 /**
@@ -163,8 +140,9 @@ export class PostgisSpatialEngine extends SpatialEngine {
   );
 
   /**
-   * Creates the trigger writing the geometry columns of every model, and writes the columns of the records missing
-   * them, under an advisory lock, so the instances starting together set them up once.
+   * Creates the trigger writing the geometry columns of every model whose trigger is missing or out of date, and
+   * writes the geometries of its records missing them, under an advisory lock, so the instances starting together
+   * set them up once. A start with every trigger in place changes nothing.
    *
    * @throws {ConfigurationError} `CONFIGURATION_INVALID` when the PostGIS extension is not installed.
    */
@@ -186,31 +164,44 @@ export class PostgisSpatialEngine extends SpatialEngine {
       );
     }
 
-    const fn = this.table('appweaver_geo_sync');
-    await this._db.transaction(
+    const updated = await this._db.transaction(
       async (tx) => {
         await tx.$executeRawUnsafe(
           `SELECT pg_advisory_xact_lock(hashtext('appweaver:spatial'))`
         );
-        await tx.$executeRawUnsafe(triggerFunction(fn));
+        const existing: { table: string; source: string }[] =
+          await tx.$queryRawUnsafe(
+            `SELECT c.relname AS "table", p.prosrc AS "source" FROM pg_trigger t ` +
+              `JOIN pg_class c ON c.oid = t.tgrelid JOIN pg_namespace n ON n.oid = c.relnamespace ` +
+              `JOIN pg_proc p ON p.oid = t.tgfoid WHERE NOT t.tgisinternal ` +
+              `AND n.nspname = COALESCE($1::text, current_schema()) AND t.tgname = left(c.relname, 50) || '_geo_sync'`,
+            this._schema ?? null
+          );
+        const sources = new Map(existing.map((row) => [row.table, row.source]));
+
+        const updated: string[] = [];
         for (const model of models) {
-          for (const statement of triggerStatements(
-            this.table(model.table),
+          const trigger = geometryTrigger(
             model.table,
-            fn,
-            Object.keys(model.fields)
-          )) {
+            Object.keys(model.fields),
+            this._schema
+          );
+          if (sources.get(model.table) === trigger.source) {
+            continue;
+          }
+          for (const statement of trigger.statements) {
             await tx.$executeRawUnsafe(statement);
           }
+          updated.push(model.name);
         }
+        return updated;
       },
       // The geometries of a large table written for the first time
-      { timeout: SETUP_TIMEOUT }
+      { timeout: spatialConfig.SETUP_TIMEOUT }
     );
-    logger.debug(
-      { models: models.map((model) => model.name) },
-      'Spatial geometry triggers set up'
-    );
+    if (updated.length > 0) {
+      logger.info({ models: updated }, 'Spatial geometry triggers set up');
+    }
   }
 
   public async match(
@@ -220,18 +211,28 @@ export class PostgisSpatialEngine extends SpatialEngine {
     limit: number
   ): Promise<SpatialMatch[]> {
     const geom = quote(geoColumns(field).geom);
-    const [minLng, minLat, maxLng, maxLat] = conditionBox(condition);
-    const params: unknown[] = [minLng, minLat, maxLng, maxLat];
+    const params: unknown[] = [];
     const param = (value: unknown, type: string) => {
       params.push(value);
       return `$${params.length}::${type}`;
     };
+    const geometry = (value: GeoGeometry) =>
+      `ST_SetSRID(ST_GeomFromGeoJSON(${param(JSON.stringify(value), 'text')}), 4326)`;
+
+    // The boxes of the condition, which the GiST index narrows the records by
+    const boxes = conditionBoxes(condition)
+      .map(
+        (box) =>
+          `${geom} && ST_MakeEnvelope(${box.map((value) => param(value, 'float8')).join(', ')}, 4326)`
+      )
+      .join(' OR ');
 
     let predicate: string;
     let distance = '';
     switch (condition.operator) {
       case 'near': {
-        const point = `ST_SetSRID(ST_MakePoint(${param(condition.point[0], 'float8')}, ${param(condition.point[1], 'float8')}), 4326)::geography`;
+        const [lng, lat] = condition.point;
+        const point = `ST_SetSRID(ST_MakePoint(${param(lng, 'float8')}, ${param(lat, 'float8')}), 4326)::geography`;
         distance = `ST_Distance(${geom}::geography, ${point}, false)`;
         predicate = `ST_DWithin(${geom}::geography, ${point}, ${param(condition.maxDistance, 'float8')}, false)`;
         if (condition.minDistance) {
@@ -239,20 +240,17 @@ export class PostgisSpatialEngine extends SpatialEngine {
         }
         break;
       }
-      case 'withinBox':
-        predicate = `ST_CoveredBy(${geom}, ST_MakeEnvelope($1::float8, $2::float8, $3::float8, $4::float8, 4326))`;
-        break;
       case 'within':
-        predicate = `ST_CoveredBy(${geom}, ${geometryParam(param, condition.geometry)})`;
+        predicate = `ST_CoveredBy(${geom}, ${geometry(condition.geometry)})`;
         break;
       case 'intersects':
-        predicate = `ST_Intersects(${geom}, ${geometryParam(param, condition.geometry)})`;
+        predicate = `ST_Intersects(${geom}, ${geometry(condition.geometry)})`;
         break;
     }
 
     const sql =
-      `SELECT "id" AS "id"${distance ? `, ${distance} AS "distance"` : ''} FROM ${this.table(model.table)} ` +
-      `WHERE ${geom} && ST_MakeEnvelope($1::float8, $2::float8, $3::float8, $4::float8, 4326) AND ${predicate} ` +
+      `SELECT "id" AS "id"${distance ? `, ${distance} AS "distance"` : ''} ` +
+      `FROM ${qualified(model.table, this._schema)} WHERE (${boxes}) AND ${predicate} ` +
       `ORDER BY ${distance ? '"distance", ' : ''}"id" LIMIT ${limit + 1}`;
 
     const rows: { id: unknown; distance?: number }[] = await this._db
@@ -262,11 +260,68 @@ export class PostgisSpatialEngine extends SpatialEngine {
       distance ? { id: row.id, distance: Number(row.distance) } : { id: row.id }
     );
   }
+}
 
-  /** The quoted name of a table or a function, qualified by the schema of the connection when it has one. @internal */
-  private table(name: string): string {
-    return this._schema ? `${quote(this._schema)}.${quote(name)}` : quote(name);
-  }
+/**
+ * Builds the trigger of a table writing the geometry column of each geo field from its GeoJSON, on an insert and on
+ * an update changing the GeoJSON. Its function reads the columns directly, so a write of the other columns costs a
+ * comparison only, and does nothing once a migration dropped one of its columns, until the next start replaces it.
+ *
+ * @param {string} table - The table name.
+ * @param {string[]} fields - The geo fields.
+ * @param {string} [schema] - The schema of the table, the one of the connection by default.
+ * @return {GeometryTrigger} The source of the function and the statements creating the trigger.
+ */
+export function geometryTrigger(
+  table: string,
+  fields: string[],
+  schema?: string
+): GeometryTrigger {
+  // Within the 63 characters of a PostgreSQL name
+  const name = `${table.slice(0, 50)}_geo_sync`;
+  const qualifiedTable = qualified(table, schema);
+  const fn = qualified(name, schema);
+
+  const geometry = (json: string) =>
+    `CASE WHEN jsonb_typeof(${json}::jsonb) = 'object' THEN ST_SetSRID(ST_GeomFromGeoJSON(${json}::text), 4326) END`;
+  const assign = (field: string) =>
+    `NEW.${quote(geoColumns(field).geom)} := ${geometry(`NEW.${quote(field)}`)};`;
+
+  const source = [
+    '',
+    'BEGIN',
+    `  IF TG_OP = 'INSERT' THEN`,
+    ...fields.map((field) => `    ${assign(field)}`),
+    '  ELSE',
+    ...fields.flatMap((field) => [
+      `    IF NEW.${quote(field)} IS DISTINCT FROM OLD.${quote(field)} THEN`,
+      `      ${assign(field)}`,
+      '    END IF;'
+    ]),
+    '  END IF;',
+    '  RETURN NEW;',
+    // A column a migration dropped
+    'EXCEPTION WHEN undefined_column THEN',
+    '  RETURN NEW;',
+    'END',
+    ''
+  ].join('\n');
+
+  return {
+    source,
+    statements: [
+      `CREATE OR REPLACE FUNCTION ${fn}() RETURNS trigger AS $$${source}$$ LANGUAGE plpgsql`,
+      `DROP TRIGGER IF EXISTS ${quote(name)} ON ${qualifiedTable}`,
+      `CREATE TRIGGER ${quote(name)} BEFORE INSERT OR UPDATE ON ${qualifiedTable} FOR EACH ROW EXECUTE FUNCTION ${fn}()`,
+      ...fields.map((field) => {
+        const geom = quote(geoColumns(field).geom);
+        return (
+          `UPDATE ${qualifiedTable} SET ${geom} = ${geometry(quote(field))} ` +
+          `WHERE ${geom} IS NULL AND jsonb_typeof(${quote(field)}::jsonb) = 'object'`
+        );
+      })
+    ]
+  };
 }
 
 /** Orders the matches of a `near` condition by their distance, then by their id. */
@@ -278,73 +333,9 @@ function sortByDistance(matches: SpatialMatch[]): SpatialMatch[] {
   );
 }
 
-/** A GeoJSON geometry as a PostGIS geometry of SRID 4326, its JSON bound as a parameter. */
-function geometryParam(
-  param: (value: unknown, type: string) => string,
-  geometry: GeoGeometry
-): string {
-  return `ST_SetSRID(ST_GeomFromGeoJSON(${param(JSON.stringify(geometry), 'text')}), 4326)`;
-}
-
-/**
- * The function of the triggers writing the geometry columns from the GeoJSON of the geo fields, given as the arguments
- * of a trigger. It skips a field whose geometry column no longer exists, so a migration can drop a geo field before the
- * application updates the trigger, and an update leaving the GeoJSON unchanged.
- *
- * @param {string} name - The quoted function name, qualified by its schema.
- * @return {string} The statement creating the function.
- */
-export function triggerFunction(name: string): string {
-  return `CREATE OR REPLACE FUNCTION ${name}() RETURNS trigger AS $$
-DECLARE
-  data jsonb := to_jsonb(NEW);
-  changes jsonb := '{}';
-  field text;
-BEGIN
-  FOREACH field IN ARRAY TG_ARGV LOOP
-    CONTINUE WHEN NOT data ? (field || 'Geom')
-      OR (TG_OP = 'UPDATE' AND to_jsonb(OLD) -> field IS NOT DISTINCT FROM data -> field);
-    changes := changes || jsonb_build_object(field || 'Geom',
-      CASE WHEN jsonb_typeof(data -> field) = 'object'
-        THEN encode(ST_AsEWKB(ST_SetSRID(ST_GeomFromGeoJSON(data -> field), 4326)), 'hex') END);
-  END LOOP;
-  RETURN jsonb_populate_record(NEW, changes);
-END
-$$ LANGUAGE plpgsql`;
-}
-
-/**
- * The statements creating the trigger of a table, calling the trigger function with its geo fields, then writing the
- * geometry of the records missing it.
- *
- * @param {string} table - The quoted table, qualified by its schema.
- * @param {string} tableName - The table name.
- * @param {string} fn - The quoted trigger function, qualified by its schema.
- * @param {string[]} fields - The geo fields.
- * @return {string[]} The statements.
- */
-export function triggerStatements(
-  table: string,
-  tableName: string,
-  fn: string,
-  fields: string[]
-): string[] {
-  // Within the 63 characters of a PostgreSQL name
-  const trigger = quote(`${tableName.slice(0, 50)}_geo_sync`);
-  const args = fields.map((field) => `'${field.replace(/'/g, "''")}'`);
-
-  return [
-    `DROP TRIGGER IF EXISTS ${trigger} ON ${table}`,
-    `CREATE TRIGGER ${trigger} BEFORE INSERT OR UPDATE ON ${table} FOR EACH ROW EXECUTE FUNCTION ${fn}(${args.join(', ')})`,
-    ...fields.map((field) => {
-      const json = quote(field);
-      const geom = quote(geoColumns(field).geom);
-      return (
-        `UPDATE ${table} SET ${geom} = ST_SetSRID(ST_GeomFromGeoJSON(${json}::jsonb), 4326) ` +
-        `WHERE ${geom} IS NULL AND jsonb_typeof(${json}::jsonb) = 'object'`
-      );
-    })
-  ];
+/** The quoted name of a table or a function, qualified by its schema when given. */
+function qualified(name: string, schema?: string): string {
+  return schema ? `${quote(schema)}.${quote(name)}` : quote(name);
 }
 
 function quote(name: string): string {

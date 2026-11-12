@@ -368,7 +368,8 @@
     "spatial": {
       "provider": "auto",
       "maxCandidates": 10000,
-      "maxVertices": 10000
+      "maxVertices": 10000,
+      "setupTimeout": 60000
     },
     "scheduler": {
       "autoStartJob": true,

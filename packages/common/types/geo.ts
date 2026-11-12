@@ -84,7 +84,8 @@ export type GeoFilterOperators = {
   _near?: GeoNear;
   /** Matches geometries covered by a polygon or a multi polygon */
   _within?: GeoPolygon | GeoMultiPolygon;
-  /** Matches geometries covered by a bounding box `[minLng, minLat, maxLng, maxLat]` */
+  /** Matches geometries covered by a bounding box `[minLng, minLat, maxLng, maxLat]`, crossing the antimeridian
+   * when its `minLng` is above its `maxLng` */
   _withinBox?: GeoBox;
   /** Matches geometries sharing at least a point with a geometry */
   _intersects?: GeoGeometry;
@@ -92,7 +93,8 @@ export type GeoFilterOperators = {
   _exists?: boolean;
 };
 
-/** A spatial condition of a query, normalized from the operators of a geo field. */
+/** A spatial condition a spatial engine matches, normalized from the `_near`, `_within` and `_intersects` operators of
+ * a geo field. */
 export type SpatialCondition =
   | {
       operator: 'near';
@@ -101,7 +103,6 @@ export type SpatialCondition =
       minDistance?: number;
     }
   | { operator: 'within'; geometry: GeoPolygon | GeoMultiPolygon }
-  | { operator: 'withinBox'; box: GeoBox }
   | { operator: 'intersects'; geometry: GeoGeometry };
 
 /** A record matching a spatial condition, with its distance in meters for a `near` condition. */

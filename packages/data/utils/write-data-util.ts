@@ -13,9 +13,10 @@ export type RecordMapper = (
   data: Record<string, any>
 ) => Record<string, any>;
 
-let cached:
-  | { models: ResourceModel[]; related: Map<string, Map<string, string>> }
-  | undefined;
+/** The related model of every relation, file and audit field of every model, by the names of the model and the field. */
+type RelatedModels = Map<string, Map<string, string>>;
+
+let cached: { models: ResourceModel[]; related: RelatedModels } | undefined;
 
 /**
  * Maps the data of the records a write operation stores, and of the nested writes of their relations, i.e. to
@@ -37,7 +38,8 @@ export function mapWriteArgs(
     return args;
   }
 
-  const map = (data: any) => mapWriteData(modelName, data, mapRecord);
+  const related = relatedModels();
+  const map = (data: any) => mapWriteData(modelName, data, mapRecord, related);
   switch (operation) {
     case 'create':
     case 'createMany':
@@ -66,79 +68,93 @@ export function mapResultRecords(
   result: any,
   mapRecord: RecordMapper
 ): any {
+  return mapRecords(modelName, result, mapRecord, relatedModels());
+}
+
+function mapRecords(
+  modelName: string,
+  result: any,
+  mapRecord: RecordMapper,
+  related: RelatedModels
+): any {
   if (isArray(result)) {
-    return result.map((item) => mapResultRecords(modelName, item, mapRecord));
+    return result.map((item) =>
+      mapRecords(modelName, item, mapRecord, related)
+    );
   }
   if (!isPlainObject(result)) {
     return result;
   }
 
   const record = mapRecord(modelName, result);
-  const related = relatedModelsOf(modelName);
+  const fields = related.get(modelName);
   for (const [key, value] of Object.entries(record)) {
-    if (related?.has(key) && value !== null) {
-      record[key] = mapResultRecords(related.get(key)!, value, mapRecord);
+    if (fields?.has(key) && value !== null) {
+      record[key] = mapRecords(fields.get(key)!, value, mapRecord, related);
     }
   }
   return record;
 }
 
-/**
- * The related model of every relation, file and audit field of a loaded model, recomputed when the models change.
- *
- * @param {string} modelName - The model name.
- * @return {Map<string, string> | undefined} The related model names, by the names of the fields.
- */
-export function relatedModelsOf(
-  modelName: string
-): Map<string, string> | undefined {
+/** The related models of the loaded models, recomputed when the models change. */
+function relatedModels(): RelatedModels {
   const loaded = [
     ...(context.resource.models as Map<string, ResourceModel>).values()
   ];
   if (
-    cached?.models.length !== loaded.length ||
-    !cached.models.every((model, i) => model === loaded[i])
+    cached?.models.length === loaded.length &&
+    cached.models.every((model, i) => model === loaded[i])
   ) {
-    const authModel = loaded.find(isResourceAuthModel);
-    const related = new Map<string, Map<string, string>>();
-    for (const model of loaded) {
-      const fields = new Map<string, string>();
-      for (const [field, relation] of Object.entries(
-        model.config.relations ?? {}
-      )) {
-        fields.set(field, capitalize(relation.model));
-      }
-      for (const field of Object.keys(model.config.files ?? {})) {
-        fields.set(field, 'File');
-      }
-      if (authModel) {
-        fields.set('createdBy', authModel.name);
-        fields.set('deletedBy', authModel.name);
-      }
-      related.set(model.name, fields);
-    }
-    cached = { models: loaded, related };
+    return cached.related;
   }
-  return cached.related.get(modelName);
+
+  const authModel = loaded.find(isResourceAuthModel);
+  const related: RelatedModels = new Map();
+  for (const model of loaded) {
+    const fields = new Map<string, string>();
+    for (const [field, relation] of Object.entries(
+      model.config.relations ?? {}
+    )) {
+      fields.set(field, capitalize(relation.model));
+    }
+    for (const field of Object.keys(model.config.files ?? {})) {
+      fields.set(field, 'File');
+    }
+    if (authModel) {
+      fields.set('createdBy', authModel.name);
+      fields.set('deletedBy', authModel.name);
+    }
+    related.set(model.name, fields);
+  }
+  cached = { models: loaded, related };
+  return related;
 }
 
 function mapWriteData(
   modelName: string,
   data: any,
-  mapRecord: RecordMapper
+  mapRecord: RecordMapper,
+  related: RelatedModels
 ): any {
   if (isArray(data)) {
-    return data.map((item) => mapWriteData(modelName, item, mapRecord));
+    return data.map((item) =>
+      mapWriteData(modelName, item, mapRecord, related)
+    );
   }
   if (!isPlainObject(data)) {
     return data;
   }
 
   const mapped = mapRecord(modelName, data);
-  const related = relatedModelsOf(modelName);
+  const fields = related.get(modelName);
   for (const [key, value] of Object.entries(mapped)) {
-    if (related?.has(key) && isPlainObject(value)) {
-      mapped[key] = mapNestedWrites(related.get(key)!, value, mapRecord);
+    if (fields?.has(key) && isPlainObject(value)) {
+      mapped[key] = mapNestedWrites(
+        fields.get(key)!,
+        value,
+        mapRecord,
+        related
+      );
     }
   }
   return mapped;
@@ -147,9 +163,10 @@ function mapWriteData(
 function mapNestedWrites(
   modelName: string,
   writes: Record<string, any>,
-  mapRecord: RecordMapper
+  mapRecord: RecordMapper,
+  related: RelatedModels
 ): Record<string, any> {
-  const map = (data: any) => mapWriteData(modelName, data, mapRecord);
+  const map = (data: any) => mapWriteData(modelName, data, mapRecord, related);
   const each = (value: any, fn: (item: any) => any) =>
     isArray(value) ? value.map(fn) : fn(value);
   const withData = (item: any) =>

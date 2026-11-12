@@ -13,8 +13,8 @@ import { PrismaDatabase } from '../../database/prisma-database';
 import {
   DatabaseSpatialEngine,
   GeoModel,
-  PostgisSpatialEngine,
-  triggerStatements
+  geometryTrigger,
+  PostgisSpatialEngine
 } from '../../spatial/spatial-engine';
 
 const model: GeoModel = {
@@ -66,16 +66,31 @@ describe('spatial-engine', () => {
       expect(where.locationMinLat.gte).toBeCloseTo(-0.8993, 4);
     });
 
+    test('narrows by the two boxes of a distance crossing the antimeridian', async () => {
+      const { stub, engine: db } = engine([
+        { id: 1, location: point(-179.95, 0) }
+      ]);
+      const matches = await db.match(
+        model,
+        'location',
+        spatialCondition('_near', { point: [179.95, 0], maxDistance: 20_000 }),
+        10
+      );
+      expect(matches.map((match) => match.id)).toEqual([1]);
+      expect(stub.lastQuery('findMany').args.where.OR).toHaveLength(2);
+    });
+
     test('narrows a covered geometry inside the box, an overlapping one across it', async () => {
       const { stub, engine: db } = engine([
         { id: 1, area: boxPolygon([1, 1, 2, 2]) }
       ]);
-      await db.match(
+      const within = await db.match(
         model,
         'area',
-        spatialCondition('_withinBox', [0, 0, 5, 5]),
+        spatialCondition('_within', boxPolygon([0, 0, 5, 5])),
         10
       );
+      expect(within).toEqual([{ id: 1 }]);
       expect(stub.lastQuery('findMany').args.where).toEqual({
         areaMinLng: { gte: 0, lte: 5 },
         areaMinLat: { gte: 0, lte: 5 },
@@ -83,13 +98,13 @@ describe('spatial-engine', () => {
         areaMaxLat: { lte: 5 }
       });
 
-      const matches = await db.match(
+      const intersects = await db.match(
         model,
         'area',
         spatialCondition('_intersects', point(1.5, 1.5)),
         10
       );
-      expect(matches).toEqual([{ id: 1 }]);
+      expect(intersects).toEqual([{ id: 1 }]);
       expect(stub.lastQuery('findMany').args.where).toEqual({
         areaMinLng: { lte: 1.5 },
         areaMinLat: { lte: 1.5 },
@@ -107,7 +122,7 @@ describe('spatial-engine', () => {
       const { stub, engine: db } = engine((args) =>
         args.cursor ? batch(1001, 5) : batch(1, 1000)
       );
-      const condition = spatialCondition('_withinBox', [-1, -1, 1, 1]);
+      const condition = spatialCondition('_within', boxPolygon([-1, -1, 1, 1]));
 
       expect(await db.match(model, 'location', condition, 2000)).toHaveLength(
         1005
@@ -124,37 +139,72 @@ describe('spatial-engine', () => {
   });
 
   describe('PostgisSpatialEngine', () => {
-    const database = (extension: unknown[] = [{ extversion: '3.4' }]) => {
-      const tx = { $executeRawUnsafe: jest.fn() };
+    const database = (
+      extension: unknown[] = [{ extversion: '3.4' }],
+      triggers: unknown[] = []
+    ) => {
+      const tx = {
+        $executeRawUnsafe: jest.fn(),
+        $queryRawUnsafe: jest.fn(async () => triggers)
+      };
       const client = { $queryRawUnsafe: jest.fn(async () => extension) };
       const db: any = {
         client: () => client,
-        transaction: async (fn: any) => fn(tx)
+        transaction: jest.fn(async (fn: any) => fn(tx))
       };
       return { db, tx, client };
     };
 
     afterEach(() => {
-      delete configOverrides.DATABASE_TYPE;
-      delete configOverrides.DATABASE_URL;
+      for (const key of Object.keys(configOverrides)) {
+        delete configOverrides[key];
+      }
     });
 
-    test('creates the triggers in the schema of the connection', async () => {
+    test('creates the missing triggers in the schema of the connection', async () => {
       configOverrides.DATABASE_TYPE = DatabaseType.PostgreSQL;
       configOverrides.DATABASE_URL = 'postgresql://u:p@h/db?schema=geo';
+      configOverrides.SPATIAL_SETUP_TIMEOUT = 1234;
       const { db, tx } = database();
       await new PostgisSpatialEngine(db).setup([model]);
 
+      expect(db.transaction.mock.calls[0][1]).toEqual({ timeout: 1234 });
+      expect(tx.$queryRawUnsafe.mock.calls[0]).toEqual([
+        expect.stringContaining(`|| '_geo_sync'`),
+        'geo'
+      ]);
       const statements = tx.$executeRawUnsafe.mock.calls.map((c) => c[0]);
       expect(statements[0]).toContain('pg_advisory_xact_lock');
+      expect(statements.slice(1)).toEqual(
+        geometryTrigger('Store', ['location', 'area'], 'geo').statements
+      );
       expect(statements[1]).toContain(
-        'CREATE OR REPLACE FUNCTION "geo"."appweaver_geo_sync"()'
+        'CREATE OR REPLACE FUNCTION "geo"."Store_geo_sync"()'
       );
-      expect(statements[3]).toBe(
-        'CREATE TRIGGER "Store_geo_sync" BEFORE INSERT OR UPDATE ON "geo"."Store" ' +
-          `FOR EACH ROW EXECUTE FUNCTION "geo"."appweaver_geo_sync"('location', 'area')`
+    });
+
+    test('leaves a trigger in place alone, and replaces an outdated one', async () => {
+      configOverrides.DATABASE_TYPE = DatabaseType.PostgreSQL;
+      const trigger = geometryTrigger('Store', ['location', 'area']);
+
+      const current = database(undefined, [
+        { table: 'Store', source: trigger.source }
+      ]);
+      await new PostgisSpatialEngine(current.db).setup([model]);
+      expect(current.tx.$executeRawUnsafe).toHaveBeenCalledTimes(1);
+
+      const outdated = database(undefined, [
+        { table: 'Store', source: geometryTrigger('Store', ['area']).source }
+      ]);
+      await new PostgisSpatialEngine(outdated.db).setup([model]);
+      expect(outdated.tx.$executeRawUnsafe).toHaveBeenCalledTimes(
+        1 + trigger.statements.length
       );
-      expect(statements).toHaveLength(6);
+      // Without a schema in the URL, the one of the connection
+      expect(outdated.tx.$queryRawUnsafe).toHaveBeenCalledWith(
+        expect.any(String),
+        null
+      );
     });
 
     test('sets nothing up without a model, and fails without PostGIS', async () => {
@@ -184,14 +234,27 @@ describe('spatial-engine', () => {
       );
       expect(near).toEqual([{ id: 1, distance: 12.5 }]);
       const [sql, ...params] = (client.$queryRawUnsafe.mock.calls as any[])[0];
-      expect(sql).toContain('ST_DWithin("locationGeom"::geography');
+      expect(sql).toContain(
+        'WHERE ("locationGeom" && ST_MakeEnvelope($1::float8, $2::float8, $3::float8, $4::float8, 4326)) AND ' +
+          'ST_DWithin("locationGeom"::geography'
+      );
       expect(sql).toContain('ORDER BY "distance", "id" LIMIT 6');
       expect(params.slice(4)).toEqual([1, 2, 100, 10]);
+
+      // Two boxes on the sides of the antimeridian
+      await engine.match(
+        model,
+        'location',
+        spatialCondition('_near', { point: [179.99, 0], maxDistance: 5000 }),
+        5
+      );
+      const wrapped = client.$queryRawUnsafe.mock.calls.at(-1) as any[];
+      expect(wrapped[0]).toContain(') OR "locationGeom" && ST_MakeEnvelope(');
+      expect(wrapped).toHaveLength(1 + 8 + 3);
 
       client.$queryRawUnsafe.mockResolvedValue([{ id: 2 }]);
       for (const [operator, value, fn] of [
         ['_within', boxPolygon([0, 0, 1, 1]), 'ST_CoveredBy'],
-        ['_withinBox', [0, 0, 1, 1], 'ST_CoveredBy'],
         ['_intersects', point(0, 0), 'ST_Intersects']
       ] as const) {
         const matches = await engine.match(
@@ -208,17 +271,29 @@ describe('spatial-engine', () => {
     });
   });
 
-  describe('triggerStatements', () => {
-    test('replaces the trigger of a table and fills the missing geometries', () => {
-      const statements = triggerStatements('"Store"', 'Store', '"fn"', [
-        'location'
-      ]);
+  describe('geometryTrigger', () => {
+    test('writes the geometry of each field on an insert and on a change', () => {
+      const { source, statements } = geometryTrigger('Store', ['location']);
+      expect(source).toContain(
+        `  IF TG_OP = 'INSERT' THEN\n    NEW."locationGeom" := CASE WHEN jsonb_typeof(NEW."location"::jsonb) = 'object'`
+      );
+      expect(source).toContain(
+        'IF NEW."location" IS DISTINCT FROM OLD."location" THEN'
+      );
+      expect(source).toContain('EXCEPTION WHEN undefined_column THEN');
       expect(statements).toEqual([
+        `CREATE OR REPLACE FUNCTION "Store_geo_sync"() RETURNS trigger AS $$${source}$$ LANGUAGE plpgsql`,
         'DROP TRIGGER IF EXISTS "Store_geo_sync" ON "Store"',
-        `CREATE TRIGGER "Store_geo_sync" BEFORE INSERT OR UPDATE ON "Store" FOR EACH ROW EXECUTE FUNCTION "fn"('location')`,
-        'UPDATE "Store" SET "locationGeom" = ST_SetSRID(ST_GeomFromGeoJSON("location"::jsonb), 4326) ' +
-          `WHERE "locationGeom" IS NULL AND jsonb_typeof("location"::jsonb) = 'object'`
+        'CREATE TRIGGER "Store_geo_sync" BEFORE INSERT OR UPDATE ON "Store" FOR EACH ROW EXECUTE FUNCTION "Store_geo_sync"()',
+        expect.stringMatching(
+          /^UPDATE "Store" SET "locationGeom" = CASE .* WHERE "locationGeom" IS NULL AND jsonb_typeof\("location"::jsonb\) = 'object'$/
+        )
       ]);
+    });
+
+    test('keeps the name of a long table within the limit of PostgreSQL', () => {
+      const { statements } = geometryTrigger('T'.repeat(60), ['location']);
+      expect(statements[1]).toContain(`"${'T'.repeat(50)}_geo_sync"`);
     });
   });
 });
@@ -235,6 +310,18 @@ const postgisUrl = process.env.SPATIAL_TEST_POSTGIS_URL;
     const dir = path.join(process.cwd(), 'temp', `spatial-${process.pid}`);
     const table: GeoModel = { ...model, table: 'SpatialContract' };
     let db: PrismaDatabase;
+    let engine: PostgisSpatialEngine;
+
+    const query = <T = any>(sql: string): Promise<T[]> =>
+      db.client<any>().$queryRawUnsafe(sql);
+    const execute = (sql: string): Promise<unknown> =>
+      db.client<any>().$executeRawUnsafe(sql);
+    const triggerOid = async () =>
+      (
+        await query(
+          `SELECT oid::text AS oid FROM pg_trigger WHERE tgname = 'SpatialContract_geo_sync'`
+        )
+      )[0]?.oid;
 
     beforeAll(async () => {
       const output = path.join(dir, 'client');
@@ -256,22 +343,22 @@ const postgisUrl = process.env.SPATIAL_TEST_POSTGIS_URL;
       );
       resetContext();
       db = new PrismaDatabase();
-      const client = db.client<any>();
-      await client.$executeRawUnsafe('CREATE EXTENSION IF NOT EXISTS postgis');
-      await client.$executeRawUnsafe('DROP TABLE IF EXISTS "SpatialContract"');
-      await client.$executeRawUnsafe(
-        'CREATE TABLE "SpatialContract" ("id" SERIAL PRIMARY KEY, "location" JSONB NOT NULL, ' +
+      engine = new PostgisSpatialEngine(db);
+      await execute('CREATE EXTENSION IF NOT EXISTS postgis');
+      await execute('DROP TABLE IF EXISTS "SpatialContract"');
+      await execute(
+        'CREATE TABLE "SpatialContract" ("id" SERIAL PRIMARY KEY, "name" TEXT, "location" JSONB NOT NULL, ' +
           '"locationGeom" geometry(Point, 4326), "area" JSONB, "areaGeom" geometry(Polygon, 4326))'
       );
-      await client.$executeRawUnsafe(
+      // Before the trigger exists
+      await execute(
         `INSERT INTO "SpatialContract" ("location") VALUES ('{"type":"Point","coordinates":[0,0]}')`
       );
     }, 120_000);
 
     afterAll(async () => {
-      await db
-        .client<any>()
-        .$executeRawUnsafe('DROP TABLE IF EXISTS "SpatialContract"');
+      await execute('DROP TABLE IF EXISTS "SpatialContract"');
+      await execute('DROP FUNCTION IF EXISTS "SpatialContract_geo_sync"()');
       await db.disconnect();
       fs.rmSync(dir, { recursive: true, force: true });
       delete configOverrides.DATABASE_TYPE;
@@ -279,28 +366,54 @@ const postgisUrl = process.env.SPATIAL_TEST_POSTGIS_URL;
       delete configOverrides.DATABASE_CLIENT_OUTPUT_DIR_PATH;
     });
 
-    test('writes the geometries and matches them like the database engine', async () => {
-      const engine = new PostgisSpatialEngine(db);
+    test('creates the trigger once and writes the geometries missing', async () => {
       await engine.setup([table]);
-      // Twice, as the instances starting together do
-      await engine.setup([table]);
+      const oid = await triggerOid();
+      expect(oid).toBeDefined();
 
-      const client = db.client<any>();
-      await client.$executeRawUnsafe(
+      // A second start finds the trigger in place
+      await engine.setup([table]);
+      expect(await triggerOid()).toBe(oid);
+
+      expect(
+        await query(
+          'SELECT ST_AsText("locationGeom") AS geom FROM "SpatialContract"'
+        )
+      ).toEqual([{ geom: 'POINT(0 0)' }]);
+    }, 60_000);
+
+    test('keeps the geometries in line with the GeoJSON', async () => {
+      await execute(
         `INSERT INTO "SpatialContract" ("location", "area") VALUES ` +
           `('{"type":"Point","coordinates":[0,1]}', '${JSON.stringify(boxPolygon([-1, -1, 1, 1]))}'), ` +
           `('{"type":"Point","coordinates":[0,3]}', 'null')`
       );
-      const geoms: { geom: string }[] = await client.$queryRawUnsafe(
-        'SELECT ST_AsText("locationGeom") AS geom FROM "SpatialContract" ORDER BY "id"'
-      );
-      // The record before the trigger filled by the setup
-      expect(geoms.map((row) => row.geom)).toEqual([
-        'POINT(0 0)',
-        'POINT(0 1)',
-        'POINT(0 3)'
+      const geometries = () =>
+        query(
+          'SELECT ST_AsText("locationGeom") AS geom, ST_AsText("areaGeom") AS area FROM "SpatialContract" ORDER BY "id"'
+        );
+      expect(await geometries()).toEqual([
+        { geom: 'POINT(0 0)', area: null },
+        { geom: 'POINT(0 1)', area: 'POLYGON((-1 -1,1 -1,1 1,-1 1,-1 -1))' },
+        { geom: 'POINT(0 3)', area: null }
       ]);
 
+      // A change of the GeoJSON, a JSON null, and a write of another column
+      await execute(
+        `UPDATE "SpatialContract" SET "location" = '{"type":"Point","coordinates":[5,5]}', "area" = 'null' WHERE "id" = 2`
+      );
+      await execute(`UPDATE "SpatialContract" SET "name" = 'x'`);
+      expect((await geometries())[1]).toEqual({
+        geom: 'POINT(5 5)',
+        area: null
+      });
+      await execute(
+        `UPDATE "SpatialContract" SET "location" = '{"type":"Point","coordinates":[0,1]}', ` +
+          `"area" = '${JSON.stringify(boxPolygon([-1, -1, 1, 1]))}' WHERE "id" = 2`
+      );
+    });
+
+    test('matches the geometries like the database engine', async () => {
       const near = await engine.match(
         table,
         'location',
@@ -313,7 +426,7 @@ const postgisUrl = process.env.SPATIAL_TEST_POSTGIS_URL;
       const within = await engine.match(
         table,
         'location',
-        spatialCondition('_withinBox', [-1, -1, 1, 1]),
+        spatialCondition('_within', boxPolygon([-1, -1, 1, 1])),
         10
       );
       expect(within.map((match) => match.id)).toEqual([1, 2]);
@@ -326,28 +439,43 @@ const postgisUrl = process.env.SPATIAL_TEST_POSTGIS_URL;
       );
       expect(intersects.map((match) => match.id)).toEqual([2]);
 
-      // An update keeps the geometry in line, a JSON null clears it
-      await client.$executeRawUnsafe(
-        `UPDATE "SpatialContract" SET "location" = '{"type":"Point","coordinates":[5,5]}', "area" = 'null' WHERE "id" = 2`
+      await execute(
+        `INSERT INTO "SpatialContract" ("location") VALUES ('{"type":"Point","coordinates":[-179.95,60]}')`
       );
-      const updated: unknown[] = await client.$queryRawUnsafe(
-        'SELECT ST_AsText("locationGeom") AS geom, ST_AsText("areaGeom") AS area FROM "SpatialContract" WHERE "id" = 2'
+      const wrapped = await engine.match(
+        table,
+        'location',
+        spatialCondition('_near', { point: [179.95, 60], maxDistance: 10_000 }),
+        10
       );
-      expect(updated).toEqual([{ geom: 'POINT(5 5)', area: null }]);
-    }, 60_000);
+      expect(wrapped.map((match) => match.id)).toEqual([4]);
+    });
+
+    test('replaces the trigger of a model whose geo fields changed', async () => {
+      const oid = await triggerOid();
+      await engine.setup([
+        { ...table, fields: { location: table.fields.location } }
+      ]);
+      expect(await triggerOid()).not.toBe(oid);
+      await engine.setup([table]);
+    });
 
     test('lets a migration drop a geo field the trigger still names', async () => {
-      const client = db.client<any>();
-      await client.$executeRawUnsafe(
+      await execute(
         'ALTER TABLE "SpatialContract" DROP COLUMN "area", DROP COLUMN "areaGeom"'
       );
-      await client.$executeRawUnsafe(
+      await execute(
         `INSERT INTO "SpatialContract" ("location") VALUES ('{"type":"Point","coordinates":[7,7]}')`
       );
-      const rows: unknown[] = await client.$queryRawUnsafe(
-        'SELECT ST_AsText("locationGeom") AS geom FROM "SpatialContract" ORDER BY "id" DESC LIMIT 1'
-      );
-      expect(rows).toEqual([{ geom: 'POINT(7 7)' }]);
+      // The next start replaces the trigger and writes the geometry it missed
+      await engine.setup([
+        { ...table, fields: { location: table.fields.location } }
+      ]);
+      expect(
+        await query(
+          'SELECT ST_AsText("locationGeom") AS geom FROM "SpatialContract" ORDER BY "id" DESC LIMIT 1'
+        )
+      ).toEqual([{ geom: 'POINT(7 7)' }]);
     });
   }
 );

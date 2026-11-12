@@ -72,7 +72,7 @@ const POSTGIS_TYPES: Record<GeoFieldType, string> = {
   geometry: 'Geometry'
 };
 
-/** How the geo fields are stored: a PostGIS geometry column, or the bounding box columns of the `database` provider. */
+/** How the geo fields are stored: with a PostGIS geometry column, or with their bounding box columns alone. */
 export type SpatialStorage = 'postgis' | 'database';
 
 const CUID_LENGTHS: Record<string, number> = {
@@ -446,8 +446,8 @@ export async function generatePrismaSchema(
       };
     }
 
-    // Add the columns of the geo fields: the GeoJSON of each field, and its
-    // PostGIS geometry or its bounding box
+    // Add the columns of the geo fields: the GeoJSON of each field, its
+    // bounding box, and its PostGIS geometry
     for (const [name, model] of Object.entries(prismaModels)) {
       const geo = models[name].config.geo;
       if (!hasGeo(models[name].config)) {
@@ -907,8 +907,8 @@ function createScalarSchema(
 
 /**
  * The columns and the indexes of the geo fields of a model: the GeoJSON column of each field (a string on SQL Server,
- * which has no JSON type), and its PostGIS geometry column with a GiST index, or its bounding box columns with an index
- * on their minimums.
+ * which has no JSON type), its bounding box columns with an index on their minimums, and with PostGIS its geometry
+ * column with a GiST index.
  */
 function createGeoSchema(
   geo: GeoConfig,
@@ -921,36 +921,31 @@ function createGeoSchema(
 
   for (const [name, field] of Object.entries(geo)) {
     const optional = field.required === false ? '?' : '';
-    fields.push({
-      name,
-      type: `${sqlServer ? 'String' : 'Json'}${optional}`,
-      attributes: sqlServer
-        ? nativeTypeAttributes(stringNativeType(Infinity, dbType))
-        : []
-    });
-
     const columns = geoColumns(name);
+    fields.push(
+      {
+        name,
+        type: `${sqlServer ? 'String' : 'Json'}${optional}`,
+        attributes: sqlServer
+          ? nativeTypeAttributes(stringNativeType(Infinity, dbType))
+          : []
+      },
+      ...[columns.minLng, columns.minLat, columns.maxLng, columns.maxLat].map(
+        (column) => ({ name: column, type: 'Float?' })
+      )
+    );
     if (storage === 'postgis') {
       fields.push({
         name: columns.geom,
         type: `Unsupported("geometry(${POSTGIS_TYPES[field.type] ?? 'Geometry'}, 4326)")?`
       });
-      if (field.index !== false) {
-        index.push(`@@index([${columns.geom}], type: Gist)`);
-      }
-      continue;
     }
 
-    for (const column of [
-      columns.minLng,
-      columns.minLat,
-      columns.maxLng,
-      columns.maxLat
-    ]) {
-      fields.push({ name: column, type: 'Float?' });
-    }
     if (field.index !== false) {
       index.push(`@@index([${columns.minLng}, ${columns.minLat}])`);
+      if (storage === 'postgis') {
+        index.push(`@@index([${columns.geom}], type: Gist)`);
+      }
     }
   }
 

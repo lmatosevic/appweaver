@@ -9,11 +9,7 @@ import {
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { mapResultRecords, mapWriteArgs } from '../utils/write-data-util';
-import {
-  spatialConfig,
-  SpatialProvider,
-  spatialProvider
-} from './spatial-config';
+import { spatialConfig } from './spatial-config';
 
 // The operations whose result holds no records
 const COUNT_OPERATIONS = new Set([
@@ -28,17 +24,13 @@ const COUNT_OPERATIONS = new Set([
 /**
  * Creates the Prisma client extension of the geo fields. Every write checks the values of the geo fields and
  * normalizes them into GeoJSON geometries (a `{ lat, lng }` object into a point), storing a null as the database null
- * of a JSON column. With the `database` provider it also writes the bounding box columns of each geo field, and leaves
- * them out of the results. The PostGIS geometry columns of the `postgis` provider are written by a trigger of the
- * database (see `PostgisSpatialEngine`).
+ * of a JSON column, and writes the bounding box columns of each geo field, which are left out of the results. The
+ * PostGIS geometry columns of the `postgis` provider are written by a trigger of the database (see
+ * `PostgisSpatialEngine`).
  *
  * @return {Object} The Prisma client extension.
  */
 export function spatialExtension(): any {
-  // Resolved on the first query, once the config is loaded
-  let provider: SpatialProvider | undefined;
-  const boxes = () => (provider ??= spatialProvider()) === 'database';
-
   const normalizeRecord = (
     modelName: string,
     data: Record<string, any>
@@ -60,14 +52,12 @@ export function spatialExtension(): any {
         : normalizeValue(modelName, field, value, geo.type);
       normalized[field] = geometry ?? DbNull;
 
-      if (boxes()) {
-        const columns = geoColumns(field);
-        const box = geometry ? geometryBox(geometry) : [null, null, null, null];
-        normalized[columns.minLng] = box[0];
-        normalized[columns.minLat] = box[1];
-        normalized[columns.maxLng] = box[2];
-        normalized[columns.maxLat] = box[3];
-      }
+      const columns = geoColumns(field);
+      const box = geometry ? geometryBox(geometry) : [null, null, null, null];
+      normalized[columns.minLng] = box[0];
+      normalized[columns.minLat] = box[1];
+      normalized[columns.maxLng] = box[2];
+      normalized[columns.maxLat] = box[3];
     }
     return normalized;
   };
@@ -95,9 +85,9 @@ export function spatialExtension(): any {
           const result = await query(
             mapWriteArgs(model, operation, args, normalizeRecord)
           );
-          return boxes() && !COUNT_OPERATIONS.has(operation)
-            ? mapResultRecords(model, result, stripRecord)
-            : result;
+          return COUNT_OPERATIONS.has(operation)
+            ? result
+            : mapResultRecords(model, result, stripRecord);
         }
       }
     }

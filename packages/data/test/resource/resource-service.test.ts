@@ -2496,11 +2496,33 @@ describe('resource-service with geo fields', () => {
     delete configOverrides.DATABASE_TYPE;
   });
 
-  test('matches the ids of the spatial filter', async () => {
-    db.setResult('Store', 'findMany', [store(1)]);
-    await service.query({ filter: { location: near } as any });
+  test('matches the ids of the spatial filter, each record with its distance', async () => {
+    db.setResult('Store', 'findMany', [store(1), store(9)]);
+    const { items } = await service.query({
+      filter: { location: near } as any
+    });
     const { where } = db.lastQuery('findMany').args;
     expect(where.AND[0]).toEqual({ AND: [{ id: { in: [3, 1, 2, 4] } }] });
+    expect(items).toEqual([{ ...store(1), locationDistance: 20 }, store(9)]);
+  });
+
+  test('matches a box by the bounding box columns, without the engine', async () => {
+    db.setResult('Store', 'findMany', [store(1)]);
+    const { items } = await service.query({
+      filter: { location: { _withinBox: [0, 0, 1, 1] } } as any
+    });
+    expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+      AND: [
+        {
+          locationMinLng: { gte: 0, lte: 1 },
+          locationMinLat: { gte: 0, lte: 1 },
+          locationMaxLng: { lte: 1 },
+          locationMaxLat: { lte: 1 }
+        }
+      ]
+    });
+    expect(match).not.toHaveBeenCalled();
+    expect(items).toEqual([store(1)]);
   });
 
   test('pages the records by their distance', async () => {
@@ -2510,6 +2532,7 @@ describe('resource-service with geo fields', () => {
       size: 2
     });
     expect(first.items.map((item: any) => item.id)).toEqual([3, 1]);
+    expect(first.items[1].locationDistance).toBe(20);
     expect(first.totalCount).toBe(4);
     expect(first.prevCursor).toBeNull();
 
@@ -2547,7 +2570,7 @@ describe('resource-service with geo fields', () => {
       { location: near } as any,
       'location' as any
     );
-    expect(nearest).toEqual(store(3));
+    expect(nearest).toEqual({ ...store(3), locationDistance: 10 });
 
     match.mockResolvedValue([]);
     db.setResult('Store', 'findMany', (args: any) => (args.select ? [] : []));

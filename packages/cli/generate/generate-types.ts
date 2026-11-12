@@ -6,12 +6,26 @@ import { ModelToTypeScript } from '@sinclair/typebox-codegen';
 import {
   DateType,
   EnumType,
+  GEO_FIELD_GEOMETRIES,
+  GeoConfig,
+  GeoFieldType,
   hasSeries,
   isArray,
   NullType,
   ResourceModel
 } from '@appweaver/common';
 import { ensureDirExists } from '../utils';
+
+/** The type of `@appweaver/common` of the geometry of each geo field type. */
+const GEO_TYPE_NAMES: Record<GeoFieldType, string> = {
+  point: 'GeoPoint',
+  multiPoint: 'GeoMultiPoint',
+  lineString: 'GeoLineString',
+  multiLineString: 'GeoMultiLineString',
+  polygon: 'GeoPolygon',
+  multiPolygon: 'GeoMultiPolygon',
+  geometry: 'GeoGeometry'
+};
 
 /**
  * Generates TypeScript type definitions for the given resource models and writes them to a specified directory.
@@ -41,6 +55,8 @@ export async function generateTypes(
     // The generated type names of every model, in the order they are emitted,
     // so each model group can be written out followed by its own query type
     const modelTypeNames: Record<string, string[]> = {};
+    // The geometry types of the geo fields, imported by the generated types
+    const geoTypeNames = new Set<string>();
 
     for (const [name, schema] of Object.entries(models)) {
       if (schema.config.generateTypes === false) {
@@ -61,8 +77,19 @@ export async function generateTypes(
           : [])
       ];
 
-      for (const [typeName, typeSchema] of modelSchemas) {
-        resourceModels[typeName] = transformUnsafeTypes(typeSchema);
+      // The first three are the models of the responses, the next five the
+      // ones of the requests, which hold the geo fields too
+      for (const [index, [typeName, typeSchema]] of modelSchemas.entries()) {
+        const transformed = transformUnsafeTypes(typeSchema);
+        resourceModels[typeName] =
+          index < 8
+            ? transformGeoTypes(
+                transformed,
+                schema.config.geo,
+                index >= 3,
+                geoTypeNames
+              )
+            : transformed;
       }
 
       modelTypeNames[name] = modelSchemas.map(([typeName]) => typeName);
@@ -81,8 +108,15 @@ export async function generateTypes(
     const registered = registry && Object.keys(registeredModels).length > 0;
 
     if (Object.keys(modelTypeNames).length > 0 || registered) {
+      const imports = [
+        'AggregateSelect',
+        ...[...geoTypeNames].sort(),
+        'IResourceService',
+        'QueryFilter',
+        'QuerySort'
+      ];
       typesContent.push(
-        `import { AggregateSelect, IResourceService, QueryFilter, QuerySort } from '@appweaver/common';`,
+        `import { ${imports.join(', ')} } from '@appweaver/common';`,
         ``
       );
     }
@@ -190,6 +224,42 @@ function generateTypeScriptType(
   const model: TSchema = module.Import(name);
   const schema = model.$defs[name];
   return ModelToTypeScript.GenerateType({ types: [schema] }, name);
+}
+
+/**
+ * Types the geo fields of a model as the geometry types of `@appweaver/common`, i.e. `GeoPoint`, a field taking
+ * points also as a `GeoLatLng` in the model of a request, and collects the names of the types to import.
+ */
+function transformGeoTypes(
+  schema: TObject,
+  geo: GeoConfig = {},
+  input: boolean,
+  typeNames: Set<string>
+): TObject {
+  const properties: Record<string, TSchema> = { ...schema.properties };
+
+  for (const [name, field] of Object.entries(geo)) {
+    if (!properties[name]) {
+      continue;
+    }
+
+    const names = [GEO_TYPE_NAMES[field.type]];
+    if (input && GEO_FIELD_GEOMETRIES[field.type].includes('Point')) {
+      names.push('GeoLatLng');
+    }
+    names.forEach((typeName) => typeNames.add(typeName));
+
+    const refs = names.map((typeName) => Type.Ref(typeName));
+    const type = refs.length > 1 ? Type.Union(refs) : refs[0];
+    properties[name] =
+      field.required === false
+        ? NullType(type)
+        : KindGuard.IsOptional(properties[name])
+          ? Type.Optional(type)
+          : type;
+  }
+
+  return Type.Object(properties, { ...schema });
 }
 
 function transformUnsafeTypes(schema: TObject): TObject {

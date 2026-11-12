@@ -1,11 +1,12 @@
-import { AnyNull } from '@prisma/client/runtime/client';
 import {
+  boxPolygon,
   ConfigurationError,
   configOverrides,
   Database,
   DatabaseType,
   ErrorCode,
   logger,
+  SpatialCondition,
   SpatialError
 } from '@appweaver/common';
 import { define } from '@appweaver/core';
@@ -19,17 +20,16 @@ import { createModel } from '../../factory/create-model';
 import { ResolvedFilterConditions } from '../../resource/utils/filter-util';
 import { FINGERPRINT } from '../../resource/utils/cursor-util';
 import {
-  spatialConfig,
-  spatialMaxCandidates,
-  spatialProvider
-} from '../../spatial/spatial-config';
-import {
   DatabaseSpatialEngine,
   PostgisSpatialEngine
 } from '../../spatial/spatial-engine';
 import { SpatialService } from '../../spatial/spatial-service';
 
 const near = { point: [0, 0], maxDistance: 1000 };
+const condition: SpatialCondition = {
+  operator: 'within',
+  geometry: boxPolygon([0, 0, 1, 1])
+};
 
 describe('spatial-service', () => {
   let db: DatabaseStub;
@@ -98,7 +98,7 @@ describe('spatial-service', () => {
     test('resolves the logical operators and the relations, keeping the top level distances', async () => {
       const { filter, distances } = await service.resolveFilter(
         {
-          _or: [{ location: { _withinBox: [0, 0, 1, 1] } }],
+          _or: [{ location: { _within: boxPolygon([0, 0, 1, 1]) } }],
           _not: { location: { _near: near } },
           owner: {
             home: { _near: near },
@@ -126,36 +126,35 @@ describe('spatial-service', () => {
       ]);
     });
 
-    test('checks the existence with the bounding box, or the JSON null', async () => {
-      const { filter } = await service.resolveFilter(
-        { location: null, _and: [{ location: { _exists: true } }] },
+    test('checks a box and the existence with the bounding box columns', async () => {
+      const { filter, distances } = await service.resolveFilter(
+        {
+          location: null,
+          _and: [
+            { location: { _exists: true, _withinBox: [0, 1, 5, 6] } },
+            { location: { _exists: 'false' } },
+            { location: { _withinBox: [170, 0, -170, 1] } }
+          ]
+        },
         'Store'
       );
       expect(filter.location.conditions).toEqual([{ locationMinLng: null }]);
       expect(filter._and[0].location.conditions).toEqual([
-        { locationMinLng: { not: null } }
+        { locationMinLng: { not: null } },
+        {
+          locationMinLng: { gte: 0, lte: 5 },
+          locationMinLat: { gte: 1, lte: 6 },
+          locationMaxLng: { lte: 5 },
+          locationMaxLat: { lte: 6 }
+        }
       ]);
-
-      configOverrides.DATABASE_TYPE = DatabaseType.PostgreSQL;
-      const postgis = await service.resolveFilter(
-        { location: { _exists: 'false' } },
-        'Store'
-      );
-      expect(postgis.filter.location.conditions).toEqual([
-        { location: { equals: AnyNull } }
+      expect(filter._and[1].location.conditions).toEqual([
+        { locationMinLng: null }
       ]);
-
-      configOverrides.DATABASE_TYPE = DatabaseType.SQLServer;
-      configOverrides.SPATIAL_PROVIDER = 'postgis';
-      expect(() => spatialProvider()).toThrow(ConfigurationError);
-      configOverrides.SPATIAL_PROVIDER = 'database';
-      const sqlServer = await service.resolveFilter(
-        { location: { _exists: true } },
-        'Store'
-      );
-      expect(sqlServer.filter.location.conditions).toEqual([
-        { locationMinLng: { not: null } }
-      ]);
+      expect(filter._and[2].location.conditions[0].OR).toHaveLength(2);
+      // No engine, so no limit of matches
+      expect(match).not.toHaveBeenCalled();
+      expect(distances.size).toBe(0);
     });
 
     test('leaves a filter without geo models or of another type unchanged', async () => {
@@ -174,6 +173,7 @@ describe('spatial-service', () => {
       for (const value of [
         5,
         { _eq: 1 },
+        { _withinBox: [0, 1, 1, 0] },
         { _near: { point: [0, 0], maxDistance: -5 } }
       ]) {
         const error = await service
@@ -189,20 +189,14 @@ describe('spatial-service', () => {
   describe('match', () => {
     test('rejects a field that is no geo field', async () => {
       await expect(
-        service.match('Store', 'name', {
-          operator: 'withinBox',
-          box: [0, 0, 1, 1]
-        })
+        service.match('Store', 'name', condition)
       ).rejects.toMatchObject({ code: ErrorCode.SpatialInvalidFilter });
     });
 
     test('rejects a condition matching more records than the maximum', async () => {
       configOverrides.SPATIAL_MAX_CANDIDATES = 1;
       await expect(
-        service.match('Store', 'location', {
-          operator: 'withinBox',
-          box: [0, 0, 1, 1]
-        })
+        service.match('Store', 'location', condition)
       ).rejects.toMatchObject({
         code: ErrorCode.SpatialTooManyCandidates,
         details: { model: 'Store', field: 'location', maxCandidates: 1 }
@@ -225,14 +219,8 @@ describe('spatial-service', () => {
       await service.onInit();
       expect(setup).toHaveBeenCalledTimes(1);
 
-      await service.match('Store', 'location', {
-        operator: 'withinBox',
-        box: [0, 0, 1, 1]
-      });
-      await service.match('Store', 'location', {
-        operator: 'withinBox',
-        box: [0, 0, 1, 1]
-      });
+      await service.match('Store', 'location', condition);
+      await service.match('Store', 'location', condition);
       expect(setup).toHaveBeenCalledTimes(2);
       setup.mockRestore();
       error.mockRestore();
@@ -250,38 +238,6 @@ describe('spatial-service', () => {
       define(db.database, Database as any);
       await expect(new SpatialService().onInit()).resolves.toBeUndefined();
       setup.mockRestore();
-    });
-  });
-});
-
-describe('spatial-config', () => {
-  afterEach(() => {
-    delete configOverrides.DATABASE_TYPE;
-    delete configOverrides.SPATIAL_PROVIDER;
-    delete configOverrides.SPATIAL_MAX_CANDIDATES;
-  });
-
-  describe('spatialProvider', () => {
-    test('picks PostGIS on PostgreSQL, the database engine otherwise', () => {
-      configOverrides.DATABASE_TYPE = DatabaseType.PostgreSQL;
-      expect(spatialProvider()).toBe('postgis');
-      configOverrides.SPATIAL_PROVIDER = 'database';
-      expect(spatialProvider()).toBe('database');
-      configOverrides.DATABASE_TYPE = DatabaseType.MySQL;
-      configOverrides.SPATIAL_PROVIDER = 'auto';
-      expect(spatialProvider()).toBe('database');
-      expect(spatialConfig.MAX_VERTICES).toBe(10000);
-    });
-  });
-
-  describe('spatialMaxCandidates', () => {
-    test('keeps SQL Server under its limit of parameters', () => {
-      configOverrides.DATABASE_TYPE = DatabaseType.SQLServer;
-      expect(spatialMaxCandidates()).toBe(2000);
-      configOverrides.SPATIAL_MAX_CANDIDATES = 500;
-      expect(spatialMaxCandidates()).toBe(500);
-      configOverrides.DATABASE_TYPE = DatabaseType.Sqlite;
-      expect(spatialMaxCandidates()).toBe(500);
     });
   });
 });
