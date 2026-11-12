@@ -72,19 +72,21 @@ export function runProcess(
  *
  * @param {string} cmd - The command to execute.
  * @param {string[]} [args=[]] - An array of arguments to pass to the command.
+ * @param {NodeJS.ProcessEnv} [env={}] - Environment variables of the command, over the ones of the process.
  * @return {Promise<{ code: number; stdout: string; stderr: string }>} A promise that resolves with the exit code and
  * the outputs.
  */
 export function runProcessOutput(
   cmd: string,
-  args: string[] = []
+  args: string[] = [],
+  env: NodeJS.ProcessEnv = {}
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     const command = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
     const child = spawn(command, {
       stdio: ['ignore', 'pipe', 'pipe'],
       shell: true,
-      env: { ...process.env, WEAVER_CLI: undefined }
+      env: { ...process.env, WEAVER_CLI: undefined, ...env }
     });
 
     let stdout = '';

@@ -54,7 +54,7 @@ describe('migrate-command', () => {
       planMigrations.mockResolvedValue({
         status: 'pending',
         migrations: ['1_init', '2_missing'],
-        databaseMissing: false
+        database: 'managed'
       });
 
       await expect(printMigrationPlan()).resolves.toBe(0);
@@ -68,25 +68,29 @@ describe('migrate-command', () => {
       expect(output).toContain('Dry run, the database was not changed.');
     });
 
-    test('names a database that does not exist yet', async () => {
+    test.each([
+      ['missing', 'The database does not exist yet, 1 pending migration'],
+      [
+        'unmanaged',
+        'The database has no migration history, 1 pending migration would be applied if it has no tables:'
+      ]
+    ])('names a database that is %s', async (database, header) => {
       planMigrations.mockResolvedValue({
         status: 'pending',
         migrations: ['1_init'],
-        databaseMissing: true
+        database
       });
 
       await printMigrationPlan();
 
-      expect(logged()).toContain(
-        'The database does not exist yet, 1 migration would be applied:'
-      );
+      expect(logged()).toContain(header);
     });
 
     test('reports no pending migrations of a missing database without any', async () => {
       planMigrations.mockResolvedValue({
         status: 'pending',
         migrations: [],
-        databaseMissing: true
+        database: 'missing'
       });
 
       await expect(printMigrationPlan()).resolves.toBe(0);

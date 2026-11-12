@@ -28,6 +28,20 @@ To apply migrations in development run prisma migrate dev.
 To apply migrations in production run prisma migrate deploy.
 `;
 
+/** The error output of the status, with the diagnosis of the schema engine in its debug log. */
+const debugLog = (diagnosis: Record<string, unknown>) =>
+  `Loaded Prisma config from prisma.config.ts.
+
+prisma:migrate:status {
+  "diagnoseResult": ${JSON.stringify(JSON.stringify(diagnosis, null, 2))}
+} +497ms
+prisma:migrate:status {
+  "listMigrationDirectoriesResult": {
+    "migrations": []
+  }
+} +1ms
+`;
+
 describe('plan-migrations', () => {
   let dir: string;
 
@@ -69,15 +83,16 @@ describe('plan-migrations', () => {
   });
 
   describe('planMigrations', () => {
-    test('runs prisma migrate status', async () => {
+    test('runs prisma migrate status with its debug log', async () => {
       runProcessOutput.mockResolvedValue({ code: 0, stdout: '', stderr: '' });
 
       await planMigrations(dir);
 
-      expect(runProcessOutput).toHaveBeenCalledWith('prisma', [
-        'migrate',
-        'status'
-      ]);
+      expect(runProcessOutput).toHaveBeenCalledWith(
+        'prisma',
+        ['migrate', 'status'],
+        { DEBUG: 'prisma:migrate:status', DEBUG_COLORS: 'false' }
+      );
     });
 
     test('reports an up to date database', async () => {
@@ -102,7 +117,56 @@ describe('plan-migrations', () => {
       await expect(planMigrations(dir)).resolves.toEqual({
         status: 'pending',
         migrations: ['20261101000000_init', '20261102000000_add_post'],
-        databaseMissing: false
+        database: 'managed'
+      });
+    });
+
+    test('tells a database without a migration history', async () => {
+      runProcessOutput.mockResolvedValue({
+        code: 1,
+        stdout: pendingOutput,
+        stderr: debugLog({
+          failedMigrationNames: [],
+          hasMigrationsTable: false
+        })
+      });
+
+      await expect(planMigrations(dir)).resolves.toMatchObject({
+        status: 'pending',
+        database: 'unmanaged'
+      });
+    });
+
+    test('fails on a failed migration the status leaves out while others are pending', async () => {
+      runProcessOutput.mockResolvedValue({
+        code: 1,
+        stdout: pendingOutput,
+        stderr: debugLog({
+          failedMigrationNames: ['20261031000000_bad'],
+          hasMigrationsTable: true
+        })
+      });
+
+      await expect(planMigrations(dir)).resolves.toEqual({
+        status: 'error',
+        code: 1,
+        output:
+          'Following migration have failed:\n20261031000000_bad\n\n' +
+          'No migration is applied until they are resolved, see https://pris.ly/d/migrate-resolve'
+      });
+    });
+
+    test('relies on the output alone without a readable debug log', async () => {
+      runProcessOutput.mockResolvedValue({
+        code: 1,
+        stdout: pendingOutput,
+        stderr:
+          'prisma:migrate:status {\n  "diagnoseResult": "{broken"\n} +1ms\n'
+      });
+
+      await expect(planMigrations(dir)).resolves.toMatchObject({
+        status: 'pending',
+        database: 'managed'
       });
     });
 
@@ -119,7 +183,7 @@ describe('plan-migrations', () => {
       await expect(planMigrations(dir)).resolves.toEqual({
         status: 'pending',
         migrations: ['1_init', '2_add_post'],
-        databaseMissing: true
+        database: 'missing'
       });
     });
 
@@ -135,17 +199,22 @@ describe('plan-migrations', () => {
       ).resolves.toMatchObject({ status: 'pending', migrations: [] });
     });
 
-    test('returns the output of any other failure', async () => {
+    test('returns the output of any other failure, without the debug log', async () => {
       runProcessOutput.mockResolvedValue({
         code: 1,
-        stdout: 'Following migration have failed:\n1_init\n',
-        stderr: 'Error: P3009'
+        stdout: '1 migration found in prisma/migrations\n',
+        stderr:
+          debugLog({ failedMigrationNames: ['1_init'] }) +
+          'Following migration have failed:\n1_init\n'
       });
 
       await expect(planMigrations(dir)).resolves.toEqual({
         status: 'error',
         code: 1,
-        output: 'Following migration have failed:\n1_init\n\nError: P3009'
+        output:
+          '1 migration found in prisma/migrations\n\n' +
+          'Loaded Prisma config from prisma.config.ts.\n\n' +
+          'Following migration have failed:\n1_init'
       });
     });
   });
