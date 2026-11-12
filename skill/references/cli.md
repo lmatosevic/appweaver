@@ -195,8 +195,10 @@ makes it the command to run in CI, in containers, and in production.
 | `--dry-run` | Print the pending migrations and their SQL without applying them | `false` |
 
 `--dry-run` reads the pending migrations from `prisma migrate status` (Prisma has no dry run of `migrate deploy`) and
-prints the `migration.sql` of each one, without changing the database. A status error, like a failed migration or an
-unreachable database, is printed with the exit code of Prisma. Review what a deployment applies before running it:
+prints the `migration.sql` of each one, without changing the database. It exits with an error when `weaver migrate`
+would apply none: on a failed migration to resolve first, diverged histories or an unreachable database. A database
+without a migration history is named, since Prisma migrates it only when it has no tables. Review what a deployment
+applies before running it:
 
 ```sh
 NODE_ENV=prod weaver migrate --dry-run
@@ -416,9 +418,9 @@ The seeders of the enabled modules (their `seeders` directory) run first, each r
 (`billing/1-plans`), then the seeders of the application. A missing seeders directory is skipped with a warning, and
 its recorded seeders are not reported as deleted; the command fails only when no directory is accessible.
 
-With `--dry-run`, the pending seeders are listed but not run, and nothing is written: the warnings are still reported,
-and the `--fix-warnings` fixes printed instead of applied. It reads the seeders table, so the database must be
-migrated.
+With `--dry-run`, the pending seeders are listed but not run, and nothing is recorded: the warnings are still
+reported, and the `--fix-warnings` fixes printed instead of applied. On a database that is not migrated yet, every
+seeder is listed as pending.
 
 ---
 

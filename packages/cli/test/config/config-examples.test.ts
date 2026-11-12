@@ -1,14 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { TSchema, Type } from '@sinclair/typebox';
+import { TSchema } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
 import { parse as parseDotenv } from 'dotenv';
 import {
+  camelToSnakeCase,
   ConfigSectionDefinition,
   configSections,
   parseArray
 } from '@appweaver/common';
-import { loadConfigFromFile } from '@appweaver/common/config/config-loader';
 import bullmq from '@appweaver/bullmq/module';
 import core from '@appweaver/core/modules/core';
 import cron from '@appweaver/cron/module';
@@ -76,7 +76,27 @@ function ownerKey(name: string): string | undefined {
   );
 }
 
-/** Validates the raw values of every section with its schema, returning the errors by key. */
+/** Flattens a JSON config into its keys the way the config loader does, i.e. `SERVER_PORT` of `server.port`. */
+function flatten(
+  value: unknown,
+  path: string[] = [],
+  flattened = new Map<string, unknown>()
+): Map<string, unknown> {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    for (const [name, child] of Object.entries(value)) {
+      flatten(
+        child,
+        [...path, camelToSnakeCase(name).toUpperCase()],
+        flattened
+      );
+    }
+  } else {
+    flattened.set(path.join('_'), value);
+  }
+  return flattened;
+}
+
+/** Validates the raw values of the sections with their schemas, returning the errors of the given keys. */
 function sectionErrors(values: Map<string, unknown>): string[] {
   const inputs = new Map<ConfigSectionDefinition, Record<string, unknown>>();
   for (const [key, value] of values) {
@@ -93,9 +113,11 @@ function sectionErrors(values: Map<string, unknown>): string[] {
       Value.Default(section.schema, structuredClone(input))
     );
     for (const error of Value.Errors(section.schema, checked)) {
-      errors.push(
-        `${section.prefix}${error.path.split('/')[1]}: ${error.message}`
-      );
+      const name = error.path.split('/')[1];
+      // A key that is not given is not an invalid value, i.e. in an environment
+      if (name in input) {
+        errors.push(`${section.prefix}${name}: ${error.message}`);
+      }
     }
   }
   return errors;
@@ -110,39 +132,46 @@ describe('config-examples', () => {
 
   describe('appweaver.example.json', () => {
     const json = JSON.parse(fs.readFileSync(examplePath, 'utf8'));
-    const flattened = loadConfigFromFile(Type.Object({}), examplePath) ?? {};
+    const configs: [string, object][] = [
+      ['config', json.config],
+      ...Object.entries<object>(json.environments ?? {}).map(
+        ([name, config]): [string, object] => [`environments.${name}`, config]
+      )
+    ];
 
-    test('writes every key in the form of the config schema', () => {
-      const schema = buildConfigSchema(sections);
+    test.each(configs)(
+      'writes every key of %s in the form of the config schema',
+      (name, config) => {
+        const schema = buildConfigSchema(sections);
 
-      const unknown: string[] = [];
-      const walk = (value: unknown, node: any, at: string) => {
-        if (node?.patternProperties || node?.type !== 'object') {
-          return;
-        }
-        for (const [name, child] of Object.entries(value as object)) {
-          const property = node.properties?.[name];
-          if (!property) {
-            unknown.push(`${at}.${name}`);
-          } else if (
-            child &&
-            typeof child === 'object' &&
-            !Array.isArray(child)
-          ) {
-            walk(child, property, `${at}.${name}`);
+        const unknown: string[] = [];
+        const walk = (value: unknown, node: any, at: string) => {
+          if (node?.patternProperties || node?.type !== 'object') {
+            return;
           }
-        }
-      };
-      walk(json.config, schema.definitions.config, 'config');
+          for (const [key, child] of Object.entries(value as object)) {
+            const property = node.properties?.[key];
+            if (!property) {
+              unknown.push(`${at}.${key}`);
+            } else if (
+              child &&
+              typeof child === 'object' &&
+              !Array.isArray(child)
+            ) {
+              walk(child, property, `${at}.${key}`);
+            }
+          }
+        };
+        walk(config, schema.definitions.config, name);
 
-      expect(unknown).toEqual([]);
-    });
+        expect(unknown).toEqual([]);
+      }
+    );
 
-    test('holds only valid values', () => {
+    test.each(configs)('holds only valid values in %s', (_, config) => {
       const values = new Map<string, unknown>();
       const unknown: string[] = [];
-      for (const [rawKey, value] of Object.entries(flattened)) {
-        const name = rawKey.replace(/^_appweaver_/, '');
+      for (const [name, value] of flatten(config)) {
         const key = ownerKey(name);
         if (!key) {
           unknown.push(name);

@@ -608,7 +608,10 @@ weaver migrate [--dry-run]
 Executes `prisma migrate deploy`. Prisma has no dry run of it, so `--dry-run` (`migrate/plan-migrations.ts`) parses
 the pending migrations from the output of `prisma migrate status` (all the migrations of `DATABASE_MIGRATIONS_DIR_PATH`
 on `P1003`, a database that does not exist) and prints the `migration.sql` of each one. Any other status failure is
-printed with the exit code of Prisma.
+printed with the exit code of Prisma. While migrations are pending, that output names neither a failed migration
+(`P3009` on deploy) nor a database without a migration history (`P3005` when it has tables), so the plan reads both
+from the diagnosis of the schema engine in the debug log of the status (`DEBUG=prisma:migrate:status`), and relies on
+the output alone when Prisma logs none.
 
 ---
 
@@ -770,7 +773,8 @@ The seeders of the enabled modules run first, each recorded under its module nam
 seeders of the application. A missing seeders directory is skipped with a warning (its recorded seeders are not
 reported as deleted), and only no accessible directory at all stops the command. With `--dry-run` (the `dryRun` of
 `createSeeder`), the `Seeder` lists the pending seeders without importing them, and reports the warnings and the fixes
-it would make without writing to the database.
+it would make without writing to the database. It reads the recorded seeders in one query, and on a dry run of a
+database not migrated yet (`P1003`, `P2021`) lists every seeder as pending.
 
 ---
 
