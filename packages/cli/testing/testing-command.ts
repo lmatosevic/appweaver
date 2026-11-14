@@ -1,11 +1,11 @@
 import fsp from 'node:fs/promises';
 import { Command } from 'commander';
-import { hasGeo } from '@appweaver/common';
 import { storageConfig } from '@appweaver/core/config';
 import { generatePrismaSchema } from '../generate';
 import {
   assertEnv,
   assertPathInside,
+  geoStorage,
   importPackage,
   loadModels,
   rimrafPath,
@@ -112,9 +112,7 @@ export function testingCommand(program: Command): void {
         clientPath,
         quiet,
         seriesInDatabase(modules),
-        Object.values(models).some((model) => hasGeo(model.config))
-          ? spatialProvider()
-          : 'database'
+        geoStorage(models, spatialProvider)
       );
       if (generateStatus !== 0) {
         console.error('Failed to generate Prisma schema');

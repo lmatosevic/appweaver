@@ -1,12 +1,13 @@
 import { Command } from 'commander';
 import path from 'node:path';
-import { configSections, hasGeo } from '@appweaver/common';
+import { configSections } from '@appweaver/common';
 import { isModuleEnabled } from '@appweaver/core';
 import { writeConfigSchema } from '../config/config-schema';
 import { generateTypes } from './generate-types';
 import { generatePrismaSchema } from './generate-prisma-schema';
 import {
   discoverProjectModules,
+  geoStorage,
   importPackage,
   isModulePackage,
   loadModels,
@@ -160,9 +161,7 @@ export function generateCommand(program: Command): void {
               databaseConfig.CLIENT_OUTPUT_DIR_PATH,
             quiet,
             seriesInDatabase(modules),
-            Object.values(models).some((model) => hasGeo(model.config))
-              ? spatialProvider()
-              : 'database'
+            geoStorage(models, spatialProvider)
           );
         }
       }

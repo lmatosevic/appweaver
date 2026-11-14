@@ -23,6 +23,9 @@ export type CreateSeederParams = {
    * related to the seeders like wrong checksum or deleted seeder files.
    * (default: false) **/
   fixWarnings?: boolean;
+  /** Log the pending seeders and the warnings it would fix, without executing
+   * them or changing the database. (default: false) **/
+  dryRun?: boolean;
 };
 
 /**
@@ -69,7 +72,8 @@ export async function createSeeder(
     params.fixWarnings,
     modules.flatMap(({ module }) =>
       module.seeders ? [{ name: module.name, path: module.seeders }] : []
-    )
+    ),
+    params.dryRun
   );
 
   if (params.autoSeed !== false) {

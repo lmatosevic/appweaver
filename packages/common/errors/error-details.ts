@@ -99,7 +99,12 @@ export interface ErrorDetailsMap {
   [ErrorCode.QueueClosed]: { queue: string };
   [ErrorCode.QueueUnavailable]: { queue: string };
 
-  [ErrorCode.MailerSendFailed]: { subject?: string };
+  [ErrorCode.MailerSendFailed]: {
+    provider: string;
+    subject?: string;
+    status?: number;
+    providerCode?: string | number;
+  };
 
   [ErrorCode.SmsSendFailed]: {
     provider: string;

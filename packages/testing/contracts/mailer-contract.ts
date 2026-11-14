@@ -45,6 +45,10 @@ export function testMailerContract(
       ).resolves.toBe(true);
     });
 
+    test('names its health check', () => {
+      expect(mailer.checkHealthConfig().name).toBe('mailer');
+    });
+
     test('reports its health', async () => {
       const result = await mailer.checkHealth();
 
