@@ -56,11 +56,9 @@
       }
     },
     "resource": {
-      "bulk": {
-        "createEnabled": true,
-        "updateEnabled": true,
-        "deleteEnabled": true
-      }
+      "bulkCreateEnabled": true,
+      "bulkUpdateEnabled": true,
+      "bulkDeleteEnabled": true
     }
   },
   "environments": {

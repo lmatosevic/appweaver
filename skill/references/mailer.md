@@ -88,6 +88,16 @@ Verifies that the mail transport is reachable (`transporter.verify()` for SMTP).
 
 ---
 
+#### A driver of another provider
+
+A driver of another service (Postmark, SES, ...) extends `Mailer` (`sendEmail`, `checkHealth`), completes the email
+with `completeEmail` of `@appweaver/core` (the sender and the HTML body), and throws a `MailerError`
+(`MAILER_SEND_FAILED` with its `provider` name, and the `status` and `providerCode` of the service) when the service
+rejects an email. `npm create @appweaver module <package> -- --contract mailer` scaffolds it as a module package
+tested with `testMailerContract`, see [modules](./modules.md#creating-a-module-package).
+
+---
+
 ## Configuration
 
 | Key                     | Type     | Default       | Description                                                                                            |
@@ -105,14 +115,21 @@ Verifies that the mail transport is reachable (`transporter.verify()` for SMTP).
 
 ```json
 {
-  "MAILER_SENDER_NAME": "My App",
-  "MAILER_SENDER_ADDRESS": "no-reply@myapp.com",
-  "MAILER_SMTP_HOST": "smtp.mailgun.org",
-  "MAILER_SMTP_PORT": 587,
-  "MAILER_SMTP_USER": "postmaster@mg.myapp.com",
-  "MAILER_SMTP_PASSWORD": "secret"
+  "config": {
+    "mailer": {
+      "senderName": "My App",
+      "senderAddress": "no-reply@myapp.com",
+      "smtp": {
+        "host": "smtp.mailgun.org",
+        "port": 587,
+        "user": "postmaster@mg.myapp.com"
+      }
+    }
+  }
 }
 ```
+
+Keep the password in the gitignored `.env` as `MAILER_SMTP_PASSWORD`.
 
 **Use `JsonMailer` in the tests:**
 
@@ -202,6 +219,12 @@ const sent = await emailService.sendEmailAndWait({
   attachments: [{ filename: 'invoice.pdf', content: pdf.toString('base64'), encoding: 'base64' }]
 });
 ```
+
+---
+
+A failed send fails the job with `MAILER_SEND_FAILED`: a `MailerError` of the driver is kept, any other error is
+wrapped in one naming the selected provider (`details.provider`, i.e. `smtp`) and the subject. A queue returning a
+job without an id fails `sendEmailAndWait` with `MAILER_JOB_NOT_FOUND`, though the email may still be sent.
 
 ---
 

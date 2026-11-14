@@ -2,6 +2,7 @@ import {
   ConfigurationError,
   createLogger,
   ErrorCode,
+  isAppweaverError,
   Queue,
   QueueJob,
   SmsError,
@@ -11,6 +12,7 @@ import {
   TemplateError,
   TemplateSms
 } from '@appweaver/common';
+import { selectedProvider } from '../app/load-providers';
 import { inject } from '../context';
 import { smsConfig } from './sms-config';
 
@@ -183,13 +185,17 @@ export class SmsService {
     try {
       return await this._smsSender.sendSms(job.data);
     } catch (e) {
-      if (e instanceof SmsError) {
+      // Also of a driver package with its own copy of the common package
+      if (isAppweaverError(e) && e.module === 'sms') {
         throw e;
       }
       throw new SmsError(
         ErrorCode.SmsSendFailed,
         'SMS sending failed',
-        { provider: this._smsSender.constructor.name },
+        {
+          provider:
+            selectedProvider(SmsSender) ?? this._smsSender.constructor.name
+        },
         { cause: e }
       );
     }

@@ -82,18 +82,18 @@ The driver adapters are `@prisma/adapter-pg` (PostgreSQL), `@prisma/adapter-mari
 
 Common options:
 
-| Flag                     | Description                                                                                                 | Default      |
-|--------------------------|-------------------------------------------------------------------------------------------------------------|--------------|
-| `--add <modules...>`     | Added to the default ones: `redis`, `queue`, `scheduler`, `mailer`, `sms`, `templates`, `locales`, `docker` | `data web`   |
-| `--all`                  | Add every module                                                                                            | false        |
-| `--exclude <modules...>` | Modules to leave out of the default ones or of `--all`                                                      | none         |
-| `-o, --output-dir <dir>` | Output directory (use ./ for current working directory)                                                     | project name |
-| `--database <type>`      | `sqlite`, `postgresql`, `mysql`, `sqlserver`, with the `data` module                                        | `sqlite`     |
-| `--host <host>`          | Hostname or IP address the server of the `web` module binds to                                              | `0.0.0.0`    |
-| `--port <port>`          | Port number the server of the `web` module listens on                                                       | `5000`       |
-| `--bun`                  | Use Bun as the application runtime                                                                          | Node         |
-| `--agent <agent>`        | The AI agent to configure the guidelines and skill files for                                                | `claude`     |
-| `--no-install`           | Skip the installation of the dependencies                                                                   | installs     |
+| Flag                     | Description                                                                                                               | Default      |
+|--------------------------|---------------------------------------------------------------------------------------------------------------------------|--------------|
+| `--add <modules...>`     | Added to the default ones: `redis`, `queue`, `scheduler`, `mailer`, `sms`, `templates`, `locales`, `timeseries`, `docker` | `data web`   |
+| `--all`                  | Add every module                                                                                                          | false        |
+| `--exclude <modules...>` | Modules to leave out of the default ones or of `--all`                                                                    | none         |
+| `-o, --output-dir <dir>` | Output directory (use ./ for current working directory)                                                                   | project name |
+| `--database <type>`      | `sqlite`, `postgresql`, `mysql`, `sqlserver`, with the `data` module                                                      | `sqlite`     |
+| `--host <host>`          | Hostname or IP address the server of the `web` module binds to                                                            | `0.0.0.0`    |
+| `--port <port>`          | Port number the server of the `web` module listens on                                                                     | `5000`       |
+| `--bun`                  | Use Bun as the application runtime                                                                                        | Node         |
+| `--agent <agent>`        | The AI agent to configure the guidelines and skill files for                                                              | `claude`     |
+| `--no-install`           | Skip the installation of the dependencies                                                                                 | installs     |
 
 ### 2. Run the initial migration and seed
 
@@ -259,8 +259,9 @@ weaver migrate                              # apply new database migration
 ### `@appweaver/core`
 
 The runtime of every application, with neither a server nor a database: the modules, the lifecycle, dependency
-injection, the auth user context, and the in-process drivers (memory, cache, queue, events, local file storage), with
-the email, locale and health services.
+injection, the auth user context, and the in-process drivers (memory, cache, queue, events, local file storage, the
+`json` mailer and SMS sender, the `memory` time series), with the email, SMS, locale, health and time series services,
+and the `weaver run` tasks (`createTask`).
 
 ```ts
 import { createApp } from '@appweaver/core';
@@ -287,9 +288,11 @@ can also be created and exported from a single file.
 
 ### `@appweaver/web`
 
-The HTTP module, built on Fastify: the server, the resource routes (`createRoutes`), custom routes and plugins
-(`registerRoute`, `registerPlugin`), JWT, API key, Basic and OAuth2 authentication, the RFC 9457 problem details and
-Swagger. It requires `@appweaver/data`, and an application without a server leaves it out.
+The HTTP module, built on Fastify: the server, the resource routes (`createRoutes`) with their response cache and the
+time series routes, custom routes and plugins (`registerRoute`, `registerPlugin`), JWT, API key, Basic and OAuth2
+authentication, the account routes (email and phone verification, password reset), two-factor authentication by
+email, SMS or an authenticator app, the RFC 9457 problem details and Swagger. It requires `@appweaver/data`, and an
+application without a server leaves it out.
 
 ### Drivers
 
@@ -329,9 +332,10 @@ The `weaver` CLI drives the entire developer workflow.
 weaver build                      # compile TypeScript
 weaver start --watch              # dev server with hot reload
 weaver generate                   # generate types + Prisma schema from models
+weaver migration check            # check whether the models need a new migration
 weaver migration new <name>       # create a new database migration
-weaver migrate                    # apply pending migrations
-weaver seed                       # seed the database
+weaver migrate                    # apply pending migrations (--dry-run prints them and their SQL)
+weaver seed                       # seed the database (--dry-run lists the pending seeders)
 weaver openapi                    # export OpenAPI spec to openapi.json
 weaver run reports:daily          # run a one-shot task of src/tasks/ by its name (weaver run lists them)
 weaver module add redis docker    # add modules to the project (list, add, remove)
@@ -379,13 +383,14 @@ await client.user.delete(user.id);
 ### `@appweaver/create` (`create-appweaver`)
 
 Project scaffolding tool. Generates a complete Appweaver application from a template with support for Node and Bun
-runtimes, multiple databases, and optional modules (Redis, queue, scheduler, mailer, templates, locales, Docker), which
-`weaver module add` and `weaver module remove` manage later from the same templates. It also creates module packages,
-a storage or mailer driver with its contract test, or a feature module, ready to publish.
+runtimes, multiple databases, and optional modules (Redis, queue, scheduler, mailer, SMS, templates, locales, time
+series, Docker), which `weaver module add` and `weaver module remove` manage later from the same templates. It also
+creates module packages, a storage, mailer or SMS driver (i.e. for GCS, Postmark or Vonage) with its contract test, or a
+feature module, ready to publish.
 
 ```sh
 npm create @appweaver <name> [description] -- [options]
-npm create @appweaver module <package> [description] -- [--contract storage|mailer|none] [-o dir]
+npm create @appweaver module <package> [description] -- [--contract storage|mailer|sms|none] [-o dir]
 ```
 
 ---
@@ -414,7 +419,9 @@ npm run test
 ```
 
 It fails below 80% of the branches covered. Jest maps every `@appweaver/*` import to the sources of its package, so
-the tests need no build.
+the tests need no build. A test also checks `appweaver.example.json`, `.env.example` and the
+[configuration reference](./skill/references/configuration.md) against the config sections of every module, so a new
+or changed config key is added to all three.
 
 ### Releasing
 

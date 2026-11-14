@@ -1,8 +1,9 @@
 import { Command } from 'commander';
 import { assertEnvs, runProcess, setAiDangerousActionConsent } from '../utils';
+import { checkMigration } from './check-migration';
 
 /**
- * Registers the `migration` command, creating and resetting the database migrations.
+ * Registers the `migration` command, creating and checking the database migrations, and resetting the database.
  *
  * @param {Command} program - The program to register the command on.
  */
@@ -10,7 +11,9 @@ export function migrationCommand(program: Command): void {
   const migration = program
     .command('migration')
     .alias('mgn')
-    .description('Create the database migrations and reset the database.');
+    .description(
+      'Create and check the database migrations, and reset the database.'
+    );
 
   migration
     .command('new')
@@ -20,6 +23,28 @@ export function migrationCommand(program: Command): void {
       setAiDangerousActionConsent();
       process.exit(
         await runProcess('prisma', ['migrate', 'dev', '--name', name])
+      );
+    });
+
+  migration
+    .command('check')
+    .description(
+      'Check whether the models need a new migration, printing its SQL.'
+    )
+    .option(
+      '--model-pattern <pattern>',
+      'Glob pattern of the model files. (default: from config)'
+    )
+    .option(
+      '--no-prune',
+      'Keep the framework models the project does not use (auth data model, File, Seeder).'
+    )
+    .action(async (_, command: Command) => {
+      process.exit(
+        await checkMigration({
+          modelPattern: command.getOptionValue('modelPattern'),
+          prune: command.getOptionValue('prune')
+        })
       );
     });
 

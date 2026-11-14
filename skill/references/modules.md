@@ -339,27 +339,28 @@ export default defineModule({
 npm create @appweaver module @acme/appweaver-gcs "Google Cloud Storage driver" -- --contract storage
 npx @appweaver/create module @acme/appweaver-audit                       # a feature module
 npx @appweaver/create module appweaver-postmark --contract mailer -o ./postmark
+npx @appweaver/create module @acme/appweaver-vonage "Vonage SMS sender" --contract sms
 ```
 
-| Option                   | Description                                                                         | Default                        |
-|--------------------------|-------------------------------------------------------------------------------------|--------------------------------|
-| `<package>`              | npm name of the package, i.e. `@acme/appweaver-gcs`                                 | —                              |
-| `[description]`          | Description of the package                                                          | `Appweaver module`             |
-| `-o, --output-dir <dir>` | Directory of the package                                                            | package name without its scope |
-| `--contract <contract>`  | Contract its driver implements: `storage`, `mailer`, or `none` for a feature module | `none`                         |
+| Option                   | Description                                                                      | Default                        |
+|--------------------------|----------------------------------------------------------------------------------|--------------------------------|
+| `<package>`              | npm name of the package, i.e. `@acme/appweaver-gcs`                              | —                              |
+| `[description]`          | Description of the package                                                       | `Appweaver module`             |
+| `-o, --output-dir <dir>` | Directory of the package                                                         | package name without its scope |
+| `--contract <contract>`  | Contract its driver implements: `storage`, `mailer`, `sms`, `none` for a feature | `none`                         |
 
 The short name of the module strips the scope and the `appweaver-` prefix (`@acme/appweaver-gcs` → `gcs`), and is the
 name of its provider. The package holds:
 
-| File                                              | Holds                                                                                                                                 |
-|---------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| `package.json`                                    | The `appweaver.module` field, the keyword `appweaver-module`, `@appweaver/common`, `@appweaver/core` and TypeBox as peer dependencies |
-| `src/module.ts`                                   | The manifest, named after the package, with its `framework` range and its provider or `main`                                          |
-| `src/config.ts`                                   | Its section: `<contract>.<name>` for a driver (`storage.gcs`, `STORAGE_GCS_*`), `<name>` for a feature module                         |
-| `src/storage.ts` / `src/mailer.ts`                | The driver class `<Name>Storage` / `<Name>Mailer`, an in-memory stub passing the contract suite, to replace with the service calls    |
-| `src/main.ts`                                     | The startup code of a feature module, logging with `createLogger('<name>')` (`log.levels.<name>`)                                     |
-| `test/*.test.ts`                                  | The contract suite of the driver, or a test of the manifest and its `loggers` (`sourceLoggerNames`)                                   |
-| `tsconfig*.json`, `jest.config.json`, `README.md` | The build, the Jest setup with SWC, and the usage                                                                                     |
+| File                                              | Holds                                                                                                                                            |
+|---------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `package.json`                                    | The `appweaver.module` field, the keyword `appweaver-module`, `@appweaver/common`, `@appweaver/core` and TypeBox as peer dependencies            |
+| `src/module.ts`                                   | The manifest, named after the package, with its `framework` range and its provider or `main`                                                     |
+| `src/config.ts`                                   | Its section: `<contract>.<name>` for a driver (`storage.gcs`, `STORAGE_GCS_*`), `<name>` for a feature module                                    |
+| `src/storage.ts` / `src/mailer.ts` / `src/sms.ts` | The driver class `<Name>Storage` / `<Name>Mailer` / `<Name>Sms`, an in-memory stub passing the contract suite, to replace with the service calls |
+| `src/main.ts`                                     | The startup code of a feature module, logging with `createLogger('<name>')` (`log.levels.<name>`)                                                |
+| `test/*.test.ts`                                  | The contract suite of the driver, or a test of the manifest and its `loggers` (`sourceLoggerNames`)                                              |
+| `tsconfig*.json`, `jest.config.json`, `README.md` | The build, the Jest setup with SWC, and the usage                                                                                                |
 
 ```sh
 cd appweaver-gcs && npm install && npm test && npm publish
@@ -382,14 +383,14 @@ testStorageContract('GcsStorage', () => new GcsStorage());
 A driver of an external service runs the suite on an in-memory stand-in of its client, the way `@appweaver/redis` runs
 `testMemoryContract` on `ioredis-mock` (`jest.mock('ioredis', ...)`), or on a real service in an integration test.
 
-| Suite                   | Contract    | Tests                                                                                                                                               |
-|-------------------------|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `testMemoryContract`    | `Memory`    | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check                                                               |
-| `testStorageContract`   | `Storage`   | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, the health check                                                          |
-| `testQueueContract`     | `Queue`     | A job processed by a worker and its result, a failed job, a given job id and an ignored send of one still queued, closing a queue, the health check |
-| `testSchedulerContract` | `Scheduler` | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)                                                          |
-| `testMailerContract`    | `Mailer`    | Sending an email with every field of the contract, the health check                                                                                 |
-| `testSmsContract`       | `SmsSender` | Sending a text message with and without a sender, the name of its health check, the health check                                                    |
+| Suite                    | Contract     | Tests                                                                                                                                                                                            |
+|--------------------------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `testMemoryContract`     | `Memory`     | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check                                                                                                            |
+| `testStorageContract`    | `Storage`    | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, the health check                                                                                                       |
+| `testQueueContract`      | `Queue`      | A job processed by a worker and its result, a failed job, a given job id and an ignored send of one still queued, closing a queue, the health check                                              |
+| `testSchedulerContract`  | `Scheduler`  | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)                                                                                                       |
+| `testMailerContract`     | `Mailer`     | Sending an email with every field of the contract, the health check                                                                                                                              |
+| `testSmsContract`        | `SmsSender`  | Sending a text message with and without a sender, the name of its health check, the health check                                                                                                 |
 | `testTimeSeriesContract` | `TimeSeries` | Writing and merging points, selecting fields and ranges, ordering and limiting, every aggregate by bucket and over the range, deleting a range (a store with `supportsDelete`), the health check |
 
 The suites use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest

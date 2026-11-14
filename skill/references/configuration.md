@@ -48,6 +48,10 @@ for application configuration, committed with the project. These are automatical
 }
 ```
 
+Write a key by its camelCase name in the object of its section, as the JSON Schema of `appweaver.json` describes it,
+so the editor completes and checks it: `SECURITY_ACCOUNT_VERIFY_EMAIL_ENABLED` is `security.account.verifyEmailEnabled`.
+Another nesting of the same name (`"verifyEmail": { "enabled": true }`) loads too, unchecked by the schema.
+
 ### Environment configuration
 
 The overrides of each environment go to the `environments` key of `appweaver.json`, keyed by the environment name. The

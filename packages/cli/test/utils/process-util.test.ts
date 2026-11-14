@@ -32,6 +32,7 @@ import {
   assertEnvs,
   isBunProcess,
   runProcess,
+  runProcessOutput,
   setAiDangerousActionConsent
 } from '../../utils/process-util';
 
@@ -218,6 +219,17 @@ describe('process-util', () => {
 
         expect(fkill).not.toHaveBeenCalled();
       }, 30000);
+    });
+  });
+
+  describe('runProcessOutput', () => {
+    test('collects the standard and error output with the exit code', async () => {
+      await expect(
+        runProcessOutput('node', [
+          '-e',
+          "\"process.stdout.write('out'); process.stderr.write('err'); process.exit(2)\""
+        ])
+      ).resolves.toEqual({ code: 2, stdout: 'out', stderr: 'err' });
     });
   });
 

@@ -95,8 +95,8 @@ their prefix:
 | `FileError`          | `@appweaver/common` | `FILE_`          | The file service and storage                                                             |
 | `ExportError`        | `@appweaver/common` | `EXPORT_`        | The data export                                                                          |
 | `QueueError`         | `@appweaver/common` | `QUEUE_`         | The queues                                                                               |
-| `MailerError`        | `@appweaver/common` | `MAILER_`        | The email service, wrapping the error of the mailer                                      |
-| `SmsError`           | `@appweaver/common` | `SMS_`           | An SMS sender, i.e. a message Twilio rejects                                             |
+| `MailerError`        | `@appweaver/common` | `MAILER_`        | A mailer, i.e. an email the SMTP server rejects, or the email service wrapping its error |
+| `SmsError`           | `@appweaver/common` | `SMS_`           | An SMS sender, i.e. a message Twilio rejects, or the SMS service wrapping its error      |
 | `TemplateError`      | `@appweaver/common` | `TEMPLATE_`      | The template engine: a missing, unreadable or failing template                           |
 | `LocaleError`        | `@appweaver/common` | `LOCALE_`        | The locale service: an unreadable file or an invalid message                             |
 | `LockError`          | `@appweaver/common` | `LOCK_`          | A lock that could not be acquired                                                        |

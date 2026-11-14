@@ -49,7 +49,7 @@ function createModel(config: ResourceModelConfig, override ?: Partial<ResourceMo
 | `virtual`          | Record\<string, VirtualField>  | no       | -                     | Computed/virtual fields not stored in database.                     |
 | `read`             | OperationConfig                | no       | -                     | Pick/omit fields for the read DTO.                                  |
 | `create`           | OperationConfig                | no       | -                     | Pick/omit fields for the create DTO.                                |
-| `update`           | OperationConfig                | no       | -                     | Pick/omit fields for the update DTO.                                |
+| `update`           | OperationConfig                | no       | -                     | Pick/omit fields for the update and replace DTOs (PATCH and PUT).   |
 | `export`           | Record\<string, ExportField>   | no       | -                     | CSV export field configuration.                                     |
 | `index`            | string[] \| string[][]         | no       | -                     | Database index definitions (`-field` desc, `+field` asc).           |
 | `unique`           | string[] \| string[][]         | no       | -                     | Composite unique constraints, in the same shape as `index`.         |
@@ -863,6 +863,12 @@ const config = {
 | `omit`   | string[] | Fields to exclude from the DTO.                |
 | `pick`   | string[] | Fields to include in the DTO (overrides omit). |
 
+`read` shapes the output of every read (`<Model>Single` and `<Model>Multiple`), `create` the `<Model>Create` input,
+and `update` both `<Model>Update` (`PATCH`) and `<Model>Replace` (`PUT`), so the two update routes always accept the
+same fields. The same holds for the `input: { type: 'update' }` of a relation or a virtual field, which `PUT` accepts
+too. There is no separate replace config: the routes differ only by what an omitted field means (see
+[update routes](#update-routes-update-replace)).
+
 A create or update request sending a field its DTO excludes is rejected with a `400` `VALIDATION_FAILED` error naming
 the field (`rule: "additionalProperties"`).
 
@@ -1523,9 +1529,12 @@ Extends RouteConfig with caching options:
 | Property                | Type               | Default | Description                                                    |
 |-------------------------|--------------------|---------|----------------------------------------------------------------|
 | `cache`                 | boolean            | `false` | Enable response caching.                                       |
-| `cacheKey`              | string \| function | -       | Custom cache key. Function signature: `(req, user) => string`. |
 | `cacheTTL`              | number             | -       | Cache TTL in milliseconds (overrides global default).          |
 | `cacheSkipInvalidation` | boolean            | `false` | Skip automatic cache invalidation on writes.                   |
+
+The cache key of a resource route is built from the model, the route, the request and the user, so the
+invalidation of the model's writes reaches it. A custom `cacheKey`, with `cacheModelName` and `cacheRelations`, is an
+option of the custom routes of [`registerRoute`](#registerroute) only.
 
 ### Query route config (query, aggregate)
 
@@ -1547,12 +1556,14 @@ Keep POST for large filters, since Node.js limits the request headers to 16 KB. 
 
 ### Update routes (update, replace)
 
-Both routes share the policies, hooks, cache invalidation, and `update` event:
+Both routes share the input fields (the `update` operation config of the model), the policies, the `beforeUpdate`
+and `afterUpdate` hooks, the cache invalidation, and the `update` event:
 
 - `PATCH /:id` (`service.update`) updates the given fields (`<Model>Update`, all optional).
 - `PUT /:id` (`service.replace`) replaces the resource (`<Model>Replace`, required fields as on create). Omitted fields
   are reset to their `default`, or `null` when optional. Hidden fields, files, and omitted optional relations stay
-  untouched.
+  untouched. The hooks receive the completed data, the reset fields included, so they see a replacement as an update
+  of every field.
 
 The `update` config applies to both routes, and `replace` overrides it for `PUT /:id` only, merged the same way as the
 [route defaults](#route-defaults) (`exclude` included). Setting `replace` alone never affects `PATCH /:id`.
