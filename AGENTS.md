@@ -1114,6 +1114,7 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 | `sample/inbox-processor` | Node    | SQLite + Redis     | A file and API fed BullMQ pipeline with retries, a local module with a watcher service and routes          |
 | `sample/reports-worker`  | Node    | SQLite             | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener            |
 | `sample/loan-calculator` | Node    | —                  | Core only (no data, no web): a local module, its config, a cached calculator service, `weaver run` tasks   |
+| `sample/vehicle-tracking-api` | Node | PostgreSQL (PostGIS) | Geo fields of every type on the `postgis` provider (`_near`, `_within`, `_withinBox`, `_intersects`), telemetry of an API key gateway building trips and raising geofence, speed and route alerts, vehicle readings in a TimescaleDB hypertable, a trip simulator task |
 
 - `reports-worker` (`--add scheduler docker --exclude web`) and `loan-calculator` (`--exclude data web`) show the
   applications without a
@@ -1123,7 +1124,10 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 - The PostgreSQL, MySQL and SQL Server samples start their database with `docker compose up -d postgres redis` (or
   `mysql`, `sqlserver`); their end-to-end tests run against a `-test` database of the same container. The SQL Server
   sample connects as `sa` (`${DB_USER:-sa}`), whose password SQL Server requires to be complex. The PostgreSQL
-  service of `webshop-api` runs the TimescaleDB image.
+  service of `webshop-api` runs the TimescaleDB image, the one of `vehicle-tracking-api` the `timescaledb-ha` image
+  holding PostGIS too, published on the host port 5433 (`${DB_PORT:-5433}` in its URL, `5432` in the compose
+  services) so it runs beside a local PostgreSQL. Its end-to-end files run one at a time (`maxWorkers: 1`), since the
+  reset of a file racing another one on a database server drops the migrations table under it.
 - Like a generated project, every sample configures its database and Redis URLs in `appweaver.json`, referencing the
   database password of `.env` (copied from `.env.example`) as `${DB_PASSWORD}`, and the hosts as
   `${DB_HOST:-localhost}` and `${REDIS_HOST:-localhost}`, which the compose application services override. The database

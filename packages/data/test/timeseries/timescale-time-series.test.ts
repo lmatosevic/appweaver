@@ -115,20 +115,51 @@ describe('TimescaleTimeSeries', () => {
     expect(client.$queryRaw).not.toHaveBeenCalled();
   });
 
-  test('creates the extension when missing, failing when it cannot', async () => {
+  test('creates the extension when missing under a lock, failing when it cannot', async () => {
     configOverrides.DATABASE_TYPE = DatabaseType.PostgreSQL;
     const client = {
       $queryRaw: jest.fn(async () => []),
-      $executeRawUnsafe: jest.fn(async () => {
-        throw new Error('permission denied');
+      $executeRawUnsafe: jest.fn(async (sql: string) => {
+        if (sql.startsWith('CREATE')) {
+          throw new Error('permission denied');
+        }
       })
     };
-    define({ client: () => client }, Database);
+    define(
+      {
+        client: () => client,
+        transaction: async (fn: (tx: unknown) => unknown) => fn(client)
+      },
+      Database
+    );
 
     await expect(
       new TimescaleTimeSeries().register([contractSeriesModel])
     ).rejects.toMatchObject({ code: ErrorCode.ConfigurationInvalid });
-    expect(client.$executeRawUnsafe).toHaveBeenCalledWith(
+    expect(client.$executeRawUnsafe.mock.calls.map(([sql]) => sql)).toEqual([
+      `SELECT pg_advisory_xact_lock(hashtext('appweaver:timeseries'))`,
+      'CREATE EXTENSION IF NOT EXISTS timescaledb'
+    ]);
+  });
+
+  test('creates no extension another instance created while it waited for the lock', async () => {
+    configOverrides.DATABASE_TYPE = DatabaseType.PostgreSQL;
+    const client = { $queryRaw: jest.fn(async () => []) };
+    const tx = {
+      $queryRaw: jest.fn(async () => [{ extversion: '2.31.0' }]),
+      $executeRawUnsafe: jest.fn(async () => 0)
+    };
+    define(
+      {
+        client: () => client,
+        transaction: async (fn: (tx: unknown) => unknown) => fn(tx)
+      },
+      Database
+    );
+
+    await new TimescaleTimeSeries().register([contractSeriesModel]);
+
+    expect(tx.$executeRawUnsafe).not.toHaveBeenCalledWith(
       'CREATE EXTENSION IF NOT EXISTS timescaledb'
     );
   });

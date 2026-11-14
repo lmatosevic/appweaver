@@ -122,8 +122,8 @@ The `database` store on PostgreSQL with the [TimescaleDB](https://www.timescale.
 `timescale/timescaledb` image). When the application starts, it creates the extension when missing, turns every series
 table into a hypertable partitioned by time (`create_hypertable`, without its default indexes, so the schema stays the
 one of the Prisma migrations and `weaver migration new` sees no drift), and keeps the compression and retention policies
-of each model in line with its `seriesOptions`, adding, replacing or removing them, under an advisory lock so starting
-instances set them up once. The buckets use `time_bucket`.
+of each model in line with its `seriesOptions`, adding, replacing or removing them, all under an advisory lock so
+starting instances set them up once. The buckets use `time_bucket`.
 
 ```json
 {

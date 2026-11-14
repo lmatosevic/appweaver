@@ -88,18 +88,33 @@ export class TimescaleTimeSeries extends DatabaseTimeSeries {
 
   /** @internal */
   private async ensureExtension(): Promise<void> {
-    const rows: unknown[] = await this.client().$queryRaw(
-      sqltag`SELECT extversion FROM pg_extension WHERE extname = 'timescaledb'`
-    );
-    if (rows.length > 0) {
+    const installed = async (db: any) =>
+      (
+        (await db.$queryRaw(
+          sqltag`SELECT extversion FROM pg_extension WHERE extname = 'timescaledb'`
+        )) as unknown[]
+      ).length > 0;
+    if (await installed(this.client())) {
       return;
     }
 
     try {
-      await this.client().$executeRawUnsafe(
-        'CREATE EXTENSION IF NOT EXISTS timescaledb'
+      // Under the lock of the setup, since a CREATE EXTENSION IF NOT EXISTS
+      // racing another instance starting fails with a unique violation
+      await this._db.transaction(
+        async (tx) => {
+          await tx.$executeRawUnsafe(
+            `SELECT pg_advisory_xact_lock(hashtext('appweaver:timeseries'))`
+          );
+          if (!(await installed(tx))) {
+            await tx.$executeRawUnsafe(
+              'CREATE EXTENSION IF NOT EXISTS timescaledb'
+            );
+            logger.info('Created the timescaledb extension');
+          }
+        },
+        { timeout: timescaleConfig.SETUP_TIMEOUT }
       );
-      logger.info('Created the timescaledb extension');
     } catch (error) {
       throw new ConfigurationError(
         ErrorCode.ConfigurationInvalid,
