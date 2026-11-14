@@ -1,0 +1,102 @@
+services:
+  postgres:
+    # TimescaleDB with PostGIS, for the time series and the geo fields
+    image: timescale/timescaledb-ha:pg18.6-ts2.32.0
+    container_name: vehicle-tracking-api-postgres
+    restart: unless-stopped
+    healthcheck:
+      test: "PGPASSWORD=$$POSTGRES_PASSWORD psql -U $$POSTGRES_USER -d $$POSTGRES_DB -c 'SELECT 1'"
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+      start_interval: 5s
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_DB: "${DB_NAME:-vehicle-tracking-api}"
+      POSTGRES_USER: "${DB_USER:-vehicle-tracking-api}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - postgres-data:/home/postgres/pgdata
+    networks:
+      - vehicle-tracking-api
+
+  vehicle-tracking-api.migrations:
+    image: vehicle-tracking-api:latest
+    container_name: vehicle-tracking-api-migrations
+    restart: no
+    build:
+      context: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+    command: [ "migrations" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+    networks:
+      - vehicle-tracking-api
+
+  vehicle-tracking-api.seed:
+    image: vehicle-tracking-api:latest
+    container_name: vehicle-tracking-api-seed
+    restart: no
+    build:
+      context: .
+    depends_on:
+      vehicle-tracking-api.migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+    command: [ "seed" ]
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+    networks:
+      - vehicle-tracking-api
+
+  vehicle-tracking-api:
+    image: vehicle-tracking-api:latest
+    container_name: vehicle-tracking-api
+    restart: unless-stopped
+    build:
+      context: .
+    healthcheck:
+      test: "wget -qO - http://127.0.0.1:5008/health/ready || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
+    depends_on:
+      vehicle-tracking-api.seed:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:5008:5008"
+    volumes:
+      - ./storage:/usr/app/storage
+      - ./logs:/usr/app/logs
+    env_file:
+      - .env
+    environment:
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+    networks:
+      - vehicle-tracking-api
+
+networks:
+  vehicle-tracking-api:
+    driver: bridge
+    name: vehicle-tracking-api-network
+
+volumes:
+  postgres-data:
