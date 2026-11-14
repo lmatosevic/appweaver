@@ -8,6 +8,7 @@ import {
   ConfigurationError,
   countFieldName,
   createLogger,
+  distanceFieldName,
   Database,
   defaultScalarValue,
   ErrorCode,
@@ -75,7 +76,8 @@ import {
   queryFingerprint
 } from './utils/cursor-util';
 import { mapQueryFilter } from './utils/filter-util';
-import { mapStableSortValues } from './utils/sort-util';
+import { mapStableSortValues, sortEntries } from './utils/sort-util';
+import { SpatialDistances, SpatialService } from '../spatial/spatial-service';
 
 const logger = createLogger('resource');
 
@@ -195,8 +197,9 @@ export abstract class ResourceService<
    *   `_not`, `_nor`), comparison (`_eq`, `_ne`, `_gt`, `_gte`, `_lt`, `_lte`,
    *   `_in`, `_nin`, `_between`, `_like`, `_ilike`, `_starts`, `_ends`,
    *   `_contains`, `_exists`), list (`_has`, `_hasSome`, `_hasEvery`,
-   *   `_isEmpty`), and relation (`_some`, `_every`, `_none`) operators, as well
-   *   as plain field values. Its `searchText` property, if present, is passed to
+   *   `_isEmpty`), relation (`_some`, `_every`, `_none`), and geo field
+   *   (`_near`, `_within`, `_withinBox`, `_intersects`) operators, as well as
+   *   plain field values. Its `searchText` property, if present, is passed to
    *   {@link ResourceService.textSearchQuery} instead of being matched as a
    *   field.
    * - `page` The one-based page number of results to return, ignored when a
@@ -208,7 +211,8 @@ export abstract class ResourceService<
    *   `{ createdAt: 'desc', id: 'asc' }`). Both forms support the fields of the
    *   included to-one relations, given with a dot notation (`author.createdAt`)
    *   or as a nested object (`{ author: { createdAt: 'desc' } }`) (default:
-   *   `-createdAt`).
+   *   `-createdAt`). A geo field, alone, sorts by the distance from the point
+   *   of its `_near` filter.
    * - `cursor` The cursor of the page to return, as issued in the `nextCursor`
    *   or `prevCursor` of an earlier response, which also carries the direction
    *   the page runs in. Takes precedence over `page`.
@@ -216,11 +220,13 @@ export abstract class ResourceService<
    *   of every one of them (default: `true`).
    * @return {Promise<QueryResponse<Object>>} The paged query response containing
    * the returned resources, the count of the returned items, the cursors of the
-   * adjacent pages, and the total count unless it was opted out of.
+   * adjacent pages, and the total count unless it was opted out of. A resource
+   * matched by the `_near` filter of a geo field carries its distance in meters
+   * as `<field>Distance`.
    * @throws {@link ResourceError} `RESOURCE_INVALID_SORT` if the sort input names
    * a field that cannot be sorted by, `RESOURCE_INVALID_CURSOR` if the cursor
-   * was issued for another filter or sort order, and a {@link DatabaseError} on
-   * a database error.
+   * was issued for another filter or sort order, a {@link SpatialError} on an
+   * invalid geo field filter, and a {@link DatabaseError} on a database error.
    */
   public async query(
     options: QueryOptions<ReadMany, Query> = {}
@@ -234,7 +240,13 @@ export abstract class ResourceService<
       totalCount = true
     } = options;
 
-    const query = await this.queryConditions('query', filter);
+    const distanceSort = this.distanceSort(sort);
+    if (distanceSort) {
+      return this.queryByDistance(distanceSort, options);
+    }
+
+    const distances: SpatialDistances = new Map();
+    const query = await this.queryConditions('query', filter, distances);
     const includeRelations = mapRelationInclusions(this._client.name, 'query');
     const orderBy = mapStableSortValues(sort, this._client.name, 'query');
 
@@ -286,6 +298,7 @@ export abstract class ResourceService<
     const hasNext = backward || hasMore;
     const hasPrev = backward ? hasMore : !!decodedCursor || page > 1;
 
+    setDistances(resources, distances);
     this._events.emitResourceEvent(this._client.name, 'query', {
       current: resources
     });
@@ -321,24 +334,38 @@ export abstract class ResourceService<
     filter: Query = {} as Query,
     sort: QuerySort<ReadOne> = '-createdAt'
   ): Promise<ReadOne | null> {
-    const where = await this.queryConditions('query', filter);
     const includeRelations = mapRelationInclusions(this._client.name, 'find');
-    const orderBy = mapStableSortValues(sort, this._client.name, 'find');
+    const distanceSort = this.distanceSort(sort);
 
+    const distances: SpatialDistances = new Map();
     let resource: ReadOne | null;
-    try {
-      resource = await this._client.findFirst({
-        where,
-        include: includeRelations,
-        orderBy
-      });
-    } catch (e) {
-      throw this.databaseError(e);
+    if (distanceSort) {
+      const { ids } = await this.distanceOrderedIds(
+        distanceSort,
+        filter,
+        distances
+      );
+      resource = ids.length
+        ? (await this.findByIds<ReadOne>([ids[0]], includeRelations))[0]
+        : null;
+    } else {
+      const where = await this.queryConditions('query', filter, distances);
+      const orderBy = mapStableSortValues(sort, this._client.name, 'find');
+      try {
+        resource = await this._client.findFirst({
+          where,
+          include: includeRelations,
+          orderBy
+        });
+      } catch (e) {
+        throw this.databaseError(e);
+      }
     }
 
     if (!resource) {
       return null;
     }
+    setDistances([resource], distances);
 
     const access = await this.applyAccessCheck('find', resource);
     if (!access) {
@@ -1150,14 +1177,189 @@ export abstract class ResourceService<
    */
   private async queryConditions(
     action: Exclude<ActionType, 'create'>,
-    filter: Query
+    filter: Query,
+    distances?: SpatialDistances
   ): Promise<{ AND: any[] }> {
     const restrictions = await this.applyReadRestrictions(action, filter);
     const textSearch = this.extractTextSearchQuery(filter);
-    const mappedFilter = mapQueryFilter(filter, this._client.name);
+
+    // The conditions of the geo fields are resolved first (see SpatialService),
+    // collecting the distances of their `_near` operators
+    const spatial = await inject(SpatialService, false)?.resolveFilter(
+      filter,
+      this._client.name
+    );
+    spatial?.distances.forEach((byId, field) => distances?.set(field, byId));
+    const mappedFilter = mapQueryFilter(
+      spatial?.filter ?? filter,
+      this._client.name
+    );
 
     return {
       AND: [mappedFilter, textSearch, restrictions, ...this.liveFilters()]
+    };
+  }
+
+  /**
+   * Reads the sort by the distance of a geo field: the field alone, its
+   * records ordered by their distance from the point of its `_near` filter.
+   *
+   * @throws {ResourceError} `RESOURCE_INVALID_SORT` when the geo field is
+   * sorted by along other fields.
+   * @internal
+   */
+  private distanceSort(
+    sort: QuerySort<any>
+  ): { field: string; direction: 'asc' | 'desc' } | undefined {
+    const geo = injectModel(this._client.name, false)?.config.geo;
+    if (!geo || sort === undefined || sort === null) {
+      return undefined;
+    }
+
+    const entries = sortEntries(sort as any);
+    const geoEntry = entries.find(([path]) => geo[path]);
+    if (!geoEntry) {
+      return undefined;
+    }
+    if (entries.length > 1) {
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidSort,
+        `Sorting by the distance of '${geoEntry[0]}' takes no other sort field`,
+        { field: geoEntry[0] }
+      );
+    }
+    return { field: geoEntry[0], direction: geoEntry[1] };
+  }
+
+  /**
+   * Lists the ids of the records matching a filter, ordered by the distance of
+   * a geo field from the point of its `_near` filter, then by their id.
+   *
+   * @throws {ResourceError} `RESOURCE_INVALID_SORT` when the filter has no
+   * `_near` operator on the geo field.
+   * @internal
+   */
+  private async distanceOrderedIds(
+    sort: { field: string; direction: 'asc' | 'desc' },
+    filter: Query,
+    spatialDistances: SpatialDistances
+  ): Promise<{ ids: ResourceId[]; query: { AND: any[] } }> {
+    const query = await this.queryConditions('query', filter, spatialDistances);
+    const distances = spatialDistances.get(sort.field);
+    if (!distances) {
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidSort,
+        `Sorting by the distance of '${sort.field}' needs a _near filter on it`,
+        { field: sort.field }
+      );
+    }
+
+    let records: { id: ResourceId }[];
+    try {
+      records = await this._client.findMany({
+        where: query,
+        select: { id: true }
+      });
+    } catch (e) {
+      throw this.databaseError(e);
+    }
+
+    const sign = sort.direction === 'desc' ? -1 : 1;
+    const ids = records
+      .map((record) => record.id)
+      .sort(
+        (a, b) =>
+          sign * (distances.get(a)! - distances.get(b)!) ||
+          (a === b ? 0 : a < b ? -1 : 1)
+      );
+    return { ids, query };
+  }
+
+  /**
+   * Reads the records of a list of ids in its order.
+   *
+   * @internal
+   */
+  private async findByIds<T>(ids: ResourceId[], include: any): Promise<T[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    let records: T[];
+    try {
+      records = await this._client.findMany({
+        where: { id: { in: ids } },
+        include
+      });
+    } catch (e) {
+      throw this.databaseError(e);
+    }
+    const byId = new Map(records.map((record: any) => [record.id, record]));
+    return ids.map((id) => byId.get(id)).filter(Boolean) as T[];
+  }
+
+  /**
+   * Queries a page of the records ordered by the distance of a geo field, see
+   * {@link ResourceService.query}. The matching ids are ordered in memory,
+   * bounded by `spatial.maxCandidates`, then the records of the page are read.
+   *
+   * @internal
+   */
+  private async queryByDistance(
+    sort: { field: string; direction: 'asc' | 'desc' },
+    options: QueryOptions<ReadMany, Query>
+  ): Promise<QueryResponse<ReadMany>> {
+    const {
+      filter = {} as Query,
+      page = 1,
+      size = 50,
+      cursor,
+      totalCount = true
+    } = options;
+
+    const distances: SpatialDistances = new Map();
+    const { ids, query } = await this.distanceOrderedIds(
+      sort,
+      filter,
+      distances
+    );
+    const fingerprint = queryFingerprint(this._client.name, query, [
+      { [sort.field]: sort.direction }
+    ]);
+    const decodedCursor = decodeCursor(cursor, fingerprint);
+
+    let start = (page - 1) * size;
+    let end = start + size;
+    if (decodedCursor) {
+      const index = ids.indexOf(decodedCursor.id);
+      if (index < 0) {
+        throw new ResourceError(
+          ErrorCode.ResourceInvalidCursor,
+          'Invalid pagination cursor'
+        );
+      }
+      [start, end] = decodedCursor.backward
+        ? [Math.max(0, index - size), index]
+        : [index + 1, index + 1 + size];
+    }
+    const pageIds = size > 0 ? ids.slice(start, end) : [];
+
+    const resources = await this.findByIds<ReadMany>(
+      pageIds,
+      mapRelationInclusions(this._client.name, 'query')
+    );
+    const hasNext = end < ids.length;
+    const hasPrev = start > 0;
+
+    setDistances(resources, distances);
+    this._events.emitResourceEvent(this._client.name, 'query', {
+      current: resources
+    });
+
+    return {
+      resultCount: resources.length,
+      totalCount: totalCount ? ids.length : null,
+      ...pageCursors(resources, fingerprint, hasNext, hasPrev),
+      items: resources.map((resource) => this.projectResource(resource))
     };
   }
 
@@ -1411,5 +1613,19 @@ export abstract class ResourceService<
       );
     }
     return translated;
+  }
+}
+
+/**
+ * Sets the distance of each record from the point of the `_near` filter of a geo field, as its `<field>Distance`.
+ */
+function setDistances(resources: any[], distances: SpatialDistances): void {
+  for (const [field, byId] of distances) {
+    for (const resource of resources) {
+      const distance = byId.get(resource.id);
+      if (distance !== undefined) {
+        resource[distanceFieldName(field)] = distance;
+      }
+    }
   }
 }

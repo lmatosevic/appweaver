@@ -166,11 +166,13 @@ time are rejected with a `400` error.
 
 ```json
 {
-  "STORAGE_PATH": "./uploads",
-  "STORAGE_RESERVED_PATHS": [
-    "__keys__"
-  ],
-  "STORAGE_NAME_PATTERN": "{name}-{hash}.{extension}"
+  "config": {
+    "storage": {
+      "path": "./uploads",
+      "reservedPaths": ["__keys__"],
+      "namePattern": "{name}-{hash}.{extension}"
+    }
+  }
 }
 ```
 

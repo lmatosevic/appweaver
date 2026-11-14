@@ -166,6 +166,10 @@ A model with `series` fields gets the `<Model>Series` table of its points in the
 module path, or `auto` with a module package of another store enabled. `weaver test setup` follows the
 provider of the `test` environment.
 
+A `geo` field gets its GeoJSON and bounding box columns, and with the `postgis` provider of `spatial.provider` (the
+default on PostgreSQL) its PostGIS geometry column, a GiST index and the `postgis` extension of the datasource (see
+[spatial](./spatial.md)). The types use the geometry types of `@appweaver/common`, i.e. `GeoPoint`.
+
 The models come from the project and from the `resources` of the enabled modules (see [modules](./modules.md)). The
 framework models reach the schema only when the project uses them: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and
 `ConnectedAccount` with an auth model, `File` when a model declares `files`, and `Seeder` when the seeders directory
@@ -184,11 +188,25 @@ the config sections the enabled modules list in their manifests, so rerun it aft
 ## `weaver migrate`
 
 ```
-weaver migrate|mge
+weaver migrate|mge [options]
 ```
 
-Apply all pending database migrations (`prisma migrate deploy`). Takes no options, creates nothing, and never
-prompts, which makes it the command to run in CI, in containers, and in production.
+Apply all pending database migrations (`prisma migrate deploy`). It creates no migration and never prompts, which
+makes it the command to run in CI, in containers, and in production.
+
+| Option      | Description                                                      | Default |
+|-------------|------------------------------------------------------------------|---------|
+| `--dry-run` | Print the pending migrations and their SQL without applying them | `false` |
+
+`--dry-run` reads the pending migrations from `prisma migrate status` (Prisma has no dry run of `migrate deploy`) and
+prints the `migration.sql` of each one, without changing the database. It exits with an error when `weaver migrate`
+would apply none: on a failed migration to resolve first, diverged histories or an unreachable database. A database
+without a migration history is named, since Prisma migrates it only when it has no tables. Review what a deployment
+applies before running it:
+
+```sh
+NODE_ENV=prod weaver migrate --dry-run
+```
 
 ---
 
@@ -198,14 +216,49 @@ prompts, which makes it the command to run in CI, in containers, and in producti
 weaver migration|mgn [options] [command]
 ```
 
-Create the database migrations and reset the database.
+Create and check the database migrations, and reset the database. They are development commands, run against the
+local database.
 
 **Subcommands:**
 
-| Command           | Description                                  |
-|-------------------|----------------------------------------------|
-| `new <name>`      | Create a new database migration and apply it |
-| `reset [options]` | Reset the database                           |
+| Command           | Description                                                  |
+|-------------------|--------------------------------------------------------------|
+| `new <name>`      | Create a new database migration and apply it                 |
+| `check [options]` | Check whether the models need a new migration, print its SQL |
+| `reset [options]` | Reset the database                                           |
+
+### `weaver migration check`
+
+Tells whether the models changed without a migration, like `makemigrations --check` of Django. It builds the Prisma
+schema from the model files without writing it, compares it with the local database (`prisma migrate diff`, read-only)
+and prints the SQL `weaver migration new` would create.
+
+| Option                      | Description                                        | Default     |
+|-----------------------------|----------------------------------------------------|-------------|
+| `--model-pattern <pattern>` | Glob pattern of the model files                    | from config |
+| `--no-prune`                | Keep the framework models the project does not use | pruned      |
+
+| Exit code | Meaning                                                                                  |
+|-----------|------------------------------------------------------------------------------------------|
+| `0`       | No migration is needed                                                                   |
+| `1`       | A migration is needed, its SQL is printed                                                |
+| `2`       | The check cannot run: pending migrations (run `weaver migrate`), an unreachable database |
+
+```sh
+weaver migration check
+# A migration is needed, it would run:
+#
+# -- AlterTable
+# ALTER TABLE "Category" ADD COLUMN "color" TEXT;
+#
+# Create it with: weaver generate && weaver migration new <name>
+```
+
+- The database must have every migration applied, since it stands for the migrations: a change made to it by hand
+  shows up as a difference.
+- The schema comes from the models, so the check also catches a model changed without `weaver generate`, and then
+  names `weaver generate` in the command to run.
+- In CI, run it after `weaver migrate` on the database of the job, to fail a change that lacks its migration.
 
 ### `weaver migration reset`
 
@@ -398,10 +451,15 @@ Seed the database.
 | `--seeders-dir <dir>`  | Directory of the seeders                                                | from config (`DATABASE_SEEDERS_DIR_PATH`) |
 | `--continue-on-error`  | Continue running the seeders when one throws an error                   | `false`                                   |
 | `--fix-warnings`       | Fix the seeder warnings, like a wrong checksum or a deleted seeder file | `false`                                   |
+| `--dry-run`            | Print the pending seeders and the warnings to fix without running them  | `false`                                   |
 
 The seeders of the enabled modules (their `seeders` directory) run first, each recorded under its module name
 (`billing/1-plans`), then the seeders of the application. A missing seeders directory is skipped with a warning, and
 its recorded seeders are not reported as deleted; the command fails only when no directory is accessible.
+
+With `--dry-run`, the pending seeders are listed but not run, and nothing is recorded: the warnings are still
+reported, and the `--fix-warnings` fixes printed instead of applied. On a database that is not migrated yet, every
+seeder is listed as pending.
 
 ---
 

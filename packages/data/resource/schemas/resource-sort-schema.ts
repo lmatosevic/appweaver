@@ -65,6 +65,19 @@ export function buildQuerySortSchema(model: ResourceModel): TObject {
     properties[fieldName] = SortDirection();
   }
 
+  // A geo field is ordered by its distance from the point of its `_near`
+  // filter, and by nothing else
+  for (const [fieldName, geo] of Object.entries(model.config.geo ?? {})) {
+    if (geo.hidden) {
+      continue;
+    }
+    properties[fieldName] = Type.Optional(
+      StringEnum(SORT_DIRECTIONS, {
+        description: `Sorts by the distance of ${fieldName} from the point of its _near filter, alone`
+      })
+    );
+  }
+
   // A relation holding a list of records is ordered by their count, under the
   // relation name and under its count field name alike
   for (const [fieldName, relation] of Object.entries(

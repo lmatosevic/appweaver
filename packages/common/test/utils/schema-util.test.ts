@@ -101,6 +101,12 @@ describe('schema-util', () => {
       expect(schema['anyOf']).toBeDefined();
     });
 
+    test('keeps a wrapped schema hidden', () => {
+      expect(Nullable(Type.Any({ hidden: true }))['hidden']).toBe(true);
+      expect(Nullable(Type.String({ hidden: true }))['hidden']).toBe(true);
+      expect(Nullable(Type.Any())['hidden']).toBeUndefined();
+    });
+
     test('builds a union for a ref schema', () => {
       const schema = Nullable(Type.Ref('User'));
       expect(schema['anyOf']).toBeDefined();

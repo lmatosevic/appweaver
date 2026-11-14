@@ -96,12 +96,13 @@ their prefix:
 | `FileError`          | `@appweaver/common` | `FILE_`          | The file service and storage                                                             |
 | `ExportError`        | `@appweaver/common` | `EXPORT_`        | The data export                                                                          |
 | `QueueError`         | `@appweaver/common` | `QUEUE_`         | The queues                                                                               |
-| `MailerError`        | `@appweaver/common` | `MAILER_`        | The email service, wrapping the error of the mailer                                      |
-| `SmsError`           | `@appweaver/common` | `SMS_`           | An SMS sender, i.e. a message Twilio rejects                                             |
+| `MailerError`        | `@appweaver/common` | `MAILER_`        | A mailer, i.e. an email the SMTP server rejects, or the email service wrapping its error |
+| `SmsError`           | `@appweaver/common` | `SMS_`           | An SMS sender, i.e. a message Twilio rejects, or the SMS service wrapping its error      |
 | `TemplateError`      | `@appweaver/common` | `TEMPLATE_`      | The template engine: a missing, unreadable or failing template                           |
 | `LocaleError`        | `@appweaver/common` | `LOCALE_`        | The locale service: an unreadable file or an invalid message                             |
 | `LockError`          | `@appweaver/common` | `LOCK_`          | A lock that could not be acquired                                                        |
 | `TimeSeriesError`    | `@appweaver/common` | `TIMESERIES_`    | The time series service and stores: invalid points and queries                           |
+| `SpatialError`       | `@appweaver/common` | `SPATIAL_`       | The geo fields: invalid geometries and spatial filters                                   |
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
@@ -240,6 +241,9 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `TIMESERIES_TOO_MANY_RESOURCES`      | 400    | Too many time series resources        |
 | `TIMESERIES_FORBIDDEN`               | 403    | Time series access forbidden          |
 | `TIMESERIES_UNSUPPORTED`             | 501    | Time series operation not supported   |
+| `SPATIAL_INVALID_GEOMETRY`           | 400    | Invalid geometry                      |
+| `SPATIAL_INVALID_FILTER`             | 400    | Invalid spatial filter                |
+| `SPATIAL_TOO_MANY_CANDIDATES`        | 400    | Too many spatial matches              |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 

@@ -10,7 +10,7 @@ import path from 'node:path';
 import { Database, importModule } from '@appweaver/common';
 import { define } from '@appweaver/core';
 import { Seeder } from '../../seeder/seeder';
-import { resetContext } from '@appweaver/testing';
+import { prismaError, resetContext } from '@appweaver/testing';
 
 type SeederRecord = { id: number; seederName: string; checksum: string };
 
@@ -38,13 +38,7 @@ describe('seeder', () => {
     records = [];
     modules = {};
     table = {
-      findFirst: jest.fn(
-        async ({ where }) =>
-          records.find((r) => r.seederName === where.seederName) ?? null
-      ),
-      findMany: jest.fn(async ({ where }) =>
-        records.filter((r) => !where.seederName.notIn.includes(r.seederName))
-      ),
+      findMany: jest.fn(async () => [...records]),
       create: jest.fn(async ({ data }) => {
         records.push({ id: records.length + 1, ...data });
       }),
@@ -134,6 +128,70 @@ describe('seeder', () => {
 
       await new Seeder(dir, false, true).seed();
       expect(table.delete).toHaveBeenCalledWith({ where: { id: 7 } });
+    });
+
+    test('lists the pending seeders on a dry run, without running or recording them', async () => {
+      const ran = jest.fn();
+      seederFile('1-users.ts', { users: ran });
+      seederFile('2-posts.ts', { posts: ran });
+
+      await new Seeder(dir, false, false, [], true).seed();
+
+      expect(ran).not.toHaveBeenCalled();
+      expect(table.create).not.toHaveBeenCalled();
+      expect(logged(log)).toContain('Would seed 1-users');
+      expect(logged(log)).toContain('Would seed 2-posts');
+      expect(logged(log)).toContain('2 seeders would be executed');
+      expect(logged(log)).toContain('Dry run, no seeder was run.');
+    });
+
+    test.each(['P1003', 'P2021'])(
+      'lists every seeder on a dry run of a database not migrated yet (%s)',
+      async (code) => {
+        seederFile('1-users.ts', { users: jest.fn() });
+        table.findMany.mockRejectedValue(prismaError(code));
+
+        await new Seeder(dir, false, true, [], true).seed();
+
+        expect(logged(log)).toContain('The database is not migrated yet');
+        expect(logged(log)).toContain('Would seed 1-users');
+        expect(logged(log)).toContain('1 seeder would be executed');
+      }
+    );
+
+    test('fails on a database not migrated yet, unless it is a dry run', async () => {
+      const error = prismaError('P2021');
+      table.findMany.mockRejectedValue(error);
+      seederFile('1-users.ts', { users: jest.fn() });
+
+      await expect(new Seeder(dir).seed()).rejects.toBe(error);
+    });
+
+    test('fails on any other database error of a dry run', async () => {
+      const error = prismaError('P1001');
+      table.findMany.mockRejectedValue(error);
+
+      await expect(new Seeder(dir, false, false, [], true).seed()).rejects.toBe(
+        error
+      );
+    });
+
+    test('reports the warnings it would fix on a dry run, without fixing them', async () => {
+      seederFile('1-users.ts', { users: jest.fn() });
+      records.push(
+        { id: 1, seederName: '1-users', checksum: 'old' },
+        { id: 7, seederName: 'removed', checksum: 'x' }
+      );
+
+      await new Seeder(dir, false, true, [], true).seed();
+
+      expect(logged(warn)).toContain('has different checksum');
+      expect(logged(warn)).toContain('seeder removed does not exist');
+      expect(logged(log)).toContain('Fix: seeder checksum would be updated');
+      expect(logged(log)).toContain('Fix: would remove seeder from database');
+      expect(logged(log)).toContain('No pending seeders to execute');
+      expect(table.update).not.toHaveBeenCalled();
+      expect(table.delete).not.toHaveBeenCalled();
     });
 
     test('stops on a failing seeder, unless continuing on errors', async () => {

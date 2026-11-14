@@ -353,6 +353,19 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
   [ErrorCode.TimeSeriesUnsupported]: {
     status: 501,
     title: 'Time series operation not supported'
+  },
+
+  [ErrorCode.SpatialInvalidGeometry]: {
+    status: 400,
+    title: 'Invalid geometry'
+  },
+  [ErrorCode.SpatialInvalidFilter]: {
+    status: 400,
+    title: 'Invalid spatial filter'
+  },
+  [ErrorCode.SpatialTooManyCandidates]: {
+    status: 400,
+    title: 'Too many spatial matches'
   }
 };
 

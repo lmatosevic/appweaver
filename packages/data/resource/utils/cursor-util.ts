@@ -35,6 +35,24 @@ type CursorPayload = {
 };
 
 /**
+ * The key of the value a query condition is fingerprinted as instead of itself, i.e. the spatial filter a list of
+ * matching ids was resolved from, so a cursor stays valid while the records it matches change.
+ */
+export const FINGERPRINT = Symbol('appweaver.fingerprint');
+
+/**
+ * Fingerprints a value as another one, see {@link FINGERPRINT}.
+ *
+ * @param {T} value - The value, an object or a list.
+ * @param {unknown} as - The value fingerprinted in its place.
+ * @return {T} The value.
+ */
+export function fingerprintAs<T extends object>(value: T, as: unknown): T {
+  Object.defineProperty(value, FINGERPRINT, { value: as, enumerable: false });
+  return value;
+}
+
+/**
  * Builds the fingerprint identifying the query a cursor belongs to. A cursor
  * only yields the intended records while the resource, the query, and the order
  * stay the same, so it carries the fingerprint and is rejected on mismatch.
@@ -168,6 +186,10 @@ export function decodeCursor(
  * @return {string} The serialized value.
  */
 function stableStringify(value: any): string {
+  if (value?.[FINGERPRINT] !== undefined) {
+    return stableStringify(value[FINGERPRINT]);
+  }
+
   if (isArray(value)) {
     return `[${value.map(stableStringify).join(',')}]`;
   }

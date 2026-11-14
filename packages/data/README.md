@@ -20,12 +20,14 @@
 - **Resources** – `createModel`, `createService` and `createPolicy`, the resource services with filtering, sorting,
   cursor pagination, aggregation and CSV export, and the transactions.
 - **Auth data model** – `createAuthModel`, `createAuthService`, roles, permissions, API keys, one-time tokens,
-  connected accounts and password hashing.
+  connected accounts, the two-factor methods and recovery codes, and password hashing.
 - **Files** – `FileService` with the File model, storing the files in any `Storage` provider.
 - **Seeders** – `createSeeder` and the database security store.
+- **Time series** – the `database` and `timescale` (TimescaleDB hypertables) stores of the `series` fields of the
+  models, written to `<Model>Series` tables with their retention.
 
 The framework models reach only the applications using them: the auth tables with an auth model, File with a model
-declaring `files`, Seeder with a seeders directory.
+declaring `files`, Seeder with a seeders directory, and the series tables with a model declaring `series`.
 
 ## Installation
 

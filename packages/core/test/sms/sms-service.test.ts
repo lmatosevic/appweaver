@@ -9,6 +9,7 @@ import {
   TemplateEngine
 } from '@appweaver/common';
 import { recordTelemetry, TelemetryRecorder } from '@appweaver/testing';
+import { context } from '../../context';
 import { define } from '../../context/dependency-injection';
 import { SmsService } from '../../sms';
 import { resetContext } from '../fixtures/context-fixture';
@@ -186,6 +187,19 @@ describe('sms-service', () => {
       );
     });
 
+    test('keeps the SMS error of a driver with its own copy of the errors', async () => {
+      const error = Object.assign(new Error('Rejected'), {
+        code: ErrorCode.SmsSendFailed,
+        module: 'sms',
+        details: { provider: 'vonage', status: 400 }
+      });
+      sender.sendSms.mockRejectedValue(error);
+
+      await expect(worker({ data: { to: '+1', text: 'Hi' } })).rejects.toBe(
+        error
+      );
+    });
+
     test('wraps another error of the driver in an SMS error', async () => {
       sender.sendSms.mockRejectedValue(new Error('Socket closed'));
 
@@ -195,6 +209,15 @@ describe('sms-service', () => {
         code: ErrorCode.SmsSendFailed,
         details: { provider: 'Object' }
       });
+    });
+
+    test('names the selected provider in the error', async () => {
+      context.modules.providers.set(SmsSender.name, 'twilio');
+      sender.sendSms.mockRejectedValue(new Error('Socket closed'));
+
+      await expect(
+        worker({ data: { to: '+1', text: 'Hi' } })
+      ).rejects.toMatchObject({ details: { provider: 'twilio' } });
     });
   });
 

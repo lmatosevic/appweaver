@@ -61,6 +61,55 @@ describe('create-module-package', () => {
       );
     });
 
+    test('creates a mailer driver tested by the contract suite', async () => {
+      const files = await createModulePackage({
+        dir,
+        packageName: 'appweaver-postmark',
+        description: 'Postmark mailer',
+        contract: 'mailer'
+      });
+
+      expect(files).toEqual(
+        expect.arrayContaining(['src/mailer.ts', 'test/mailer.test.ts'])
+      );
+      expect(read('src/config.ts')).toContain(
+        "export const postmarkConfig = defineConfig('mailer.postmark'"
+      );
+      expect(read('src/module.ts')).toContain('contract: Mailer');
+      expect(read('src/mailer.ts')).toContain(
+        'export class PostmarkMailer extends Mailer'
+      );
+      expect(read('test/mailer.test.ts')).toContain(
+        "testMailerContract('PostmarkMailer'"
+      );
+      expect(read('README.md')).toContain('MAILER_POSTMARK_*');
+    });
+
+    test('creates an SMS sender tested by the contract suite', async () => {
+      const files = await createModulePackage({
+        dir,
+        packageName: '@acme/appweaver-vonage',
+        description: 'Vonage SMS sender',
+        contract: 'sms'
+      });
+
+      expect(files).toEqual(
+        expect.arrayContaining(['src/sms.ts', 'test/sms.test.ts'])
+      );
+      expect(files).not.toContain('src/main.ts');
+      expect(read('src/config.ts')).toContain(
+        "export const vonageConfig = defineConfig('sms.vonage'"
+      );
+      expect(read('src/module.ts')).toContain('contract: SmsSender');
+      expect(read('src/index.ts')).toContain("export * from './sms';");
+      expect(read('src/sms.ts')).toContain(
+        'export class VonageSms extends SmsSender'
+      );
+      expect(read('test/sms.test.ts')).toContain("testSmsContract('VonageSms'");
+      expect(read('README.md')).toContain('`"sms": { "provider": "vonage" }`');
+      expect(read('README.md')).toContain('SMS_VONAGE_*');
+    });
+
     test('creates a feature module with its own config section', async () => {
       await createModulePackage({
         dir,

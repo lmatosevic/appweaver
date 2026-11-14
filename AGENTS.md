@@ -121,8 +121,13 @@ framework package is added to its manifest, which the `module` test of the packa
 When adding or changing a config key, make sure to also update all the following files:
 
 - **skill/references/configuration.md**: Skill for configuration usage by AI agents
-- **appweaver.example.json**: example defaults as JSON properties
+- **appweaver.example.json**: example defaults as JSON properties, each by its camelCase name in the object of its
+  section, the form of the JSON Schema (`security.account.verifyEmailEnabled`, not `verifyEmail.enabled`)
 - **.env.example**: example defaults as env variables
+
+The `config-examples` test of `packages/cli` checks them against the sections of every framework module: the JSON
+example in the form of the schema with valid values, `.env.example` listing every key with valid values, and
+`configuration.md` naming every key. A new framework package with config is added to the `modules` of the test.
 
 ### Telemetry
 
@@ -256,19 +261,20 @@ useful to library users directly. Helpers internal to a single module go in that
 The database module (`@appweaver/data`), built on Prisma, with `@prisma/client` as a peer dependency. Its `setup`
 loads the resources of the application, then the `resources` of the modules.
 
-| Module        | Purpose                                                                                                                                                        |
-|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `database/`   | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction`, `toDatabaseError` and the telemetry extension                      |
-| `resource/`   | Resource loading (`loadResources`), `ResourceService`, the model, filter, sort and aggregate schemas, the query `utils/`                                       |
-| `factory/`    | `createModel`, `createPolicy` and `createService`                                                                                                              |
-| `security/`   | The auth data model (`createAuthModel`, `hashPassword`, `hasRole`, ...), its config, the auth models (`resources/`), the `database` security store             |
-| `storage/`    | `FileService`, the File model and the image config                                                                                                             |
-| `seeder/`     | `createSeeder` and the Seeder model                                                                                                                            |
-| `export/`     | `ExportService` (CSV)                                                                                                                                          |
-| `timeseries/` | The `database` and `timescale` drivers of `TimeSeries` (the `<Model>Series` tables, SQL per database, the retention deletes, the hypertables) and their config |
-| `types/`      | The auth and storage types, and the generated types of the framework models (`generated.ts`)                                                                   |
-| `utils/`      | Helpers shared by the modules or meant for library users: export, file, model, policy and virtual field utilities                                              |
-| `prisma/`     | The generated Prisma schema, client and migration of the framework models                                                                                      |
+| Module        | Purpose                                                                                                                                                                                    |
+|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `database/`   | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction`, `toDatabaseError` and the telemetry extension                                                  |
+| `resource/`   | Resource loading (`loadResources`), `ResourceService`, the model, filter, sort and aggregate schemas, the query `utils/`                                                                   |
+| `factory/`    | `createModel`, `createPolicy` and `createService`                                                                                                                                          |
+| `security/`   | The auth data model (`createAuthModel`, `hashPassword`, `hasRole`, ...), its config, the auth models (`resources/`), the `database` security store                                         |
+| `storage/`    | `FileService`, the File model and the image config                                                                                                                                         |
+| `seeder/`     | `createSeeder` and the Seeder model                                                                                                                                                        |
+| `export/`     | `ExportService` (CSV)                                                                                                                                                                      |
+| `timeseries/` | The `database` and `timescale` drivers of `TimeSeries` (the `<Model>Series` tables, SQL per database, the retention deletes, the hypertables) and their config                             |
+| `spatial/`    | The `geo` fields: `SpatialService` (the spatial filters), the `postgis` and `database` engines, the Prisma extension writing the geometries and their bounding boxes, the `spatial` config |
+| `types/`      | The auth and storage types, and the generated types of the framework models (`generated.ts`)                                                                                               |
+| `utils/`      | Helpers shared by the modules or meant for library users: export, file, model, policy and virtual field utilities, the write data mapping of the Prisma extensions                         |
+| `prisma/`     | The generated Prisma schema, client and migration of the framework models                                                                                                                  |
 
 **Data development scripts** (run from `packages/data`):
 
@@ -378,25 +384,29 @@ path into another package. Jest maps every `@appweaver/*` import to the sources 
 `jest.config.json`), so the tests need no build and share one instance of each module.
 
 The contract suites of `contracts/` test a driver against the behavior every driver of its contract shares:
-`testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract`, `testMailerContract` and
-`testSmsContract` and
-`testTimeSeriesContract`, each called as `(name, () => driver)` at the top level of a test file. They use the `describe`, `test`, `beforeEach`,
-`afterEach` and `expect` globals, so they run under Jest, Vitest and Bun, and create a fresh driver for every test.
+`testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract`, `testMailerContract`,
+`testSmsContract` and `testTimeSeriesContract`, each called as `(name, () => driver)` at the top level of a test
+file. They use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
+and Bun, and create a fresh driver for every test.
 `InMemory`, `RedisMemory` (on `ioredis-mock`, which runs its Lua scripts), `FilesystemStorage`, `MemoryQueue`,
-`JsonMailer`, `JsonSms`, `TwilioSms` (on a mocked `fetch`), `CronScheduler`, `MemoryTimeSeries`, `DatabaseTimeSeries`
-and `TimescaleTimeSeries` (on SQLite, and on the databases of `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`,
+`JsonMailer`, `SmtpMailer` (on a mocked transport), `JsonSms`, `TwilioSms` (on a mocked `fetch`), `CronScheduler`,
+`MemoryTimeSeries`, `DatabaseTimeSeries` and `TimescaleTimeSeries` (on SQLite, and on the databases of
+`TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`,
 `TIMESERIES_TEST_SQLSERVER_URL` and `TIMESERIES_TEST_TIMESCALE_URL` when set) run them, and so does the test of a driver package scaffolded with
 `npm create @appweaver module`. A change of a contract's shared behavior goes into its
 suite, so every driver is held to it.
+
+The test of the `postgis` engine of the geo fields also runs on a real PostGIS database when `SPATIAL_TEST_POSTGIS_URL`
+is set.
 
 ### `packages/cli`
 
 The `weaver` CLI tool. Entry point: `weaver.ts` → compiled to `dist/weaver.js`.
 
 It needs only `@appweaver/core`. `@appweaver/data` and `@appweaver/web` are optional peer dependencies, loaded lazily by
-the commands needing them (`importPackage` of `utils/package-util.ts`): `generate`, `test setup` and `seed` need data,
-`openapi` needs web. Without the package, they exit with `weaver <command> needs the <package> package` (`openapi`
-with a message naming the disabled `@appweaver/web` module).
+the commands needing them (`importPackage` of `utils/package-util.ts`): `generate`, `test setup`, `seed`,
+`migrate --dry-run` and `migration check` need data, `openapi` needs web. Without the package, they exit with
+`weaver <command> needs the <package> package` (`openapi` with a message naming the disabled `@appweaver/web` module).
 
 See **Section 5** for the full command reference.
 
@@ -475,9 +485,9 @@ version (`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the pu
 | `templates/modules/<name>/`         | The files of a module, deleted when it is removed                                                                    |
 | `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates` and `sms+templates` hold the account templates)        |
 | `templates/translations/en.json`    | The English texts of the scaffolded templates, merged into `locales/en.json` with the mailer                         |
-| `templates/module-package/`         | The files of every module package (`common/`), and those of each contract (`storage/`, `mailer/`, `none/`)           |
+| `templates/module-package/`         | The files of every module package (`common/`), and those of each contract (`storage/`, `mailer/`, `sms/`, `none/`)   |
 
-**Module packages**: `create-appweaver module <package> [description] [--contract storage|mailer|none] [-o dir]`
+**Module packages**: `create-appweaver module <package> [description] [--contract storage|mailer|sms|none] [-o dir]`
 (selected by `module` as the first argument) creates a package in `-o` (by default the package name without its scope)
 from `templates/module-package/common/` and the directory of its contract:
 
@@ -485,16 +495,17 @@ from `templates/module-package/common/` and the directory of its contract:
   `@appweaver/common`, `@appweaver/core` and TypeBox as peer dependencies, `@appweaver/testing` and the test tooling
   (the `scaffoldDependencies` versions) as dev dependencies
 - `src/module.ts` (the manifest, with the framework range), `src/config.ts` (its section) and `src/index.ts`
-- for a driver, the class `<Name>Storage` (`src/storage.ts`) or `<Name>Mailer` (`src/mailer.ts`), a working in-memory
-  stub, and a test running the contract suite of `@appweaver/testing`; for a feature module (`none`, the default),
-  `src/main.ts` and a test of the manifest, checking its `loggers` against the sources
+- for a driver, the class `<Name>Storage` (`src/storage.ts`), `<Name>Mailer` (`src/mailer.ts`) or `<Name>Sms`
+  (`src/sms.ts`), a working in-memory stub, and a test running the contract suite of `@appweaver/testing`; for a
+  feature module (`none`, the default), `src/main.ts` and a test checking the `loggers` of its manifest
 - `tsconfig.json`, `tsconfig.build.json`, `jest.config.json`, `.gitignore` (the template is `gitignore`, since npm
   leaves the `.gitignore` files out of a published package) and `README.md`
 
 The short name (`moduleShortName`) strips the scope and the `appweaver-` prefix (`@acme/appweaver-gcs` → `gcs`) and is
-the provider name. The config section is `<contract>.<name>` for a driver (`storage.gcs`), `<name>` for a feature
-module, both in camelCase. Only `storage` and `mailer` have a driver template, a driver of another contract starts as a
-feature module.
+the provider name. The config section is `<contract>.<name>` for a driver (`storage.gcs`, `sms.vonage`), `<name>` for
+a feature module, both in camelCase. Only `storage`, `mailer` and `sms` have a driver template, a driver of another
+contract starts as a feature module. A new driver template is a directory of `templates/module-package/`, its contract
+in `moduleContracts` and its class suffix in `classSuffixes` (`scaffold/create-module-package.ts`).
 
 A template file can have runtime-specific variants:
 
@@ -650,10 +661,16 @@ models of a module package whose declaration files already augment `ResourceRegi
 Apply pending database migrations (production / CI).
 
 ```
-weaver migrate
+weaver migrate [--dry-run]
 ```
 
-Executes `prisma migrate deploy`.
+Executes `prisma migrate deploy`. Prisma has no dry run of it, so `--dry-run` (`migrate/plan-migrations.ts`) parses
+the pending migrations from the output of `prisma migrate status` (all the migrations of `DATABASE_MIGRATIONS_DIR_PATH`
+on `P1003`, a database that does not exist) and prints the `migration.sql` of each one. Any other status failure is
+printed with the exit code of Prisma. While migrations are pending, that output names neither a failed migration
+(`P3009` on deploy) nor a database without a migration history (`P3005` when it has tables), so the plan reads both
+from the diagnosis of the schema engine in the debug log of the status (`DEBUG=prisma:migrate:status`), and relies on
+the output alone when Prisma logs none.
 
 ---
 
@@ -670,6 +687,27 @@ weaver migration new <name>
 ```
 
 Executes `prisma migrate dev --name <name>`.
+
+#### `weaver migration check`
+
+Check whether the models need a new migration, printing the SQL `weaver migration new` would create.
+
+```
+weaver migration check [options]
+```
+
+| Option                      | Description                                        | Default     |
+|-----------------------------|----------------------------------------------------|-------------|
+| `--model-pattern <pattern>` | Glob of the model files                            | from config |
+| `--no-prune`                | Keep the framework models not used                 | pruned      |
+
+`migration/check-migration.ts` builds the Prisma schema from the models with `buildPrismaSchema` (the content
+`generatePrismaSchema` writes), so a schema file out of date with the models is told apart, writes it to a temporary
+file and runs `prisma migrate diff --from-config-datasource --to-schema <file> --script --exit-code`. The database
+stands for the migrations, since Prisma diffs a migrations directory only with a shadow database URL, so the check
+first fails on pending migrations (`planMigrations`). A project without a migration and a database is compared
+`--from-empty`. It exits with `0` (no migration needed), `1` (needed, the SQL is printed) or `2` (the check cannot
+run), like `diff`.
 
 #### `weaver migration reset`
 
@@ -809,10 +847,14 @@ weaver seed [options]
 | `--seeders-dir <dir>`  | Seeders directory                                          | from config           |
 | `--continue-on-error`  | Continue on seeder errors                                  | false                 |
 | `--fix-warnings`       | Fix seeder warnings (wrong checksum, deleted seeder files) | false                 |
+| `--dry-run`            | Print the pending seeders and the warnings to fix          | false                 |
 
 The seeders of the enabled modules run first, each recorded under its module name (`billing/1-plans`), then the
 seeders of the application. A missing seeders directory is skipped with a warning (its recorded seeders are not
-reported as deleted), and only no accessible directory at all stops the command.
+reported as deleted), and only no accessible directory at all stops the command. With `--dry-run` (the `dryRun` of
+`createSeeder`), the `Seeder` lists the pending seeders without importing them, and reports the warnings and the fixes
+it would make without writing to the database. It reads the recorded seeders in one query, and on a dry run of a
+database not migrated yet (`P1003`, `P2021`) lists every seeder as pending.
 
 ---
 

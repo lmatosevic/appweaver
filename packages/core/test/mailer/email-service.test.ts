@@ -3,12 +3,14 @@ import {
   ErrorCode,
   createLogger,
   Mailer,
+  MailerError,
   Queue,
   SpanKind,
   SpanStatusCode,
   TemplateEngine
 } from '@appweaver/common';
 import { recordTelemetry, TelemetryRecorder } from '@appweaver/testing';
+import { context } from '../../context';
 import { define } from '../../context/dependency-injection';
 import { EmailService } from '../../mailer';
 import { resetContext } from '../fixtures/context-fixture';
@@ -115,14 +117,44 @@ describe('email-service', () => {
       expect(mailer.sendEmail).toHaveBeenCalledWith(email);
     });
 
-    test('wraps a failed sending in a mailer error', async () => {
+    test('keeps the error of the driver', async () => {
+      const error = new MailerError(ErrorCode.MailerSendFailed, 'Rejected', {
+        provider: 'smtp',
+        status: 550
+      });
+      mailer.sendEmail.mockRejectedValueOnce(error);
+
+      await expect(worker({ id: '1', data: email })).rejects.toBe(error);
+    });
+
+    test('keeps the mailer error of a driver with its own copy of the errors', async () => {
+      const error = Object.assign(new Error('Rejected'), {
+        code: ErrorCode.MailerSendFailed,
+        module: 'mailer',
+        details: { provider: 'postmark', status: 422 }
+      });
+      mailer.sendEmail.mockRejectedValueOnce(error);
+
+      await expect(worker({ id: '1', data: email })).rejects.toBe(error);
+    });
+
+    test('wraps another error of the driver in a mailer error', async () => {
       const cause = new Error('SMTP down');
       mailer.sendEmail.mockRejectedValueOnce(cause);
 
       await expect(worker({ id: '1', data: email })).rejects.toMatchObject({
         code: ErrorCode.MailerSendFailed,
-        details: { subject: 'Welcome' },
+        details: { provider: 'Object', subject: 'Welcome' },
         cause
+      });
+    });
+
+    test('names the selected provider in the error', async () => {
+      context.modules.providers.set(Mailer.name, 'smtp');
+      mailer.sendEmail.mockRejectedValueOnce(new Error('SMTP down'));
+
+      await expect(worker({ id: '1', data: email })).rejects.toMatchObject({
+        details: { provider: 'smtp' }
       });
     });
   });

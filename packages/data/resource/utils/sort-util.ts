@@ -107,7 +107,10 @@ export function mapStableSortValues(
  * @return {SortEntry[]} The flattened sort entries, each holding a dot notation field path and its direction.
  * @throws {ResourceError} `RESOURCE_INVALID_SORT` if a sort value is neither a direction nor a nested object of directions.
  */
-function sortEntries(sort: QuerySort, parentPath: string = ''): SortEntry[] {
+export function sortEntries(
+  sort: QuerySort,
+  parentPath: string = ''
+): SortEntry[] {
   if (isString(sort)) {
     return sort
       .split(',')

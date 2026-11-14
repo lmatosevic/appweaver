@@ -8,14 +8,17 @@ import {
   resolveDatabaseType,
   telemetryEnabled,
   TransactionOptions,
-  DatabaseError
+  DatabaseError,
+  hasGeo
 } from '@appweaver/common';
 import { databaseConfig } from './database-config';
 import { createClient } from './create-client';
 import { sqlServerExtension } from './sqlserver-extension';
+import { spatialExtension } from '../spatial/spatial-extension';
 import { telemetryExtension } from './telemetry-extension';
 import { Prisma, PrismaClient } from '../prisma/client/client';
 import {
+  context,
   currentTransaction,
   runInTransaction,
   settleTransaction,
@@ -184,15 +187,24 @@ export class PrismaDatabase extends Database {
         databaseConfig.TYPE,
         databaseConfig.URL
       );
-      let client = createClient();
-      // Extended first, so the span of an operation covers only its query
+      // The outer extension runs first, so the geo values are normalized
+      // before SQL Server serializes the JSON fields, and the telemetry
+      // extension last, so the span of an operation covers only its query
+      let client: any = createClient();
       if (telemetryEnabled('database')) {
-        client = client.$extends(telemetryExtension(dbType)) as PrismaClient;
+        client = client.$extends(telemetryExtension(dbType));
       }
-      this._client =
-        dbType === DatabaseType.SQLServer
-          ? (client.$extends(sqlServerExtension(this)) as PrismaClient)
-          : client;
+      if (
+        [...context.resource.models.values()].some((model) =>
+          hasGeo(model.config)
+        )
+      ) {
+        client = client.$extends(spatialExtension());
+      }
+      if (dbType === DatabaseType.SQLServer) {
+        client = client.$extends(sqlServerExtension(this));
+      }
+      this._client = client as PrismaClient;
     }
     return this._client;
   }

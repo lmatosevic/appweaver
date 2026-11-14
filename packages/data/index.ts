@@ -11,6 +11,7 @@ export * from './resource/schemas';
 export * from './security/create-auth-resources';
 export * from './security/helper';
 export * from './seeder';
+export * from './spatial/spatial-service';
 export * from './storage/file-service';
 export * from './timeseries';
 export * from './types/auth';

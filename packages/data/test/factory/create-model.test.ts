@@ -13,6 +13,150 @@ describe('create-model', () => {
   });
 
   describe('createModel', () => {
+    test('takes the geo fields as GeoJSON, a point input as a { lat, lng } too', () => {
+      const model = createModel({
+        name: 'Store',
+        geo: {
+          location: { type: 'point', description: 'Where it is' },
+          area: { type: 'polygon', required: false },
+          shape: { type: 'geometry', hidden: true }
+        },
+        update: { omit: ['shape'] }
+      });
+      const point = { type: 'Point', coordinates: [15.9, 45.8] };
+      const latLng = { lat: 45.8, lng: 15.9 };
+
+      expect(Value.Check(model.readModel.properties.location, point)).toBe(
+        true
+      );
+      expect(Value.Check(model.readModel.properties.location, latLng)).toBe(
+        false
+      );
+      expect(model.readModel.properties.location.description).toBe(
+        'Where it is'
+      );
+      expect(model.readModel.properties.area.nullable).toBe(true);
+      expect(model.readModel.properties.shape.hidden).toBe(true);
+
+      expect(Value.Check(model.createModel.properties.location, latLng)).toBe(
+        true
+      );
+      expect(Value.Check(model.createModel.properties.shape, latLng)).toBe(
+        true
+      );
+      expect(model.createModel.required).toEqual(['location', 'shape']);
+      expect(Object.keys(model.updateModel.properties)).toEqual([
+        'location',
+        'area'
+      ]);
+      expect(
+        Value.Check(model.createModel.properties.location, {
+          type: 'Point',
+          coordinates: [200, 0]
+        })
+      ).toBe(false);
+    });
+
+    test('returns the distance of a visible geo field, read with its field', () => {
+      const model = createModel({
+        name: 'Store',
+        geo: {
+          location: { type: 'point' },
+          area: { type: 'polygon', required: false },
+          secret: { type: 'point', hidden: true },
+          hideout: { type: 'geometry', hidden: true, required: false }
+        },
+        read: { omit: ['area'] }
+      });
+
+      const distance = model.readModel.properties.locationDistance;
+      expect(Value.Check(distance, 12.5)).toBe(true);
+      expect(Value.Check(distance, -1)).toBe(false);
+      expect(model.readModel.required).not.toContain('locationDistance');
+      expect(Object.keys(model.readModel.properties)).not.toContain(
+        'secretDistance'
+      );
+
+      // The distance leaves with its field, and a hidden field has no input
+      for (const schema of [model.readOneModel, model.readManyModel]) {
+        expect(Object.keys(schema.properties)).toEqual(
+          expect.arrayContaining(['location', 'locationDistance'])
+        );
+        expect(Object.keys(schema.properties)).toEqual(
+          expect.not.arrayContaining([
+            'area',
+            'areaDistance',
+            'secret',
+            'hideout'
+          ])
+        );
+      }
+      expect(Object.keys(model.createOneModel.properties)).toEqual([
+        'location',
+        'area'
+      ]);
+    });
+
+    test('picks the distance of a picked geo field', () => {
+      const model = createModel({
+        name: 'Store',
+        scalars: { name: { type: 'string' } },
+        geo: { location: { type: 'point' }, area: { type: 'polygon' } },
+        read: { pick: ['id', 'location'] }
+      });
+      expect(Object.keys(model.readOneModel.properties)).toEqual([
+        'id',
+        'location',
+        'locationDistance'
+      ]);
+    });
+
+    test.each([
+      [{ location: { type: 'circle' } }, "has the type 'circle'"],
+      [{ name: { type: 'point' } }, "'name' is another field"],
+      [
+        { location: { type: 'point' }, locationGeom: { type: 'point' } },
+        "'locationGeom' is another field"
+      ],
+      [
+        { location: { type: 'point' }, locationDistance: { type: 'point' } },
+        "'locationDistance' is another field"
+      ],
+      [{ 'bad-name': { type: 'point' } }, 'must be an identifier']
+    ])('rejects the geo fields %j', (geo, message) => {
+      expect(() =>
+        createModel({
+          name: 'Store',
+          scalars: { name: { type: 'string' } },
+          geo: geo as any
+        })
+      ).toThrow(
+        expect.objectContaining({
+          code: ErrorCode.ConfigurationInvalid,
+          message: expect.stringContaining(message)
+        })
+      );
+    });
+
+    test('leaves a hidden nullable json scalar out of the inputs and outputs', () => {
+      const model = createModel({
+        name: 'Post',
+        scalars: {
+          title: { type: 'string' },
+          meta: { type: 'json', required: false, hidden: true }
+        }
+      });
+
+      for (const schema of [
+        model.readOneModel,
+        model.readManyModel,
+        model.createOneModel,
+        model.updateOneModel
+      ]) {
+        expect(Object.keys(schema.properties)).not.toContain('meta');
+      }
+    });
+
     test('builds the series values of a model, each optional and nullable', () => {
       const model = createModel({
         name: 'Sensor',

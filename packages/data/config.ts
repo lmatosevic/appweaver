@@ -3,6 +3,7 @@ export * from './database/database-config';
 export * from './export/export-config';
 export * from './resource/resource-config';
 export * from './security/auth-config';
+export * from './spatial/spatial-config';
 export * from './storage/image-config';
 export * from './timeseries/database-series-config';
 export * from './timeseries/timescale-config';

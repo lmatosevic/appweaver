@@ -3,6 +3,7 @@ import {
   Email,
   ErrorCode,
   createLogger,
+  isAppweaverError,
   LIFECYCLE,
   Mailer,
   OnInit,
@@ -16,6 +17,7 @@ import {
   telemetryEnabled,
   withSpan
 } from '@appweaver/common';
+import { selectedProvider } from '../app/load-providers';
 import { inject } from '../context';
 import { mailerConfig } from './mailer-config';
 import { formatSender } from './utils/email-util';
@@ -244,10 +246,17 @@ export class EmailService implements OnInit {
         () => this._mailer.sendEmail(job.data)
       );
     } catch (e) {
+      // Also of a driver package with its own copy of the common package
+      if (isAppweaverError(e) && e.module === 'mailer') {
+        throw e;
+      }
       throw new MailerError(
         ErrorCode.MailerSendFailed,
         `E-mail '${job.data.subject}' sending failed`,
-        { subject: job.data.subject },
+        {
+          provider: selectedProvider(Mailer) ?? this._mailer.constructor.name,
+          subject: job.data.subject
+        },
         { cause: e }
       );
     }

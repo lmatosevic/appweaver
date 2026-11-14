@@ -23,6 +23,7 @@ export type ErrorModule =
   | 'lock'
   | 'memory'
   | 'timeseries'
+  | 'spatial'
   | 'application';
 
 /** The details and the options of an error, the details being optional for

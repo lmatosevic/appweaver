@@ -30,11 +30,16 @@ export function seedCommand(program: Command): void {
       '--fix-warnings',
       'Fix the seeder warnings, like a wrong checksum or a deleted seeder file.'
     )
+    .option(
+      '--dry-run',
+      'Print the pending seeders and the warnings to fix without running them.'
+    )
     .action(async (_, command: Command) => {
       const seedersPath = command.getOptionValue('seedersDir');
       const projectFile = command.getOptionValue('project');
       const continueOnError = command.getOptionValue('continueOnError');
       const fixWarnings = command.getOptionValue('fixWarnings');
+      const dryRun = command.getOptionValue('dryRun');
 
       if (command.getOptionValue('buildProject')) {
         await buildProject(projectFile);
@@ -46,7 +51,8 @@ export function seedCommand(program: Command): void {
       const seeder = await createSeeder({
         seedersPath,
         continueOnError,
-        fixWarnings
+        fixWarnings,
+        dryRun
       });
 
       await seeder.close();

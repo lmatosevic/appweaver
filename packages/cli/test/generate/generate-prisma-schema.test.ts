@@ -35,7 +35,10 @@ jest.mock('../../utils', () => {
   };
 });
 
-import { generatePrismaSchema } from '../../generate/generate-prisma-schema';
+import {
+  buildPrismaSchema,
+  generatePrismaSchema
+} from '../../generate/generate-prisma-schema';
 
 /** Creates a minimal resource model as produced by `createModel`. */
 function model(
@@ -1225,6 +1228,80 @@ describe('generate-schema', () => {
       expect(schema).not.toContain('@@map("SensorSeries")');
     });
 
+    test('stores a geo field as its GeoJSON and its bounding box', async () => {
+      const { status, schema } = await generate({
+        Store: model('Store', {
+          geo: {
+            location: { type: 'point' },
+            area: { type: 'polygon', required: false, index: false }
+          }
+        })
+      });
+
+      expect(status).toBe(0);
+      expect(schema).toMatch(/location\s+Json\n/);
+      expect(schema).toMatch(/locationMinLng\s+Float\?/);
+      expect(schema).toMatch(/locationMaxLat\s+Float\?/);
+      expect(schema).toMatch(/area\s+Json\?/);
+      expect(schema).toContain('@@index([locationMinLng, locationMinLat])');
+      expect(schema).not.toContain('@@index([areaMinLng, areaMinLat])');
+      expect(schema).not.toContain('postgis');
+    });
+
+    test('adds the PostGIS geometry column of a geo field', async () => {
+      databaseType = 'postgresql';
+      const status = await generatePrismaSchema(
+        {
+          Store: model('Store', {
+            geo: {
+              location: { type: 'point' },
+              shape: { type: 'geometry', required: false, index: false }
+            }
+          })
+        },
+        schemaPath,
+        clientPath,
+        true,
+        true,
+        'postgis'
+      );
+      const schema = fs.readFileSync(path.join(tempDir, schemaPath), 'utf8');
+
+      expect(status).toBe(0);
+      expect(schema).toContain('  extensions = [postgis]');
+      expect(schema).toMatch(/previewFeatures\s+= \["postgresqlExtensions"\]/);
+      expect(schema).toMatch(
+        /locationGeom\s+Unsupported\("geometry\(Point, 4326\)"\)\?/
+      );
+      expect(schema).toMatch(
+        /shapeGeom\s+Unsupported\("geometry\(Geometry, 4326\)"\)\?/
+      );
+      expect(schema).toContain('@@index([locationGeom], type: Gist)');
+      expect(schema).not.toContain('@@index([shapeGeom], type: Gist)');
+      // The bounding box columns too, which the box filters query
+      expect(schema).toMatch(/shapeMaxLat\s+Float\?/);
+      expect(schema).toContain('@@index([locationMinLng, locationMinLat])');
+      expect(schema).not.toContain('@@index([shapeMinLng, shapeMinLat])');
+    });
+
+    test('stores the GeoJSON of SQL Server in a string column', async () => {
+      databaseType = 'sqlserver';
+      const status = await generatePrismaSchema(
+        { Store: model('Store', { geo: { location: { type: 'point' } } }) },
+        schemaPath,
+        clientPath,
+        true,
+        true,
+        'postgis'
+      );
+      const schema = fs.readFileSync(path.join(tempDir, schemaPath), 'utf8');
+
+      expect(status).toBe(0);
+      expect(schema).toMatch(/location\s+String\s+@db\.NVarChar\(Max\)/);
+      expect(schema).toMatch(/locationMinLng\s+Float\?/);
+      expect(schema).toMatch(/previewFeatures\s+= \["partialIndexes"\]/);
+    });
+
     test('maps the series table of a model with a table name', async () => {
       const { schema } = await generate({
         Sensor: model('Sensor', {
@@ -1489,6 +1566,21 @@ describe('generate-schema', () => {
           'onDelete: SetNull, onUpdate: NoAction)'
         );
       });
+    });
+  });
+
+  describe('buildPrismaSchema', () => {
+    test('builds the schema generatePrismaSchema writes, without a file or the client', async () => {
+      const models = {
+        Post: model('Post', { scalars: { title: { type: 'string' } } })
+      };
+
+      const built = buildPrismaSchema(models, schemaPath, clientPath);
+
+      expect(fs.existsSync(path.join(tempDir, schemaPath))).toBe(false);
+      expect(runProcess).not.toHaveBeenCalled();
+      expect(built).toContain('model Post {');
+      expect(built).toBe((await generate(models)).schema);
     });
   });
 });

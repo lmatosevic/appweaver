@@ -1,5 +1,6 @@
 import { TObject } from '@sinclair/typebox';
 import { MultipartFile } from './file';
+import { GeoFieldType, GeoGeometry } from './geo';
 import { RegisteredModel, RegistryType } from './registry';
 
 export type FieldType =
@@ -327,6 +328,22 @@ export type SeriesOptions = {
   compressAfter?: string;
 };
 
+export type GeoField = {
+  /** Geometry type: `point`, `multiPoint`, `lineString`, `multiLineString`, `polygon`, `multiPolygon`, or
+   * `geometry` for any of them */
+  type: GeoFieldType;
+  /** Field must be provided on creation, `false` to make it nullable (default: `true`) */
+  required?: boolean;
+  /** Exclude field from API output */
+  hidden?: boolean;
+  /** Index the field for the spatial queries (default: `true`) */
+  index?: boolean;
+  /** Description used in the generated OpenAPI schema documentation */
+  description?: string;
+  /** Example value used in the generated OpenAPI schema documentation */
+  example?: GeoGeometry;
+};
+
 /** The name of a model field: one of the fields the model declares, its id, or one of its audit fields. */
 export type ModelFieldName<F extends string = string> =
   | F
@@ -425,6 +442,9 @@ export type VirtualConfig<K extends string = string> = FieldConfig<
 
 export type ExportConfig = FieldConfig<ExportField | ExportRelations>;
 
+/** The geo fields of a model, keyed by their names. */
+export type GeoConfig<K extends string = string> = FieldConfig<GeoField, K>;
+
 /** The series fields of a model, keyed by their names. The point time and the resource id are named `time` and
  * `resourceId`, so no field takes these names. */
 export type SeriesConfig<K extends string = string> = {
@@ -446,16 +466,17 @@ export type Model = {
 };
 
 /**
- * The configuration of a resource model. The type parameters are the names of its scalar, relation, file, and virtual
- * fields, inferred from the configuration, along with the names of the fields a factory adds to them, which type the
- * field names of the `read`, `create`, and `update` options.
+ * The configuration of a resource model. The type parameters are the names of its scalar, relation, file, virtual and
+ * geo fields, inferred from the configuration, along with the names of the fields a factory adds to them (`E`), which
+ * type the field names of the `read`, `create`, and `update` options.
  */
 export type ResourceModelConfig<
   S extends string = string,
   R extends string = string,
   F extends string = string,
   V extends string = string,
-  E extends string = never
+  E extends string = never,
+  G extends string = string
 > = {
   /** Resource model name used for code generation, routing, and security policy
    * rules. Should be in PascalCase (e.g., MyModel) */
@@ -476,16 +497,18 @@ export type ResourceModelConfig<
   relations?: RelationConfig<R>;
   /** File field definitions */
   files?: FilesConfig<F>;
+  /** Geo field definitions, holding GeoJSON geometries queried with the spatial filter operators (see `spatial`) */
+  geo?: GeoConfig<G>;
   /** Time series field definitions, their points stored apart from the records of the model (see `timeseries`) */
   series?: SeriesConfig;
   /** Options of the time series of the model */
   seriesOptions?: SeriesOptions;
   /** Field restrictions for read operations */
-  read?: OperationConfig<NoInfer<S | R | F | V | E>>;
+  read?: OperationConfig<NoInfer<S | R | F | V | G | E>>;
   /** Field restrictions for create operations */
-  create?: OperationConfig<NoInfer<S | R | F | V | E>>;
+  create?: OperationConfig<NoInfer<S | R | F | V | G | E>>;
   /** Field restrictions for update operations */
-  update?: OperationConfig<NoInfer<S | R | F | V | E>>;
+  update?: OperationConfig<NoInfer<S | R | F | V | G | E>>;
   /** Virtual (computed) field definitions */
   virtual?: VirtualConfig<V>;
   /** Export field definitions */

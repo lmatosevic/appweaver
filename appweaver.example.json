@@ -89,22 +89,18 @@
       "generatedTypesPath": "<srcPath>/types/generated.ts",
       "queryMethod": "post",
       "aggregateMethod": "post",
-      "bulk": {
-        "createEnabled": false,
-        "updateEnabled": false,
-        "deleteEnabled": false,
-        "maxItems": 2000,
-        "transactionTimeout": 5000,
-        "returnRecords": true
-      }
+      "bulkCreateEnabled": false,
+      "bulkUpdateEnabled": false,
+      "bulkDeleteEnabled": false,
+      "bulkMaxItems": 2000,
+      "bulkTransactionTimeout": 5000,
+      "bulkReturnRecords": true
     },
     "export": {
-      "csv": {
-        "delimiter": ";",
-        "joinDelimiter": ",",
-        "addHeaders": true,
-        "addSepRow": false
-      },
+      "csvDelimiter": ";",
+      "csvJoinDelimiter": ",",
+      "csvAddHeaders": true,
+      "csvAddSepRow": false,
       "batchSize": 1000
     },
     "security": {
@@ -127,24 +123,18 @@
       },
       "account": {
         "routePrefix": "/auth/account",
-        "verifyEmail": {
-          "enabled": true,
-          "ottTtl": 7200000
-        },
-        "resetPassword": {
-          "enabled": true,
-          "ottTtl": 1800000
-        },
-        "verifyPhone": {
-          "enabled": true,
-          "ottTtl": 600000
-        },
+        "verifyEmailEnabled": true,
+        "verifyEmailOttTtl": 7200000,
+        "resetPasswordEnabled": true,
+        "resetPasswordOttTtl": 1800000,
+        "verifyPhoneEnabled": true,
+        "verifyPhoneOttTtl": 600000,
         "2fa": {
           "enabled": false,
           "forced": false,
           "ottTtl": 300000,
-          "methods": ["email", "sms", "totp"],
-          "defaultMethod": "email",
+          "methods": ["Email", "Sms", "Totp"],
+          "defaultMethod": "Email",
           "codeLength": 6,
           "maxAttempts": 5,
           "keepDatabaseTable": false,
@@ -364,6 +354,12 @@
         "retention": "",
         "setupTimeout": 60000
       }
+    },
+    "spatial": {
+      "provider": "auto",
+      "maxCandidates": 10000,
+      "maxVertices": 10000,
+      "setupTimeout": 60000
     },
     "scheduler": {
       "autoStartJob": true,

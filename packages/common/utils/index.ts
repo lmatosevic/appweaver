@@ -11,3 +11,4 @@ export * from './string-util';
 export * from './type-util';
 export * from './template-util';
 export * from './series-util';
+export * from './geo-util';

@@ -5,6 +5,7 @@ import { generatePrismaSchema } from '../generate';
 import {
   assertEnv,
   assertPathInside,
+  geoStorage,
   importPackage,
   loadModels,
   rimrafPath,
@@ -59,9 +60,11 @@ export function testingCommand(program: Command): void {
       );
 
       const quiet = !command.getOptionValue('verbose');
-      const { databaseConfig, resourceConfig } = await importPackage<
-        typeof import('@appweaver/data/config')
-      >('@appweaver/data/config', 'test setup');
+      const { databaseConfig, resourceConfig, spatialProvider } =
+        await importPackage<typeof import('@appweaver/data/config')>(
+          '@appweaver/data/config',
+          'test setup'
+        );
 
       const tempDir = command.getOptionValue('tempDir');
 
@@ -108,7 +111,8 @@ export function testingCommand(program: Command): void {
         schemaPath,
         clientPath,
         quiet,
-        seriesInDatabase(modules)
+        seriesInDatabase(modules),
+        geoStorage(models, spatialProvider)
       );
       if (generateStatus !== 0) {
         console.error('Failed to generate Prisma schema');

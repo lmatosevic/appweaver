@@ -79,6 +79,7 @@ export const AnyJson = (options: Parameters<typeof Type.Unsafe<any>>[0] = {}) =>
  * The function produces a schema that includes either the provided schema type or `null`.
  * It ensures compatibility with various schema constructs by safely handling unions,
  * references, and other cases where the schema might already include or allow nullable behavior.
+ * The `hidden` option of a wrapped schema is kept on the nullable one, so the field stays hidden.
  *
  * @template T - The base schema type that the function should make nullable.
  * @param {T} schema - The schema to be extended with nullability support.
@@ -90,7 +91,10 @@ export const Nullable = <T extends TSchema>(schema: T) =>
       ...(TypeGuard.IsUnion(schema) ||
       TypeGuard.IsAny(schema) ||
       TypeGuard.IsRef(schema)
-        ? Type.Union([schema, Type.Null()])
+        ? Type.Union(
+            [schema, Type.Null()],
+            schema.hidden ? { hidden: true } : {}
+          )
         : { ...schema, nullable: true })
     })
   );

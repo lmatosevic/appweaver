@@ -99,7 +99,12 @@ export interface ErrorDetailsMap {
   [ErrorCode.QueueClosed]: { queue: string };
   [ErrorCode.QueueUnavailable]: { queue: string };
 
-  [ErrorCode.MailerSendFailed]: { subject?: string };
+  [ErrorCode.MailerSendFailed]: {
+    provider: string;
+    subject?: string;
+    status?: number;
+    providerCode?: string | number;
+  };
 
   [ErrorCode.SmsSendFailed]: {
     provider: string;
@@ -130,6 +135,19 @@ export interface ErrorDetailsMap {
   [ErrorCode.TimeSeriesTooManyResources]: { maxResources: number };
   [ErrorCode.TimeSeriesForbidden]: ModelDetails & { action: string };
   [ErrorCode.TimeSeriesUnsupported]: { operation: string; provider: string };
+
+  [ErrorCode.SpatialInvalidGeometry]: ModelDetails & {
+    field: string;
+    reason: string;
+  };
+  [ErrorCode.SpatialInvalidFilter]: ModelDetails & {
+    field: string;
+    reason: string;
+  };
+  [ErrorCode.SpatialTooManyCandidates]: ModelDetails & {
+    field: string;
+    maxCandidates: number;
+  };
 }
 
 /** The details of an error code, see {@link ErrorDetailsMap}. */

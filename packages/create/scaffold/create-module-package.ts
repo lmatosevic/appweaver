@@ -9,9 +9,17 @@ import {
 import { ScaffoldError } from './types';
 
 /** The contract the driver of a module package implements, `none` for a feature module. */
-export const moduleContracts = ['storage', 'mailer', 'none'] as const;
+export const moduleContracts = ['storage', 'mailer', 'sms', 'none'] as const;
 
 export type ModuleContract = (typeof moduleContracts)[number];
+
+/** The suffix of the driver class of each contract, i.e. `GcsStorage` or `VonageSms`. */
+const classSuffixes: Record<ModuleContract, string> = {
+  storage: 'Storage',
+  mailer: 'Mailer',
+  sms: 'Sms',
+  none: ''
+};
 
 export type CreateModulePackageOptions = {
   /** The directory the package is created in. */
@@ -63,8 +71,7 @@ export async function createModulePackage(
   const camelName = pascalName.charAt(0).toLowerCase() + pascalName.slice(1);
   // A driver nests its section under its contract, a feature module takes its own
   const section = contract === 'none' ? camelName : `${contract}.${camelName}`;
-  const suffix =
-    contract === 'none' ? '' : contract === 'storage' ? 'Storage' : 'Mailer';
+  const suffix = classSuffixes[contract];
 
   const variables: Record<string, string> = {
     PACKAGE_NAME: packageName,
