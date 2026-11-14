@@ -154,7 +154,8 @@ weaver migrate
 | Key                             | Type     | Default                      | Description                                     |
 |---------------------------------|----------|------------------------------|-------------------------------------------------|
 | `DATABASE_TYPE`                 | `enum`   | —                            | `sqlite`, `postgresql`, `mysql`, or `sqlserver` |
-| `DATABASE_URL`                  | `string` | —                            | Connection string / DSN                         |
+| `DATABASE_URL`                  | `string` | —                            | Connection string / DSN of the application      |
+| `DATABASE_MIGRATION_URL`        | `string` | `DATABASE_URL`               | Connection string / DSN of the migrations       |
 | `DATABASE_SCHEMA_PATH`          | `string` | `'./database/schema.prisma'` | Path to the Prisma schema file                  |
 | `DATABASE_MIGRATIONS_DIR_PATH`  | `string` | `'./database/migrations'`    | Path to the migrations directory                |
 | `DATABASE_TRANSACTION_MAX_WAIT` | `int`    | `2000`                       | Max time (ms) to wait to acquire a transaction  |
@@ -182,6 +183,58 @@ PostgreSQL uses the `public` schema unless the URL selects another one with `?sc
 `...:5432/myapp?schema=webshop`). Prisma Migrate creates the schema and its tables there, and the framework passes it on
 to the PostgreSQL adapter, so the queries use it as well. Existing tables are not moved from `public`. Prefer a name
 without hyphens (`my_app`), which raw SQL would otherwise have to double-quote.
+
+### Separate migration and application users
+
+`database.url` is the connection the application queries the data with, and `database.migrationUrl` the one of the
+migrations: every Prisma command of the CLI (`weaver migrate`, `weaver migration new|check|reset`, `weaver test
+setup|reset`) reads it through the `url` of `prisma.config.ts`, which is `migrationUrl()` of `@appweaver/data/config`,
+`database.url` when the migration URL is not set. It lets the application connect as a user that can only read and
+write the rows, while the migrations run as the owner of the tables, or through a direct connection while the
+application goes through a pooler (PgBouncer, Neon, Supabase). `migrationUrl()` fails when the two URLs point to other
+types or names of databases, i.e. an environment overriding one of them but not the other, so set both in the
+`environments` that change the database.
+
+```json
+{
+  "config": {
+    "database": {
+      "url": "postgresql://${DB_APP_USER:-myapp-app}:${DB_APP_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-myapp}",
+      "migrationUrl": "postgresql://${DB_USER:-myapp}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-myapp}"
+    }
+  }
+}
+```
+
+On PostgreSQL, the hypertables of the `timescale` time series and the geometry triggers of the `postgis` geo fields
+need the owner of the tables, so `weaver migrate` sets them up after the migrations, and an application start finding
+them out of date fails, asking to run `weaver migrate`. Build before migrating, since the setup reads the models of the
+build. The owner keeps the right to create databases in development, where `weaver migration new` creates the shadow
+database of Prisma.
+
+The privileges of the application user, granted once by the owner for the tables it creates later:
+
+```sql
+-- PostgreSQL
+CREATE ROLE "myapp-app" LOGIN PASSWORD '...';
+GRANT CONNECT ON DATABASE "myapp" TO "myapp-app";
+GRANT USAGE ON SCHEMA public TO "myapp-app";
+ALTER DEFAULT PRIVILEGES FOR ROLE "myapp" IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "myapp-app";
+ALTER DEFAULT PRIVILEGES FOR ROLE "myapp" IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO "myapp-app";
+
+-- MySQL / MariaDB
+CREATE USER 'myapp-app'@'%' IDENTIFIED BY '...';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `myapp`.* TO 'myapp-app'@'%';
+
+-- SQL Server
+CREATE LOGIN [myapp-app] WITH PASSWORD = '...';
+CREATE USER [myapp-app] FOR LOGIN [myapp-app];
+ALTER ROLE db_datareader ADD MEMBER [myapp-app];
+ALTER ROLE db_datawriter ADD MEMBER [myapp-app];
+```
+
+The `sample/vehicle-tracking-api` sample runs this way, its `database/postgres-init.sh` creating the application user.
+SQLite has no users, so it needs neither URL.
 
 ---
 

@@ -6,6 +6,7 @@ import {
   ConfigurationError,
   configOverrides,
   DatabaseType,
+  ErrorCode,
   spatialCondition
 } from '@appweaver/common';
 import { createDatabaseStub, resetContext } from '@appweaver/testing';
@@ -215,6 +216,35 @@ describe('spatial-engine', () => {
       await expect(
         new PostgisSpatialEngine(db).setup([model])
       ).rejects.toBeInstanceOf(ConfigurationError);
+    });
+
+    test('asks for weaver migrate when the user cannot create a trigger', async () => {
+      configOverrides.DATABASE_TYPE = DatabaseType.PostgreSQL;
+      const { db, tx } = database();
+      const denied = Object.assign(new Error('permission denied for schema'), {
+        meta: {
+          driverAdapterError: { cause: { kind: 'postgres', code: '42501' } }
+        }
+      });
+      tx.$executeRawUnsafe.mockImplementation(async (sql: string) => {
+        if (sql.startsWith('CREATE')) {
+          throw denied;
+        }
+      });
+
+      await expect(
+        new PostgisSpatialEngine(db).setup([model])
+      ).rejects.toMatchObject({
+        code: ErrorCode.ConfigurationInvalid,
+        message: expect.stringContaining('weaver migrate'),
+        cause: denied
+      });
+
+      const lost = new Error('Connection lost');
+      tx.$executeRawUnsafe.mockRejectedValue(lost);
+      await expect(new PostgisSpatialEngine(db).setup([model])).rejects.toBe(
+        lost
+      );
     });
 
     test('queries the matches with the functions of PostGIS', async () => {

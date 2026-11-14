@@ -292,6 +292,10 @@
               "default": "",
               "type": "string"
             },
+            "migrationUrl": {
+              "default": "",
+              "type": "string"
+            },
             "schemaPath": {
               "default": "./database/schema.prisma",
               "type": "string"
@@ -538,6 +542,9 @@
                   "$ref": "#/definitions/logLevel"
                 },
                 "sms": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "spatial": {
                   "$ref": "#/definitions/logLevel"
                 },
                 "storage": {
@@ -1519,6 +1526,43 @@
             "provider": {
               "default": "auto",
               "type": "string"
+            }
+          }
+        },
+        "spatial": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "default": "auto",
+              "anyOf": [
+                {
+                  "const": "auto",
+                  "type": "string"
+                },
+                {
+                  "const": "postgis",
+                  "type": "string"
+                },
+                {
+                  "const": "database",
+                  "type": "string"
+                }
+              ]
+            },
+            "maxCandidates": {
+              "default": 10000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxVertices": {
+              "default": 10000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "setupTimeout": {
+              "default": 60000,
+              "minimum": 1,
+              "type": "integer"
             }
           }
         },

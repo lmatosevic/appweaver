@@ -276,6 +276,7 @@
     "database": {
       "type": "postgresql",
       "url": "postgresql://appweaver:appweaver@localhost:5432/appweaver-sample",
+      "migrationUrl": "postgresql://appweaver-owner:appweaver@localhost:5432/appweaver-sample",
       "schemaPath": "./database/schema.prisma",
       "migrationsDirPath": "./database/migrations",
       "seedersDirPath": "./database/seeders",

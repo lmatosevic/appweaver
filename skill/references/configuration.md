@@ -687,7 +687,8 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 | Property                                | Type     | Default                      | Description                                                                             |
 |-----------------------------------------|----------|------------------------------|-----------------------------------------------------------------------------------------|
 | `DATABASE_TYPE`                         | enum?    | -                            | Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`.                    |
-| `DATABASE_URL`                          | string   | `''`                         | Database connection URL/DSN.                                                            |
+| `DATABASE_URL`                          | string   | `''`                         | Database connection URL/DSN the application queries the data with.                      |
+| `DATABASE_MIGRATION_URL`                | string   | `''`                         | Connection URL/DSN of the migrations and the `weaver migrate` setup, `''` for the URL.  |
 | `DATABASE_SCHEMA_PATH`                  | string   | `'./database/schema.prisma'` | Path to Prisma schema file.                                                             |
 | `DATABASE_MIGRATIONS_DIR_PATH`          | string   | `'./database/migrations'`    | Path to database migrations directory.                                                  |
 | `DATABASE_SEEDERS_DIR_PATH`             | string   | `'./database/seeders'`       | Path to database seeders directory.                                                     |

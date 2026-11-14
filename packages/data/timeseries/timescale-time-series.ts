@@ -10,6 +10,7 @@ import {
 } from '@appweaver/common';
 import { raw, sqltag } from '@prisma/client/runtime/client';
 import { databaseConfig } from '../database/database-config';
+import { isPrivilegeError } from '../database/database-error';
 import { DatabaseTimeSeries } from './database-time-series';
 import { timescaleConfig } from './timescale-config';
 
@@ -50,13 +51,26 @@ export class TimescaleTimeSeries extends DatabaseTimeSeries {
   static [HEALTH_CHECK] = false;
 
   /**
-   * Creates the extension when missing, turns the series tables into hypertables and applies their policies, under
-   * an advisory lock, so the instances starting together set them up once.
+   * Sets up the hypertables of the models (see `setup`). A database set up by `weaver migrate` is left as it is, so the
+   * user of the application needs no privilege beyond reading and writing the data.
    *
-   * @throws {ConfigurationError} `CONFIGURATION_INVALID` on a database other than PostgreSQL, or one without the
-   * TimescaleDB extension that cannot be created.
+   * @throws {ConfigurationError} `CONFIGURATION_INVALID` on a database other than PostgreSQL, one without the
+   * TimescaleDB extension that cannot be created, or one the user of the application cannot set up.
    */
   public async register(models: SeriesModel[]): Promise<void> {
+    await this.setup(models);
+  }
+
+  /**
+   * Creates the extension when missing, turns the series tables into hypertables and applies their chunk interval and
+   * policies, under an advisory lock, so the instances starting together set them up once. Only what differs from the
+   * models and the config is changed, so a database already set up runs no DDL.
+   *
+   * @param {SeriesModel[]} models - The series models.
+   * @throws {ConfigurationError} `CONFIGURATION_INVALID` on a database other than PostgreSQL, one without the
+   * TimescaleDB extension that cannot be created, or one the user of the connection lacks the privileges to set up.
+   */
+  public async setup(models: SeriesModel[]): Promise<void> {
     const type = resolveDatabaseType(databaseConfig.TYPE, databaseConfig.URL);
     if (type !== DatabaseType.PostgreSQL) {
       throw new ConfigurationError(
@@ -69,17 +83,30 @@ export class TimescaleTimeSeries extends DatabaseTimeSeries {
     }
 
     await this.ensureExtension();
-    await this._db.transaction(
-      async (tx) => {
-        await tx.$executeRawUnsafe(
-          `SELECT pg_advisory_xact_lock(hashtext('appweaver:timeseries'))`
+    try {
+      await this._db.transaction(
+        async (tx) => {
+          await tx.$executeRawUnsafe(
+            `SELECT pg_advisory_xact_lock(hashtext('appweaver:timeseries'))`
+          );
+          for (const model of models) {
+            await this.setupHypertable(tx, model);
+          }
+        },
+        { timeout: timescaleConfig.SETUP_TIMEOUT }
+      );
+    } catch (error) {
+      if (isPrivilegeError(error)) {
+        throw new ConfigurationError(
+          ErrorCode.ConfigurationInvalid,
+          'The time series hypertables are not set up, and the database user lacks the privileges to set them up, ' +
+            'run `weaver migrate`, which sets them up with the user of database.migrationUrl',
+          undefined,
+          { cause: error }
         );
-        for (const model of models) {
-          await this.setupHypertable(tx, model);
-        }
-      },
-      { timeout: timescaleConfig.SETUP_TIMEOUT }
-    );
+      }
+      throw error;
+    }
   }
 
   protected bucket(column: string, width: number): string {
@@ -119,7 +146,8 @@ export class TimescaleTimeSeries extends DatabaseTimeSeries {
       throw new ConfigurationError(
         ErrorCode.ConfigurationInvalid,
         'The timescaledb extension is not installed in the database and cannot be created, ' +
-          'create it with `CREATE EXTENSION timescaledb` or use a TimescaleDB image',
+          'create it with `CREATE EXTENSION timescaledb`, run `weaver migrate`, which creates it with the user of ' +
+          'database.migrationUrl, or use a TimescaleDB image',
         undefined,
         { cause: error }
       );
@@ -134,15 +162,23 @@ export class TimescaleTimeSeries extends DatabaseTimeSeries {
       'chunkInterval'
     );
 
-    // The primary key holds the time, and no other index is created, so the
-    // schema stays the one of the Prisma migrations
-    await tx.$executeRawUnsafe(
-      `SELECT create_hypertable('${table}', by_range('time', INTERVAL '${chunk}'), ` +
-        'if_not_exists => TRUE, create_default_indexes => FALSE, migrate_data => TRUE)'
+    const [dimension]: { same: boolean }[] = await tx.$queryRaw(
+      sqltag`SELECT time_interval = ${raw(`INTERVAL '${chunk}'`)} AS same FROM timescaledb_information.dimensions
+        WHERE hypertable_schema = ${this._schema ?? raw('current_schema()')} AND hypertable_name = ${model.table}
+        AND column_name = 'time'`
     );
-    await tx.$executeRawUnsafe(
-      `SELECT set_chunk_time_interval('${table}', INTERVAL '${chunk}')`
-    );
+    if (!dimension) {
+      // The primary key holds the time, and no other index is created, so the
+      // schema stays the one of the Prisma migrations
+      await tx.$executeRawUnsafe(
+        `SELECT create_hypertable('${table}', by_range('time', INTERVAL '${chunk}'), ` +
+          'if_not_exists => TRUE, create_default_indexes => FALSE, migrate_data => TRUE)'
+      );
+    } else if (!dimension.same) {
+      await tx.$executeRawUnsafe(
+        `SELECT set_chunk_time_interval('${table}', INTERVAL '${chunk}')`
+      );
+    }
 
     const compressAfter =
       model.options.compressAfter ?? timescaleConfig.COMPRESS_AFTER;

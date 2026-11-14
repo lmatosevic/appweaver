@@ -2,7 +2,7 @@
 // npm install --save-dev prisma
 import { defineConfig } from 'prisma/config';
 
-import { databaseConfig } from '@appweaver/data/config';
+import { databaseConfig, migrationUrl } from '@appweaver/data/config';
 
 export default defineConfig({
   schema: databaseConfig.SCHEMA_PATH,
@@ -10,6 +10,7 @@ export default defineConfig({
     path: databaseConfig.MIGRATIONS_DIR_PATH
   },
   datasource: {
-    url: databaseConfig.URL
+    // database.migrationUrl, or database.url when not set
+    url: migrationUrl()
   }
 });

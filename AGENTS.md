@@ -406,7 +406,7 @@ The `weaver` CLI tool. Entry point: `weaver.ts` → compiled to `dist/weaver.js`
 
 It needs only `@appweaver/core`. `@appweaver/data` and `@appweaver/web` are optional peer dependencies, loaded lazily by
 the commands needing them (`importPackage` of `utils/package-util.ts`): `generate`, `test setup`, `seed`,
-`migrate --dry-run` and `migration check` need data, `openapi` needs web. Without the package, they exit with
+`migrate` and `migration check` need data, `openapi` needs web. Without the package, they exit with
 `weaver <command> needs the <package> package` (`openapi` with a message naming the disabled `@appweaver/web` module).
 
 See **Section 5** for the full command reference.
@@ -662,10 +662,18 @@ models of a module package whose declaration files already augment `ResourceRegi
 Apply pending database migrations (production / CI).
 
 ```
-weaver migrate [--dry-run]
+weaver migrate [--no-setup] [--dry-run]
 ```
 
-Executes `prisma migrate deploy`. Prisma has no dry run of it, so `--dry-run` (`migrate/plan-migrations.ts`) parses
+Executes `prisma migrate deploy`, connecting with `database.migrationUrl` (`migrationUrl()` of
+`@appweaver/data/config`, the `url` of `prisma.config.ts`), or `database.url` when it is not set, so the application
+may query the data as a user without the privileges of the migrations. On PostgreSQL it then runs `setupDatabase` of
+`@appweaver/data/internal` with the migration URL (`runDatabaseSetup`), setting up what the migrations do not hold and
+the application otherwise sets up when it starts: the hypertables and policies of the `timescale` time series and the
+geometry triggers of the `postgis` engine, which change only what differs, so a start of an application user finding
+them in place runs no DDL, and one finding them out of date fails with `CONFIGURATION_INVALID` asking for `weaver
+migrate` (`isPrivilegeError` of `database-error.ts`). `--no-setup` skips the setup. Prisma has no dry run of
+`migrate deploy`, so `--dry-run` (`migrate/plan-migrations.ts`) parses
 the pending migrations from the output of `prisma migrate status` (all the migrations of `DATABASE_MIGRATIONS_DIR_PATH`
 on `P1003`, a database that does not exist) and prints the `migration.sql` of each one. Any other status failure is
 printed with the exit code of Prisma. While migrations are pending, that output names neither a failed migration

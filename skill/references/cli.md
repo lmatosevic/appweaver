@@ -192,11 +192,18 @@ weaver migrate|mge [options]
 ```
 
 Apply all pending database migrations (`prisma migrate deploy`). It creates no migration and never prompts, which
-makes it the command to run in CI, in containers, and in production.
+makes it the command to run in CI, in containers, and in production. It connects with `database.migrationUrl`, or
+`database.url` when not set (the `url` of `prisma.config.ts` is `migrationUrl()` of `@appweaver/data/config`).
 
-| Option      | Description                                                      | Default |
-|-------------|------------------------------------------------------------------|---------|
-| `--dry-run` | Print the pending migrations and their SQL without applying them | `false` |
+On PostgreSQL, it then sets up what the migrations do not hold, with the same URL: the hypertables and policies of the
+`timescale` time series provider and the geometry triggers of the `postgis` spatial provider. The application sets them
+up when it starts too, but only a user owning the tables can, so this lets the application connect as a user that only
+reads and writes the data. The setup loads the models of the build (`./dist/src`), so build before migrating.
+
+| Option       | Description                                                      | Default |
+|--------------|------------------------------------------------------------------|---------|
+| `--no-setup` | Skip the setup of the hypertables and the geometry triggers      | set up  |
+| `--dry-run`  | Print the pending migrations and their SQL without applying them | `false` |
 
 `--dry-run` reads the pending migrations from `prisma migrate status` (Prisma has no dry run of `migrate deploy`) and
 prints the `migration.sql` of each one, without changing the database. It exits with an error when `weaver migrate`

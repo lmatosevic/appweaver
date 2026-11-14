@@ -27,6 +27,7 @@ the geo fields and TimescaleDB for the readings, both in the `timescale/timescal
 | Read restrictions: the drivers see their own vehicles, readings and trips                                       | vehicle and trip policies                                                                                                                            |
 | Fields the API never writes (`create` / `update` `omit`), virtual fields (`online`, `lengthMeters`, `open`)      | vehicle, route and alert models                                                                                                                      |
 | An application error code (`ALERT_ALREADY_ACKNOWLEDGED`) and a conditional update                               | [`features/alerts/acknowledge-route.ts`](src/features/alerts/acknowledge-route.ts)                                                                    |
+| Separate database users: the migrations run as the owner, the application only reads and writes the rows        | [`appweaver.json`](appweaver.json), [`database/postgres-init.sh`](database/postgres-init.sh)                                                          |
 
 ## How the telemetry works
 
@@ -51,9 +52,10 @@ A trip whose vehicle has been silent for 30 minutes is ended by the job, with a 
 Build the monorepo once from the repository root (`npm install && npm run build`), then in this directory:
 
 ```bash
-cp .env.example .env              # NODE_ENV=dev and the database password
+cp .env.example .env              # NODE_ENV=dev and the passwords of the database users
 docker compose up -d postgres     # PostgreSQL 18 with PostGIS and TimescaleDB on :5433
-npm run migrate                   # apply the migrations, creating the postgis extension
+npm run build                     # the models the setup of the migrations reads
+npm run migrate                   # apply the migrations, then set up the hypertable and the geometry triggers
 npm run seed                      # roles, staff, geofences and routes around Zagreb, four vehicles
 npm run dev                       # http://localhost:5008, Swagger UI at http://localhost:5008/swagger
 ```
@@ -61,6 +63,15 @@ npm run dev                       # http://localhost:5008, Swagger UI at http://
 The database listens on port **5433** of the host, so it runs beside a local PostgreSQL on 5432. `docker compose up`
 runs the whole stack instead, its containers setting the `DB_HOST` and `DB_PORT` that the URL in
 [`appweaver.json`](appweaver.json) references.
+
+The database has two users. The migrations run as its owner (`DB_USER`, `database.migrationUrl`), which creates the
+tables, the `postgis` and `timescaledb` extensions, the hypertable of the readings and the geometry triggers, while the
+application connects as `vehicle-tracking-api-app` (`DB_APP_USER`, `database.url`), which
+[`database/postgres-init.sh`](database/postgres-init.sh) creates when the container initializes its volume, allowed
+only to read and write the rows of the tables. The application container gets no password of the owner. Run
+`npm run migrate` again after a change of the geo or the series fields, since the application cannot replace a trigger
+or a hypertable itself, and fails to start, asking for it, when one is out of date. The end-to-end tests run as the
+owner.
 
 The seeder prints the generated admin password (`admin@fleet.example.com`) and the **telematics gateway API key**.
 Keep the key, since it is not shown again. The dispatcher `dispatch@fleet.example.com` and the drivers
