@@ -518,7 +518,8 @@ initial migration, since a PostgreSQL or MySQL test database keeps the tables an
 
 Requires `NODE_ENV=test`. With no flags, resets both database and storage. The database is reset with
 `prisma migrate reset`, which Prisma refuses to run for an AI agent when `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is
-`false`, see **Run tests** in [SKILL.md](../SKILL.md). An agent never changes it itself.
+`false`, see **Run tests** in [SKILL.md](../SKILL.md). An agent never changes it itself. The reset drops the whole
+test database, so the e2e Jest config runs the test files one at a time (`"maxWorkers": 1`).
 
 | Option             | Description                          | Default  |
 |--------------------|--------------------------------------|----------|

@@ -117,7 +117,9 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
         file: 'test/e2e/jest.e2e-config.json',
         enabled: [
           ['globalSetup', '<rootDir>/test/e2e/support/setup.ts'],
-          ['globalTeardown', '<rootDir>/test/e2e/support/teardown.ts']
+          ['globalTeardown', '<rootDir>/test/e2e/support/teardown.ts'],
+          // One file at a time, since the reset of a file drops the database of the files running beside it
+          ['maxWorkers', 1]
         ],
         disabled: []
       }

@@ -30,5 +30,6 @@
     ]
   ],
   "globalSetup": "<rootDir>/test/e2e/support/setup.ts",
-  "globalTeardown": "<rootDir>/test/e2e/support/teardown.ts"
+  "globalTeardown": "<rootDir>/test/e2e/support/teardown.ts",
+  "maxWorkers": 1
 }
