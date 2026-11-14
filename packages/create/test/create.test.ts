@@ -627,6 +627,9 @@ describe('create', () => {
       expect(
         readJson('my-app', 'test', 'e2e', 'jest.e2e-config.json')
       ).not.toHaveProperty('globalSetup');
+      expect(
+        readJson('my-app', 'test', 'e2e', 'jest.e2e-config.json')
+      ).not.toHaveProperty('maxWorkers');
       expect(read('my-app', 'test', 'e2e', 'main.test.ts')).toContain(
         'HealthService'
       );
@@ -686,7 +689,9 @@ describe('create', () => {
         readJson('my-app', 'test', 'e2e', 'jest.e2e-config.json')
       ).toMatchObject({
         globalSetup: '<rootDir>/test/e2e/support/setup.ts',
-        globalTeardown: '<rootDir>/test/e2e/support/teardown.ts'
+        globalTeardown: '<rootDir>/test/e2e/support/teardown.ts',
+        // The reset of a file drops the database under the files running beside it
+        maxWorkers: 1
       });
       // The User auth model comes with the authentication of the web module
       expect(exists('my-app', 'src', 'resources')).toBe(false);

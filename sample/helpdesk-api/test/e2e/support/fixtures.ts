@@ -12,9 +12,10 @@ export const db = () => inject<any>(Database).client();
 
 /** Creates the roles of the seeder, unless an earlier test file did. */
 export async function createRoles(): Promise<void> {
-  for (const name of Object.values(Role)) {
-    await db().role.upsert({ where: { name }, update: {}, create: { name } });
-  }
+  await db().role.createMany({
+    data: Object.values(Role).map((name) => ({ name })),
+    skipDuplicates: true
+  });
 }
 
 /** Creates a team of its own for a test. */

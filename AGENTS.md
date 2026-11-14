@@ -465,7 +465,7 @@ sender in dev and test and the Twilio keys of `.env`), `@appweaver/handlebars` (
 `--database` for `data`. The `User` auth model and its admin seeder come with `web`, which brings the authentication, so
 a project with `data` alone has no auth model. A module sets values in the other JSON files of the project with its
 `jsonFiles` (the
-`package.json` scripts of `data` and the `allowScripts` of its SQLite adapter on Node, the Jest e2e `globalSetup`, kept
+`package.json` scripts of `data` and the `allowScripts` of its SQLite adapter on Node, the Jest e2e `globalSetup` and `maxWorkers`, kept
 sorted like the template's `allowScripts`), and a module file at the path of a base file replaces it
 while unchanged, restored on removal (the `/api` e2e test of `web`).
 The scaffolding engine lives in `scaffold/` and is exported as
@@ -1143,7 +1143,11 @@ npm run e2e
 
 E2E tests use `weaver test setup` / `weaver test reset` / `weaver test teardown` to manage a temporary test database and
 storage directory. Setup and teardown are wired for the whole run, but each test file must register the reset itself
-with `afterAll(resetTestData, 10_000)`, declared after the hook that stops the application.
+with `afterAll(resetTestData, 10_000)`, declared after the hook that stops the application. The e2e Jest config runs
+the files one at a time (`"maxWorkers": 1`, which the `data` module of `@appweaver/create` sets): on a database server,
+the `prisma migrate reset` of one file drops the schema, `_prisma_migrations` included, under a file resetting or still
+running beside it (`P1014`), and on SQLite it wipes the data of a running file. Keep it in every e2e config with a
+database reset.
 
 #### Docker
 
@@ -1181,8 +1185,7 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   sample connects as `sa` (`${DB_USER:-sa}`), whose password SQL Server requires to be complex. The PostgreSQL
   service of `webshop-api` runs the TimescaleDB image, the one of `vehicle-tracking-api` the `timescaledb-ha` image
   holding PostGIS too, published on the host port 5433 (`${DB_PORT:-5433}` in its URL, `5432` in the compose
-  services) so it runs beside a local PostgreSQL. Its end-to-end files run one at a time (`maxWorkers: 1`), since the
-  reset of a file racing another one on a database server drops the migrations table under it.
+  services) so it runs beside a local PostgreSQL.
 - Like a generated project, every sample configures its database and Redis URLs in `appweaver.json`, referencing the
   database password of `.env` (copied from `.env.example`) as `${DB_PASSWORD}`, and the hosts as
   `${DB_HOST:-localhost}` and `${REDIS_HOST:-localhost}`, which the compose application services override. The database

@@ -1186,6 +1186,11 @@ describe('My e2e test', () => {
 });
 ```
 
+The reset drops the whole test database, so the e2e files run one at a time: keep `"maxWorkers": 1` in
+`test/e2e/jest.e2e-config.json`. Run in parallel, the reset of one file drops the tables, the migrations table included,
+under a file still running or resetting beside it (`P1014 The underlying table for model _prisma_migrations does not
+exist` on a database server).
+
 **AI agents and dangerous database actions.** Prisma refuses a database reset by an AI agent when
 `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. **Never change it yourself or get past the refusal another way**,
 stop and ask the user to run the command.

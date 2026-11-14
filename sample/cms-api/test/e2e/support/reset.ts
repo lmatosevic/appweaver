@@ -3,7 +3,8 @@ import { spawnSync } from 'node:child_process';
 /**
  * Clears the test database and the file storage. Register it with `afterAll`
  * in every end-to-end test file, after the hook that stops the application, so
- * each test file starts from an empty database:
+ * each test file starts from an empty database. It drops the whole database, so
+ * the e2e Jest config runs the test files one at a time (`maxWorkers: 1`):
  *
  * ```ts
  * afterAll(async () => {

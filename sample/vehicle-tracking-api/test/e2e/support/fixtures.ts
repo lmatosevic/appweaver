@@ -17,9 +17,8 @@ export const db = () => inject<any>(Database).client();
 
 let devices = 0;
 
-/** Creates the roles of the seeder, unless a test file running beside it did. */
+/** Creates the roles of the seeder, unless an earlier test file did. */
 export async function createRoles(): Promise<void> {
-  // One INSERT ... ON CONFLICT DO NOTHING, as an upsert races the other files
   await db().role.createMany({
     data: Object.values(Role).map((name) => ({ name })),
     skipDuplicates: true
