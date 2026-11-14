@@ -213,27 +213,27 @@ by them, since Jest maps every import to the sources.
 
 The runtime every application has, with neither a server nor a database. Organized into the following modules:
 
-| Module       | Purpose                                                                                                                              |
-|--------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `app/`       | `createApp`, `Application`, module discovery (`discover-modules.ts`), provider selection (`load-providers.ts`), app files, lifecycle |
-| `modules/`   | The manifest of the core module (`core.ts`): every contract and its in-process driver, always enabled first                          |
-| `context/`   | Dependency injection container (`define`, `inject`, `injectService`, ...), the auth user context (`runAs`) and the transaction scope |
-| `cache/`     | The `Cache` stored in the `Memory` provider, its eviction indexes and `CacheService`                                                 |
-| `memory/`    | The in-process `memory` driver of `Memory`                                                                                           |
-| `events/`    | The `node` driver of `Events`                                                                                                        |
-| `storage/`   | The `local` filesystem driver of `Storage`                                                                                           |
-| `queue/`     | The in-process `memory` driver of `Queue`                                                                                            |
-| `scheduler/` | The scheduler config, its driver is `@appweaver/cron`                                                                                |
-| `mailer/`    | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
-| `sms/`       | `SmsService`, sending the text messages through the `sms` queue, and the `json` SMS sender of development and tests                  |
-| `task/`      | `createTask` and `isTask`, the tasks `weaver run` lists and runs by name                                                             |
-| `template/`  | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
-| `locale/`    | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
-| `health/`    | `HealthService` (the checks, and the readiness the lifecycle sets), the `node:http` health listener of an app without web            |
-| `timeseries/` | The time series config, `TimeSeriesService` (validation, direct or queued writes, queries) and the in-process `memory` driver       |
-| `security/`  | The `security.store` config and the `memory` security store (`store/`)                                                               |
-| `types/`     | `ApplicationContext`                                                                                                                 |
-| `utils/`     | `createSchemaModel`                                                                                                                  |
+| Module        | Purpose                                                                                                                              |
+|---------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `app/`        | `createApp`, `Application`, module discovery (`discover-modules.ts`), provider selection (`load-providers.ts`), app files, lifecycle |
+| `modules/`    | The manifest of the core module (`core.ts`): every contract and its in-process driver, always enabled first                          |
+| `context/`    | Dependency injection container (`define`, `inject`, `injectService`, ...), the auth user context (`runAs`) and the transaction scope |
+| `cache/`      | The `Cache` stored in the `Memory` provider, its eviction indexes and `CacheService`                                                 |
+| `memory/`     | The in-process `memory` driver of `Memory`                                                                                           |
+| `events/`     | The `node` driver of `Events`                                                                                                        |
+| `storage/`    | The `local` filesystem driver of `Storage`                                                                                           |
+| `queue/`      | The in-process `memory` driver of `Queue`                                                                                            |
+| `scheduler/`  | The scheduler config, its driver is `@appweaver/cron`                                                                                |
+| `mailer/`     | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
+| `sms/`        | `SmsService`, sending the text messages through the `sms` queue, and the `json` SMS sender of development and tests                  |
+| `task/`       | `createTask` and `isTask`, the tasks `weaver run` lists and runs by name                                                             |
+| `template/`   | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
+| `locale/`     | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
+| `health/`     | `HealthService` (the checks, and the readiness the lifecycle sets), the `node:http` health listener of an app without web            |
+| `timeseries/` | The time series config, `TimeSeriesService` (validation, direct or queued writes, queries) and the in-process `memory` driver        |
+| `security/`   | The `security.store` config and the `memory` security store (`store/`)                                                               |
+| `types/`      | `ApplicationContext`                                                                                                                 |
+| `utils/`      | `createSchemaModel`                                                                                                                  |
 
 **Module system**: every part of the framework is a module declared with `defineModule`
 (`packages/common/module/define-module.ts`): the contracts it declares, its providers (drivers) by name, its services,
@@ -248,7 +248,8 @@ name selects a provider, and a module path still loads a class. The provider nam
 (`Memory`), `memory` (`Cache`), `node` (`Events`), `local` (`Storage`), `database` and `memory` (`SecurityStore`),
 `memory` and `bullmq` (`Queue`), `smtp` and `json` (`Mailer`), `twilio` and `json` (`SmsSender`), `handlebars`
 (`TemplateEngine`), `cron` (`Scheduler`),
-`prisma` (`Database`), `sharp` (`ImageProcessor`), and `database`, `timescale` and `memory` (`TimeSeries`). A new driver goes into a module manifest with a provider name,
+`prisma` (`Database`), `sharp` (`ImageProcessor`), and `database`, `timescale` and `memory` (`TimeSeries`). A new driver
+goes into a module manifest with a provider name,
 never into `load-providers.ts`, and is documented in `skill/references/modules.md` and
 `skill/references/configuration.md`.
 
@@ -392,9 +393,9 @@ and Bun, and create a fresh driver for every test.
 `JsonMailer`, `SmtpMailer` (on a mocked transport), `JsonSms`, `TwilioSms` (on a mocked `fetch`), `CronScheduler`,
 `MemoryTimeSeries`, `DatabaseTimeSeries` and `TimescaleTimeSeries` (on SQLite, and on the databases of
 `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`,
-`TIMESERIES_TEST_SQLSERVER_URL` and `TIMESERIES_TEST_TIMESCALE_URL` when set) run them, and so does the test of a driver package scaffolded with
-`npm create @appweaver module`. A change of a contract's shared behavior goes into its
-suite, so every driver is held to it.
+`TIMESERIES_TEST_SQLSERVER_URL` and `TIMESERIES_TEST_TIMESCALE_URL` when set) run them, and so does the test of a driver
+package scaffolded with `npm create @appweaver module`. A change of a contract's shared behavior goes into its suite,
+so every driver is held to it.
 
 The test of the `postgis` engine of the geo fields also runs on a real PostGIS database when `SPATIAL_TEST_POSTGIS_URL`
 is set.
@@ -417,7 +418,8 @@ A type-safe HTTP client generator and runtime library for consuming Appweaver-co
 - **Code generator** — reads an OpenAPI v3 schema (JSON or YAML, from a file or URL) and emits typed TypeScript
   interfaces and a client class tailored to the API's resources, auth, account, health, and file routes.
 - **Runtime library** — provides `FetchClient` and a set of module clients (`ResourceClient`, `AuthClient`,
-  `AccountClient`, `TwoFactorClient`, `HealthClient`, `FilesClient`) that wrap `openapi-fetch` with built-in authentication strategies (JWT
+  `AccountClient`, `TwoFactorClient`, `HealthClient`, `FilesClient`) that wrap `openapi-fetch` with built-in
+  authentication strategies (JWT
   Bearer, API key, HTTP Basic), timeout handling, and middleware support.
 
 The package exposes a `weaver-client` CLI binary. See **Section 6** for the full command reference.
@@ -451,9 +453,9 @@ adds the optional modules selected: the default ones (`defaultModules` of `scaff
 with the `--add <modules...>` ones, or every module with `--all`, minus the `--exclude <modules...>` ones, which leave
 out the default modules too, with or without `--all` (`--exclude data web` for the core application alone). The
 modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `sms`,
-`templates`, `locales`, `timeseries` (requires `data`), `telemetry` and `docker`. The base project depends only on `@appweaver/cli`, `common`, `core` and TypeBox, and a module
-adds its
-packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
+`templates`, `locales`, `timeseries` (requires `data`), `telemetry` and `docker`. The base project depends only on
+`@appweaver/cli`, `common`, `core` and TypeBox, and a module
+adds its packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
 `projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`), `@appweaver/twilio` (`sms`, with the `json`
 sender in dev and test and the Twilio keys of `.env`), `@appweaver/handlebars` (`templates`) and
@@ -518,12 +520,11 @@ A module is defined by data (packages, config values) and its files, its edits o
 the module alone in `apply-modules.ts` (the database password of `.env`, the SQLite rules of `.gitignore`), and anything
 else it adds to another enabled module is an integration of the two (the database, Redis and
 server parts of `docker-compose.yml`, the Dockerfile `COPY` blocks of public files, templates, locales and Prisma and
-its `data` directory of SQLite, the database roles of `start.sh`, the `emails` and `sms` texts the mailer and the SMS module merge into
-`locales/en.json`).
-`@appweaver/create` creates the base project with every module's disabled config, then adds the selected modules
-exactly like `weaver module add`, so a test checks that every combination of modules created, added one at a time, or
-removed from a full project gives the same files. Keep any new module or
-integration reversible: removal deletes its files and restores the config and packages.
+its `data` directory of SQLite, the database roles of `start.sh`, the `emails` and `sms` texts the mailer and the SMS
+module merge into `locales/en.json`).`@appweaver/create` creates the base project with every module's disabled config,
+then adds the selected modules exactly like `weaver module add`, so a test checks that every combination of modules
+created, added one at a time, or removed from a full project gives the same files. Keep any new module or integration
+reversible: removal deletes its files and restores the config and packages.
 
 Templates and localization are scaffolded independently. Without `locales`, every `{{t "key"}}` of the scaffolded
 templates is replaced with the English message of the key in `templates/translations/en.json`, using
@@ -638,16 +639,16 @@ weaver generate [options]
 The flags select the outputs; with none it generates all three, the types and the Prisma schema only when
 `@appweaver/data` is enabled, so a core application (`sample/loan-calculator`) gets its config schema from `weaver
 generate` or `weaver generate --config-schema`, which never loads `@appweaver/data`. The config schema
-(`appweaver.schema.json`, like `weaver config schema`) holds the config sections the enabled modules list. The generated types register every model in
-the `ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer the model types from a model
-name, and without any model the file holds only `export {};`. On SQLite a `json` default is written as the quoted SQL
-literal `@default(dbgenerated("'{}'"))`, since the migrations of Prisma write a plain JSON default unquoted. The models
-come from the project and from the `resources` of the enabled modules. The framework models are left out unless used:
-`Role`, `Permission`, `ApiKey`, `OneTimeToken`, `ConnectedAccount`, `TwoFactorMethod` and `TwoFactorRecoveryCode`
-without an auth model, `File` without a model
-declaring `files`, `Seeder` without a seeders directory (`data/resource/utils/prune-util.ts`). The `npm run generate` of
-`packages/data` passes `--types --prisma-schema`, `--no-registry` and `--no-prune`, since the registry and the config belong to the
-application and data keeps every model.
+(`appweaver.schema.json`, like `weaver config schema`) holds the config sections the enabled modules list. The generated
+types register every model in the `ResourceRegistry` of `@appweaver/common`, so the factories and `injectService` infer
+the model types from a model name, and without any model the file holds only `export {};`. On SQLite a `json` default is
+written as the quoted SQL literal `@default(dbgenerated("'{}'"))`, since the migrations of Prisma write a plain JSON
+default unquoted. The models come from the project and from the `resources` of the enabled modules. The framework models
+are left out unless used: `Role`, `Permission`, `ApiKey`, `OneTimeToken`, `ConnectedAccount`, `TwoFactorMethod` and
+`TwoFactorRecoveryCode` without an auth model, `File` without a model declaring `files`, `Seeder` without a seeders
+directory (`data/resource/utils/prune-util.ts`). The `npm run generate` of `packages/data` passes
+`--types --prisma-schema`, `--no-registry` and `--no-prune`, since the registry and the config belong to the application
+and data keeps every model.
 
 The registry belongs to the application, so a model is registered once: run in a module package (its `package.json` has
 the `appweaver.module` field), `weaver generate` never writes the registry, and in an application it leaves out the
@@ -696,10 +697,10 @@ Check whether the models need a new migration, printing the SQL `weaver migratio
 weaver migration check [options]
 ```
 
-| Option                      | Description                                        | Default     |
-|-----------------------------|----------------------------------------------------|-------------|
-| `--model-pattern <pattern>` | Glob of the model files                            | from config |
-| `--no-prune`                | Keep the framework models not used                 | pruned      |
+| Option                      | Description                        | Default     |
+|-----------------------------|------------------------------------|-------------|
+| `--model-pattern <pattern>` | Glob of the model files            | from config |
+| `--no-prune`                | Keep the framework models not used | pruned      |
 
 `migration/check-migration.ts` builds the Prisma schema from the models with `buildPrismaSchema` (the content
 `generatePrismaSchema` writes), so a schema file out of date with the models is told apart, writes it to a temporary
@@ -1159,16 +1160,16 @@ start.sh seed         # Seed the database
 Scaffolded with `@appweaver/create`, each showcases a different part of the framework and documents it in its own
 `README.md`. They follow the `cms-api` workflow above, with the differences listed here.
 
-| Sample                   | Runtime | Database           | Showcases                                                                                                                                                                                                                                         |
-|--------------------------|---------|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `sample/webshop-api`     | Node    | PostgreSQL + Redis | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails, product price and stock time series in a TimescaleDB hypertable, OpenTelemetry traces across the request and the payment job (Jaeger) |
-| `sample/hr-api`          | Node    | SQL Server         | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades                                                                                                                                               |
-| `sample/helpdesk-api`    | Node    | MySQL (MariaDB)    | Non-auth customers connected by email, auto-assignment, SLA escalation job, SMS 2FA of the admin, team workload time series with a retention                                                                                                      |
-| `sample/movies-api-bun`  | Bun     | SQLite (libsql)    | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                                                                                                                                                            |
-| `sample/inbox-processor` | Node    | SQLite + Redis     | A file and API fed BullMQ pipeline with retries, a local module with a watcher service and routes                                                                                                                                                 |
-| `sample/reports-worker`  | Node    | SQLite             | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener                                                                                                                                                   |
-| `sample/loan-calculator` | Node    | —                  | Core only (no data, no web): a local module, its config, a cached calculator service, `weaver run` tasks                                                                                                                                          |
-| `sample/vehicle-tracking-api` | Node | PostgreSQL (PostGIS) | Geo fields of every type on the `postgis` provider (`_near`, `_within`, `_withinBox`, `_intersects`), telemetry of an API key gateway building trips and raising geofence, speed and route alerts, vehicle readings in a TimescaleDB hypertable, a trip simulator task |
+| Sample                        | Runtime | Database             | Showcases                                                                                                                                                                                                                                                              |
+|-------------------------------|---------|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `sample/webshop-api`          | Node    | PostgreSQL + Redis   | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails, product price and stock time series in a TimescaleDB hypertable, OpenTelemetry traces across the request and the payment job (Jaeger)                      |
+| `sample/hr-api`               | Node    | SQL Server           | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades                                                                                                                                                                    |
+| `sample/helpdesk-api`         | Node    | MySQL (MariaDB)      | Non-auth customers connected by email, auto-assignment, SLA escalation job, SMS 2FA of the admin, team workload time series with a retention                                                                                                                           |
+| `sample/movies-api-bun`       | Bun     | SQLite (libsql)      | Public cached catalog, join model with payload, OAuth2 sign-up, generated typed client                                                                                                                                                                                 |
+| `sample/inbox-processor`      | Node    | SQLite + Redis       | A file and API fed BullMQ pipeline with retries, a local module with a watcher service and routes                                                                                                                                                                      |
+| `sample/reports-worker`       | Node    | SQLite               | No server: daily reports by cron, archive job, CSV import and report tasks, the health listener                                                                                                                                                                        |
+| `sample/loan-calculator`      | Node    | —                    | Core only (no data, no web): a local module, its config, a cached calculator service, `weaver run` tasks                                                                                                                                                               |
+| `sample/vehicle-tracking-api` | Node    | PostgreSQL (PostGIS) | Geo fields of every type on the `postgis` provider (`_near`, `_within`, `_withinBox`, `_intersects`), telemetry of an API key gateway building trips and raising geofence, speed and route alerts, vehicle readings in a TimescaleDB hypertable, a trip simulator task |
 
 - `reports-worker` (`--add scheduler docker --exclude web`) and `loan-calculator` (`--exclude data web`) show the
   applications without a
@@ -1192,13 +1193,13 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   uses, `@appweaver/sharp` for the image transforms), locked in its own `package-lock.json` (`bun.lock` for the Bun
   sample) to the published `@appweaver/*` release, so its Docker image builds with a clean install outside the
   monorepo. The lockfiles are regenerated after every release, or on demand with `npm run samples:lock`.
-- `npm run samples:manage -- <operation> [params...] [samples...]` (`tools/manage-samples.js`) runs an operation in every
-  sample it applies to, or in the named ones: `regenerate:db` replaces the migrations of each sample with a database with
-  a single `init` migration and recreates its database, and `run <script>` runs a `package.json` script of every sample
-  having it, with Bun in the Bun sample (`run generate`, `run seed`). The database operations need the PostgreSQL,
-  MySQL and SQL Server containers running, and `run generate` runs the built `node_modules/@appweaver`, so run
-  `npm run build` first or it generates the models of the last build. The samples run one after another, stopping at the
-  first failure, or with `--parallel` (anywhere in the arguments) all at once, every output line prefixed with its
+- `npm run samples:manage -- <operation> [params...] [samples...]` (`tools/manage-samples.js`) runs an operation in
+  every sample it applies to, or in the named ones: `regenerate:db` replaces the migrations of each sample with a
+  database with a single `init` migration and recreates its database, and `run <script>` runs a `package.json` script of
+  every sample having it, with Bun in the Bun sample (`run generate`, `run seed`). The database operations need the
+  PostgreSQL, MySQL and SQL Server containers running, and `run generate` runs the built `node_modules/@appweaver`, so
+  run `npm run build` first or it generates the models of the last build. The samples run one after another, stopping at
+  the first failure, or with `--parallel` (anywhere in the arguments) all at once, every output line prefixed with its
   sample and every failure reported at the end. A new operation is an entry of its `operations`, with the names of its
   `params`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
