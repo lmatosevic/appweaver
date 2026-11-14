@@ -7,13 +7,16 @@ import {
   createLogger,
   resolveDatabaseType,
   TransactionOptions,
-  DatabaseError
+  DatabaseError,
+  hasGeo
 } from '@appweaver/common';
 import { databaseConfig } from './database-config';
 import { createClient } from './create-client';
 import { sqlServerExtension } from './sqlserver-extension';
+import { spatialExtension } from '../spatial/spatial-extension';
 import { Prisma, PrismaClient } from '../prisma/client/client';
 import {
+  context,
   currentTransaction,
   runInTransaction,
   settleTransaction,
@@ -178,15 +181,24 @@ export class PrismaDatabase extends Database {
   /** @internal */
   private clientInstance(): PrismaClient {
     if (!this._client) {
-      const client = createClient();
       const dbType = resolveDatabaseType(
         databaseConfig.TYPE,
         databaseConfig.URL
       );
-      this._client =
-        dbType === DatabaseType.SQLServer
-          ? (client.$extends(sqlServerExtension(this)) as PrismaClient)
-          : client;
+      // The outer extension runs first, so the geo values are normalized
+      // before SQL Server serializes the JSON fields
+      let client: any = createClient();
+      if (
+        [...context.resource.models.values()].some((model) =>
+          hasGeo(model.config)
+        )
+      ) {
+        client = client.$extends(spatialExtension());
+      }
+      if (dbType === DatabaseType.SQLServer) {
+        client = client.$extends(sqlServerExtension(this));
+      }
+      this._client = client as PrismaClient;
     }
     return this._client;
   }

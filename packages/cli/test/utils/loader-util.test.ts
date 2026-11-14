@@ -6,6 +6,7 @@ import {
   isModulePackage,
   loadCliPackageJson,
   loadLocalPackageJson,
+  geoStorage,
   seriesInDatabase,
   shipsResourceRegistry
 } from '../../utils/loader-util';
@@ -147,6 +148,21 @@ describe('loader-util', () => {
       fs.writeFileSync(path.join(packageDir, 'dist', 'index.d.ts'), registry);
 
       expect(shipsResourceRegistry(enabled('local'))).toBe(false);
+    });
+  });
+
+  describe('geoStorage', () => {
+    test('reads the provider only for models with geo fields', () => {
+      const provider = jest.fn(() => 'postgis' as const);
+      const plain = { Post: { config: { name: 'Post' } } } as any;
+      const geo = {
+        ...plain,
+        Store: { config: { name: 'Store', geo: { at: { type: 'point' } } } }
+      };
+
+      expect(geoStorage(plain, provider)).toBe('database');
+      expect(provider).not.toHaveBeenCalled();
+      expect(geoStorage(geo, provider)).toBe('postgis');
     });
   });
 

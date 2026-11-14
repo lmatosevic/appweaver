@@ -279,8 +279,9 @@ being a dependency of the project, and a driver is selected by its `provider` ke
 
 The database module, built on Prisma: the factory functions of the resources (`createModel`, `createService`,
 `createPolicy`), the resource services, the auth data model (`createAuthModel`, `createAuthService`, roles,
-permissions, API keys), `FileService`, the seeders, the CSV export, and the `database` and `timescale` (TimescaleDB)
-stores of the time series fields (`series`) of the models.
+permissions, API keys), `FileService`, the seeders, the CSV export, the `database` and `timescale` (TimescaleDB)
+stores of the time series fields (`series`) of the models, and their geo fields (`geo`), queried with PostGIS on
+PostgreSQL.
 
 Only the model is required: a service needs the model, routes need the service, and an optional policy needs only
 the model. Define each in its own file under `src/resources/<name>/` and the framework autoloads them on startup. They

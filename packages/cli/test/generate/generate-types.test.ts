@@ -327,6 +327,52 @@ describe('generate-types', () => {
       expect(types).toContain('relations: never; series: SensorSeries };');
     });
 
+    test('types the geo fields as the geometry types of the framework', async () => {
+      const point = Type.Object({ type: Type.Literal('Point') });
+      const store = model(
+        'Store',
+        Type.Object({
+          name: Type.String(),
+          location: point,
+          area: Type.Optional(point),
+          shape: point
+        }),
+        {
+          geo: {
+            location: { type: 'point' },
+            area: { type: 'polygon', required: false },
+            shape: { type: 'geometry' },
+            secret: { type: 'point', hidden: true }
+          }
+        }
+      );
+      (store as any).createOneModel = Type.Object({ location: point });
+      (store as any).updateOneModel = Type.Object({
+        location: Type.Optional(point),
+        area: Type.Optional(point)
+      });
+
+      const { status, types } = await generate({ Store: store });
+
+      expect(status).toBe(0);
+      expect(types).toContain(
+        "import { AggregateSelect, GeoGeometry, GeoLatLng, GeoPoint, GeoPolygon, IResourceService, QueryFilter, QuerySort } from '@appweaver/common';"
+      );
+      const type = (name: string) =>
+        types
+          .slice(types.indexOf(`export type ${name} = {`))
+          .split('}')[0]
+          .replace(/\s+/g, ' ');
+      // Unformatted, since prettier is mocked
+      expect(type('Store')).toContain(
+        'location: GeoPoint, area?: (GeoPolygon | null), shape: GeoGeometry'
+      );
+      expect(type('StoreCreate')).toContain('location: (GeoPoint | GeoLatLng)');
+      expect(type('StoreUpdate')).toContain(
+        'location?: (GeoPoint | GeoLatLng), area?: (GeoPolygon | null)'
+      );
+    });
+
     test('registers a model without generated types with loose types', async () => {
       const { types } = await generate({
         Draft: model('Draft', Type.Object({ id: Type.Integer() }), {

@@ -1,15 +1,12 @@
 import {
-  capitalize,
   emulatedForeignKeys,
   ForeignKey,
-  isArray,
-  isPlainObject,
-  isResourceAuthModel,
   ResourceModel,
   sqlServerForeignKeys,
   uncapitalize
 } from '@appweaver/common';
 import { context, currentTransaction } from '@appweaver/core/internal';
+import { mapResultRecords, mapWriteArgs } from '../utils/write-data-util';
 
 /** The database the extension runs its queries on. */
 export type ExtendedDatabase = {
@@ -27,8 +24,6 @@ type SqlServerSchema = {
   deleteActions: Set<string>;
   /** The JSON fields of every model */
   jsonFields: Map<string, Set<string>>;
-  /** The related model of every relation, file and audit field of every model */
-  relatedModels: Map<string, Map<string, string>>;
 };
 
 // The operations whose result holds no records
@@ -146,94 +141,19 @@ async function applyDeleteActions(
 
 /** Serializes the JSON fields of the data a write operation stores. */
 function serializeArgs(modelName: string, operation: string, args: any): any {
-  if (!isPlainObject(args)) {
-    return args;
-  }
-
-  switch (operation) {
-    case 'create':
-    case 'createMany':
-    case 'createManyAndReturn':
-    case 'update':
-    case 'updateMany':
-    case 'updateManyAndReturn':
-      return { ...args, data: serializeData(modelName, args.data) };
-    case 'upsert':
-      return {
-        ...args,
-        create: serializeData(modelName, args.create),
-        update: serializeData(modelName, args.update)
-      };
-    default:
-      return args;
-  }
+  return mapWriteArgs(modelName, operation, args, serializeRecord);
 }
 
-/** Serializes the JSON fields of a record's data, and of the nested writes of its relations. */
-function serializeData(modelName: string, data: any): any {
-  if (isArray(data)) {
-    return data.map((item) => serializeData(modelName, item));
-  }
-  if (!isPlainObject(data)) {
-    return data;
-  }
-
-  const schema = sqlServerSchema();
-  const jsonFields = schema.jsonFields.get(modelName);
-  const relatedModels = schema.relatedModels.get(modelName);
-
+/** Serializes the JSON fields of the data of a record. */
+function serializeRecord(
+  modelName: string,
+  data: Record<string, any>
+): Record<string, any> {
+  const jsonFields = sqlServerSchema().jsonFields.get(modelName);
   const serialized: Record<string, any> = { ...data };
   for (const [key, value] of Object.entries(data)) {
     if (jsonFields?.has(key) && value !== undefined) {
       serialized[key] = serializeJson(value);
-    } else if (relatedModels?.has(key) && isPlainObject(value)) {
-      serialized[key] = serializeNestedWrites(relatedModels.get(key)!, value);
-    }
-  }
-  return serialized;
-}
-
-/** Serializes the JSON fields of the records a nested relation write stores. */
-function serializeNestedWrites(
-  modelName: string,
-  writes: Record<string, any>
-): Record<string, any> {
-  const each = (value: any, fn: (item: any) => any) =>
-    isArray(value) ? value.map(fn) : fn(value);
-  const withData = (item: any) =>
-    isPlainObject(item) && 'data' in item
-      ? { ...item, data: serializeData(modelName, item.data) }
-      : serializeData(modelName, item);
-
-  const serialized: Record<string, any> = { ...writes };
-  for (const [action, value] of Object.entries(writes)) {
-    switch (action) {
-      case 'create':
-        serialized[action] = serializeData(modelName, value);
-        break;
-      case 'createMany':
-        serialized[action] = {
-          ...value,
-          data: serializeData(modelName, value?.data)
-        };
-        break;
-      case 'update':
-      case 'updateMany':
-        serialized[action] = each(value, withData);
-        break;
-      case 'upsert':
-        serialized[action] = each(value, (item) => ({
-          ...item,
-          create: serializeData(modelName, item?.create),
-          update: serializeData(modelName, item?.update)
-        }));
-        break;
-      case 'connectOrCreate':
-        serialized[action] = each(value, (item) => ({
-          ...item,
-          create: serializeData(modelName, item?.create)
-        }));
-        break;
     }
   }
   return serialized;
@@ -258,25 +178,21 @@ function isNullSentinel(value: unknown): boolean {
 
 /** Parses the JSON fields of the records of a result, and of their included relations. */
 function parseJsonFields(modelName: string, result: any): any {
-  if (isArray(result)) {
-    return result.map((item) => parseJsonFields(modelName, item));
-  }
-  if (!isPlainObject(result)) {
-    return result;
-  }
+  return mapResultRecords(modelName, result, parseRecord);
+}
 
-  const schema = sqlServerSchema();
-  const jsonFields = schema.jsonFields.get(modelName);
-  const relatedModels = schema.relatedModels.get(modelName);
-
-  for (const [key, value] of Object.entries(result)) {
+/** Parses the JSON fields of a record. */
+function parseRecord(
+  modelName: string,
+  record: Record<string, any>
+): Record<string, any> {
+  const jsonFields = sqlServerSchema().jsonFields.get(modelName);
+  for (const [key, value] of Object.entries(record)) {
     if (jsonFields?.has(key) && typeof value === 'string') {
-      result[key] = JSON.parse(value);
-    } else if (relatedModels?.has(key) && value !== null) {
-      result[key] = parseJsonFields(relatedModels.get(key)!, value);
+      record[key] = JSON.parse(value);
     }
   }
-  return result;
+  return record;
 }
 
 /**
@@ -314,42 +230,26 @@ function sqlServerSchema(): SqlServerSchema {
   }
 
   const models = Object.fromEntries(loaded.map((m) => [m.name, m]));
-  const authModel = Object.values(models).find(isResourceAuthModel);
   const jsonFields = new Map<string, Set<string>>();
-  const relatedModels = new Map<string, Map<string, string>>();
 
   for (const model of Object.values(models)) {
     jsonFields.set(
       model.name,
-      new Set(
-        Object.entries(model.config.scalars ?? {})
+      new Set([
+        ...Object.entries(model.config.scalars ?? {})
           .filter(([, scalar]) => scalar.type === 'json')
-          .map(([field]) => field)
-      )
+          .map(([field]) => field),
+        // A geo field holds its GeoJSON geometry
+        ...Object.keys(model.config.geo ?? {})
+      ])
     );
-
-    const related = new Map<string, string>();
-    for (const [field, relation] of Object.entries(
-      model.config.relations ?? {}
-    )) {
-      related.set(field, capitalize(relation.model));
-    }
-    for (const field of Object.keys(model.config.files ?? {})) {
-      related.set(field, 'File');
-    }
-    if (authModel) {
-      related.set('createdBy', authModel.name);
-      related.set('deletedBy', authModel.name);
-    }
-    relatedModels.set(model.name, related);
   }
 
   const foreignKeys = sqlServerForeignKeys(models);
   const schema = {
     foreignKeys,
     deleteActions: deleteActionModels(foreignKeys),
-    jsonFields,
-    relatedModels
+    jsonFields
   };
   cached = { models: loaded, schema };
   return schema;

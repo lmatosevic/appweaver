@@ -1,10 +1,18 @@
-import { Database, Events, DatabaseError } from '@appweaver/common';
+import {
+  configOverrides,
+  Database,
+  DatabaseError,
+  DatabaseType,
+  Events
+} from '@appweaver/common';
 import { define, CacheService } from '@appweaver/core';
 import { NodeEvents } from '@appweaver/core/drivers';
 import { ErrorCode } from '@appweaver/common';
 import { createModel } from '../../factory/create-model';
 import { ResourceService } from '../../resource/resource-service';
 import { FileService } from '../../storage/file-service';
+import { DatabaseSpatialEngine } from '../../spatial/spatial-engine';
+import { SpatialService } from '../../spatial/spatial-service';
 import { resetContext } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';
 import {
@@ -2434,5 +2442,180 @@ describe('resource-service', () => {
         service.aggregate({ select: { views: { sum: true } } as any })
       ).rejects.toBeInstanceOf(DatabaseError);
     });
+  });
+});
+
+class StoreService extends ResourceService<any, any, any, any, any> {
+  constructor() {
+    super('Store');
+  }
+}
+
+describe('resource-service with geo fields', () => {
+  let db: DatabaseStub;
+  let service: ResourceService<any, any, any, any, any>;
+  let match: jest.SpyInstance;
+
+  const near = { _near: { point: [0, 0], maxDistance: 1000 } };
+  const store = (id: number) => ({ id, name: `Store ${id}` });
+
+  beforeEach(() => {
+    resetContext();
+    configOverrides.DATABASE_TYPE = DatabaseType.Sqlite;
+    db = createDatabaseStub(['Store']);
+    define(db.database, Database as any);
+    define(new NodeEvents(), Events as any);
+    define({ invalidateCache: jest.fn() }, CacheService);
+    createModel({
+      name: 'Store',
+      scalars: { name: { type: 'string' } },
+      geo: { location: { type: 'point' } }
+    });
+    linkModels();
+    define(SpatialService);
+    match = jest
+      .spyOn(DatabaseSpatialEngine.prototype, 'match')
+      .mockResolvedValue([
+        { id: 3, distance: 10 },
+        { id: 1, distance: 20 },
+        { id: 2, distance: 30 },
+        { id: 4, distance: 30 }
+      ]);
+    // The records the other conditions keep, unordered
+    db.setResult('Store', 'findMany', (args: any) =>
+      args.select
+        ? [{ id: 2 }, { id: 4 }, { id: 1 }, { id: 3 }]
+        : args.where.id.in.map(store)
+    );
+    db.setResult('Store', 'count', 4);
+    service = new StoreService();
+  });
+
+  afterEach(() => {
+    match.mockRestore();
+    delete configOverrides.DATABASE_TYPE;
+  });
+
+  test('matches the ids of the spatial filter, each record with its distance', async () => {
+    db.setResult('Store', 'findMany', [store(1), store(9)]);
+    const { items } = await service.query({
+      filter: { location: near } as any
+    });
+    const { where } = db.lastQuery('findMany').args;
+    expect(where.AND[0]).toEqual({ AND: [{ id: { in: [3, 1, 2, 4] } }] });
+    expect(items).toEqual([{ ...store(1), locationDistance: 20 }, store(9)]);
+  });
+
+  test('matches a box by the bounding box columns, without the engine', async () => {
+    db.setResult('Store', 'findMany', [store(1)]);
+    const { items } = await service.query({
+      filter: { location: { _withinBox: [0, 0, 1, 1] } } as any
+    });
+    expect(db.lastQuery('findMany').args.where.AND[0]).toEqual({
+      AND: [
+        {
+          locationMinLng: { gte: 0, lte: 1 },
+          locationMinLat: { gte: 0, lte: 1 },
+          locationMaxLng: { lte: 1 },
+          locationMaxLat: { lte: 1 }
+        }
+      ]
+    });
+    expect(match).not.toHaveBeenCalled();
+    expect(items).toEqual([store(1)]);
+  });
+
+  test('pages the records by their distance', async () => {
+    const first = await service.query({
+      filter: { location: near } as any,
+      sort: 'location',
+      size: 2
+    });
+    expect(first.items.map((item: any) => item.id)).toEqual([3, 1]);
+    expect(first.items[1].locationDistance).toBe(20);
+    expect(first.totalCount).toBe(4);
+    expect(first.prevCursor).toBeNull();
+
+    const next = await service.query({
+      filter: { location: near } as any,
+      sort: 'location',
+      size: 2,
+      cursor: first.nextCursor,
+      totalCount: false
+    });
+    expect(next.items.map((item: any) => item.id)).toEqual([2, 4]);
+    expect(next.nextCursor).toBeNull();
+    expect(next.totalCount).toBeNull();
+
+    const back = await service.query({
+      filter: { location: near } as any,
+      sort: 'location',
+      size: 2,
+      cursor: next.prevCursor
+    });
+    expect(back.items.map((item: any) => item.id)).toEqual([3, 1]);
+
+    const desc = await service.query({
+      filter: { location: near } as any,
+      sort: { location: 'desc' } as any,
+      page: 2,
+      size: 3
+    });
+    expect(desc.items.map((item: any) => item.id)).toEqual([3]);
+    expect(desc.prevCursor).not.toBeNull();
+  });
+
+  test('returns the nearest record', async () => {
+    const nearest = await service.single(
+      { location: near } as any,
+      'location' as any
+    );
+    expect(nearest).toEqual({ ...store(3), locationDistance: 10 });
+
+    match.mockResolvedValue([]);
+    db.setResult('Store', 'findMany', (args: any) => (args.select ? [] : []));
+    expect(
+      await service.single({ location: near } as any, 'location' as any)
+    ).toBeNull();
+  });
+
+  test('rejects a distance sort without a _near filter or with other fields', async () => {
+    await expect(
+      service.query({ filter: {}, sort: 'location' })
+    ).rejects.toMatchObject({ code: ErrorCode.ResourceInvalidSort });
+    await expect(
+      service.query({
+        filter: { location: { _withinBox: [0, 0, 1, 1] } } as any,
+        sort: 'location'
+      })
+    ).rejects.toMatchObject({ code: ErrorCode.ResourceInvalidSort });
+    await expect(
+      service.query({ filter: { location: near } as any, sort: 'location,-id' })
+    ).rejects.toMatchObject({ code: ErrorCode.ResourceInvalidSort });
+  });
+
+  test('rejects a cursor of a record out of the matches', async () => {
+    const page = await service.query({
+      filter: { location: near } as any,
+      sort: 'location',
+      size: 1
+    });
+    match.mockResolvedValue([{ id: 2, distance: 1 }]);
+    db.setResult('Store', 'findMany', [{ id: 2 }]);
+    await expect(
+      service.query({
+        filter: { location: near } as any,
+        sort: 'location',
+        size: 1,
+        cursor: page.nextCursor
+      })
+    ).rejects.toMatchObject({ code: ErrorCode.ResourceInvalidCursor });
+  });
+
+  test('wraps the database errors of a distance query', async () => {
+    db.setResult('Store', 'findMany', prismaError('P2010'));
+    await expect(
+      service.query({ filter: { location: near } as any, sort: 'location' })
+    ).rejects.toBeInstanceOf(DatabaseError);
   });
 });

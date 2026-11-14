@@ -16,6 +16,7 @@ import {
   systemConfig,
   twoFactorModelConfig
 } from './security/auth-config';
+import { spatialConfig } from './spatial/spatial-config';
 import { imageConfig } from './storage/image-config';
 import { databaseSeriesConfig } from './timeseries/database-series-config';
 import { timescaleConfig } from './timeseries/timescale-config';
@@ -34,9 +35,10 @@ export default defineModule({
     twoFactorModelConfig,
     systemConfig,
     databaseSeriesConfig,
-    timescaleConfig
+    timescaleConfig,
+    spatialConfig
   ],
-  loggers: ['database', 'resource', 'storage', 'timeseries'],
+  loggers: ['database', 'resource', 'storage', 'timeseries', 'spatial'],
   contracts: [
     { contract: Database, provider: () => databaseConfig.PROVIDER },
     { contract: ImageProcessor, provider: () => imageConfig.PROVIDER }
@@ -71,7 +73,8 @@ export default defineModule({
       load: () => import('./storage/file-service'),
       requires: [Database, Storage]
     },
-    { load: () => import('./export/export-service'), requires: [Database] }
+    { load: () => import('./export/export-service'), requires: [Database] },
+    { load: () => import('./spatial/spatial-service'), requires: [Database] }
   ],
   setup: async (context) =>
     (await import('./resource/load-data-resources')).loadDataResources(context),

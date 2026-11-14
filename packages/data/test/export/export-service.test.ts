@@ -409,6 +409,32 @@ describe('export-service', () => {
       expect(csv).toContain('tech');
     });
 
+    test('writes a geometry as its GeoJSON', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          geo: { place: { type: 'point', required: false } }
+        },
+        true
+      );
+      linkModels();
+      defineService([
+        {
+          id: 1,
+          title: 'First',
+          place: { type: 'Point', coordinates: [1, 2] }
+        },
+        { id: 2, title: 'Second', place: null }
+      ]);
+
+      const { stream } = await service.exportCsv('Post');
+      const csv = await readStream(stream);
+
+      expect(csv).toContain('place');
+      expect(csv).toContain('"{""type"":""Point"",""coordinates"":[1,2]}"');
+    });
+
     test('flattens a single relation into prefixed columns', async () => {
       createModel({ name: 'User', scalars: { email: { type: 'string' } } });
       createModel(

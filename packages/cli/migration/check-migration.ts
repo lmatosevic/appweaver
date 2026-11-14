@@ -4,6 +4,7 @@ import path from 'node:path';
 import { buildPrismaSchema, validateRelations } from '../generate';
 import { planMigrations } from '../migrate/plan-migrations';
 import {
+  geoStorage,
   importPackage,
   loadModels,
   runProcessOutput,
@@ -34,9 +35,11 @@ export const CHECK_FAILED = 2;
 export async function checkMigration(
   options: CheckMigrationOptions = {}
 ): Promise<number> {
-  const { databaseConfig, resourceConfig } = await importPackage<
-    typeof import('@appweaver/data/config')
-  >('@appweaver/data/config', 'migration check');
+  const { databaseConfig, resourceConfig, spatialProvider } =
+    await importPackage<typeof import('@appweaver/data/config')>(
+      '@appweaver/data/config',
+      'migration check'
+    );
 
   const { models, modules } = await loadModels(
     options.modelPattern ?? resourceConfig.MODEL_PATTERN,
@@ -52,7 +55,8 @@ export async function checkMigration(
     models,
     databaseConfig.SCHEMA_PATH,
     databaseConfig.CLIENT_OUTPUT_DIR_PATH,
-    seriesInDatabase(modules)
+    seriesInDatabase(modules),
+    geoStorage(models, spatialProvider)
   );
   const generated = await fsp
     .readFile(path.resolve(databaseConfig.SCHEMA_PATH), 'utf8')

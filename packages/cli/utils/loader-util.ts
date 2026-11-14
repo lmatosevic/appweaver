@@ -4,6 +4,7 @@ import fsp from 'node:fs/promises';
 import { glob } from 'glob';
 import { register } from 'ts-node';
 import {
+  hasGeo,
   isResourceModel,
   relinkResourceModels,
   ResourceModel,
@@ -258,4 +259,21 @@ export function seriesInDatabase(modules: EnabledModule[]): boolean {
         entry.contract.name === 'TimeSeries' && (entry.auto ?? true) === true
     )
   );
+}
+
+/**
+ * Resolves how the geo fields of the models are stored in the Prisma schema, reading the spatial provider only for
+ * models declaring some, so a project without geo fields never fails on its `spatial.provider`.
+ *
+ * @param {Record<string, ResourceModel>} models - The resource models by their names.
+ * @param {Function} provider - Resolves the spatial provider, `spatialProvider` of `@appweaver/data/config`.
+ * @return {'postgis' | 'database'} `postgis` for a PostGIS geometry column beside the bounding box columns.
+ */
+export function geoStorage<T extends 'postgis' | 'database'>(
+  models: Record<string, ResourceModel>,
+  provider: () => T
+): T | 'database' {
+  return Object.values(models).some((model) => hasGeo(model.config))
+    ? provider()
+    : 'database';
 }

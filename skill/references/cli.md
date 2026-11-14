@@ -166,6 +166,10 @@ A model with `series` fields gets the `<Model>Series` table of its points in the
 module path, or `auto` with a module package of another store enabled. `weaver test setup` follows the
 provider of the `test` environment.
 
+A `geo` field gets its GeoJSON and bounding box columns, and with the `postgis` provider of `spatial.provider` (the
+default on PostgreSQL) its PostGIS geometry column, a GiST index and the `postgis` extension of the datasource (see
+[spatial](./spatial.md)). The types use the geometry types of `@appweaver/common`, i.e. `GeoPoint`.
+
 The models come from the project and from the `resources` of the enabled modules (see [modules](./modules.md)). The
 framework models reach the schema only when the project uses them: `Role`, `Permission`, `ApiKey`, `OneTimeToken` and
 `ConnectedAccount` with an auth model, `File` when a model declares `files`, and `Seeder` when the seeders directory

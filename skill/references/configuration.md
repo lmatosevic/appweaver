@@ -802,6 +802,18 @@ The `timescale` provider (`config.timeseries.timescale`), of `@appweaver/data`. 
 | `TIMESERIES_TIMESCALE_RETENTION`      | string  | `''`     | Age from which the chunks are dropped, a duration, empty to keep every point.       |
 | `TIMESERIES_TIMESCALE_SETUP_TIMEOUT`  | integer | `60000`  | Maximum milliseconds the hypertables and their policies take to set up at startup.  |
 
+### Spatial (SPATIAL\_\*)
+
+How the `geo` fields of the models are queried, of `@appweaver/data`, see [spatial.md](./spatial.md). Changing the
+provider changes the generated schema.
+
+| Property                 | Type    | Default  | Description                                                                                                  |
+|--------------------------|---------|----------|--------------------------------------------------------------------------------------------------------------|
+| `SPATIAL_PROVIDER`       | enum    | `'auto'` | How `_near`, `_within` and `_intersects` are matched: `auto` (`postgis` on PostgreSQL, `database` otherwise), `postgis` (PostgreSQL with PostGIS) or `database` (every database). |
+| `SPATIAL_MAX_CANDIDATES` | integer | `10000`  | Maximum number of records a `_near`, `_within` or `_intersects` filter matches, at most `2000` on SQL Server. |
+| `SPATIAL_MAX_VERTICES`   | integer | `10000`  | Maximum number of positions of a geometry, written or given to a spatial filter.                             |
+| `SPATIAL_SETUP_TIMEOUT`  | integer | `60000`  | Maximum milliseconds the `postgis` provider takes to create its triggers and write the geometries missing at startup. |
+
 ### Job queue (QUEUE\_\*)
 
 | Property                       | Type     | Default   | Description                                                                                                   |

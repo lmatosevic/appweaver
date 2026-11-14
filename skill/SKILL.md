@@ -431,6 +431,24 @@ seriesOptions: { ingest: 'queue', retention: '365d', compressAfter: '30d' }
 
 See [timeseries.md](references/timeseries.md) for the stores, the ingestion, the routes, the policies and the service.
 
+The `geo` section declares fields holding GeoJSON geometries (`point`, `multiPoint`, `lineString`, `multiLineString`,
+`polygon`, `multiPolygon`, `geometry`), written and read like scalars (a point also as `{ lat, lng }`), and filtered
+with the operators `_near` (meters), `_within`, `_withinBox`, `_intersects` and `_exists`. A record matched by `_near`
+carries its distance as `<field>Distance`, and sorting by the geo field orders by it. `_near`, `_within` and
+`_intersects` are matched by PostGIS on PostgreSQL (`spatial.provider: postgis`, the default there, needing PostGIS on
+the server) and by the application on every other database (`database`):
+
+```ts
+geo: {
+  location: { type: 'point' },
+  deliveryArea: { type: 'polygon', required: false }
+}
+// filter: { location: { _near: { point: { lat: 45.8, lng: 15.97 }, maxDistance: 5000 } } }, sort: 'location'
+// items[0].locationDistance → 412.7
+```
+
+See [spatial.md](references/spatial.md) for the values, the operators, the providers and their limits.
+
 #### Creating a resource service
 
 Resource service defines the business logic layer for a resource: lifecycle hooks (before/after create, update, delete),
@@ -1183,3 +1201,4 @@ npm run lint  # eslint "./**/*.ts"
 - Generating an HTTP client for using API: [client.md](references/client.md)
 - Errors & error responses: [errors.md](references/errors.md)
 - Time series fields, stores & routes: [timeseries.md](references/timeseries.md)
+- Geo fields & spatial queries: [spatial.md](references/spatial.md)

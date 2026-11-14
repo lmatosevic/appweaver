@@ -7,6 +7,7 @@ import {
   CaptchaConfig,
   CONFIG_NAME,
   ErrorCode,
+  hasGeo,
   hasSeries,
   SeriesWriteRouteConfig,
   Nullable,
@@ -144,7 +145,15 @@ export function createSchema(
       ...(routeErrorCodes[route] ?? [])
     );
 
+  // The errors of the geometries written and of the spatial filters
+  const geo = hasGeo(resourceModel.config);
+  const geometryErrors = geo ? [ErrorCode.SpatialInvalidGeometry] : [];
+  const spatialFilterErrors = geo
+    ? [ErrorCode.SpatialInvalidFilter, ErrorCode.SpatialTooManyCandidates]
+    : [];
+
   const createErrors = [
+    ...geometryErrors,
     ErrorCode.ResourceForbidden,
     ErrorCode.ResourceInvalidRelation,
     ErrorCode.DatabaseUniqueViolation,
@@ -156,6 +165,7 @@ export function createSchema(
   ];
 
   const updateErrors = [
+    ...geometryErrors,
     ErrorCode.ResourceNotFound,
     ErrorCode.ResourceForbidden,
     ErrorCode.ResourceInvalidRelation,
@@ -305,7 +315,8 @@ export function createSchema(
         ...routeErrors(
           'query',
           ErrorCode.ResourceInvalidSort,
-          ErrorCode.ResourceInvalidCursor
+          ErrorCode.ResourceInvalidCursor,
+          ...spatialFilterErrors
         )
       },
       body: createSchemaModel(queryRequest)
@@ -318,7 +329,11 @@ export function createSchema(
       description: `Aggregate ${resourceName} data`,
       response: {
         200: createSchemaModel(aggregateResponse),
-        ...routeErrors('aggregate', ErrorCode.ResourceInvalidAggregate)
+        ...routeErrors(
+          'aggregate',
+          ErrorCode.ResourceInvalidAggregate,
+          ...spatialFilterErrors
+        )
       },
       body: createSchemaModel(aggregateRequest)
     },
@@ -334,7 +349,8 @@ export function createSchema(
           'query',
           ErrorCode.ResourceInvalidSort,
           ErrorCode.ResourceInvalidCursor,
-          ErrorCode.ResourceInvalidQueryParameter
+          ErrorCode.ResourceInvalidQueryParameter,
+          ...spatialFilterErrors
         )
       },
       querystring: queryParams,
@@ -351,7 +367,8 @@ export function createSchema(
         ...routeErrors(
           'aggregate',
           ErrorCode.ResourceInvalidAggregate,
-          ErrorCode.ResourceInvalidQueryParameter
+          ErrorCode.ResourceInvalidQueryParameter,
+          ...spatialFilterErrors
         )
       },
       querystring: aggregateParams,
@@ -427,7 +444,8 @@ export function createSchema(
         ...routeErrors(
           'export',
           ErrorCode.ResourceInvalidSort,
-          ErrorCode.ExportFailed
+          ErrorCode.ExportFailed,
+          ...spatialFilterErrors
         )
       },
       body: createSchemaModel(exportRequest)

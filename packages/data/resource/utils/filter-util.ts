@@ -58,6 +58,15 @@ const likePattern = (pattern: any): Record<string, any> => {
 };
 
 /**
+ * The database conditions a filter field was resolved into ahead of the
+ * mapping, i.e. the ids matching the spatial operators of a geo field, added
+ * to the conditions of the level of the filter holding the field.
+ */
+export class ResolvedFilterConditions {
+  constructor(public readonly conditions: any[]) {}
+}
+
+/**
  * Field comparison operators mapped to their database query conditions.
  * Operators combined in the same object are merged into a single condition.
  */
@@ -116,6 +125,11 @@ export function mapQueryFilter(filter: any, resourceName: string): any {
 
   for (const key in filter) {
     const value = filter[key];
+
+    if (value instanceof ResolvedFilterConditions) {
+      queryFilter['AND'] = [...(queryFilter['AND'] ?? []), ...value.conditions];
+      continue;
+    }
 
     // Logical operators combine their conditions, given either as a filter
     // object whose entries become separate conditions or as a list of

@@ -1,6 +1,7 @@
 import {
   decodeCursor,
   encodeCursor,
+  fingerprintAs,
   pageCursors,
   queryFingerprint
 } from '../../../resource/utils/cursor-util';
@@ -43,6 +44,20 @@ describe('cursor-util', () => {
       expect(
         queryFingerprint('Post', { views: 10 }, [{ id: 'desc' }])
       ).not.toBe(base);
+    });
+  });
+
+  describe('fingerprintAs', () => {
+    test('fingerprints a value as another one', () => {
+      const ids = fingerprintAs([1, 2], { location: { _near: 1 } });
+      const other = fingerprintAs([3], { location: { _near: 1 } });
+      expect(ids).toEqual([1, 2]);
+      expect(queryFingerprint('Post', { id: { in: ids } }, [])).toBe(
+        queryFingerprint('Post', { id: { in: other } }, [])
+      );
+      expect(queryFingerprint('Post', { id: { in: [1, 2] } }, [])).not.toBe(
+        queryFingerprint('Post', { id: { in: ids } }, [])
+      );
     });
   });
 

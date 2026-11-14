@@ -7,6 +7,7 @@ const loadModels = jest.fn();
 const runProcessOutput = jest.fn();
 const planMigrations = jest.fn();
 const validateRelations = jest.fn();
+const buildPrismaSchema = jest.fn();
 
 // fkill is ESM only, and the tests never kill a process
 jest.mock('fkill', () => ({ __esModule: true, default: jest.fn() }));
@@ -18,7 +19,7 @@ jest.mock('../../utils', () => ({
 }));
 // The generators load prettier, which is ESM only
 jest.mock('../../generate', () => ({
-  buildPrismaSchema: () => 'model Post {\n}',
+  buildPrismaSchema: (...args: any[]) => buildPrismaSchema(...args),
   validateRelations: (...args: any[]) => validateRelations(...args)
 }));
 jest.mock('../../migrate/plan-migrations', () => ({
@@ -45,6 +46,7 @@ describe('check-migration', () => {
 
     loadModels.mockReset().mockResolvedValue({ models: {}, modules: [] });
     validateRelations.mockReset().mockReturnValue([]);
+    buildPrismaSchema.mockReset().mockReturnValue('model Post {\n}');
     planMigrations.mockReset().mockResolvedValue({ status: 'up-to-date' });
     runProcessOutput.mockReset();
     diff(0);
@@ -67,6 +69,25 @@ describe('check-migration', () => {
         'No migration needed, the database matches the models.'
       );
       expect(planMigrations).toHaveBeenCalledWith(path.join(dir, 'migrations'));
+    });
+
+    test('builds the schema with the storage of the geo fields', async () => {
+      await checkMigration();
+      expect(buildPrismaSchema.mock.calls[0].slice(3)).toEqual([
+        true,
+        'database'
+      ]);
+
+      configOverrides.DATABASE_TYPE = 'postgresql';
+      loadModels.mockResolvedValue({
+        models: {
+          Store: { config: { geo: { location: { type: 'point' } } } }
+        },
+        modules: []
+      });
+      await checkMigration();
+      expect(buildPrismaSchema.mock.calls[1][4]).toBe('postgis');
+      delete configOverrides.DATABASE_TYPE;
     });
 
     test('compares the database with the schema of the models, in a temporary file', async () => {
