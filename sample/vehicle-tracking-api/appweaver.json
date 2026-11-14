@@ -10,7 +10,7 @@
       "port": 5008
     },
     "database": {
-      "url": "postgresql://${DB_USER:-vehicle-tracking-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:${DB_PORT:-5433}/${DB_NAME:-vehicle-tracking-api}"
+      "url": "postgresql://${DB_USER:-vehicle-tracking-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:${DB_PORT:-5432}/${DB_NAME:-vehicle-tracking-api}"
     },
     "security": {
       "apiKey": {
