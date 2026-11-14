@@ -6,6 +6,7 @@ import {
   IsolationLevel,
   createLogger,
   resolveDatabaseType,
+  telemetryEnabled,
   TransactionOptions,
   DatabaseError,
   hasGeo
@@ -14,6 +15,7 @@ import { databaseConfig } from './database-config';
 import { createClient } from './create-client';
 import { sqlServerExtension } from './sqlserver-extension';
 import { spatialExtension } from '../spatial/spatial-extension';
+import { telemetryExtension } from './telemetry-extension';
 import { Prisma, PrismaClient } from '../prisma/client/client';
 import {
   context,
@@ -186,8 +188,12 @@ export class PrismaDatabase extends Database {
         databaseConfig.URL
       );
       // The outer extension runs first, so the geo values are normalized
-      // before SQL Server serializes the JSON fields
+      // before SQL Server serializes the JSON fields, and the telemetry
+      // extension last, so the span of an operation covers only its query
       let client: any = createClient();
+      if (telemetryEnabled('database')) {
+        client = client.$extends(telemetryExtension(dbType));
+      }
       if (
         [...context.resource.models.values()].some((model) =>
           hasGeo(model.config)

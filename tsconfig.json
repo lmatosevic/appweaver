@@ -34,6 +34,8 @@
       "@appweaver/twilio/*": ["./packages/twilio/*"],
       "@appweaver/handlebars": ["./packages/handlebars"],
       "@appweaver/handlebars/*": ["./packages/handlebars/*"],
+      "@appweaver/opentelemetry": ["./packages/opentelemetry"],
+      "@appweaver/opentelemetry/*": ["./packages/opentelemetry/*"],
       "@appweaver/redis": ["./packages/redis"],
       "@appweaver/redis/*": ["./packages/redis/*"],
       "@appweaver/bullmq": ["./packages/bullmq"],

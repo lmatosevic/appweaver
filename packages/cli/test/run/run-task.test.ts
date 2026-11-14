@@ -10,6 +10,7 @@ jest.mock('@appweaver/core', () => ({
 import path from 'node:path';
 import { configOverrides } from '@appweaver/common';
 import { createApp, createTask } from '@appweaver/core';
+import { recordTelemetry } from '@appweaver/testing';
 import { formatTasks, listTasks, runTask } from '../../run';
 
 const fixtures = path.join(__dirname, 'fixtures');
@@ -63,6 +64,29 @@ describe('run-task', () => {
       expect(configOverrides.SCHEDULER_AUTO_START_JOB).toBe(false);
       expect(configOverrides.SERVER_LISTEN).toBe(false);
       expect(configOverrides.HEALTH_CHECK_PORT).toBe(0);
+    });
+
+    test('runs the task in the root span of a trace', async () => {
+      const telemetry = recordTelemetry();
+
+      await run('greet', ['Ana']);
+
+      const span = telemetry.span('task greet');
+      expect(span.parentSpanContext).toBeUndefined();
+      expect(span.attributes).toEqual({ 'appweaver.task.name': 'greet' });
+      await telemetry.stop();
+    });
+
+    test('runs the task without a span with the instrumentation off', async () => {
+      const telemetry = recordTelemetry();
+      configOverrides.TELEMETRY_INSTRUMENTATIONS_TASK = false;
+
+      const { code } = await run(fixture('sum-task.js'), ['1', '2']);
+
+      expect(code).toBe(3);
+      expect(telemetry.spans()).toHaveLength(0);
+      delete configOverrides.TELEMETRY_INSTRUMENTATIONS_TASK;
+      await telemetry.stop();
     });
 
     test('runs a task by its name with the parsed arguments', async () => {

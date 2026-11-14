@@ -15,11 +15,16 @@ import {
   Memory,
   uuid,
   QueueError,
-  ConfigurationError
+  ConfigurationError,
+  TraceCarrier,
+  traceQueueProcess,
+  traceQueueSend
 } from '@appweaver/common';
 import { inject, queueConfig } from '@appweaver/core';
 
 const logger = createLogger('queue');
+
+const SYSTEM = 'bullmq';
 
 type EventName = keyof WorkerListener;
 
@@ -149,10 +154,15 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     options: QueueJobOptions = {}
   ): Promise<Job<Data, Response>> {
     await this.ensureConnected();
-    const added = await this._queue.add(
+    const added = await traceQueueSend(
+      { system: SYSTEM, queue: this.name },
       name ?? 'defaultJob',
-      data,
-      toJobsOptions(options)
+      (carrier) =>
+        this._queue.add(
+          name ?? 'defaultJob',
+          data,
+          toJobsOptions(options, carrier)
+        )
     );
     const job = options.jobId ? await this.existingJob(added) : added;
     logger.debug(
@@ -170,12 +180,18 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     }>
   ): Promise<Array<Job<Data, Response>>> {
     await this.ensureConnected();
-    const added = await this._queue.addBulk(
-      jobs.map(({ data, name, options }) => ({
-        data,
-        name: name ?? 'defaultJob',
-        opts: toJobsOptions(options ?? {})
-      }))
+    const added = await traceQueueSend(
+      { system: SYSTEM, queue: this.name },
+      undefined,
+      (carrier) =>
+        this._queue.addBulk(
+          jobs.map(({ data, name, options }) => ({
+            data,
+            name: name ?? 'defaultJob',
+            opts: toJobsOptions(options ?? {}, carrier)
+          }))
+        ),
+      jobs.length
     );
     logger.debug({ queue: this.name, count: added.length }, 'Jobs added');
     return Promise.all(
@@ -189,7 +205,14 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     processor: (job: Job<Data, Response>) => Promise<Response>,
     options: QueueWorkerOptions = {}
   ): Worker<Data, Response> {
-    const worker = new Worker<Data, Response>(this.name, processor, {
+    const traced = (job: Job<Data, Response>) =>
+      traceQueueProcess(
+        { system: SYSTEM, queue: this.name },
+        { id: job.id, name: job.name, attempt: job.attemptsMade + 1 },
+        jobTraceContext(job),
+        () => processor(job)
+      );
+    const worker = new Worker<Data, Response>(this.name, traced, {
       ...options.providerOptions,
       ...(options.concurrency ? { concurrency: options.concurrency } : {}),
       connection: this._connection as any, // Needed because of different ioredis types
@@ -483,11 +506,31 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 }
 
 /** Converts the job options of the contract into the ones of BullMQ, leaving the defaults of the queue as they are. */
-function toJobsOptions(options: QueueJobOptions): JobsOptions {
+function toJobsOptions(
+  options: QueueJobOptions,
+  carrier?: TraceCarrier
+): JobsOptions {
   const { providerOptions, ...jobOptions } = options;
   return Object.fromEntries(
-    Object.entries({ ...providerOptions, ...jobOptions }).filter(
-      ([, value]) => value !== undefined
-    )
+    Object.entries({
+      ...providerOptions,
+      ...jobOptions,
+      // The field BullMQ stores the propagation metadata of a job in
+      ...(carrier ? { telemetry: { metadata: JSON.stringify(carrier) } } : {})
+    }).filter(([, value]) => value !== undefined)
   );
+}
+
+/** Reads the trace context stored with a job, by this driver or by a BullMQ telemetry of another service. */
+function jobTraceContext(job: Job): TraceCarrier | undefined {
+  const metadata = job.opts?.telemetry?.metadata;
+  if (!metadata) {
+    return undefined;
+  }
+  try {
+    const carrier = JSON.parse(metadata);
+    return typeof carrier === 'object' ? carrier : undefined;
+  } catch {
+    return undefined;
+  }
 }

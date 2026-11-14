@@ -12,3 +12,8 @@ export * from './sms/sms-config';
 export * from './storage/storage-config';
 export * from './template/template-config';
 export * from './timeseries/timeseries-config';
+// The sections of the instrumentation, defined by common for every package
+export {
+  telemetryConfig,
+  telemetryInstrumentationsConfig
+} from '@appweaver/common';

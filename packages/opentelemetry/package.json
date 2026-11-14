@@ -1,0 +1,68 @@
+{
+  "name": "@appweaver/opentelemetry",
+  "version": "2.5.0",
+  "description": "Appweaver - the backend framework for AI-first development (@opentelemetry)",
+  "author": "Luka Matosevic",
+  "license": "MIT",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+    "appweaver",
+    "appweaver-module",
+    "opentelemetry"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lmatosevic/appweaver.git",
+    "directory": "packages/opentelemetry"
+  },
+  "maintainers": [
+    {
+      "name": "Luka Matosevic",
+      "email": "lukamatosevic5@gmail.com",
+      "web": "https://lukamatosevic.com"
+    }
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">= 24.7"
+  },
+  "appweaver": {
+    "module": "./module.js"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/context-async-hooks": "3.1.1",
+    "@opentelemetry/core": "3.1.1",
+    "@opentelemetry/exporter-logs-otlp-http": "0.301.1",
+    "@opentelemetry/exporter-logs-otlp-proto": "0.301.1",
+    "@opentelemetry/exporter-metrics-otlp-http": "0.301.1",
+    "@opentelemetry/exporter-metrics-otlp-proto": "0.301.1",
+    "@opentelemetry/exporter-trace-otlp-http": "0.301.1",
+    "@opentelemetry/exporter-trace-otlp-proto": "0.301.1",
+    "@opentelemetry/instrumentation": "0.301.1",
+    "@opentelemetry/instrumentation-undici": "0.35.0",
+    "@opentelemetry/resources": "3.1.1",
+    "@opentelemetry/sdk-logs": "3.1.1",
+    "@opentelemetry/sdk-metrics": "3.1.1",
+    "@opentelemetry/sdk-trace": "3.1.1",
+    "@sinclair/typebox": "0.34.49"
+  },
+  "peerDependencies": {
+    "@appweaver/common": "^1.12.2",
+    "@appweaver/core": "^1.12.2"
+  },
+  "devDependencies": {
+    "@appweaver/common": "^1.12.2",
+    "@appweaver/core": "^1.12.2"
+  }
+}

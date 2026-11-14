@@ -10,11 +10,16 @@ import {
   QueueProcessor,
   QueueWorkerOptions,
   uuid,
-  QueueError
+  QueueError,
+  TraceCarrier,
+  traceQueueProcess,
+  traceQueueSend
 } from '@appweaver/common';
 import { queueConfig } from './queue-config';
 
 const logger = createLogger('queue');
+
+const SYSTEM = 'memory';
 
 type MemoryQueueJob<Data = any, Response = any> = QueueJob<Data, Response> & {
   status: 'delayed' | 'waiting' | 'active' | 'completed' | 'failed';
@@ -24,6 +29,8 @@ type MemoryQueueJob<Data = any, Response = any> = QueueJob<Data, Response> & {
   error?: Error;
   processedAt?: number;
   finishedAt?: number;
+  /** The trace context of the span that sent the job, continued by its worker */
+  traceContext?: TraceCarrier;
 };
 
 type MemoryWorker<Data = any, Response = any> = {
@@ -159,6 +166,15 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       maxAttempts: options.attempts ?? queueConfig.RETRY_ATTEMPTS,
       createdAt: Date.now()
     };
+    traceQueueSend(
+      { system: SYSTEM, queue: this.name },
+      job.name,
+      (carrier) => {
+        if (carrier) {
+          job.traceContext = carrier;
+        }
+      }
+    );
 
     this._jobs.set(jobId, job);
     if (options.delay) {
@@ -443,7 +459,12 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     await this.emitEvent('active', job, job.status);
 
     try {
-      const result = await worker.processor(job);
+      const result = await traceQueueProcess(
+        { system: SYSTEM, queue: this.name },
+        { id: job.id, name: job.name, attempt: job.attempts },
+        job.traceContext,
+        () => worker.processor(job)
+      );
 
       job.returnvalue = result;
       job.status = 'completed';

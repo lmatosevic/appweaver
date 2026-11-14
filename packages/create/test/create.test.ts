@@ -599,6 +599,7 @@ describe('create', () => {
       '@appweaver/cron',
       '@appweaver/handlebars',
       '@appweaver/nodemailer',
+      '@appweaver/opentelemetry',
       '@appweaver/redis'
     ];
 
@@ -772,7 +773,8 @@ describe('create', () => {
         'database',
         'server',
         'memory',
-        'timeseries'
+        'timeseries',
+        'telemetry'
       ]);
       expect(appConfig.config.memory).toEqual({
         redis: { url: 'redis://${REDIS_HOST:-localhost}:6379/0' }
@@ -783,7 +785,11 @@ describe('create', () => {
         memory: { provider: 'memory' },
         queue: { provider: 'memory' },
         scheduler: { autoStartJob: false },
-        mailer: { provider: 'json', senderAddress: 'no-reply@example.com' }
+        mailer: { provider: 'json', senderAddress: 'no-reply@example.com' },
+        telemetry: { enabled: false }
+      });
+      expect(appConfig.config.telemetry).toEqual({
+        endpoint: 'http://${OTEL_HOST:-localhost}:4318'
       });
       expect(exists('my-app', 'Dockerfile')).toBe(true);
       expect(exists('my-app', 'locales', 'en.json')).toBe(true);

@@ -32,6 +32,15 @@
     },
     "timeseries": {
       "provider": "timescale"
+    },
+    "telemetry": {
+      "endpoint": "http://${OTEL_HOST:-localhost}:4318",
+      "logs": {
+        "enabled": true
+      },
+      "http": {
+        "ignorePaths": ["/public/*"]
+      }
     }
   },
   "environments": {
@@ -72,6 +81,9 @@
       },
       "scheduler": {
         "autoStartJob": false
+      },
+      "telemetry": {
+        "enabled": false
       }
     }
   }

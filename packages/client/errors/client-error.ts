@@ -19,6 +19,7 @@ export type ClientProblem = {
   detail: string;
   instance?: string;
   requestId?: string;
+  traceId?: string;
   errors?: ClientFieldError[];
   details?: Record<string, unknown>;
 };

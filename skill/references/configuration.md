@@ -869,6 +869,49 @@ The messages are sent through the `sms` queue, see [sms](./sms.md).
 | `SMS_TWILIO_STATUS_URL`            | string  | `'https://status.twilio.com/api/v2/status.json'` | Status page of the Twilio platform read by the health check, down during a major or critical outage.                                                                                                                              |
 | `SMS_TWILIO_TIMEOUT`               | integer | `10000`                                          | Timeout of a request to the Twilio API in milliseconds.                                                                                                                                                                           |
 
+### Telemetry (TELEMETRY\_\*)
+
+The OpenTelemetry instrumentation of the framework, and the SDK of `@appweaver/opentelemetry` exporting it, see
+[telemetry](./telemetry.md). The keys of the first table belong to the framework, the others to the module.
+
+| Property                               | Type     | Default | Description                                                                                                       |
+|----------------------------------------|----------|---------|-------------------------------------------------------------------------------------------------------------------|
+| `TELEMETRY_ENABLED`                    | boolean  | `true`  | Enable the instrumentation, the log correlation and the SDK. Nothing is recorded until an SDK is registered.      |
+| `TELEMETRY_LOG_CORRELATION`            | boolean  | `true`  | Add the `trace_id`, `span_id` and `trace_flags` of the active span to every log record.                           |
+| `TELEMETRY_INSTRUMENTATIONS_HTTP`      | boolean  | `true`  | Trace and measure the requests of the HTTP server.                                                                |
+| `TELEMETRY_INSTRUMENTATIONS_DATABASE`  | boolean  | `true`  | Trace and measure the database operations.                                                                        |
+| `TELEMETRY_INSTRUMENTATIONS_QUEUE`     | boolean  | `true`  | Trace and measure the queue jobs, carrying the trace from the sender to the worker.                               |
+| `TELEMETRY_INSTRUMENTATIONS_SCHEDULER` | boolean  | `true`  | Trace and measure the runs of the scheduled jobs.                                                                 |
+| `TELEMETRY_INSTRUMENTATIONS_MAILER`    | boolean  | `true`  | Trace the emails the mailer sends.                                                                                |
+| `TELEMETRY_INSTRUMENTATIONS_SMS`       | boolean  | `true`  | Trace the text messages the SMS sender sends.                                                                     |
+| `TELEMETRY_INSTRUMENTATIONS_CACHE`     | boolean  | `true`  | Count the cache hits and misses.                                                                                  |
+| `TELEMETRY_INSTRUMENTATIONS_TASK`      | boolean  | `true`  | Trace the tasks of `weaver run`.                                                                                  |
+| `TELEMETRY_HTTP_IGNORE_PATHS`          | string[] | `[]`    | URL paths left out of the traces and the metrics: an exact path, or a prefix ending with `*` (`/public/*`). (web) |
+| `TELEMETRY_HTTP_HEALTH_CHECK`          | boolean  | `false` | Trace and measure the requests of the health check routes. (web)                                                  |
+
+With `@appweaver/opentelemetry`:
+
+| Property                           | Type     | Default           | Description                                                                                                                                         |
+|------------------------------------|----------|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `TELEMETRY_SERVICE_NAME`           | string?  | `APP_NAME`        | Name of the service in the telemetry. The `OTEL_SERVICE_NAME` environment variable is used before `APP_NAME`.                                       |
+| `TELEMETRY_SERVICE_VERSION`        | string?  | `APP_VERSION`     | Version of the service in the telemetry.                                                                                                            |
+| `TELEMETRY_RESOURCE_ATTRIBUTES`    | string[] | `[]`              | Resource attributes as `name=value` entries, added to the ones of `OTEL_RESOURCE_ATTRIBUTES`.                                                       |
+| `TELEMETRY_EXPORTER`               | enum     | `'otlp'`          | `otlp`, `console` (prints the telemetry) or `none`. `'none'` in the `test` environment.                                                             |
+| `TELEMETRY_ENDPOINT`               | string?  | -                 | Base URL of the OTLP endpoint, the signal paths (`/v1/traces`, ...) are appended. Else `OTEL_EXPORTER_OTLP_ENDPOINT`, else `http://localhost:4318`. |
+| `TELEMETRY_HEADERS`                | string[] | `[]`              | Headers of the OTLP requests as `name=value` entries, i.e. the API key of the backend. Hidden by `weaver config print`.                             |
+| `TELEMETRY_PROTOCOL`               | enum     | `'http/protobuf'` | Encoding of the OTLP requests: `http/protobuf` or `http/json`.                                                                                      |
+| `TELEMETRY_TIMEOUT`                | integer  | `10000`           | Timeout of an export request in milliseconds.                                                                                                       |
+| `TELEMETRY_TRACES_ENABLED`         | boolean  | `true`            | Record and export the traces.                                                                                                                       |
+| `TELEMETRY_TRACES_SAMPLE_RATIO`    | number   | `1`               | Ratio of the traces recorded, `0` to `1`. A trace continued from another service follows the decision of that service.                              |
+| `TELEMETRY_TRACES_ENDPOINT`        | string?  | -                 | Full URL of the OTLP traces endpoint, overriding `TELEMETRY_ENDPOINT`.                                                                              |
+| `TELEMETRY_METRICS_ENABLED`        | boolean  | `true`            | Record and export the metrics.                                                                                                                      |
+| `TELEMETRY_METRICS_INTERVAL`       | integer  | `60000`           | Interval between two exports of the metrics in milliseconds.                                                                                        |
+| `TELEMETRY_METRICS_ENDPOINT`       | string?  | -                 | Full URL of the OTLP metrics endpoint, overriding `TELEMETRY_ENDPOINT`.                                                                             |
+| `TELEMETRY_LOGS_ENABLED`           | boolean  | `false`           | Export the log records of the application loggers over OTLP, besides the console and the log file.                                                  |
+| `TELEMETRY_LOGS_LEVEL`             | enum     | `'info'`          | Lowest level of the exported log records, which never lowers `LOG_LEVEL`.                                                                           |
+| `TELEMETRY_LOGS_ENDPOINT`          | string?  | -                 | Full URL of the OTLP logs endpoint, overriding `TELEMETRY_ENDPOINT`.                                                                                |
+| `TELEMETRY_INSTRUMENTATIONS_FETCH` | boolean  | `true`            | Trace the outbound `fetch` requests, sending the trace context to the services they call. Node.js only.                                             |
+
 ### Template (TEMPLATE\_\*)
 
 | Property                        | Type    | Default         | Description                                                                                                 |

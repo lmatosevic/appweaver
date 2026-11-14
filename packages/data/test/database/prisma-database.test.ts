@@ -44,10 +44,12 @@ describe('prisma-database', () => {
     (createClient as jest.Mock).mockReturnValue(root);
     db = new PrismaDatabase();
     overrides.DATABASE_TYPE = common.DatabaseType.PostgreSQL;
+    overrides.TELEMETRY_INSTRUMENTATIONS_DATABASE = false;
   });
 
   afterEach(() => {
     delete overrides.DATABASE_TYPE;
+    delete overrides.TELEMETRY_INSTRUMENTATIONS_DATABASE;
   });
 
   describe('onInit', () => {
@@ -134,6 +136,18 @@ describe('prisma-database', () => {
       await expect(db.client<any>().post.create({})).resolves.toBe(3);
       expect(root.$extends).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'appweaver-sqlserver' })
+      );
+    });
+
+    test('extends the client with the telemetry of its operations', async () => {
+      overrides.TELEMETRY_INSTRUMENTATIONS_DATABASE = true;
+      const extended = { ...root, post: { create: jest.fn(async () => 4) } };
+      root.$extends.mockReturnValue(extended);
+
+      await expect(db.client<any>().post.create({})).resolves.toBe(4);
+      expect(root.$extends).toHaveBeenCalledTimes(1);
+      expect(root.$extends).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'appweaver-telemetry' })
       );
     });
 
