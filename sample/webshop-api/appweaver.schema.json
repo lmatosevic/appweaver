@@ -546,6 +546,9 @@
                 "storage": {
                   "$ref": "#/definitions/logLevel"
                 },
+                "telemetry": {
+                  "$ref": "#/definitions/logLevel"
+                },
                 "template": {
                   "$ref": "#/definitions/logLevel"
                 },
@@ -1636,6 +1639,214 @@
             },
             "adminInitialPassword": {
               "type": "string"
+            }
+          }
+        },
+        "telemetry": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "logCorrelation": {
+              "default": true,
+              "type": "boolean"
+            },
+            "serviceName": {
+              "type": "string"
+            },
+            "serviceVersion": {
+              "type": "string"
+            },
+            "resourceAttributes": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "exporter": {
+              "anyOf": [
+                {
+                  "const": "otlp",
+                  "type": "string"
+                },
+                {
+                  "const": "console",
+                  "type": "string"
+                },
+                {
+                  "const": "none",
+                  "type": "string"
+                }
+              ]
+            },
+            "endpoint": {
+              "type": "string"
+            },
+            "headers": {
+              "default": [],
+              "secret": true,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "protocol": {
+              "default": "http/protobuf",
+              "anyOf": [
+                {
+                  "const": "http/protobuf",
+                  "type": "string"
+                },
+                {
+                  "const": "http/json",
+                  "type": "string"
+                }
+              ]
+            },
+            "timeout": {
+              "default": 10000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "http": {
+              "type": "object",
+              "properties": {
+                "ignorePaths": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "healthCheck": {
+                  "default": false,
+                  "type": "boolean"
+                }
+              }
+            },
+            "instrumentations": {
+              "type": "object",
+              "properties": {
+                "http": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "database": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "queue": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "scheduler": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "mailer": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "sms": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "cache": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "task": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "fetch": {
+                  "default": true,
+                  "type": "boolean"
+                }
+              }
+            },
+            "logs": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "level": {
+                  "default": "info",
+                  "anyOf": [
+                    {
+                      "const": "fatal",
+                      "type": "string"
+                    },
+                    {
+                      "const": "error",
+                      "type": "string"
+                    },
+                    {
+                      "const": "warn",
+                      "type": "string"
+                    },
+                    {
+                      "const": "info",
+                      "type": "string"
+                    },
+                    {
+                      "const": "debug",
+                      "type": "string"
+                    },
+                    {
+                      "const": "trace",
+                      "type": "string"
+                    },
+                    {
+                      "const": "silent",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "endpoint": {
+                  "type": "string"
+                }
+              }
+            },
+            "metrics": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "interval": {
+                  "default": 60000,
+                  "minimum": 1000,
+                  "type": "integer"
+                },
+                "endpoint": {
+                  "type": "string"
+                }
+              }
+            },
+            "traces": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "sampleRatio": {
+                  "default": 1,
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "number"
+                },
+                "endpoint": {
+                  "type": "string"
+                }
+              }
             }
           }
         },

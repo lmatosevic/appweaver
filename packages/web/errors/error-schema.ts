@@ -35,6 +35,9 @@ export const ProblemDetailsSchema = Type.Object(
     detail: Type.String({ example: 'Post not found' }),
     instance: Type.Optional(Type.String({ example: '/api/posts/1' })),
     requestId: Type.Optional(Type.String({ example: 'req-1' })),
+    traceId: Type.Optional(
+      Type.String({ example: '4bf92f3577b34da6a3ce929d0e0e4736' })
+    ),
     errors: Type.Optional(Type.Array(FieldErrorSchema)),
     details: Type.Optional(Type.Object({}, { additionalProperties: true }))
   },

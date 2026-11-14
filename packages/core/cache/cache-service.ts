@@ -5,7 +5,9 @@ import {
   createLogger,
   makeHash,
   RelationOutput,
-  ResourceModel
+  ResourceModel,
+  telemetryCounter,
+  telemetryEnabled
 } from '@appweaver/common';
 import { cacheConfig } from './cache-config';
 import { stringify } from 'flatted';
@@ -14,6 +16,11 @@ import { inject, injectModel } from '../context';
 import { afterCommit, currentTransaction } from '../context';
 
 const logger = createLogger('cache');
+
+const cacheRequests = telemetryCounter('appweaver.cache.requests', {
+  description: 'Number of cache lookups, by their result.',
+  unit: '{request}'
+});
 
 export class CacheService {
   /** @internal */
@@ -36,6 +43,11 @@ export class CacheService {
    */
   public async getCachedValue<T>(key: string): Promise<T | null> {
     const value = await this._cache.get<T>(key);
+    if (telemetryEnabled('cache')) {
+      cacheRequests().add(1, {
+        'appweaver.cache.result': value !== null ? 'hit' : 'miss'
+      });
+    }
     if (value !== null) {
       logger.debug({ key }, 'Retrieved value from cache');
     } else {

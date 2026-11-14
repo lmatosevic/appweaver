@@ -26,6 +26,13 @@ Prefer a named logger in a module, a service or a job, so its level can be set a
 logs under its short name (`@acme/appweaver-gcs` → `gcs`), and a local module under the camelCase of its name
 (`audit-log` → `auditLog`), as the files scaffolded by `weaver module new` and `npm create @appweaver module` do.
 
+## Trace correlation and export
+
+With [telemetry](./telemetry.md) enabled, every record written inside an OpenTelemetry span carries its `trace_id`,
+`span_id` and `trace_flags` (`telemetry.logCorrelation`), so the logs of a request or a job are found by its trace. The
+`@appweaver/opentelemetry` module can also export the records over OTLP (`telemetry.logs.enabled`). Both are
+configured in the `telemetry` section, the `log` section stays as it is.
+
 ## Levels
 
 The framework logs at these levels:

@@ -32,6 +32,9 @@
       "path": "./nodemailer/tsconfig.build.json"
     },
     {
+      "path": "./opentelemetry/tsconfig.build.json"
+    },
+    {
       "path": "./redis/tsconfig.build.json"
     },
     {

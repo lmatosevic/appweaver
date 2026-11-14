@@ -33,13 +33,16 @@ const defaultConfig: Config = {
   LOG_ROTATE_MAX_FILES: 1000,
   LOG_ROTATE_INTERVAL: '1d',
   LOG_ROTATE_COMPRESS: true,
-  LOG_SYNC: false
+  LOG_SYNC: false,
+  TELEMETRY_ENABLED: true,
+  TELEMETRY_LOG_CORRELATION: true
 };
 
 describe('logger', () => {
   let destination: jest.Mock;
   let pretty: jest.Mock;
   let createStream: jest.Mock;
+  let traceLogFields: jest.Mock;
 
   /**
    * The logger builds its streams once, at import time, so every case re-imports
@@ -67,6 +70,10 @@ describe('logger', () => {
         appConfig: section('APP_'),
         logConfig: section('LOG_')
       }));
+      jest.doMock('../../telemetry/telemetry-config', () => ({
+        telemetryConfig: section('TELEMETRY_')
+      }));
+      jest.doMock('../../telemetry/telemetry', () => ({ traceLogFields }));
       jest.doMock('pino', () => ({
         ...jest.requireActual('pino'),
         destination
@@ -87,6 +94,7 @@ describe('logger', () => {
     destination = jest.fn((target) => fakeStream(`destination:${target}`));
     pretty = jest.fn(() => fakeStream('pretty'));
     createStream = jest.fn(() => fakeStream('rotating'));
+    traceLogFields = jest.fn(() => undefined);
   });
 
   afterEach(() => {
@@ -393,6 +401,84 @@ describe('logger', () => {
       createLogger('database');
 
       expect(unusedLogLevels()).toEqual(['databse']);
+    });
+  });
+
+  describe('log correlation', () => {
+    const written = () =>
+      JSON.parse(destination.mock.results[0].value.write.mock.calls[0][0]);
+
+    test('adds the ids of the active span to a record', () => {
+      traceLogFields.mockReturnValue({
+        trace_id: 'a'.repeat(32),
+        span_id: 'b'.repeat(16),
+        trace_flags: '01'
+      });
+      const { createLogger } = loadLogger();
+
+      createLogger('billing').info('Invoice sent');
+
+      expect(written()).toMatchObject({
+        module: 'billing',
+        msg: 'Invoice sent',
+        trace_id: 'a'.repeat(32),
+        span_id: 'b'.repeat(16),
+        trace_flags: '01'
+      });
+    });
+
+    test('adds nothing to a record written outside of a span', () => {
+      const { logger } = loadLogger();
+
+      logger.info('hello');
+
+      expect(written()).not.toHaveProperty('trace_id');
+    });
+
+    test.each([
+      ['telemetry disabled', { TELEMETRY_ENABLED: false }],
+      ['log correlation disabled', { TELEMETRY_LOG_CORRELATION: false }]
+    ])('never reads the active span with %s', (_name, config) => {
+      const { logger } = loadLogger(config);
+
+      logger.info('hello');
+
+      expect(traceLogFields).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('addLogDestination', () => {
+    test('writes the records of every logger to the destination, from its level', () => {
+      const { logger, createLogger, addLogDestination } = loadLogger({
+        LOG_LEVEL: LogLevel.Debug
+      });
+      const write = jest.fn();
+
+      addLogDestination({ write }, LogLevel.Warn);
+      logger.info('ignored');
+      createLogger('billing').warn({ invoiceId: 7 }, 'Invoice overdue');
+
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(JSON.parse(write.mock.calls[0][0])).toMatchObject({
+        level: 40,
+        module: 'billing',
+        invoiceId: 7,
+        msg: 'Invoice overdue'
+      });
+    });
+
+    test('receives every level by default, until it is removed', () => {
+      const { logger, addLogDestination } = loadLogger({
+        LOG_LEVEL: LogLevel.Trace
+      });
+      const write = jest.fn();
+
+      const remove = addLogDestination({ write });
+      logger.trace('first');
+      remove();
+      logger.error('second');
+
+      expect(write).toHaveBeenCalledTimes(1);
     });
   });
 });

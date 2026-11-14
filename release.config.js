@@ -13,6 +13,7 @@ const packages = [
   'handlebars',
   'sharp',
   'twilio',
+  'opentelemetry',
   'testing',
   'create',
   'cli',

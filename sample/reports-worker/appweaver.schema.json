@@ -842,6 +842,56 @@
             }
           }
         },
+        "telemetry": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "logCorrelation": {
+              "default": true,
+              "type": "boolean"
+            },
+            "instrumentations": {
+              "type": "object",
+              "properties": {
+                "http": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "database": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "queue": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "scheduler": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "mailer": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "sms": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "cache": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "task": {
+                  "default": true,
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
         "template": {
           "type": "object",
           "properties": {

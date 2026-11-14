@@ -228,6 +228,19 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     disabledConfig: [],
     configMarker: 'config.timeseries.provider'
   },
+  telemetry: {
+    name: 'telemetry',
+    description:
+      'OpenTelemetry traces, metrics and logs exported over OTLP, otherwise no telemetry is exported',
+    packages: ['@appweaver/opentelemetry'],
+    requires: [],
+    // Neither recorded nor exported while testing
+    enabledConfig: () => [
+      ['config.telemetry.endpoint', 'http://${OTEL_HOST:-localhost}:4318'],
+      ['environments.test.telemetry.enabled', false]
+    ],
+    disabledConfig: []
+  },
   docker: {
     name: 'docker',
     description:

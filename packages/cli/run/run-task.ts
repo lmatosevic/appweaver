@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { configOverrides } from '@appweaver/common';
+import { configOverrides, telemetryEnabled, withSpan } from '@appweaver/common';
 import { createApp } from '@appweaver/core';
 import {
   TaskList,
@@ -33,7 +33,14 @@ export async function runTask(target: string, argv: string[]): Promise<number> {
 
   await app.start();
   try {
-    const result = await task.run(parsed.context);
+    // The root span of the trace of the task, exported when the application stops
+    const result = telemetryEnabled('task')
+      ? await withSpan(
+          `task ${name}`,
+          { root: true, attributes: { 'appweaver.task.name': name } },
+          async () => task.run(parsed.context)
+        )
+      : await task.run(parsed.context);
     return typeof result === 'number' ? result : 0;
   } finally {
     await app.stop();

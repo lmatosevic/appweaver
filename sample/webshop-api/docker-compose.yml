@@ -39,6 +39,17 @@ services:
     networks:
       - webshop-api
 
+  # Receives the OpenTelemetry traces over OTLP, and shows them on http://localhost:16686
+  jaeger:
+    image: jaegertracing/jaeger:2.23.0
+    container_name: webshop-api-jaeger
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:16686:16686"
+      - "127.0.0.1:4318:4318"
+    networks:
+      - webshop-api
+
   webshop-api.migrations:
     image: webshop-api:latest
     container_name: webshop-api-migrations
@@ -109,6 +120,7 @@ services:
     environment:
       DB_HOST: "postgres"
       REDIS_HOST: "redis"
+      OTEL_HOST: "jaeger"
     networks:
       - webshop-api
 

@@ -1,5 +1,17 @@
 import { CronScheduler } from '../cron-scheduler';
-import { testSchedulerContract } from '@appweaver/testing';
+import {
+  configOverrides,
+  createLogger,
+  currentTraceId,
+  JobParams,
+  SpanStatusCode,
+  withSpan
+} from '@appweaver/common';
+import {
+  recordTelemetry,
+  TelemetryRecorder,
+  testSchedulerContract
+} from '@appweaver/testing';
 
 describe('cron-scheduler', () => {
   let scheduler: CronScheduler;
@@ -162,3 +174,90 @@ describe('cron-scheduler', () => {
 });
 
 testSchedulerContract('CronScheduler', () => new CronScheduler());
+
+describe('cron-scheduler telemetry', () => {
+  let telemetry: TelemetryRecorder;
+  let scheduler: CronScheduler;
+
+  const run = async (params: Partial<JobParams>) => {
+    const jobId = scheduler.addJob({
+      cronTime: '0 0 * * *',
+      onTick: () => undefined,
+      providerOptions: { start: false },
+      ...params
+    });
+    await scheduler.getJob(jobId)!.fireOnTick();
+    return jobId;
+  };
+
+  beforeEach(() => {
+    telemetry = recordTelemetry();
+    scheduler = new CronScheduler();
+  });
+
+  afterEach(async () => {
+    await scheduler.stopAll();
+    await telemetry.stop();
+    delete configOverrides.TELEMETRY_INSTRUMENTATIONS_SCHEDULER;
+  });
+
+  test('runs a tick in the root span of a new trace, named after the job', async () => {
+    let active: string | undefined;
+
+    const jobId = await withSpan('caller', {}, () =>
+      run({ name: 'reports:daily', onTick: () => (active = currentTraceId()) })
+    );
+
+    const span = telemetry.span('scheduler reports:daily');
+    expect(span.parentSpanContext).toBeUndefined();
+    expect(active).toBe(span.spanContext().traceId);
+    expect(span.attributes).toEqual({
+      'appweaver.scheduler.job.id': jobId,
+      'appweaver.scheduler.job.name': 'reports:daily',
+      'appweaver.scheduler.job.cron': '0 0 * * *'
+    });
+    const duration = await telemetry.metric('appweaver.scheduler.job.duration');
+    expect(duration?.dataPoints[0].attributes).toEqual({
+      'appweaver.scheduler.job.name': 'reports:daily'
+    });
+  });
+
+  test('names the span of a job without a name after its id', async () => {
+    const jobId = await run({ cronTime: new Date(Date.now() + 60_000) });
+
+    expect(telemetry.span('scheduler job').attributes).toEqual({
+      'appweaver.scheduler.job.id': jobId,
+      'appweaver.scheduler.job.name': jobId
+    });
+  });
+
+  test('records the error of a failed tick', async () => {
+    const error = jest
+      .spyOn(createLogger('scheduler'), 'error')
+      .mockImplementation();
+
+    await run({
+      name: 'broken',
+      onTick: () => {
+        throw new RangeError('no data');
+      }
+    });
+
+    expect(telemetry.span('scheduler broken').status.code).toBe(
+      SpanStatusCode.ERROR
+    );
+    const duration = await telemetry.metric('appweaver.scheduler.job.duration');
+    expect(duration?.dataPoints[0].attributes['error.type']).toBe('RangeError');
+    error.mockRestore();
+  });
+
+  test('runs the tick without a span with the instrumentation off', async () => {
+    configOverrides.TELEMETRY_INSTRUMENTATIONS_SCHEDULER = false;
+    const onTick = jest.fn();
+
+    await run({ name: 'quiet', onTick });
+
+    expect(onTick).toHaveBeenCalled();
+    expect(telemetry.spans()).toHaveLength(0);
+  });
+});

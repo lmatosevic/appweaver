@@ -23,6 +23,10 @@ import {
   runInAuthContext
 } from '@appweaver/core';
 import { templatePreviewConfig } from '../template/template-preview-config';
+import {
+  registerHttpTelemetry,
+  runInRequestTrace
+} from '../telemetry/http-telemetry';
 import { healthCheckConfig } from '../health/health-check-config';
 import { corsConfig, rateLimitConfig, serverConfig } from './server-config';
 import { context } from '@appweaver/core/internal';
@@ -86,6 +90,9 @@ export function createServer(): Server {
     loggerInstance
   }).withTypeProvider<TypeBoxTypeProvider>();
 
+  // Trace the requests, from before the hooks of any plugin
+  registerHttpTelemetry(server);
+
   // Register CORS rules
   server.register(fastifyCors, {
     // @fastify/cors matches a '*' inside a list literally, so it goes alone
@@ -138,11 +145,15 @@ export function createServer(): Server {
 
   // Register request context plugin with default values
   // The async resource of each request is created in a new auth context, so
-  // the authenticated user is kept through the whole request
+  // the authenticated user is kept through the whole request, and in the
+  // trace context of the request, so its span is the parent of the spans of
+  // its hooks and its handler
   server.register(fastifyRequestContext, {
     defaultStoreValues: { cached: undefined },
-    createAsyncResource: () =>
-      runInAuthContext(() => new AsyncResource('appweaver-request'))
+    createAsyncResource: (request) =>
+      runInAuthContext(() =>
+        runInRequestTrace(request, () => new AsyncResource('appweaver-request'))
+      )
   });
 
   // Register all defined plugins

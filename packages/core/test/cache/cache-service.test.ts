@@ -1,10 +1,12 @@
 import {
   AuthUser,
   Cache,
+  configOverrides,
   makeHash,
   RelationConfig,
   ResourceModel
 } from '@appweaver/common';
+import { recordTelemetry, TelemetryRecorder } from '@appweaver/testing';
 import { stringify } from 'flatted';
 import { Cache as CoreCache } from '../../cache/cache';
 import { CacheService } from '../../cache/cache-service';
@@ -333,6 +335,47 @@ describe('cache-service', () => {
 
     test('skips empty key parts', () => {
       expect(service.buildCacheKey({ baseKey: 'route' })).toBe('route:inv');
+    });
+  });
+
+  describe('telemetry', () => {
+    let telemetry: TelemetryRecorder;
+
+    beforeEach(() => {
+      telemetry = recordTelemetry();
+    });
+
+    afterEach(async () => {
+      await telemetry.stop();
+      delete configOverrides.TELEMETRY_INSTRUMENTATIONS_CACHE;
+    });
+
+    test('counts the hits and the misses of the lookups', async () => {
+      await service.addToCache('posts:1', { id: 1 });
+      await service.getCachedValue('posts:1');
+      await service.getCachedValue('posts:1');
+      await service.getCachedValue('posts:2');
+
+      const metric = await telemetry.metric('appweaver.cache.requests');
+      expect(
+        metric?.dataPoints.map((point) => [
+          point.attributes['appweaver.cache.result'],
+          point.value
+        ])
+      ).toEqual([
+        ['hit', 2],
+        ['miss', 1]
+      ]);
+    });
+
+    test('counts nothing with the instrumentation off', async () => {
+      configOverrides.TELEMETRY_INSTRUMENTATIONS_CACHE = false;
+
+      await service.getCachedValue('posts:1');
+
+      expect(
+        await telemetry.metric('appweaver.cache.requests')
+      ).toBeUndefined();
     });
   });
 });

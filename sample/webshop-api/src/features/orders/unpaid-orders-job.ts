@@ -11,6 +11,8 @@ export const UNPAID_ORDER_TTL_MINUTES = 30;
 // Every five minutes, so reserved stock does not stay locked by an abandoned
 // payment
 inject(Scheduler).addJob({
+  // Names the runs of the job in the logs and its traces
+  name: 'orders:cancel-unpaid',
   cronTime: '*/5 * * * *',
   onTick: async () => {
     const cancelled = await cancelUnpaidOrders();

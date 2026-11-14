@@ -82,18 +82,18 @@ The driver adapters are `@prisma/adapter-pg` (PostgreSQL), `@prisma/adapter-mari
 
 Common options:
 
-| Flag                     | Description                                                                                                               | Default      |
-|--------------------------|---------------------------------------------------------------------------------------------------------------------------|--------------|
-| `--add <modules...>`     | Added to the default ones: `redis`, `queue`, `scheduler`, `mailer`, `sms`, `templates`, `locales`, `timeseries`, `docker` | `data web`   |
-| `--all`                  | Add every module                                                                                                          | false        |
-| `--exclude <modules...>` | Modules to leave out of the default ones or of `--all`                                                                    | none         |
-| `-o, --output-dir <dir>` | Output directory (use ./ for current working directory)                                                                   | project name |
-| `--database <type>`      | `sqlite`, `postgresql`, `mysql`, `sqlserver`, with the `data` module                                                      | `sqlite`     |
-| `--host <host>`          | Hostname or IP address the server of the `web` module binds to                                                            | `0.0.0.0`    |
-| `--port <port>`          | Port number the server of the `web` module listens on                                                                     | `5000`       |
-| `--bun`                  | Use Bun as the application runtime                                                                                        | Node         |
-| `--agent <agent>`        | The AI agent to configure the guidelines and skill files for                                                              | `claude`     |
-| `--no-install`           | Skip the installation of the dependencies                                                                                 | installs     |
+| Flag                     | Description                                                                                                                            | Default      |
+|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------|--------------|
+| `--add <modules...>`     | Added to the default ones: `redis`, `queue`, `scheduler`, `mailer`, `sms`, `templates`, `locales`, `timeseries`, `telemetry`, `docker` | `data web`   |
+| `--all`                  | Add every module                                                                                                                       | false        |
+| `--exclude <modules...>` | Modules to leave out of the default ones or of `--all`                                                                                 | none         |
+| `-o, --output-dir <dir>` | Output directory (use ./ for current working directory)                                                                                | project name |
+| `--database <type>`      | `sqlite`, `postgresql`, `mysql`, `sqlserver`, with the `data` module                                                                   | `sqlite`     |
+| `--host <host>`          | Hostname or IP address the server of the `web` module binds to                                                                         | `0.0.0.0`    |
+| `--port <port>`          | Port number the server of the `web` module listens on                                                                                  | `5000`       |
+| `--bun`                  | Use Bun as the application runtime                                                                                                     | Node         |
+| `--agent <agent>`        | The AI agent to configure the guidelines and skill files for                                                                           | `claude`     |
+| `--no-install`           | Skip the installation of the dependencies                                                                                              | installs     |
 
 ### 2. Run the initial migration and seed
 
@@ -299,15 +299,16 @@ application without a server leaves it out.
 
 One package per library or service, each carrying the library as a dependency and enabled by installing it:
 
-| Package                 | Provides                                                                 |
-|-------------------------|--------------------------------------------------------------------------|
-| `@appweaver/redis`      | The `redis` memory (ioredis), also the store of the cache and rate limit |
-| `@appweaver/bullmq`     | The `bullmq` queue, requires `@appweaver/redis`                          |
-| `@appweaver/cron`       | The `cron` scheduler                                                     |
-| `@appweaver/nodemailer` | The `smtp` mailer                                                        |
-| `@appweaver/twilio`     | The `twilio` SMS sender of the SMS 2FA codes and the phone verification  |
-| `@appweaver/handlebars` | The `handlebars` template engine                                         |
-| `@appweaver/sharp`      | The `sharp` image processor of the uploads                               |
+| Package                    | Provides                                                                 |
+|----------------------------|--------------------------------------------------------------------------|
+| `@appweaver/redis`         | The `redis` memory (ioredis), also the store of the cache and rate limit |
+| `@appweaver/bullmq`        | The `bullmq` queue, requires `@appweaver/redis`                          |
+| `@appweaver/cron`          | The `cron` scheduler                                                     |
+| `@appweaver/nodemailer`    | The `smtp` mailer                                                        |
+| `@appweaver/twilio`        | The `twilio` SMS sender of the SMS 2FA codes and the phone verification  |
+| `@appweaver/opentelemetry` | The OpenTelemetry SDK exporting the traces, metrics and logs over OTLP   |
+| `@appweaver/handlebars`    | The `handlebars` template engine                                         |
+| `@appweaver/sharp`         | The `sharp` image processor of the uploads                               |
 
 ### `@appweaver/testing`
 

@@ -29,6 +29,8 @@ export type ProblemDetails = {
   instance?: string;
   /** The id of the request, matching the one in the server logs. */
   requestId?: string;
+  /** The id of the trace of the request, when the request is traced with OpenTelemetry. */
+  traceId?: string;
   /** The invalid fields of the request. */
   errors?: FieldError[];
   /** The details of the error, specific to its code. */

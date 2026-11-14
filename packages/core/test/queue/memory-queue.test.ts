@@ -1,6 +1,15 @@
-import { createLogger } from '@appweaver/common';
+import {
+  createLogger,
+  currentTraceId,
+  SpanStatusCode,
+  withSpan
+} from '@appweaver/common';
 import { MemoryQueue } from '../../queue/memory-queue';
-import { testQueueContract } from '@appweaver/testing';
+import {
+  recordTelemetry,
+  TelemetryRecorder,
+  testQueueContract
+} from '@appweaver/testing';
 
 /** Waits until the condition holds or the timeout elapses. */
 const waitFor = async (
@@ -424,3 +433,72 @@ describe('memory-queue', () => {
 });
 
 testQueueContract('MemoryQueue', () => new MemoryQueue());
+
+describe('memory-queue telemetry', () => {
+  let telemetry: TelemetryRecorder;
+  let queue: MemoryQueue;
+
+  beforeEach(() => {
+    telemetry = recordTelemetry();
+    queue = new MemoryQueue();
+  });
+
+  afterEach(async () => {
+    await queue.closeAll();
+    await telemetry.stop();
+  });
+
+  test('continues the trace of the sender in the worker', async () => {
+    const orders = queue.get<{ id: number }, string>('orders');
+    let active: string | undefined;
+    orders.addWorker(async () => {
+      active = currentTraceId();
+      return 'charged';
+    });
+
+    await withSpan('checkout', {}, () => orders.sendJob({ id: 1 }, 'charge'));
+    await waitFor(() =>
+      telemetry.spans().some((span) => span.name === 'process orders')
+    );
+
+    const checkout = telemetry.span('checkout');
+    const send = telemetry.span('send orders');
+    const process = telemetry.span('process orders');
+    expect(send.parentSpanContext?.spanId).toBe(checkout.spanContext().spanId);
+    expect(process.parentSpanContext?.spanId).toBe(send.spanContext().spanId);
+    expect(active).toBe(checkout.spanContext().traceId);
+    expect(process.attributes).toMatchObject({
+      'messaging.system': 'memory',
+      'messaging.destination.name': 'orders',
+      'appweaver.queue.job.name': 'charge',
+      'appweaver.queue.job.attempt': 1
+    });
+  });
+
+  test('records a span for every attempt of a retried job', async () => {
+    const warn = jest.spyOn(createLogger('queue'), 'warn').mockImplementation();
+    const orders = queue.get('orders');
+    let attempts = 0;
+    orders.addWorker(async () => {
+      if (++attempts === 1) {
+        throw new Error('declined');
+      }
+    });
+
+    await orders.sendJob({}, 'charge', { attempts: 2 });
+    await waitFor(() => attempts === 2);
+    await waitFor(
+      () =>
+        telemetry.spans().filter((span) => span.name === 'process orders')
+          .length === 2
+    );
+
+    const [failed, succeeded] = telemetry
+      .spans()
+      .filter((span) => span.name === 'process orders');
+    expect(failed.status.code).toBe(SpanStatusCode.ERROR);
+    expect(succeeded.attributes['appweaver.queue.job.attempt']).toBe(2);
+    expect(succeeded.spanContext().traceId).toBe(failed.spanContext().traceId);
+    warn.mockRestore();
+  });
+});

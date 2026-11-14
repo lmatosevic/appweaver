@@ -35,7 +35,8 @@ export default tsEslint.config(
   },
   {
     // One program of the root tsconfig for every package file: the project service would open the build project of
-    // each package beside it, and run out of memory with the programs of the samples
+    // each package beside it. The samples are projects of their own, each linted in its own process by tools/lint.js,
+    // since the programs of all of them never fit into the memory of one
     files: ['packages/**/*.ts'],
     languageOptions: {
       parserOptions: {

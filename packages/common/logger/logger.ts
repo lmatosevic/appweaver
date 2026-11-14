@@ -10,6 +10,8 @@ import pretty from 'pino-pretty';
 import { createStream } from 'rotating-file-stream';
 import { LogLevel } from '../enums';
 import { appConfig, logConfig } from '../config/app-config';
+import { telemetryConfig } from '../telemetry/telemetry-config';
+import { traceLogFields } from '../telemetry/telemetry';
 
 const cli = !!process.env.WEAVER_CLI;
 
@@ -82,9 +84,13 @@ const redactedKeys = [
   'secret'
 ];
 
+// The trace and span ids of the active span, in every record written in it
+const correlated = telemetryConfig.ENABLED && telemetryConfig.LOG_CORRELATION;
+
 const commonConfig = {
   level,
   timestamp: stdTimeFunctions.isoTime,
+  ...(correlated ? { mixin: () => traceLogFields() ?? {} } : {}),
   redact: {
     paths: [
       'req.headers.authorization',
@@ -133,4 +139,39 @@ function unusedLogLevels(): string[] {
   return Object.keys(levels).filter((name) => !loggers.has(name));
 }
 
-export { logger, loggerConfig, createLogger, unusedLogLevels };
+/**
+ * Adds a destination every logger writes its records to, as JSON lines, besides the console and the log file, i.e.
+ * the OpenTelemetry log export of `@appweaver/opentelemetry`. A record reaches it only when its logger writes it, so
+ * the level of the destination never lowers `LOG_LEVEL`.
+ *
+ * @param {DestinationStream} destination - The destination, written one JSON record at a time.
+ * @param {LogLevel} [minLevel=LogLevel.Trace] - The lowest level of the records it receives.
+ * @return {Function} Removes the destination.
+ */
+function addLogDestination(
+  destination: DestinationStream,
+  minLevel: LogLevel = LogLevel.Trace
+): () => void {
+  let active = true;
+  stream.add({
+    level: minLevel,
+    stream: {
+      write: (record: string) => {
+        if (active) {
+          destination.write(record);
+        }
+      }
+    }
+  });
+  return () => {
+    active = false;
+  };
+}
+
+export {
+  logger,
+  loggerConfig,
+  createLogger,
+  unusedLogLevels,
+  addLogDestination
+};

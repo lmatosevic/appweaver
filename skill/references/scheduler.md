@@ -32,11 +32,14 @@ Registers a new cron job and returns a unique job ID. Jobs start immediately by 
 |-------------------|---------------------------|-----------|------------------------------------------------------------------|
 | `cronTime`        | `string \| Date`          | —         | Cron expression (optional leading seconds field) or exact `Date` |
 | `onTick`          | `() => unknown`           | —         | Function to execute on each tick                                 |
+| `name`            | `string`                  | —         | Name of the job in the logs and the telemetry (`reports:daily`)  |
 | `timeZone`        | `string`                  | system TZ | IANA timezone (e.g. `'America/New_York'`)                        |
 | `providerOptions` | `Record<string, unknown>` | —         | Options of the driver, passed to `CronJob.from` by `cron`        |
 
 The `cron` driver waits for a tick to finish before the next one and logs the errors of a tick. Its other options
 (`start` to override `SCHEDULER_AUTO_START_JOB` for one job, `runOnInit`, `errorHandler`) go to `providerOptions`.
+
+Every run is the root span of its own OpenTelemetry trace, `scheduler <name>`, see [telemetry](./telemetry.md).
 
 ```ts
 const jobId = scheduler.addJob({

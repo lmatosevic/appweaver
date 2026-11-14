@@ -1,8 +1,25 @@
 import { CronJob } from 'cron';
-import { JobParams, createLogger, Scheduler, uuid } from '@appweaver/common';
+import {
+  DURATION_BUCKETS,
+  JobParams,
+  createLogger,
+  recordDuration,
+  Scheduler,
+  spanErrorType,
+  telemetryEnabled,
+  telemetryHistogram,
+  uuid,
+  withSpan
+} from '@appweaver/common';
 import { schedulerConfig } from '@appweaver/core';
 
 const logger = createLogger('scheduler');
+
+const jobDuration = telemetryHistogram('appweaver.scheduler.job.duration', {
+  description: 'Duration of the runs of the scheduled jobs.',
+  unit: 's',
+  advice: { explicitBucketBoundaries: DURATION_BUCKETS }
+});
 
 export class CronScheduler extends Scheduler<CronJob> {
   /** @internal */
@@ -37,22 +54,22 @@ export class CronScheduler extends Scheduler<CronJob> {
   }
 
   public addJob(jobParams: JobParams): string {
-    const { cronTime, onTick, timeZone, providerOptions } = jobParams;
+    const { cronTime, onTick, timeZone, name, providerOptions } = jobParams;
     const jobId = uuid();
     this._jobs[jobId] = CronJob.from({
       start: schedulerConfig.AUTO_START_JOB,
       waitForCompletion: true,
       errorHandler: (e) => {
-        logger.error({ err: e, jobId }, 'Job handler error');
+        logger.error({ err: e, jobId, name }, 'Job handler error');
       },
       ...providerOptions,
       cronTime,
       onTick: async () => {
         const start = performance.now();
-        logger.debug({ jobId }, 'Job run started');
-        await onTick();
+        logger.debug({ jobId, name }, 'Job run started');
+        await runTraced(jobId, jobParams);
         logger.debug(
-          { jobId, durationMs: Math.round(performance.now() - start) },
+          { jobId, name, durationMs: Math.round(performance.now() - start) },
           'Job run finished'
         );
       },
@@ -61,6 +78,7 @@ export class CronScheduler extends Scheduler<CronJob> {
     logger.debug(
       {
         jobId,
+        name,
         cronTime,
         timeZone,
         nextRun: this._jobs[jobId].nextDate().toISO()
@@ -110,5 +128,41 @@ export class CronScheduler extends Scheduler<CronJob> {
     logger.debug({ jobId }, 'Job removed');
 
     return true;
+  }
+}
+
+/** Runs a tick of a job in the root span of a new trace, measuring its duration. */
+async function runTraced(jobId: string, job: JobParams): Promise<void> {
+  if (!telemetryEnabled('scheduler')) {
+    await job.onTick();
+    return;
+  }
+  const name = job.name ?? jobId;
+  const start = performance.now();
+  let failure: string | undefined;
+  try {
+    await withSpan(
+      `scheduler ${job.name ?? 'job'}`,
+      {
+        root: true,
+        attributes: {
+          'appweaver.scheduler.job.id': jobId,
+          'appweaver.scheduler.job.name': name,
+          ...(typeof job.cronTime === 'string'
+            ? { 'appweaver.scheduler.job.cron': job.cronTime }
+            : {})
+        }
+      },
+      async () => job.onTick()
+    );
+  } catch (error) {
+    failure = spanErrorType(error);
+    throw error;
+  } finally {
+    // A job without a name is measured as one series, its id being random
+    recordDuration(jobDuration(), start, {
+      ...(job.name ? { 'appweaver.scheduler.job.name': job.name } : {}),
+      ...(failure ? { 'error.type': failure } : {})
+    });
   }
 }

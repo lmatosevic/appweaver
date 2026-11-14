@@ -9,6 +9,8 @@ import {
   SecurityStore,
   SmsSender,
   Storage,
+  telemetryConfig,
+  telemetryInstrumentationsConfig,
   TemplateEngine,
   TimeSeries
 } from '@appweaver/common';
@@ -42,7 +44,9 @@ export default defineModule({
     schedulerConfig,
     localeConfig,
     healthConfig,
-    timeseriesConfig
+    timeseriesConfig,
+    telemetryConfig,
+    telemetryInstrumentationsConfig
   ],
   loggers: [
     'app',

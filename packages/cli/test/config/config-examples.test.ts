@@ -15,6 +15,7 @@ import cron from '@appweaver/cron/module';
 import data from '@appweaver/data/module';
 import handlebars from '@appweaver/handlebars/module';
 import nodemailer from '@appweaver/nodemailer/module';
+import opentelemetry from '@appweaver/opentelemetry/module';
 import redis from '@appweaver/redis/module';
 import sharp from '@appweaver/sharp/module';
 import twilio from '@appweaver/twilio/module';
@@ -36,6 +37,7 @@ const modules = [
   cron,
   nodemailer,
   twilio,
+  opentelemetry,
   handlebars,
   sharp
 ];

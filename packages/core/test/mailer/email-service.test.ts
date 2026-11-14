@@ -5,8 +5,11 @@ import {
   Mailer,
   MailerError,
   Queue,
+  SpanKind,
+  SpanStatusCode,
   TemplateEngine
 } from '@appweaver/common';
+import { recordTelemetry, TelemetryRecorder } from '@appweaver/testing';
 import { context } from '../../context';
 import { define } from '../../context/dependency-injection';
 import { EmailService } from '../../mailer';
@@ -411,6 +414,52 @@ describe('email-service', () => {
           error: expect.objectContaining({ code: ErrorCode.TemplateNotFound })
         }
       ]);
+    });
+  });
+
+  describe('telemetry', () => {
+    let telemetry: TelemetryRecorder;
+
+    beforeEach(() => {
+      telemetry = recordTelemetry();
+    });
+
+    afterEach(async () => {
+      await telemetry.stop();
+      delete configOverrides.TELEMETRY_INSTRUMENTATIONS_MAILER;
+    });
+
+    test('sends an email in a client span', async () => {
+      await worker({
+        id: '1',
+        data: { ...email, to: ['a@test.com', 'b@test.com'] }
+      });
+
+      const span = telemetry.span('mailer send');
+      expect(span.kind).toBe(SpanKind.CLIENT);
+      expect(span.attributes).toEqual({
+        'appweaver.mailer.provider': 'Object',
+        'appweaver.mailer.recipients': 2
+      });
+    });
+
+    test('fails the span of an email that is not sent', async () => {
+      mailer.sendEmail.mockRejectedValue(new Error('connection refused'));
+
+      await expect(worker({ id: '1', data: email })).rejects.toMatchObject({
+        code: ErrorCode.MailerSendFailed
+      });
+
+      expect(telemetry.span('mailer send').status.code).toBe(
+        SpanStatusCode.ERROR
+      );
+    });
+
+    test('sends without a span with the instrumentation off', async () => {
+      configOverrides.TELEMETRY_INSTRUMENTATIONS_MAILER = false;
+
+      expect(await worker({ id: '1', data: email })).toBe(true);
+      expect(telemetry.spans()).toHaveLength(0);
     });
   });
 });

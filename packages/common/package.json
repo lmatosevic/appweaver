@@ -32,6 +32,7 @@
     "node": ">= 24.7"
   },
   "dependencies": {
+    "@opentelemetry/api": "1.10.0",
     "@sinclair/typebox": "0.34.49",
     "dotenv": "17.4.2",
     "dotenv-expand": "13.0.0",

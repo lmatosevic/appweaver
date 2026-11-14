@@ -7,6 +7,8 @@ export type JobParams = {
   cronTime: string | Date;
   /** Runs on every tick of the job. */
   onTick: () => unknown;
+  /** The name of the job, naming its runs in the logs and the telemetry, i.e. `reports:daily`. */
+  name?: string;
   /** The IANA time zone of the cron expression, i.e. `Europe/Zagreb`. Default: the time zone of the process. */
   timeZone?: string;
   /** Options of the scheduler driver. */

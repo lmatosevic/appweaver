@@ -27,6 +27,7 @@
     "@appweaver/data": "^2.5.0",
     "@appweaver/handlebars": "^2.5.0",
     "@appweaver/nodemailer": "^2.5.0",
+    "@appweaver/opentelemetry": "^2.5.0",
     "@appweaver/redis": "^2.5.0",
     "@appweaver/sharp": "^2.5.0",
     "@appweaver/web": "^2.5.0",

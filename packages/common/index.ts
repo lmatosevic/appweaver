@@ -4,6 +4,7 @@ export * from './errors';
 export * from './infrastructure';
 export * from './interfaces';
 export * from './logger';
+export * from './telemetry';
 export * from './module';
 export * from './utils';
 export * from './types';

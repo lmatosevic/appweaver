@@ -66,6 +66,7 @@ refused). A module installs its packages, and a module required by an added one 
 | `templates`      | `@appweaver/handlebars` and `templates/`                                                                       | no template engine                          |
 | `locales`        | `locales/en.json`, empty without the mailer                                                                    | English texts written into the templates    |
 | `timeseries`     | The time series of the models in the database, requires `data`, TimescaleDB (image included) on PostgreSQL     | time series in the database (`auto`)        |
+| `telemetry`      | `@appweaver/opentelemetry`, the OTLP endpoint, telemetry off in the `test` environment                         | no telemetry exported                       |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                | no Docker files                             |
 
 The modules of an existing project are managed with the `weaver` CLI, from the same templates:

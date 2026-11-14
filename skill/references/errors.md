@@ -45,6 +45,7 @@ cases apart by their `code` instead of parsing messages:
 | `detail`    | Explanation of this occurrence of the error                                                                  |
 | `instance`  | Path of the request, without the query string                                                                |
 | `requestId` | Id of the request, matching the `reqId` of the server logs                                                   |
+| `traceId`   | Id of the OpenTelemetry trace of the request, when it is traced (see [telemetry](./telemetry.md))            |
 | `errors`    | Invalid fields of the request (`field`, `rule`, `message`, optional JSON `pointer`), when the error has them |
 | `details`   | Details specific to the error code, i.e. the `fields` of a constraint violation or the `maxCount` of files   |
 
