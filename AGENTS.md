@@ -465,13 +465,12 @@ sender in dev and test and the Twilio keys of `.env`), `@appweaver/handlebars` (
 `--database` for `data`. The `User` auth model and its admin seeder come with `web`, which brings the authentication, so
 a project with `data` alone has no auth model. A module sets values in the other JSON files of the project with its
 `jsonFiles` (the
-`package.json` scripts of `data` and the `allowScripts` of its SQLite adapter on Node, the Jest e2e `globalSetup` and `maxWorkers`, kept
-sorted like the template's `allowScripts`), and a module file at the path of a base file replaces it
-while unchanged, restored on removal (the `/api` e2e test of `web`).
-The scaffolding engine lives in `scaffold/` and is exported as
-`@appweaver/create/scaffold`, which `weaver module add|remove` of `packages/cli` uses on an existing
-project, so both apply the same templates. `@appweaver/cli` depends on `@appweaver/create` at its exact
-version (`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the published manifests).
+`package.json` scripts of `data` and the `allowScripts` of its SQLite adapter on Node, the Jest e2e `globalSetup` and
+`maxWorkers`, kept sorted like the template's `allowScripts`), and a module file at the path of a base file replaces it
+while unchanged, restored on removal (the `/api` e2e test of `web`). The scaffolding engine lives in `scaffold/` and is
+exported as `@appweaver/create/scaffold`, which `weaver module add|remove` of `packages/cli` uses on an existing
+project, so both apply the same templates. `@appweaver/cli` depends on `@appweaver/create` at its exact version
+(`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the published manifests).
 
 | Path                                | Purpose                                                                                                              |
 |-------------------------------------|----------------------------------------------------------------------------------------------------------------------|
@@ -1200,7 +1199,7 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   `vehicle-tracking-api` runs its migrations as the owner (`database.migrationUrl`, `${DB_MIGRATION_USER}` and
   `${DB_MIGRATION_PASSWORD}`) and the application as `${DB_USER}` (`database.url`), a user of the rows only, created by
   its `database/postgres-init.sh`.
-- The seeders, tests and examples of the samples use English names of people.
+- The seeders, tests and examples of the samples use English names.
 - The driver adapters of all the samples are root dev dependencies, so the samples run on the root `node_modules`.
 - Each sample also declares every package it needs (`@appweaver/data`, `@appweaver/web` and the driver packages it
   uses, `@appweaver/sharp` for the image transforms), locked in its own `package-lock.json` (`bun.lock` for the Bun
