@@ -30,6 +30,11 @@ jest.mock('@opentelemetry/exporter-logs-otlp-proto', () => ({
 jest.mock('@opentelemetry/exporter-logs-otlp-http', () => ({
   OTLPLogExporter: mockOtlpExporter('logs:json')
 }));
+// The console, which the record a test logs above the silent LOG_LEVEL would be written to besides the log bridge
+jest.mock('pino', () => ({
+  ...jest.requireActual('pino'),
+  destination: () => ({ write: () => true })
+}));
 
 import { context, metrics, propagation, trace } from '@opentelemetry/api';
 import {
