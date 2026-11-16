@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { Type } from '@sinclair/typebox';
 import {
   ConfigurationError,
@@ -95,5 +96,5 @@ function databaseName(url: string): string | undefined {
       return undefined;
     }
   }
-  return url.replace(/^file:/, '').split('?')[0];
+  return path.normalize(url.replace(/^file:/, '').split('?')[0]);
 }

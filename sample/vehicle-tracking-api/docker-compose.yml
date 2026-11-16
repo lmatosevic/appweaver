@@ -61,6 +61,8 @@ services:
     environment:
       DB_HOST: "postgres"
       DB_PORT: "5432"
+      # The seeders run as DB_APP_USER, like the application
+      DB_PASSWORD: ""
     command: [ "seed" ]
     volumes:
       - ./storage:/usr/app/storage

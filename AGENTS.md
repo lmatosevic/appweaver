@@ -201,7 +201,7 @@ any other file. Besides `.` and `./package.json`:
 | `@appweaver/core/internal`   | `context`, the transaction scope, `LifecycleManager` and `loadProviders`, for the packages |
 | `@appweaver/data/config`     | The config sections of data, without loading Prisma (the CLI and `prisma.config.ts`)       |
 | `@appweaver/web/config`      | The config sections of web, without loading Fastify                                        |
-| `@appweaver/data/internal`   | `pruneUnusedModels`, for `weaver generate`                                                 |
+| `@appweaver/data/internal`   | `pruneUnusedModels` and `setupDatabase`, for `weaver generate` and `weaver migrate`        |
 | `@appweaver/create/scaffold` | The scaffolding engine of `weaver module`                                                  |
 | `@appweaver/client/angular`  | The Angular client (`AngularClient`), with its ESM and CommonJS builds                     |
 
@@ -264,7 +264,7 @@ loads the resources of the application, then the `resources` of the modules.
 
 | Module        | Purpose                                                                                                                                                                                    |
 |---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `database/`   | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction`, `toDatabaseError` and the telemetry extension                                                  |
+| `database/`   | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction`, `toDatabaseError`, the telemetry extension, `migrationUrl` and `setupDatabase`                 |
 | `resource/`   | Resource loading (`loadResources`), `ResourceService`, the model, filter, sort and aggregate schemas, the query `utils/`                                                                   |
 | `factory/`    | `createModel`, `createPolicy` and `createService`                                                                                                                                          |
 | `security/`   | The auth data model (`createAuthModel`, `hashPassword`, `hasRole`, ...), its config, the auth models (`resources/`), the `database` security store                                         |
@@ -1199,6 +1199,8 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   `${DB_HOST:-localhost}` and `${REDIS_HOST:-localhost}`, which the compose application services override. The database
   name and user are `${DB_NAME:-<sample name>}` and `${DB_USER:-<sample name>}`, also in the compose database service.
   The MySQL sample mounts `database/mariadb-init.sh`, granting its user the shadow and the test databases.
+  `vehicle-tracking-api` runs its migrations as the owner (`database.migrationUrl`, `${DB_USER}`) and the application
+  as `${DB_APP_USER}` (`database.url`), a user of the rows only, created by its `database/postgres-init.sh`.
 - The driver adapters of all the samples are root dev dependencies, so the samples run on the root `node_modules`.
 - Each sample also declares every package it needs (`@appweaver/data`, `@appweaver/web` and the driver packages it
   uses, `@appweaver/sharp` for the image transforms), locked in its own `package-lock.json` (`bun.lock` for the Bun

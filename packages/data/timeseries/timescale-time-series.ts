@@ -51,26 +51,15 @@ export class TimescaleTimeSeries extends DatabaseTimeSeries {
   static [HEALTH_CHECK] = false;
 
   /**
-   * Sets up the hypertables of the models (see `setup`). A database set up by `weaver migrate` is left as it is, so the
-   * user of the application needs no privilege beyond reading and writing the data.
-   *
-   * @throws {ConfigurationError} `CONFIGURATION_INVALID` on a database other than PostgreSQL, one without the
-   * TimescaleDB extension that cannot be created, or one the user of the application cannot set up.
-   */
-  public async register(models: SeriesModel[]): Promise<void> {
-    await this.setup(models);
-  }
-
-  /**
    * Creates the extension when missing, turns the series tables into hypertables and applies their chunk interval and
    * policies, under an advisory lock, so the instances starting together set them up once. Only what differs from the
-   * models and the config is changed, so a database already set up runs no DDL.
+   * models and the config is changed, so a database set up by `weaver migrate` runs no DDL, and the user of the
+   * application needs no privilege beyond reading and writing the data.
    *
-   * @param {SeriesModel[]} models - The series models.
    * @throws {ConfigurationError} `CONFIGURATION_INVALID` on a database other than PostgreSQL, one without the
    * TimescaleDB extension that cannot be created, or one the user of the connection lacks the privileges to set up.
    */
-  public async setup(models: SeriesModel[]): Promise<void> {
+  public async register(models: SeriesModel[]): Promise<void> {
     const type = resolveDatabaseType(databaseConfig.TYPE, databaseConfig.URL);
     if (type !== DatabaseType.PostgreSQL) {
       throw new ConfigurationError(

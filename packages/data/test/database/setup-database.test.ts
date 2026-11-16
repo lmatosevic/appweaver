@@ -48,7 +48,7 @@ describe('setup-database', () => {
     disconnect = jest.fn();
     define({ disconnect }, Database);
     seriesSetup = jest
-      .spyOn(TimescaleTimeSeries.prototype, 'setup')
+      .spyOn(TimescaleTimeSeries.prototype, 'register')
       .mockResolvedValue(undefined);
     geoSetup = jest
       .spyOn(PostgisSpatialEngine.prototype, 'setup')

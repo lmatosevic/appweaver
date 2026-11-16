@@ -170,11 +170,9 @@ export function isPrivilegeError(error: unknown): boolean {
     current && depth < 5;
     current = current.cause, depth++
   ) {
+    // A raw query error of the driver adapter, or the error of the driver itself
     const cause = current.meta?.driverAdapterError?.cause ?? current;
-    if (cause?.kind === 'postgres' && cause.code === '42501') {
-      return true;
-    }
-    if (current.code === '42501') {
+    if (cause.code === '42501') {
       return true;
     }
   }

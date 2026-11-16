@@ -40,7 +40,7 @@ describe('database-config', () => {
         'sqlserver://localhost:1433;database=shop;user=app;password=pw',
         'sqlserver://localhost:1433;Database=shop;user=sa;password=pw'
       ],
-      ['file:./data/shop.db', 'file:./data/shop.db?connection_limit=1']
+      ['file:./data/shop.db', 'file:data/shop.db?connection_limit=1']
     ])('accepts the same database: %s', (url, migration) => {
       configOverrides.DATABASE_URL = url;
       configOverrides.DATABASE_MIGRATION_URL = migration;
@@ -64,7 +64,7 @@ describe('database-config', () => {
         'sqlserver://localhost:1433;initial catalog=other',
         'the sqlserver database other'
       ],
-      ['file:./data/shop.db', 'file:./data/test.db', 'database ./data/test.db']
+      ['file:./data/shop.db', 'file:./data/test.db', 'database data/test.db']
     ])('rejects another database: %s', (url, migration, message) => {
       configOverrides.DATABASE_URL = url;
       configOverrides.DATABASE_MIGRATION_URL = migration;

@@ -267,14 +267,6 @@ describe('TimescaleTimeSeries', () => {
       await expect(register({})).rejects.toBe(failure);
     });
 
-    test('sets up the hypertables with setup', async () => {
-      await new TimescaleTimeSeries().setup([
-        { ...contractSeriesModel, options: {} }
-      ]);
-
-      expect(queries[1]).toContain('create_hypertable');
-    });
-
     test('enables the compression once, and adds its policy', async () => {
       await register({ compressAfter: '90m' });
       compressionEnabled = true;

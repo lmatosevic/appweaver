@@ -233,6 +233,10 @@ ALTER ROLE db_datareader ADD MEMBER [myapp-app];
 ALTER ROLE db_datawriter ADD MEMBER [myapp-app];
 ```
 
+A project created before `database.migrationUrl` keeps `url: databaseConfig.URL` in its `prisma.config.ts`, so its
+Prisma commands ignore the migration URL: import `migrationUrl` from `@appweaver/data/config` and set
+`url: migrationUrl()` there.
+
 The `sample/vehicle-tracking-api` sample runs this way, its `database/postgres-init.sh` creating the application user.
 SQLite has no users, so it needs neither URL.
 

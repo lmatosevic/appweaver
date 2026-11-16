@@ -77,7 +77,7 @@ export async function setupDatabase(
   const db = inject<PrismaDatabase>(Database as any);
   try {
     if (seriesModels.length > 0) {
-      await (store as TimescaleTimeSeries).setup(seriesModels);
+      await (store as TimescaleTimeSeries).register(seriesModels);
       parts.push('time series hypertables');
     }
     if (geoModels.length > 0) {
