@@ -10,7 +10,6 @@ export default defineConfig({
     path: databaseConfig.MIGRATIONS_DIR_PATH
   },
   datasource: {
-    // database.migrationUrl, or database.url when not set
     url: migrationUrl()
   }
 });

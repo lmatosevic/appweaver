@@ -665,21 +665,19 @@ Apply pending database migrations (production / CI).
 weaver migrate [--no-setup] [--dry-run]
 ```
 
-Executes `prisma migrate deploy`, connecting with `database.migrationUrl` (`migrationUrl()` of
-`@appweaver/data/config`, the `url` of `prisma.config.ts`), or `database.url` when it is not set, so the application
-may query the data as a user without the privileges of the migrations. On PostgreSQL it then runs `setupDatabase` of
-`@appweaver/data/internal` with the migration URL (`runDatabaseSetup`), setting up what the migrations do not hold and
-the application otherwise sets up when it starts: the hypertables and policies of the `timescale` time series and the
-geometry triggers of the `postgis` engine, which change only what differs, so a start of an application user finding
-them in place runs no DDL, and one finding them out of date fails with `CONFIGURATION_INVALID` asking for `weaver
-migrate` (`isPrivilegeError` of `database-error.ts`). `--no-setup` skips the setup. Prisma has no dry run of
-`migrate deploy`, so `--dry-run` (`migrate/plan-migrations.ts`) parses
-the pending migrations from the output of `prisma migrate status` (all the migrations of `DATABASE_MIGRATIONS_DIR_PATH`
-on `P1003`, a database that does not exist) and prints the `migration.sql` of each one. Any other status failure is
-printed with the exit code of Prisma. While migrations are pending, that output names neither a failed migration
-(`P3009` on deploy) nor a database without a migration history (`P3005` when it has tables), so the plan reads both
-from the diagnosis of the schema engine in the debug log of the status (`DEBUG=prisma:migrate:status`), and relies on
-the output alone when Prisma logs none.
+Executes `prisma migrate deploy` with `database.migrationUrl` (`migrationUrl()` of `@appweaver/data/config`, the `url`
+of `prisma.config.ts`), or `database.url` when not set. On PostgreSQL it then runs `setupDatabase` of
+`@appweaver/data/internal` with the same URL, setting up the TimescaleDB hypertables and the PostGIS geometry triggers,
+which the application otherwise sets up at startup. Both change only what differs, so an application user finding them
+in place runs no DDL, and one finding them out of date fails with `CONFIGURATION_INVALID` (`isPrivilegeError`).
+`--no-setup` skips the setup.
+
+Prisma has no dry run of `migrate deploy`, so `--dry-run` (`migrate/plan-migrations.ts`) parses the pending migrations
+from the output of `prisma migrate status` (all the migrations of `DATABASE_MIGRATIONS_DIR_PATH` on `P1003`, a database
+that does not exist) and prints the `migration.sql` of each one. Any other status failure is printed with the exit code
+of Prisma. While migrations are pending, that output names neither a failed migration (`P3009` on deploy) nor a database
+without a migration history (`P3005` when it has tables), so the plan reads both from the diagnosis of the schema engine
+in the debug log of the status (`DEBUG=prisma:migrate:status`), and relies on the output alone when Prisma logs none.
 
 ---
 
@@ -1199,8 +1197,9 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   `${DB_HOST:-localhost}` and `${REDIS_HOST:-localhost}`, which the compose application services override. The database
   name and user are `${DB_NAME:-<sample name>}` and `${DB_USER:-<sample name>}`, also in the compose database service.
   The MySQL sample mounts `database/mariadb-init.sh`, granting its user the shadow and the test databases.
-  `vehicle-tracking-api` runs its migrations as the owner (`database.migrationUrl`, `${DB_USER}`) and the application
-  as `${DB_APP_USER}` (`database.url`), a user of the rows only, created by its `database/postgres-init.sh`.
+  `vehicle-tracking-api` runs its migrations as the owner (`database.migrationUrl`, `${DB_MIGRATION_USER}` and
+  `${DB_MIGRATION_PASSWORD}`) and the application as `${DB_USER}` (`database.url`), a user of the rows only, created by
+  its `database/postgres-init.sh`.
 - The driver adapters of all the samples are root dev dependencies, so the samples run on the root `node_modules`.
 - Each sample also declares every package it needs (`@appweaver/data`, `@appweaver/web` and the driver packages it
   uses, `@appweaver/sharp` for the image transforms), locked in its own `package-lock.json` (`bun.lock` for the Bun

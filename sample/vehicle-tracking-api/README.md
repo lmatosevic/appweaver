@@ -64,9 +64,9 @@ The database listens on port **5433** of the host, so it runs beside a local Pos
 runs the whole stack instead, its containers setting the `DB_HOST` and `DB_PORT` that the URL in
 [`appweaver.json`](appweaver.json) references.
 
-The database has two users. The migrations run as its owner (`DB_USER`, `database.migrationUrl`), which creates the
-tables, the `postgis` and `timescaledb` extensions, the hypertable of the readings and the geometry triggers, while the
-application connects as `vehicle-tracking-api-app` (`DB_APP_USER`, `database.url`), which
+The database has two users. The migrations run as its owner (`DB_MIGRATION_USER`, `database.migrationUrl`), which
+creates the tables, the `postgis` and `timescaledb` extensions, the hypertable of the readings and the geometry
+triggers, while the application connects as `DB_USER` (`database.url`), which
 [`database/postgres-init.sh`](database/postgres-init.sh) creates when the container initializes its volume, allowed
 only to read and write the rows of the tables. The application container gets no password of the owner. Run
 `npm run migrate` again after a change of the geo or the series fields, since the application cannot replace a trigger
