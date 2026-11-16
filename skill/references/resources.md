@@ -1496,7 +1496,7 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 | `bulkUpdate`  | BulkRouteConfig  | `PATCH /bulk` - Update many (disabled by default).                     |
 | `bulkReplace` | BulkRouteConfig  | `PUT /bulk` - Replace many (enabled along with `bulkUpdate`).          |
 | `bulkDelete`  | BulkRouteConfig  | `DELETE /bulk` - Delete many (disabled by default).                    |
-| `events`      | ResourceEventsConfig | The `create`, `update` and `delete` events exposed to the realtime connections (`{ actions, public?, roles?, permissions? }`), none unless set ([realtime.md](./realtime.md#resource-events)). |
+| `events`      | ResourceEventsConfig | The `create`, `update` and `delete` events exposed to the realtime connections (`{ actions, public?, roles?, permissions? }`, an action as an object `{ action, public?, roles?, permissions? }` with its own access), none unless set ([realtime.md](./realtime.md#resource-events)). |
 
 ### Route defaults
 

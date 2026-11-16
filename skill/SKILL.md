@@ -916,7 +916,7 @@ export const orderShipped = createChannel({
 });
 await orderShipped.publish({ orderId: 7, customerId: 1 });
 
-createRoutes({ modelName: 'order', events: { actions: ['create', 'update'] } }); // resource:Order channels
+createRoutes({ modelName: 'order', events: { actions: ['create', { action: 'update', public: true }] } }); // resource:Order channels
 createPolicy({ modelName: 'order', events: (user, { current }) => current.customerId === user?.id });
 
 createRealtimeAction({
@@ -932,7 +932,9 @@ A channel, the `events` of a model or an action with `public: true` is open to t
 `realtime.anonymousEnabled` is set, i.e. the stock prices of a homepage. The generated client subscribes with
 `client.realtime.subscribe('order.shipped', handler)` and
 `client.realtime.on('Order', handler)`, and calls actions with `send` (waits for the result) or `emit`
-(fire-and-forget). See [realtime.md](references/realtime.md) for the protocol, the tickets, the config and the limits.
+(fire-and-forget). One client with `auth` uses the public and the private parts; `realtime: { anonymous: 'auto' }`
+connects anonymously before a login, and `client.realtime.reconnect()` as the user after it. See
+[realtime.md](references/realtime.md) for the protocol, the tickets, the config and the limits.
 
 ### Registering a custom model
 

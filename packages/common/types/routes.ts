@@ -120,10 +120,8 @@ export type SeriesWriteRouteConfig = RouteConfig & {
   allowDirect?: boolean;
 };
 
-/** The resource events a model exposes to the realtime connections, as the `resource:<Model>.<action>` channels. */
-export type ResourceEventsConfig = {
-  /** The actions whose events are exposed, any of `create`, `update` and `delete`. */
-  actions: ('create' | 'update' | 'delete')[];
+/** Who may subscribe to the resource events of a model, or of one of its actions. */
+export type ResourceEventAccess = {
   /** Allow the anonymous connections to subscribe. If any of the `roles` or
    * `permissions` properties are set, they will be ignored. */
   public?: boolean;
@@ -131,6 +129,20 @@ export type ResourceEventsConfig = {
   roles?: string[];
   /** Permissions required to subscribe */
   permissions?: string[];
+};
+
+/** An action whose events are exposed, with an access of its own replacing the access of the `events`. */
+export type ResourceEventActionConfig = ResourceEventAccess & {
+  /** The action, `create`, `update` or `delete`. */
+  action: 'create' | 'update' | 'delete';
+};
+
+/** The resource events a model exposes to the realtime connections, as the `resource:<Model>.<action>` channels. */
+export type ResourceEventsConfig = ResourceEventAccess & {
+  /** The actions whose events are exposed, any of `create`, `update` and `delete`, each with the access of the
+   * `events`, or an object with its own `public`, `roles` and `permissions` replacing them, i.e.
+   * `['create', { action: 'update', public: true }]`. */
+  actions: ('create' | 'update' | 'delete' | ResourceEventActionConfig)[];
 };
 
 export type ResourceRoutesConfig = {

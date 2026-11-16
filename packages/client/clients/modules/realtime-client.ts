@@ -56,8 +56,10 @@ export type RealtimeClientOptions = {
   /** The transport: `websocket`, `sse`, or `auto` for the WebSocket when the runtime has one and the server enables
    * it, otherwise SSE. Default: `auto` */
   transport?: 'auto' | RealtimeTransport;
-  /** Connect without a ticket, as an anonymous client, when the server allows it. Default: `false` */
-  anonymous?: boolean;
+  /** Connect as an anonymous client, without a ticket, to the public channels and actions of a server allowing it:
+   * `true` always, `'auto'` when the ticket is refused for want of credentials (`401`), i.e. on a page the user may
+   * log in to later, calling {@link RealtimeClient.reconnect} once logged in. Default: `false` */
+  anonymous?: boolean | 'auto';
   /** Reconnect after a lost connection, with the subscriptions. Default: `true` */
   reconnect?: boolean;
   /** Milliseconds before the first reconnection, doubled up to `maxReconnectDelay`. Default: `500` */
@@ -152,6 +154,8 @@ export class RealtimeClient<
   private _restartScheduled: boolean = false;
   /** @internal */
   private _connectionId?: string;
+  /** @internal */
+  private _authenticated: boolean = false;
 
   /**
    * @param {BaseClientInterface} _baseClient - The client sending the requests of the tickets and the actions.
@@ -172,6 +176,11 @@ export class RealtimeClient<
   /** The state of the connection. */
   public get state(): RealtimeState {
     return this._state;
+  }
+
+  /** Whether the connection is of an authenticated user, false for an anonymous one or none. */
+  public get authenticated(): boolean {
+    return this._state === 'open' && this._authenticated;
   }
 
   /** The ID of the open connection on the server. */
@@ -346,6 +355,19 @@ export class RealtimeClient<
     return this._connecting;
   }
 
+  /**
+   * Opens the connection again with a new ticket and the subscriptions, i.e. once the user logged in or out, so the
+   * connection is of the current user. A subscription refused before is not renewed: subscribe to the private
+   * channels again once logged in.
+   *
+   * @return {Promise<void>} Resolves once the new connection is open.
+   */
+  public reconnect(): Promise<void> {
+    this.disconnect();
+    this._attempts = 0;
+    return this.connect();
+  }
+
   /** Closes the connection without reconnecting, keeping the subscriptions for the next {@link connect}. */
   public disconnect(): void {
     clearTimeout(this._reconnectTimer);
@@ -422,7 +444,9 @@ export class RealtimeClient<
   private async open(): Promise<void> {
     this.setState(this._attempts > 0 ? 'reconnecting' : 'connecting');
 
-    const ticket = this._options.anonymous ? undefined : await this.ticket();
+    const ticket =
+      this._options.anonymous === true ? undefined : await this.ticket();
+    this._authenticated = ticket !== undefined;
     const query = new URLSearchParams();
     if (ticket) {
       query.set('ticket', ticket);
@@ -436,12 +460,23 @@ export class RealtimeClient<
   }
 
   /** @internal */
-  private async ticket(): Promise<string> {
-    const { ticket } = await this.sendRequest(
-      'post',
-      `${this.basePath}/ticket`
-    );
-    return ticket;
+  private async ticket(): Promise<string | undefined> {
+    try {
+      const { ticket } = await this.sendRequest(
+        'post',
+        `${this.basePath}/ticket`
+      );
+      return ticket;
+    } catch (e) {
+      if (
+        this._options.anonymous === 'auto' &&
+        e instanceof ClientError &&
+        e.status === 401
+      ) {
+        return undefined;
+      }
+      throw e;
+    }
   }
 
   /** @internal */

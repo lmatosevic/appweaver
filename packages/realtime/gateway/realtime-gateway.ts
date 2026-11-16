@@ -39,6 +39,7 @@ import {
 } from '../types';
 import { hasAccess } from '../utils/access';
 import { projectRecord } from '../utils/project-record';
+import { resourceEventActions } from '../utils/resource-events';
 import { validatePayload } from '../utils/validate';
 import { realtimeMetrics } from '../utils/telemetry';
 import { RealtimeConnection } from './connection';
@@ -454,15 +455,24 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
       .slice(RESOURCE_CHANNEL_PREFIX.length)
       .split('.');
     const events = context.resource.routes.get(model)?.config.events;
+    const exposed = events ? resourceEventActions(events) : new Map();
 
     if (
-      !events ||
       !context.resource.models.has(model) ||
-      (action !== undefined && !events.actions.includes(action as never))
+      exposed.size === 0 ||
+      (action !== undefined && !exposed.has(action))
     ) {
       throw unknownChannel(request.channel);
     }
-    if (!hasAccess(user, events)) {
+
+    // The channel of every action receives the actions the user may receive
+    const allowed = [...exposed]
+      .filter(
+        ([name, access]) =>
+          (action === undefined || name === action) && hasAccess(user, access)
+      )
+      .map(([name]) => name as string);
+    if (allowed.length === 0) {
       throw deniedSubscription(request.channel);
     }
 
@@ -473,7 +483,7 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
       pubsubChannel: `${PUBSUB_CHANNEL_PREFIX}${RESOURCE_CHANNEL_PREFIX}${model}`,
       params: {},
       model,
-      actions: new Set(action ? [action] : events.actions),
+      actions: new Set(allowed),
       where: request.filter
         ? queryFilterWhere(request.filter, model)
         : undefined
@@ -702,7 +712,10 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
 
     for (const [name, routes] of context.resource.routes) {
       const model = String(name);
-      for (const action of routes.config.events?.actions ?? []) {
+      const actions = routes.config.events
+        ? resourceEventActions(routes.config.events).keys()
+        : [];
+      for (const action of actions) {
         const listenerId = events.onResourceEvent(
           model,
           action,

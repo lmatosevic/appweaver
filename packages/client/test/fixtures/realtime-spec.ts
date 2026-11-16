@@ -43,8 +43,10 @@ export function createRealtimeOpenApiSchema(): OpenAPI3 {
       {
         model: 'Post',
         channel: 'resource:Post',
-        actions: ['create', 'update'],
-        public: false
+        actions: [
+          { action: 'create', public: false },
+          { action: 'update', public: true }
+        ]
       },
       {
         model: 'Missing',

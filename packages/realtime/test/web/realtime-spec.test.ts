@@ -46,7 +46,16 @@ describe('realtime-spec', () => {
         handler: () => undefined
       });
       context.resource.routes.set('Post', {
-        config: { modelName: 'Post', events: { actions: ['create'] } },
+        config: {
+          modelName: 'Post',
+          events: {
+            actions: [
+              'create',
+              { action: 'update', public: true },
+              { action: 'delete', roles: ['admin'] }
+            ]
+          }
+        },
         basePath: 'posts',
         handler: () => undefined
       } as never);
@@ -87,8 +96,11 @@ describe('realtime-spec', () => {
           {
             model: 'Post',
             channel: 'resource:Post',
-            actions: ['create'],
-            public: false
+            actions: [
+              { action: 'create', public: false },
+              { action: 'update', public: true },
+              { action: 'delete', public: false, roles: ['admin'] }
+            ]
           }
         ],
         actions: [

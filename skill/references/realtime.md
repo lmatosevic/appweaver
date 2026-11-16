@@ -77,7 +77,26 @@ createRoutes({
 ```
 
 The model exposes the channels `resource:Order` (every action listed) and `resource:Order.<action>`. The `events` take
-`actions` and the `public`, `roles` and `permissions` of the subscriptions. The event data is:
+`actions` and the `public`, `roles` and `permissions` of the subscriptions. An action can have an access of its own,
+an object replacing the access of the `events` when it sets any of `public`, `roles` and `permissions`:
+
+```ts
+createRoutes({
+  modelName: 'product',
+  events: {
+    actions: [
+      'create',                                   // the access of the events: roles ['staff']
+      { action: 'update', public: true },         // anyone, anonymous connections too
+      { action: 'delete', roles: ['admin'] }      // admins only
+    ],
+    roles: ['staff']
+  }
+});
+```
+
+A subscription to `resource:Product.<action>` is refused (`REALTIME_SUBSCRIPTION_DENIED`) without the access of the
+action, and one to `resource:Product` receives the actions the user has the access of, refused only when none. The
+`x-appweaver-realtime` extension lists the access of every action. The event data is:
 
 ```ts
 { model: 'Order', action: 'update', current: OrderSingle, previous?: OrderSingle }
@@ -240,10 +259,13 @@ createRealtimeAction({
   handler: async ({ path }, { user }) => views.record(path, user?.id ?? null)
 });
 
-// src/resources/product/routes.ts: the public resource events of a model
+// src/resources/product/routes.ts: the price updates of a product are public, its creation and deletion are not
 export default createRoutes({
   modelName: 'product',
-  events: { actions: ['create', 'update', 'delete'], public: true }
+  events: {
+    actions: ['create', { action: 'update', public: true }, 'delete'],
+    roles: ['staff']
+  }
 });
 
 // src/resources/product/policy.ts: the events still pass the policy, called with a null user
@@ -257,9 +279,30 @@ export default createPolicy({
 // The client of a page without a login
 const client = createClient({ baseUrl: 'https://api.example.com', realtime: { anonymous: true } });
 client.realtime.subscribe('stock.price', ({ symbol, price }) => render(symbol, price), { symbol: 'AAPL' });
-client.realtime.on('Product', ({ action, current }) => refresh(action, current));
+client.realtime.on('Product', ({ current }) => refresh(current), { action: 'update' });
 client.realtime.emit('page.view', { path: location.pathname });
 ```
+
+One client serves both: a client with `auth` connects as the user, who uses the public parts too. For a page the user
+logs in to later, `anonymous: 'auto'` asks for a ticket and connects anonymously when it is refused for want of
+credentials (`401`); `reconnect()` once logged in opens the connection of the user, with the subscriptions:
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  auth: { jwt: () => session.accessToken },   // nothing before the login
+  realtime: { anonymous: 'auto' }
+});
+client.realtime.subscribe('stock.price', show);   // anonymous until the login
+
+await login();
+await client.realtime.reconnect();                // the connection of the user
+client.realtime.authenticated;                    // true
+client.realtime.subscribe('portfolio.updated', refreshPortfolio); // a private channel
+```
+
+A subscription refused while anonymous is not renewed by `reconnect()`: subscribe to the private channels once logged
+in.
 
 A public channel without a `deliver` sends every payload to everyone, so publish nothing private on it. The resource
 events of a public model go through the `events` callback of its policy, else its `checkAccess` and

@@ -557,9 +557,11 @@ as custom methods.
 | `send(action, payload)`                 | Calls an action and resolves to its result, rejects with its `ClientError`                              |
 | `emit(action, payload)`                 | Calls an action fire-and-forget, without a result or an error                                           |
 | `connect()` / `disconnect()`            | Opens the connection / closes it without reconnecting, keeping the subscriptions                       |
+| `reconnect()`                           | Opens the connection again with a new ticket and the subscriptions, i.e. after a login or a logout     |
 | `onStateChange(listener)`               | `idle`, `connecting`, `open`, `reconnecting`; returns the function removing the listener                |
 | `onError(listener)`                     | The errors not answering a subscription or an action, i.e. a refused ticket                             |
 | `state`, `connectionId`, `transport`    | The state, the ID of the open connection, and the transport used                                        |
+| `authenticated`                         | Whether the open connection is of a user, false for an anonymous one                                    |
 
 `subscription.ready` rejects with the `ClientError` of a refused subscription (`REALTIME_CHANNEL_UNKNOWN`,
 `REALTIME_SUBSCRIPTION_DENIED`), which is then not renewed by a reconnection.
@@ -567,7 +569,7 @@ as custom methods.
 ```ts
 type RealtimeClientOptions = {
   transport?: 'auto' | 'websocket' | 'sse'; // auto: the WebSocket when the runtime has one and the server enables it
-  anonymous?: boolean;         // connect without a ticket, when the server allows it (default: false)
+  anonymous?: boolean | 'auto'; // true: no ticket; 'auto': anonymous when the ticket is refused (401) (default: false)
   reconnect?: boolean;         // default: true
   reconnectDelay?: number;     // ms before the first reconnection, doubled each time (default: 500)
   maxReconnectDelay?: number;  // default: 30000

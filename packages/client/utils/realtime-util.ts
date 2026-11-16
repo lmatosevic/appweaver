@@ -10,7 +10,11 @@ export type RealtimeSpec = {
   transports: string[];
   anonymous: boolean;
   channels: { name: string; payload: JsonSchema; params?: JsonSchema }[];
-  resources: { model: string; channel: string; actions: string[] }[];
+  resources: {
+    model: string;
+    channel: string;
+    actions: (string | { action: string })[];
+  }[];
   actions: { name: string; payload: JsonSchema; response?: JsonSchema }[];
 };
 
@@ -51,7 +55,9 @@ export function realtimeModuleType(
       ? single
       : 'Record<string, unknown>';
     const actions =
-      resource.actions.map((a) => JSON.stringify(a)).join(' | ') || 'never';
+      resource.actions
+        .map((a) => JSON.stringify(typeof a === 'string' ? a : a.action))
+        .join(' | ') || 'never';
     return `${propertyKey(resource.model)}: { actions: ${actions}; record: ${record} }`;
   });
   const actions = (spec.actions ?? []).map(

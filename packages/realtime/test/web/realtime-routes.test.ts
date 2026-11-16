@@ -493,6 +493,62 @@ describe('realtime routes', () => {
       ]);
     });
 
+    test('applies the access of each action', async () => {
+      configOverrides.REALTIME_ANONYMOUS_ENABLED = true;
+      exposePost({
+        actions: [
+          'create',
+          { action: 'update', public: true },
+          { action: 'delete', roles: ['admin'] }
+        ]
+      });
+      app = await startRealtimeServer();
+      await app.gateway.onReady();
+      const anonymous = await TestSocket.open(`${app.ws}/ws`);
+      sockets.push(anonymous);
+      await anonymous.next((m) => m.type === 'welcome');
+      const adminSocket = await connect(admin);
+
+      anonymous.send({
+        type: 'subscribe',
+        id: 'all',
+        channel: 'resource:Post'
+      });
+      anonymous.send({
+        type: 'subscribe',
+        id: 'c',
+        channel: 'resource:Post.create'
+      });
+      adminSocket.send({
+        type: 'subscribe',
+        id: 'all',
+        channel: 'resource:Post'
+      });
+      await anonymous.next((m) => m.id === 'c');
+      await adminSocket.next((m) => m.id === 'all');
+      const events = inject(Events);
+      for (const action of ['create', 'update', 'delete'] as const) {
+        events.emitResourceEvent('Post', action, {
+          current: { id: 1, title: action, ownerId: 1 }
+        });
+      }
+      await adminSocket.next(
+        (m) => m.type === 'event' && m.data.action === 'delete'
+      );
+      await anonymous.next((m) => m.type === 'event');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const actions = (socket: TestSocket) =>
+        socket.messages
+          .filter((m) => m.type === 'event')
+          .map((m) => m.data.action);
+      expect(anonymous.messages.find((m) => m.id === 'c').error.code).toBe(
+        'REALTIME_SUBSCRIPTION_DENIED'
+      );
+      expect(actions(anonymous)).toEqual(['update']);
+      expect(actions(adminSocket)).toEqual(['create', 'update', 'delete']);
+    });
+
     test('refuses the channels of the events a model does not expose', async () => {
       exposePost({ actions: ['create'], roles: ['admin'] });
       app = await startRealtimeServer();

@@ -4,7 +4,7 @@ import {
   ClientConfig,
   RealtimeClientOptions
 } from '@appweaver/client';
-import { Events } from '@appweaver/common';
+import { configOverrides, Events } from '@appweaver/common';
 import { inject } from '@appweaver/core';
 import { context } from '@appweaver/core/internal';
 import { createModel } from '@appweaver/data';
@@ -251,5 +251,81 @@ describe('RealtimeClient', () => {
 
     await expect(pending).rejects.toMatchObject({ code: 'REQUEST_FAILED' });
     expect(client.realtime.state).toBe('idle');
+  });
+
+  describe('anonymous connections', () => {
+    beforeEach(() => {
+      configOverrides.REALTIME_ANONYMOUS_ENABLED = true;
+      createChannel({
+        name: 'prices',
+        payload: Type.Object({ price: Type.Number() }),
+        public: true
+      });
+    });
+
+    afterEach(() => {
+      delete configOverrides.REALTIME_ANONYMOUS_ENABLED;
+    });
+
+    test('connects anonymously until the user logs in', async () => {
+      let loggedIn = false;
+      client = new TestClient({
+        baseUrl: app.url.replace('/api/realtime', ''),
+        middlewares: [
+          {
+            onRequest: ({ request }) => {
+              if (loggedIn) {
+                request.headers.set('x-user', JSON.stringify(user));
+                request.headers.set('authorization', 'Bearer test');
+              }
+              return request;
+            }
+          }
+        ],
+        realtime: { anonymous: 'auto' }
+      });
+      const prices: unknown[] = [];
+
+      await client.realtime.subscribe('prices' as 'news', (payload) =>
+        prices.push(payload)
+      ).ready;
+      const anonymous = client.realtime.authenticated;
+      const denied = client.realtime.subscribe('news', () => undefined).ready;
+      await expect(denied).rejects.toMatchObject({
+        code: 'REALTIME_SUBSCRIPTION_DENIED'
+      });
+
+      loggedIn = true;
+      await client.realtime.reconnect();
+      await client.realtime.subscribe('news', () => undefined).ready;
+      const connection = [...app.gateway.connections.values()][0];
+
+      expect(anonymous).toBe(false);
+      expect(client.realtime.authenticated).toBe(true);
+      expect(app.gateway.connections.size).toBe(1);
+      expect(connection.user).toMatchObject({ id: 1 });
+      expect(connection.subscriptions.size).toBe(2);
+    });
+
+    test('fails to connect when the ticket is refused otherwise', async () => {
+      client = new TestClient({
+        baseUrl: app.url.replace('/api/realtime', ''),
+        realtime: { reconnect: false }
+      });
+
+      await expect(client.realtime.connect()).rejects.toMatchObject({
+        status: 401
+      });
+      expect(client.realtime.authenticated).toBe(false);
+    });
+
+    test('fails on a refused ticket of another status', async () => {
+      client = new TestClient({
+        baseUrl: 'http://127.0.0.1:1',
+        realtime: { anonymous: 'auto', reconnect: false }
+      });
+
+      await expect(client.realtime.connect()).rejects.toBeDefined();
+    });
   });
 });

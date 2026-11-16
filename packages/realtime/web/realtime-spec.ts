@@ -5,6 +5,7 @@ import { realtimeActions } from '../action';
 import { realtimeChannels, RESOURCE_CHANNEL_PREFIX } from '../channel';
 import { realtimeConfig } from '../config';
 import { RealtimeAccess } from '../types';
+import { resourceEventActions } from '../utils/resource-events';
 
 /** The `x-appweaver-realtime` extension of the OpenAPI document, typing the realtime client the client generates. */
 export type RealtimeSpec = {
@@ -21,12 +22,12 @@ export type RealtimeSpec = {
     payload: TSchema;
     params?: TSchema;
   })[];
-  /** The models exposing their resource events, as the `resource:<model>` channels */
-  resources: (SpecAccess & {
+  /** The models exposing their resource events, as the `resource:<model>` channels, with the access of every action */
+  resources: {
     model: string;
     channel: string;
-    actions: string[];
-  })[];
+    actions: (SpecAccess & { action: string })[];
+  }[];
   /** The actions */
   actions: (SpecAccess & {
     name: string;
@@ -70,8 +71,9 @@ export function realtimeSpec(): RealtimeSpec {
       .map(([model, routes]) => ({
         model: String(model),
         channel: RESOURCE_CHANNEL_PREFIX + String(model),
-        actions: [...routes.config.events!.actions],
-        ...access(routes.config.events!)
+        actions: [...resourceEventActions(routes.config.events!)].map(
+          ([action, config]) => ({ action, ...access(config) })
+        )
       })),
     actions: realtimeActions().map(({ name, config }) => ({
       name,
