@@ -158,6 +158,28 @@ export function toDatabaseError(error: unknown, model?: string): unknown {
 }
 
 /**
+ * Checks whether an error was raised because the user of the connection lacks a privilege, i.e. a PostgreSQL
+ * `insufficient_privilege` (`42501`) on a `CREATE` or on a table the user does not own.
+ *
+ * @param {unknown} error The error an operation failed with.
+ * @return {boolean} Whether the database refused the operation for a missing privilege.
+ */
+export function isPrivilegeError(error: unknown): boolean {
+  for (
+    let current: any = error, depth = 0;
+    current && depth < 5;
+    current = current.cause, depth++
+  ) {
+    // A raw query error of the driver adapter, or the error of the driver itself
+    const cause = current.meta?.driverAdapterError?.cause ?? current;
+    if (cause.code === '42501') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Returns the explanation of a Prisma error, without the invocation and the
  * code frame its message starts with, i.e. "Unique constraint failed on the
  * fields: (`email`)".

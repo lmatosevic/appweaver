@@ -154,11 +154,15 @@ server with PostGIS installed, i.e. the `postgis/postgis` Docker image (or `time
 TimescaleDB and PostGIS). The geometry column is written by the trigger `<table>_geo_sync` of its table, on an insert
 and on an update changing the GeoJSON, so a write with plain SQL keeps it in line too. `SpatialService` creates the
 trigger at startup when it is missing or the geo fields of the model changed, and then writes the geometries missing,
-within `spatial.setupTimeout`. A start with the triggers in place changes nothing in the database.
+within `spatial.setupTimeout`. A start with the triggers in place changes nothing in the database. `weaver migrate`
+sets the triggers up too, after the migrations, as the user of `database.migrationUrl`.
 
 - The trigger is not part of the Prisma schema, so it causes no migration drift, and a migration can drop a geo field
   before the next start replaces it.
-- The database user needs the right to create functions and triggers.
+- Setting a trigger up needs the right to create functions and to own the table. With an application user that can
+  only read and write the data (see [database](./database.md#separate-migration-and-application-users)), `weaver
+  migrate` sets them up, and a start finding a trigger out of date fails with `CONFIGURATION_INVALID`, asking to run
+  `weaver migrate`.
 - A model that lost its geo fields, or a switch to the `database` provider, leaves a trigger doing nothing: drop it
   with `DROP FUNCTION "<table>_geo_sync" CASCADE`.
 

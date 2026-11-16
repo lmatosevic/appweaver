@@ -1,11 +1,22 @@
+import path from 'node:path';
 import { Type } from '@sinclair/typebox';
-import { defineConfig, DatabaseEvent, DatabaseType } from '@appweaver/common';
+import {
+  ConfigurationError,
+  defineConfig,
+  DatabaseEvent,
+  DatabaseType,
+  ErrorCode,
+  resolveDatabaseType
+} from '@appweaver/common';
 
 export const databaseConfig = defineConfig('database', {
   /** Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`. */
   TYPE: Type.Optional(Type.Enum(DatabaseType)),
-  /** Database connection URL/DSN. Default: `''`. */
+  /** Database connection URL/DSN the application queries the data with. Default: `''`. */
   URL: Type.String({ default: '' }),
+  /** Database connection URL/DSN of the migrations (`prisma.config.ts`) and of the database setup of `weaver migrate`,
+   * i.e. a user owning the tables, or a direct connection beside the pooled one of `URL`. Default: `''` (the `URL`). */
+  MIGRATION_URL: Type.String({ default: '' }),
   /** Path to a Prisma schema file. Default: `'./database/schema.prisma'`. */
   SCHEMA_PATH: Type.String({
     default: './database/schema.prisma'
@@ -39,3 +50,51 @@ export const databaseConfig = defineConfig('database', {
   /** Database provider: `auto` or `prisma`, or `none` for an application without a database. Default: `'auto'`. */
   PROVIDER: Type.String({ default: 'auto' })
 });
+
+/**
+ * Returns the URL the migrations run with: `database.migrationUrl`, or `database.url` when it is not set.
+ *
+ * @return {string} The connection URL of the migrations.
+ * @throws {ConfigurationError} `CONFIGURATION_INVALID` when the migration URL points to another type of database, or
+ * another database name, than the URL of the application, i.e. an environment overriding one URL but not the other.
+ */
+export function migrationUrl(): string {
+  const url = databaseConfig.URL;
+  const migration = databaseConfig.MIGRATION_URL;
+  if (!migration || !url) {
+    return migration || url;
+  }
+
+  // Compared by the URLs alone, since database.type names the type of both
+  const type = resolveDatabaseType(undefined, url);
+  const migrationType = resolveDatabaseType(undefined, migration);
+  const name = databaseName(url);
+  const migrationName = databaseName(migration);
+  if (type !== migrationType || name !== migrationName) {
+    const describe = (dbType: string, dbName?: string) =>
+      `the ${dbType} database${dbName ? ` ${dbName}` : ''}`;
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      `DATABASE_MIGRATION_URL (config.database.migrationUrl) points to ${describe(migrationType, migrationName)}, ` +
+        `while DATABASE_URL (config.database.url) points to ${describe(type, name)}`
+    );
+  }
+  return migration;
+}
+
+/** The name of the database of a connection URL, or the path of a SQLite file. */
+function databaseName(url: string): string | undefined {
+  if (/^sqlserver:/i.test(url)) {
+    return /;\s*(?:database|initial catalog)\s*=\s*([^;]+)/i
+      .exec(url)?.[1]
+      ?.trim();
+  }
+  if (/^(postgres(ql)?|mysql|mariadb):/i.test(url)) {
+    try {
+      return decodeURIComponent(new URL(url).pathname.slice(1)) || undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  return path.normalize(url.replace(/^file:/, '').split('?')[0]);
+}

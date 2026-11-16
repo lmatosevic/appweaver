@@ -15,10 +15,14 @@ services:
       - "127.0.0.1:5433:5432"
     environment:
       POSTGRES_DB: "${DB_NAME:-vehicle-tracking-api}"
-      POSTGRES_USER: "${DB_USER:-vehicle-tracking-api}"
-      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_USER: "${DB_MIGRATION_USER:-vehicle-tracking-api-owner}"
+      POSTGRES_PASSWORD: "${DB_MIGRATION_PASSWORD}"
+      # The user of the application, created by database/postgres-init.sh
+      DB_USER: "${DB_USER:-vehicle-tracking-api}"
+      DB_PASSWORD: "${DB_PASSWORD}"
     volumes:
       - postgres-data:/home/postgres/pgdata
+      - ./database/postgres-init.sh:/docker-entrypoint-initdb.d/postgres-init.sh:ro
     networks:
       - vehicle-tracking-api
 
@@ -57,6 +61,8 @@ services:
     environment:
       DB_HOST: "postgres"
       DB_PORT: "5432"
+      # The seeders run as DB_USER, like the application
+      DB_MIGRATION_PASSWORD: ""
     command: [ "seed" ]
     volumes:
       - ./storage:/usr/app/storage
@@ -90,6 +96,8 @@ services:
     environment:
       DB_HOST: "postgres"
       DB_PORT: "5432"
+      # The application connects as DB_USER, the password of the owner is for the migrations only
+      DB_MIGRATION_PASSWORD: ""
     networks:
       - vehicle-tracking-api
 

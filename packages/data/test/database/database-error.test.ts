@@ -1,6 +1,7 @@
 import { ErrorCode, ResourceError } from '@appweaver/common';
 import {
   isPrismaError,
+  isPrivilegeError,
   prismaErrorMessage,
   toDatabaseError
 } from '../../database/database-error';
@@ -284,6 +285,46 @@ describe('database-error', () => {
       });
 
       expect(prismaErrorMessage(error)).toBe('PrismaClientUnknownRequestError');
+    });
+  });
+
+  describe('isPrivilegeError', () => {
+    const adapterError = (cause: object) =>
+      Object.assign(new Error('Raw query failed'), {
+        code: 'P2010',
+        meta: { driverAdapterError: { cause } }
+      });
+
+    test('detects the insufficient privilege of PostgreSQL', () => {
+      expect(
+        isPrivilegeError(adapterError({ kind: 'postgres', code: '42501' }))
+      ).toBe(true);
+    });
+
+    test('detects it in the cause of an error', () => {
+      const driverError = Object.assign(new Error('Driver failed'), {
+        cause: { kind: 'postgres', code: '42501' }
+      });
+
+      expect(
+        isPrivilegeError(new Error('Setup failed', { cause: driverError }))
+      ).toBe(true);
+      expect(
+        isPrivilegeError(
+          Object.assign(new Error('must be owner'), { code: '42501' })
+        )
+      ).toBe(true);
+    });
+
+    test('ignores the other errors', () => {
+      expect(
+        isPrivilegeError(adapterError({ kind: 'postgres', code: '42P01' }))
+      ).toBe(false);
+      expect(
+        isPrivilegeError(adapterError({ kind: 'DatabaseNotReachable' }))
+      ).toBe(false);
+      expect(isPrivilegeError(new Error('Connection lost'))).toBe(false);
+      expect(isPrivilegeError(undefined)).toBe(false);
     });
   });
 });

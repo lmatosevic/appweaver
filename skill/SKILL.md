@@ -157,6 +157,11 @@ database is `${DB_NAME}-test`), also in the docker-compose database service, and
 the generated `database/mariadb-init.sh` grants the user every database when the MariaDB container initializes its
 volume, since Prisma Migrate creates a shadow database and the end-to-end tests the `-test` one.
 
+The migrations connect with `database.migrationUrl`, `database.url` when not set, so the application can query the
+data as a user that only reads and writes the rows, while the migrations run as the owner of the tables. `weaver
+migrate` also sets up the TimescaleDB hypertables and the PostGIS geometry triggers with it (see
+[database](./references/database.md#separate-migration-and-application-users)).
+
 A SQLite project keeps its database file in the `data/` directory (`file:./data/<name>.db`), which the
 generated `docker-compose.yml` mounts as the `sqlite-data` volume shared by the migration, seed, and application
 containers.
@@ -1045,7 +1050,7 @@ The framework models are generated only when used: `Role`, `Permission`, `ApiKey
 ### Run database migrations
 
 ```sh
-weaver migrate                        # run pending migrations
+weaver migrate                        # run pending migrations, then set up the hypertables and geometry triggers
 weaver migrate --dry-run              # print the pending migrations and their SQL, without applying them
 weaver migration check                # check if the models need a new migration, print its SQL (exit code 1)
 weaver migration new <name>           # create a new migration

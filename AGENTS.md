@@ -201,7 +201,7 @@ any other file. Besides `.` and `./package.json`:
 | `@appweaver/core/internal`   | `context`, the transaction scope, `LifecycleManager` and `loadProviders`, for the packages |
 | `@appweaver/data/config`     | The config sections of data, without loading Prisma (the CLI and `prisma.config.ts`)       |
 | `@appweaver/web/config`      | The config sections of web, without loading Fastify                                        |
-| `@appweaver/data/internal`   | `pruneUnusedModels`, for `weaver generate`                                                 |
+| `@appweaver/data/internal`   | `pruneUnusedModels` and `setupDatabase`, for `weaver generate` and `weaver migrate`        |
 | `@appweaver/create/scaffold` | The scaffolding engine of `weaver module`                                                  |
 | `@appweaver/client/angular`  | The Angular client (`AngularClient`), with its ESM and CommonJS builds                     |
 
@@ -264,7 +264,7 @@ loads the resources of the application, then the `resources` of the modules.
 
 | Module        | Purpose                                                                                                                                                                                    |
 |---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `database/`   | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction`, `toDatabaseError` and the telemetry extension                                                  |
+| `database/`   | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction`, `toDatabaseError`, the telemetry extension, `migrationUrl` and `setupDatabase`                 |
 | `resource/`   | Resource loading (`loadResources`), `ResourceService`, the model, filter, sort and aggregate schemas, the query `utils/`                                                                   |
 | `factory/`    | `createModel`, `createPolicy` and `createService`                                                                                                                                          |
 | `security/`   | The auth data model (`createAuthModel`, `hashPassword`, `hasRole`, ...), its config, the auth models (`resources/`), the `database` security store                                         |
@@ -406,7 +406,7 @@ The `weaver` CLI tool. Entry point: `weaver.ts` → compiled to `dist/weaver.js`
 
 It needs only `@appweaver/core`. `@appweaver/data` and `@appweaver/web` are optional peer dependencies, loaded lazily by
 the commands needing them (`importPackage` of `utils/package-util.ts`): `generate`, `test setup`, `seed`,
-`migrate --dry-run` and `migration check` need data, `openapi` needs web. Without the package, they exit with
+`migrate` and `migration check` need data, `openapi` needs web. Without the package, they exit with
 `weaver <command> needs the <package> package` (`openapi` with a message naming the disabled `@appweaver/web` module).
 
 See **Section 5** for the full command reference.
@@ -662,16 +662,22 @@ models of a module package whose declaration files already augment `ResourceRegi
 Apply pending database migrations (production / CI).
 
 ```
-weaver migrate [--dry-run]
+weaver migrate [--no-setup] [--dry-run]
 ```
 
-Executes `prisma migrate deploy`. Prisma has no dry run of it, so `--dry-run` (`migrate/plan-migrations.ts`) parses
-the pending migrations from the output of `prisma migrate status` (all the migrations of `DATABASE_MIGRATIONS_DIR_PATH`
-on `P1003`, a database that does not exist) and prints the `migration.sql` of each one. Any other status failure is
-printed with the exit code of Prisma. While migrations are pending, that output names neither a failed migration
-(`P3009` on deploy) nor a database without a migration history (`P3005` when it has tables), so the plan reads both
-from the diagnosis of the schema engine in the debug log of the status (`DEBUG=prisma:migrate:status`), and relies on
-the output alone when Prisma logs none.
+Executes `prisma migrate deploy` with `database.migrationUrl` (`migrationUrl()` of `@appweaver/data/config`, the `url`
+of `prisma.config.ts`), or `database.url` when not set. On PostgreSQL it then runs `setupDatabase` of
+`@appweaver/data/internal` with the same URL, setting up the TimescaleDB hypertables and the PostGIS geometry triggers,
+which the application otherwise sets up at startup. Both change only what differs, so an application user finding them
+in place runs no DDL, and one finding them out of date fails with `CONFIGURATION_INVALID` (`isPrivilegeError`).
+`--no-setup` skips the setup.
+
+Prisma has no dry run of `migrate deploy`, so `--dry-run` (`migrate/plan-migrations.ts`) parses the pending migrations
+from the output of `prisma migrate status` (all the migrations of `DATABASE_MIGRATIONS_DIR_PATH` on `P1003`, a database
+that does not exist) and prints the `migration.sql` of each one. Any other status failure is printed with the exit code
+of Prisma. While migrations are pending, that output names neither a failed migration (`P3009` on deploy) nor a database
+without a migration history (`P3005` when it has tables), so the plan reads both from the diagnosis of the schema engine
+in the debug log of the status (`DEBUG=prisma:migrate:status`), and relies on the output alone when Prisma logs none.
 
 ---
 
@@ -1191,6 +1197,9 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   `${DB_HOST:-localhost}` and `${REDIS_HOST:-localhost}`, which the compose application services override. The database
   name and user are `${DB_NAME:-<sample name>}` and `${DB_USER:-<sample name>}`, also in the compose database service.
   The MySQL sample mounts `database/mariadb-init.sh`, granting its user the shadow and the test databases.
+  `vehicle-tracking-api` runs its migrations as the owner (`database.migrationUrl`, `${DB_MIGRATION_USER}` and
+  `${DB_MIGRATION_PASSWORD}`) and the application as `${DB_USER}` (`database.url`), a user of the rows only, created by
+  its `database/postgres-init.sh`.
 - The driver adapters of all the samples are root dev dependencies, so the samples run on the root `node_modules`.
 - Each sample also declares every package it needs (`@appweaver/data`, `@appweaver/web` and the driver packages it
   uses, `@appweaver/sharp` for the image transforms), locked in its own `package-lock.json` (`bun.lock` for the Bun

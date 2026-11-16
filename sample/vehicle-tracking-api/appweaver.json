@@ -10,7 +10,8 @@
       "port": 5008
     },
     "database": {
-      "url": "postgresql://${DB_USER:-vehicle-tracking-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:${DB_PORT:-5432}/${DB_NAME:-vehicle-tracking-api}"
+      "url": "postgresql://${DB_USER:-vehicle-tracking-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:${DB_PORT:-5433}/${DB_NAME:-vehicle-tracking-api}",
+      "migrationUrl": "postgresql://${DB_MIGRATION_USER:-vehicle-tracking-api-owner}:${DB_MIGRATION_PASSWORD}@${DB_HOST:-localhost}:${DB_PORT:-5433}/${DB_NAME:-vehicle-tracking-api}"
     },
     "security": {
       "apiKey": {
@@ -40,7 +41,8 @@
         "sync": true
       },
       "database": {
-        "url": "postgresql://${DB_USER:-vehicle-tracking-api}:${DB_PASSWORD}@${DB_HOST:-localhost}:${DB_PORT:-5433}/${DB_NAME:-vehicle-tracking-api}-test",
+        "url": "postgresql://${DB_MIGRATION_USER:-vehicle-tracking-api-owner}:${DB_MIGRATION_PASSWORD}@${DB_HOST:-localhost}:${DB_PORT:-5433}/${DB_NAME:-vehicle-tracking-api}-test",
+        "migrationUrl": "postgresql://${DB_MIGRATION_USER:-vehicle-tracking-api-owner}:${DB_MIGRATION_PASSWORD}@${DB_HOST:-localhost}:${DB_PORT:-5433}/${DB_NAME:-vehicle-tracking-api}-test",
         "schemaPath": "./temp/database/schema.prisma",
         "migrationsDirPath": "./temp/database/migrations",
         "clientOutputDirPath": "./temp/database/client"

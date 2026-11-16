@@ -46,13 +46,31 @@ export function readConfigReport(sections: Iterable<ConfigSectionDefinition>): {
         SECRET_KEY.test(key);
       rows.push({
         key,
-        value: secret && value !== undefined ? '********' : value,
+        value:
+          secret && value !== undefined ? '********' : redactUrlPassword(value),
         source: configSource(key)
       });
     }
   }
 
   return { rows: rows.sort((a, b) => a.key.localeCompare(b.key)), errors };
+}
+
+/**
+ * Hides the password of a connection URL, i.e. `postgresql://user:********@host/db`, or of its `password` parameter,
+ * i.e. `sqlserver://host;password=********`.
+ *
+ * @param {unknown} value - The value of a key.
+ * @return {unknown} The value, its password hidden when it is a URL with one.
+ */
+export function redactUrlPassword(value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value;
+  }
+  // The password of user:password@, ending at the last @ before the host
+  return value
+    .replace(/^([a-z][a-z0-9+.-]*:\/\/[^:/?#@]*:)[^/?#]*@/i, '$1********@')
+    .replace(/^([a-z][a-z0-9+.-]*:.*[;?&]password=)[^;&]*/i, '$1********');
 }
 
 /**

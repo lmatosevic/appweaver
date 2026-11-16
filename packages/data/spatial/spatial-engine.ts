@@ -13,6 +13,7 @@ import {
   uncapitalize
 } from '@appweaver/common';
 import { databaseConfig } from '../database/database-config';
+import { isPrivilegeError } from '../database/database-error';
 import { PrismaDatabase } from '../database/prisma-database';
 import { postgresSchema } from '../utils/schema-util';
 import { spatialConfig } from './spatial-config';
@@ -144,7 +145,8 @@ export class PostgisSpatialEngine extends SpatialEngine {
    * writes the geometries of its records missing them, under an advisory lock, so the instances starting together
    * set them up once. A start with every trigger in place changes nothing.
    *
-   * @throws {ConfigurationError} `CONFIGURATION_INVALID` when the PostGIS extension is not installed.
+   * @throws {ConfigurationError} `CONFIGURATION_INVALID` when the PostGIS extension is not installed, or a trigger is
+   * out of date and the user of the connection lacks the privileges to replace it.
    */
   public async setup(models: GeoModel[]): Promise<void> {
     if (models.length === 0) {
@@ -164,41 +166,56 @@ export class PostgisSpatialEngine extends SpatialEngine {
       );
     }
 
-    const updated = await this._db.transaction(
-      async (tx) => {
-        await tx.$executeRawUnsafe(
-          `SELECT pg_advisory_xact_lock(hashtext('appweaver:spatial'))`
-        );
-        const existing: { table: string; source: string }[] =
-          await tx.$queryRawUnsafe(
-            `SELECT c.relname AS "table", p.prosrc AS "source" FROM pg_trigger t ` +
-              `JOIN pg_class c ON c.oid = t.tgrelid JOIN pg_namespace n ON n.oid = c.relnamespace ` +
-              `JOIN pg_proc p ON p.oid = t.tgfoid WHERE NOT t.tgisinternal ` +
-              `AND n.nspname = COALESCE($1::text, current_schema()) AND t.tgname = left(c.relname, 50) || '_geo_sync'`,
-            this._schema ?? null
+    const updated = await this._db
+      .transaction(
+        async (tx) => {
+          await tx.$executeRawUnsafe(
+            `SELECT pg_advisory_xact_lock(hashtext('appweaver:spatial'))`
           );
-        const sources = new Map(existing.map((row) => [row.table, row.source]));
+          const existing: { table: string; source: string }[] =
+            await tx.$queryRawUnsafe(
+              `SELECT c.relname AS "table", p.prosrc AS "source" FROM pg_trigger t ` +
+                `JOIN pg_class c ON c.oid = t.tgrelid JOIN pg_namespace n ON n.oid = c.relnamespace ` +
+                `JOIN pg_proc p ON p.oid = t.tgfoid WHERE NOT t.tgisinternal ` +
+                `AND n.nspname = COALESCE($1::text, current_schema()) AND t.tgname = left(c.relname, 50) || '_geo_sync'`,
+              this._schema ?? null
+            );
+          const sources = new Map(
+            existing.map((row) => [row.table, row.source])
+          );
 
-        const updated: string[] = [];
-        for (const model of models) {
-          const trigger = geometryTrigger(
-            model.table,
-            Object.keys(model.fields),
-            this._schema
+          const updated: string[] = [];
+          for (const model of models) {
+            const trigger = geometryTrigger(
+              model.table,
+              Object.keys(model.fields),
+              this._schema
+            );
+            if (sources.get(model.table) === trigger.source) {
+              continue;
+            }
+            for (const statement of trigger.statements) {
+              await tx.$executeRawUnsafe(statement);
+            }
+            updated.push(model.name);
+          }
+          return updated;
+        },
+        // The geometries of a large table written for the first time
+        { timeout: spatialConfig.SETUP_TIMEOUT }
+      )
+      .catch((error) => {
+        if (isPrivilegeError(error)) {
+          throw new ConfigurationError(
+            ErrorCode.ConfigurationInvalid,
+            'The spatial geometry triggers are not up to date, and the database user lacks the privileges to ' +
+              'create them, run `weaver migrate`, which creates them with the user of database.migrationUrl',
+            undefined,
+            { cause: error }
           );
-          if (sources.get(model.table) === trigger.source) {
-            continue;
-          }
-          for (const statement of trigger.statements) {
-            await tx.$executeRawUnsafe(statement);
-          }
-          updated.push(model.name);
         }
-        return updated;
-      },
-      // The geometries of a large table written for the first time
-      { timeout: spatialConfig.SETUP_TIMEOUT }
-    );
+        throw error;
+      });
     if (updated.length > 0) {
       logger.info({ models: updated }, 'Spatial geometry triggers set up');
     }

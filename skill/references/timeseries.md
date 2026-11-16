@@ -123,7 +123,9 @@ The `database` store on PostgreSQL with the [TimescaleDB](https://www.timescale.
 table into a hypertable partitioned by time (`create_hypertable`, without its default indexes, so the schema stays the
 one of the Prisma migrations and `weaver migration new` sees no drift), and keeps the compression and retention policies
 of each model in line with its `seriesOptions`, adding, replacing or removing them, all under an advisory lock so
-starting instances set them up once. The buckets use `time_bucket`.
+starting instances set them up once. Only what differs is changed, so a start with the hypertables in place runs no
+DDL. `weaver migrate` sets them up too, after the migrations, as the user of `database.migrationUrl`. The buckets use
+`time_bucket`.
 
 ```json
 {
@@ -136,8 +138,10 @@ starting instances set them up once. The buckets use `time_bucket`.
 }
 ```
 
-The database user needs the right to create the extension, or the extension is created beforehand
-(`CREATE EXTENSION timescaledb`). The compression and the retention policies are features of the Timescale License,
+Setting the hypertables up needs the right to create the extension (or the extension created beforehand with
+`CREATE EXTENSION timescaledb`) and to own the series tables. With an application user that can only read and write
+the data (see [database](./database.md#separate-migration-and-application-users)), `weaver migrate` sets them up, and a
+start finding them out of date fails with `CONFIGURATION_INVALID`, asking to run `weaver migrate`. The compression and the retention policies are features of the Timescale License,
 missing from the Apache-only builds of some managed PostgreSQL services: leave `compressAfter` and `retention` empty
 there.
 

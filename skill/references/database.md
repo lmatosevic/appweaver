@@ -154,7 +154,8 @@ weaver migrate
 | Key                             | Type     | Default                      | Description                                     |
 |---------------------------------|----------|------------------------------|-------------------------------------------------|
 | `DATABASE_TYPE`                 | `enum`   | —                            | `sqlite`, `postgresql`, `mysql`, or `sqlserver` |
-| `DATABASE_URL`                  | `string` | —                            | Connection string / DSN                         |
+| `DATABASE_URL`                  | `string` | —                            | Connection string / DSN of the application      |
+| `DATABASE_MIGRATION_URL`        | `string` | `DATABASE_URL`               | Connection string / DSN of the migrations       |
 | `DATABASE_SCHEMA_PATH`          | `string` | `'./database/schema.prisma'` | Path to the Prisma schema file                  |
 | `DATABASE_MIGRATIONS_DIR_PATH`  | `string` | `'./database/migrations'`    | Path to the migrations directory                |
 | `DATABASE_TRANSACTION_MAX_WAIT` | `int`    | `2000`                       | Max time (ms) to wait to acquire a transaction  |
@@ -182,6 +183,54 @@ PostgreSQL uses the `public` schema unless the URL selects another one with `?sc
 `...:5432/myapp?schema=webshop`). Prisma Migrate creates the schema and its tables there, and the framework passes it on
 to the PostgreSQL adapter, so the queries use it as well. Existing tables are not moved from `public`. Prefer a name
 without hyphens (`my_app`), which raw SQL would otherwise have to double-quote.
+
+### Separate migration and application users
+
+The application connects with `database.url`, the migrations with `database.migrationUrl` (`database.url` when not
+set). The application user then only reads and writes the rows, while the migrations run as the owner of the tables,
+or through a direct connection beside a pooler. Both URLs must point to the same database, so set both in an
+environment that changes it.
+
+```json
+{
+  "config": {
+    "database": {
+      "url": "postgresql://${DB_USER:-myapp}:${DB_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-myapp}",
+      "migrationUrl": "postgresql://${DB_MIGRATION_USER:-myapp-owner}:${DB_MIGRATION_PASSWORD}@${DB_HOST:-localhost}:5432/${DB_NAME:-myapp}"
+    }
+  }
+}
+```
+
+- `prisma.config.ts` sets `url: migrationUrl()` (of `@appweaver/data/config`); a project created before it has
+  `databaseConfig.URL` there, which ignores the migration URL.
+- `weaver migrate` also sets up the TimescaleDB hypertables and the PostGIS geometry triggers, which need the owner.
+  Build first, since it reads the built models. A start finding them out of date asks to run `weaver migrate`.
+- The owner keeps the right to create databases in development, for the shadow database of `weaver migration new`.
+
+The application user, granted by the owner:
+
+```sql
+-- PostgreSQL
+CREATE ROLE "myapp" LOGIN PASSWORD '...';
+GRANT CONNECT ON DATABASE "myapp" TO "myapp";
+GRANT USAGE ON SCHEMA public TO "myapp";
+ALTER DEFAULT PRIVILEGES FOR ROLE "myapp-owner" IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "myapp";
+ALTER DEFAULT PRIVILEGES FOR ROLE "myapp-owner" IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO "myapp";
+
+-- MySQL / MariaDB
+CREATE USER 'myapp'@'%' IDENTIFIED BY '...';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `myapp`.* TO 'myapp'@'%';
+
+-- SQL Server
+CREATE LOGIN [myapp] WITH PASSWORD = '...';
+CREATE USER [myapp] FOR LOGIN [myapp];
+ALTER ROLE db_datareader ADD MEMBER [myapp];
+ALTER ROLE db_datawriter ADD MEMBER [myapp];
+```
+
+See `sample/vehicle-tracking-api` and its `database/postgres-init.sh`.
+SQLite has no users, so it needs neither URL.
 
 ---
 

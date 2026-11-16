@@ -168,6 +168,8 @@ describe('TimescaleTimeSeries', () => {
     const queries: string[] = [];
     let compressionEnabled: boolean;
     let job: { same: boolean } | undefined;
+    let dimension: { same: boolean } | undefined;
+    let failure: Error | undefined;
     const transaction = jest.fn();
 
     beforeEach(() => {
@@ -175,15 +177,24 @@ describe('TimescaleTimeSeries', () => {
       queries.length = 0;
       compressionEnabled = false;
       job = undefined;
+      dimension = undefined;
+      failure = undefined;
       const tx = {
-        $executeRawUnsafe: jest.fn(async (sql: string) => queries.push(sql)),
-        $queryRaw: jest.fn(async (sql: any) =>
-          sql.sql.includes('compression_enabled')
-            ? [{ compression_enabled: compressionEnabled }]
-            : job
-              ? [job]
-              : []
-        )
+        $executeRawUnsafe: jest.fn(async (sql: string) => {
+          if (failure && !sql.includes('pg_advisory_xact_lock')) {
+            throw failure;
+          }
+          return queries.push(sql);
+        }),
+        $queryRaw: jest.fn(async (sql: any) => {
+          if (sql.sql.includes('compression_enabled')) {
+            return [{ compression_enabled: compressionEnabled }];
+          }
+          if (sql.sql.includes('timescaledb_information.dimensions')) {
+            return dimension ? [dimension] : [];
+          }
+          return job ? [job] : [];
+        })
       };
       define(
         {
@@ -212,10 +223,48 @@ describe('TimescaleTimeSeries', () => {
         `SELECT create_hypertable('"ContractSensorSeries"', by_range('time', INTERVAL '1 days'), ` +
           'if_not_exists => TRUE, create_default_indexes => FALSE, migrate_data => TRUE)'
       );
-      expect(queries[2]).toContain(
-        `set_chunk_time_interval('"ContractSensorSeries"', INTERVAL '1 days')`
-      );
-      expect(queries).toHaveLength(3);
+      expect(queries).toHaveLength(2);
+    });
+
+    test('changes only the chunk interval of an existing hypertable', async () => {
+      dimension = { same: false };
+      await register({ chunkInterval: '1d' });
+
+      expect(queries.slice(1)).toEqual([
+        `SELECT set_chunk_time_interval('"ContractSensorSeries"', INTERVAL '1 days')`
+      ]);
+    });
+
+    test('runs no DDL on a hypertable already set up', async () => {
+      dimension = { same: true };
+      job = { same: true };
+      compressionEnabled = true;
+      await register({ compressAfter: '7d', retention: '30d' });
+
+      expect(queries).toEqual([
+        `SELECT pg_advisory_xact_lock(hashtext('appweaver:timeseries'))`
+      ]);
+    });
+
+    test('asks for weaver migrate when the user lacks the privileges', async () => {
+      failure = Object.assign(new Error('must be owner of table'), {
+        code: 'P2010',
+        meta: {
+          driverAdapterError: { cause: { kind: 'postgres', code: '42501' } }
+        }
+      });
+
+      await expect(register({})).rejects.toMatchObject({
+        code: ErrorCode.ConfigurationInvalid,
+        message: expect.stringContaining('weaver migrate'),
+        cause: failure
+      });
+    });
+
+    test('rethrows any other error of the setup', async () => {
+      failure = new Error('Connection lost');
+
+      await expect(register({})).rejects.toBe(failure);
     });
 
     test('enables the compression once, and adds its policy', async () => {
