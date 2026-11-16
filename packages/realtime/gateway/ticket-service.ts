@@ -28,9 +28,12 @@ export class TicketService {
     ticket: RealtimeTicket
   ): Promise<{ ticket: string; expiresIn: number }> {
     const token = randomBytes(32).toString('base64url');
+    // The password hash is never needed by a connection, so it stays out of
+    // the memory, i.e. a Redis server
+    const { passwordHash: _passwordHash, ...user } = ticket.user;
     await this._memory.set(
       KEY_PREFIX + token,
-      ticket,
+      { ...ticket, user },
       realtimeConfig.TICKET_TTL
     );
     return { ticket: token, expiresIn: realtimeConfig.TICKET_TTL };

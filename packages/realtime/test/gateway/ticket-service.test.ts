@@ -29,6 +29,18 @@ describe('TicketService', () => {
     expect(expiresIn).toBe(30000);
   });
 
+  test('keeps the password hash out of the memory', async () => {
+    const { ticket: token } = await tickets.issue({
+      ...ticket,
+      user: { ...ticket.user, passwordHash: 'hash' }
+    });
+
+    const redeemed = await tickets.redeem(token);
+
+    expect(redeemed.user).toEqual(ticket.user);
+    expect(redeemed.user).not.toHaveProperty('passwordHash');
+  });
+
   test('refuses a malformed ticket', async () => {
     await expect(tickets.redeem('../keys')).rejects.toMatchObject({
       code: ErrorCode.RealtimeTicketInvalid

@@ -125,7 +125,8 @@ carrying credentials (an invalid one fails with `401`), and runs one without as 
 ## Connections
 
 A browser cannot send the `Authorization` header with an `EventSource` or a `WebSocket`, so the client asks for a ticket
-with its credentials, used once and valid `realtime.ticketTtl` milliseconds on every instance (kept in the `Memory`).
+with its credentials, used once and valid `realtime.ticketTtl` milliseconds on every instance (kept in the `Memory`,
+with the user but never their password hash).
 
 | Route                                              | Description                                                                          |
 |----------------------------------------------------|--------------------------------------------------------------------------------------|
@@ -139,6 +140,11 @@ and the code `4401` when the token of its ticket expires or after `realtime.conn
 reconnects with a new ticket. A disabled transport (`realtime.sseEnabled`, `realtime.websocketEnabled`) answers its
 route with `404 REALTIME_TRANSPORT_DISABLED`, and is left out of the `transports` of the extension. Delivery is
 at-most-once: an event published while a client reconnects is lost.
+
+The connections of a user close the same way on every instance once the user of the auth model logs out (a new
+`logoutAt`, also set by a password change), is disabled, deleted or given other roles, so the client reconnects as the
+user is now, or fails to. A change the auth model does not see, i.e. the permissions of a role, applies at the next
+reconnection. `inject(RealtimeGateway).revoke(userId)` closes them for any other reason.
 
 ### Protocol
 

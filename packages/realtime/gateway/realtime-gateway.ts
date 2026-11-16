@@ -10,6 +10,7 @@ import {
   OnReady,
   PubSub,
   RealtimeError,
+  ResourceId,
   SpanKind,
   textToBytes,
   telemetryEnabled,
@@ -18,7 +19,11 @@ import {
 } from '@appweaver/common';
 import { injectService, inject, runAs } from '@appweaver/core';
 import { context } from '@appweaver/core/internal';
-import { queryFilterWhere, matchesWhere } from '@appweaver/data';
+import {
+  matchesWhere,
+  queryFilterWhere,
+  resourceAuthService
+} from '@appweaver/data';
 import { toProblem } from '@appweaver/web';
 import { findRealtimeAction } from '../action';
 import {
@@ -51,6 +56,9 @@ type ResourceChannelMessage = ChannelMessage & {
 };
 
 const SUBSCRIPTION_ID_PATTERN = /^[\w.:-]{1,64}$/;
+
+/** The pub/sub channel of the users whose connections close, never a channel name (they start with a letter or digit). */
+const REVOKE_CHANNEL = `${PUBSUB_CHANNEL_PREFIX}_revoke`;
 
 /**
  * The realtime connections of the instance: their subscriptions to the channels, the delivery of the messages the
@@ -90,6 +98,8 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   private readonly _listeners: string[] = [];
   /** @internal */
   private _heartbeat?: NodeJS.Timeout;
+  /** @internal */
+  private _revokeSubscription?: Promise<string>;
 
   /** The open connections of the instance. */
   public get connections(): ReadonlyMap<string, RealtimeConnection> {
@@ -98,6 +108,7 @@ export class RealtimeGateway implements OnReady, OnDestroy {
 
   public async onReady(): Promise<void> {
     this.bridgeResourceEvents();
+    await this.watchAuthUsers();
   }
 
   public async onDestroy(): Promise<void> {
@@ -106,6 +117,23 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     for (const listenerId of this._listeners.splice(0)) {
       events?.removeResourceEvent(listenerId);
     }
+    const revoke = this._revokeSubscription;
+    this._revokeSubscription = undefined;
+    if (revoke) {
+      await this._pubsub.unsubscribe(await revoke).catch(() => false);
+    }
+  }
+
+  /**
+   * Closes the connections of a user on every instance, with a `reauth` message and the code `4401`, so the client
+   * reconnects with a new ticket of the user as it is now, or fails to once logged out or disabled. Done on its own
+   * when the user logs out, is disabled, deleted, or has other roles.
+   *
+   * @param {ResourceId} userId - The ID of the user.
+   * @return {Promise<void>} Resolves once published.
+   */
+  public async revoke(userId: ResourceId): Promise<void> {
+    await this._pubsub.publish(REVOKE_CHANNEL, { userId: String(userId) });
   }
 
   /**
@@ -759,6 +787,54 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     }
   }
 
+  /**
+   * Revokes the connections of the users of the auth model who log out, are disabled, deleted or have other roles,
+   * and closes the local connections of the users every instance revokes.
+   *
+   * @internal
+   */
+  private async watchAuthUsers(): Promise<void> {
+    const events = inject(Events, false);
+    const service = resourceAuthService();
+    if (!events || !service || this._revokeSubscription) {
+      return;
+    }
+
+    const revoke = (user: AuthUser) =>
+      this.revoke(user.id).catch((e) =>
+        logger.error(e, 'Realtime connections revoke failed')
+      );
+
+    this._listeners.push(
+      events.onResourceEvent<AuthUser>(
+        service.modelName,
+        'update',
+        ({ previous, current }) => {
+          if (previous && revokesAccess(previous, current)) {
+            void revoke(current);
+          }
+        }
+      ),
+      events.onResourceEvent<AuthUser>(
+        service.modelName,
+        'delete',
+        ({ current }) => void revoke(current)
+      )
+    );
+
+    this._revokeSubscription = this._pubsub.subscribe<{ userId: string }>(
+      REVOKE_CHANNEL,
+      ({ userId }) => {
+        for (const connection of [...this._connections.values()]) {
+          if (connection.user && String(connection.user.id) === userId) {
+            this.expire(connection);
+          }
+        }
+      }
+    );
+    await this._revokeSubscription;
+  }
+
   /** @internal */
   private checkRate(connection: RealtimeConnection): void {
     const limit = realtimeConfig.MESSAGE_RATE_LIMIT;
@@ -813,6 +889,27 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     }, realtimeConfig.HEARTBEAT_INTERVAL);
     this._heartbeat.unref();
   }
+}
+
+/** Whether an update of a user ends the access of their connections: a logout, a disabling or other roles. */
+function revokesAccess(previous: AuthUser, current: AuthUser): boolean {
+  const time = (date?: Date | string | null) =>
+    date ? new Date(date).getTime() : null;
+  const roles = (user: AuthUser) =>
+    Array.isArray(user.roles)
+      ? user.roles
+          .map((role) => String(role.id))
+          .sort()
+          .join()
+      : undefined;
+
+  return (
+    (current.enabled === false && previous.enabled !== false) ||
+    time(current.logoutAt) !== time(previous.logoutAt) ||
+    (roles(previous) !== undefined &&
+      roles(current) !== undefined &&
+      roles(previous) !== roles(current))
+  );
 }
 
 /** The key counting the connections of a user, or the anonymous ones of an IP address. */
