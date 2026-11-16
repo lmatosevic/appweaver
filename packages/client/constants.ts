@@ -203,6 +203,12 @@ export const TWO_FACTOR_TYPES = [
 /** Type name used when generating the TypeScript module type for the health module. */
 export const HEALTH_MODULE_TYPE = 'HealthModuleType';
 
+/** Custom OpenAPI extension key of the channels, resources and actions of the realtime routes. */
+export const REALTIME_FIELD = 'x-appweaver-realtime';
+
+/** Name of the generated type of the channels, resources and actions of the realtime client. */
+export const REALTIME_MODULE_TYPE = 'RealtimeModuleType';
+
 /** Maps health check operations to HTTP GET methods used for matching OpenAPI paths to `HealthClient` methods.
  * The operation names are matching the real API paths (without a prefix and in camelCase format) from the OpenAPI. */
 export const HEALTH_OPERATIONS = { check: 'get', ready: 'get' } as const;

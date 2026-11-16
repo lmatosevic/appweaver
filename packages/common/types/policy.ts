@@ -10,6 +10,28 @@ export type ActionType =
   | 'update'
   | 'delete';
 
+/** The actions of a resource whose events the realtime connections receive. */
+export type ResourceEventAction = Extract<
+  ActionType,
+  'create' | 'update' | 'delete'
+>;
+
+/** A resource event a realtime connection is about to receive. */
+export type ResourceEvent<T = any> = {
+  /** The action changing the resource. */
+  action: ResourceEventAction;
+  /** The resource after the action, the deleted resource for a delete. */
+  current: T;
+  /** The resource before an update. */
+  previous?: T;
+};
+
+/** Returns false to keep a resource event from a user, called with a null user for an anonymous connection. */
+export type ResourceEventAccessFn<T = any, U = AuthUser> = (
+  user: U | null,
+  event: ResourceEvent<T>
+) => boolean | Promise<boolean>;
+
 export type FileAccessType = 'protected' | 'private' | 'public';
 
 /** Returns false to deny the file action. Called with a null user when the request is not authenticated. */
@@ -85,4 +107,7 @@ export type ResourcePolicyConfig<T = any, U = AuthUser> = {
   files?: Record<string, FilePolicy<T>>;
   /** Access checks of the time series of the resource */
   series?: SeriesPolicy<T>;
+  /** Returns false to keep a resource event from the realtime connection of a user, replacing the default check of
+   * the event: the `checkAccess` of a `find` and the `readRestrictions` matched against the resource */
+  events?: ResourceEventAccessFn<T, U>;
 };

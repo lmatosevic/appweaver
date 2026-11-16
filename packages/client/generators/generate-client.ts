@@ -1,7 +1,7 @@
 import { OpenAPI3, OperationObject } from 'openapi-typescript';
 import { HttpMethod } from 'openapi-typescript-helpers';
 import { FetchClient } from '../clients';
-import { toSchemaObject } from '../utils';
+import { realtimeSpec, toSchemaObject } from '../utils';
 import { RoutePathConfig, RouteType } from '../types';
 import {
   ACCOUNT_MODULE_TYPE,
@@ -15,6 +15,7 @@ import {
   HEALTH_MODULE_TYPE,
   HEALTH_OPERATIONS,
   PROBLEM_DETAILS_TITLE,
+  REALTIME_MODULE_TYPE,
   RESOURCE_MODULE_TYPE,
   RESOURCE_OPERATIONS,
   TWO_FACTOR_MODULE_TYPE,
@@ -81,6 +82,7 @@ export async function generateClient(
   );
 
   const config: RoutePathConfig = schemaObject[CONFIG_FIELD];
+  const realtime = realtimeSpec(schemaObject);
 
   const schemaRoutes: SchemaRoutes = {
     resource: {},
@@ -129,7 +131,11 @@ export async function generateClient(
           method
         );
       } else if (type === 'custom') {
-        if (path.startsWith(`${config.routePrefixes.auth}/login/`)) {
+        if (
+          path.startsWith(`${config.routePrefixes.auth}/login/`) ||
+          // The realtime routes are called by the realtime client
+          (realtime && path.startsWith(`${realtime.routePrefix}/`))
+        ) {
           continue;
         }
         schemaRoutes.custom.push({
@@ -236,6 +242,17 @@ export async function generateClient(
     clientMethods.push({
       name: 'files',
       expression: `this.filesClient${genericTypes}('${config.routePrefixes.files}')`
+    });
+  }
+
+  // Add realtime client
+  if (realtime) {
+    const genericTypes = noTypes
+      ? ''
+      : `<${typePrefix}${REALTIME_MODULE_TYPE}>`;
+    clientMethods.push({
+      name: 'realtime',
+      expression: `this.realtimeClient${genericTypes}('${realtime.routePrefix}')`
     });
   }
 

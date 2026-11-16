@@ -279,6 +279,8 @@ type ClientConfig = {
   timeout?: number;          // Request timeout in milliseconds
   middlewares?: Middleware[]; // Additional openapi-fetch middlewares
   auth?: AuthConfig;         // Authentication strategy
+  fetch?: FetchHandler;      // Custom fetch implementation
+  realtime?: RealtimeClientOptions; // Options of client.realtime
 };
 ```
 
@@ -537,6 +539,49 @@ const status = await client.health.check();
 const file = await client.files.public('images/photo.jpg');
 const fileData = await file.base64(); // or use file.stream to pipe output to file etc.
 ```
+
+### Realtime client
+
+`client.realtime` (a `RealtimeClient`) is generated for an API with `@appweaver/realtime`, typed by the
+`RealtimeModuleType` of the types file, built from the `x-appweaver-realtime` extension of the OpenAPI document. It
+connects on the first subscription or action: it asks for a ticket (`POST <api>/realtime/ticket`) with the `auth` of
+the client, opens a WebSocket (or an SSE stream), and reconnects with its subscriptions after a lost connection, at
+once when the server closes it for an expired token (`4401`), with a new ticket. The realtime routes are not generated
+as custom methods.
+
+| Method                                  | Description                                                                                             |
+|-----------------------------------------|---------------------------------------------------------------------------------------------------------|
+| `subscribe(channel, handler, params?)`  | Subscribes to a channel, `handler(payload, { eventId, channel })`. Returns `{ id, ready, unsubscribe }` |
+| `on(model, handler, { action?, filter? })` | Subscribes to the resource events of a model, `handler({ model, action, current, previous? })`       |
+| `observe(channel, params?)`             | An observable of the payloads of a channel, for `from(...)` of RxJS                                     |
+| `send(action, payload)`                 | Calls an action and resolves to its result, rejects with its `ClientError`                              |
+| `emit(action, payload)`                 | Calls an action fire-and-forget, without a result or an error                                           |
+| `connect()` / `disconnect()`            | Opens the connection / closes it without reconnecting, keeping the subscriptions                       |
+| `onStateChange(listener)`               | `idle`, `connecting`, `open`, `reconnecting`; returns the function removing the listener                |
+| `onError(listener)`                     | The errors not answering a subscription or an action, i.e. a refused ticket                             |
+| `state`, `connectionId`, `transport`    | The state, the ID of the open connection, and the transport used                                        |
+
+`subscription.ready` rejects with the `ClientError` of a refused subscription (`REALTIME_CHANNEL_UNKNOWN`,
+`REALTIME_SUBSCRIPTION_DENIED`), which is then not renewed by a reconnection.
+
+```ts
+type RealtimeClientOptions = {
+  transport?: 'auto' | 'websocket' | 'sse'; // auto: the WebSocket when the runtime has one
+  anonymous?: boolean;         // connect without a ticket, when the server allows it (default: false)
+  reconnect?: boolean;         // default: true
+  reconnectDelay?: number;     // ms before the first reconnection, doubled each time (default: 500)
+  maxReconnectDelay?: number;  // default: 30000
+  actionTimeout?: number;      // ms an action waits for its result (default: 30000)
+  WebSocket?: typeof WebSocket; // the implementation, the global one by default
+};
+
+const client = createClient({ baseUrl, auth: { jwt: () => store.accessToken }, realtime: { transport: 'sse' } });
+client.realtime.on('Order', ({ action, current }) => refresh(current), { filter: { status: 'open' } });
+```
+
+Over SSE, a change of the subscriptions opens a new stream (with a new ticket), and the actions are sent with the
+HTTP route of the actions. Delivery is at-most-once: reload the state after a reconnection when it matters. See
+[realtime.md](./realtime.md).
 
 ### `FileDataResponse`
 

@@ -3,6 +3,7 @@ export { MemoryCache } from './cache/memory-cache';
 export { NodeEvents } from './events/node-events';
 export { JsonMailer } from './mailer/json-mailer';
 export { InMemory } from './memory/in-memory';
+export { MemoryPubSub } from './pubsub/memory-pubsub';
 export { MemoryQueue } from './queue/memory-queue';
 export { MemorySecurityStore } from './security/store/memory-security-store';
 export { JsonSms } from './sms/json-sms';

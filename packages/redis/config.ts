@@ -11,3 +11,8 @@ export const redisConfig = defineConfig('memory.redis', {
   /** Milliseconds the open circuit breaker skips Redis before probing it. Default: `10000` (10 sec). */
   CIRCUIT_BREAKER_COOLDOWN: Type.Integer({ default: 10000, minimum: 0 })
 });
+
+export const redisPubSubConfig = defineConfig('pubsub.redis', {
+  /** Prefix of the Redis channels the messages are published to. Default: `'appweaver:'`. */
+  CHANNEL_PREFIX: Type.String({ default: 'appweaver:' })
+});

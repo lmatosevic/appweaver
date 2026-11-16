@@ -120,6 +120,19 @@ export type SeriesWriteRouteConfig = RouteConfig & {
   allowDirect?: boolean;
 };
 
+/** The resource events a model exposes to the realtime connections, as the `resource:<Model>.<action>` channels. */
+export type ResourceEventsConfig = {
+  /** The actions whose events are exposed, any of `create`, `update` and `delete`. */
+  actions: ('create' | 'update' | 'delete')[];
+  /** Allow the anonymous connections to subscribe. If any of the `roles` or
+   * `permissions` properties are set, they will be ignored. */
+  public?: boolean;
+  /** Roles required to subscribe */
+  roles?: string[];
+  /** Permissions required to subscribe */
+  permissions?: string[];
+};
+
 export type ResourceRoutesConfig = {
   /** Resource model name */
   modelName: ModelName;
@@ -172,6 +185,8 @@ export type ResourceRoutesConfig = {
   /** Config for the bulk delete route, excluded unless
    * `RESOURCE_BULK_DELETE_ENABLED` is set (or `exclude: false`) */
   bulkDelete?: BulkRouteConfig;
+  /** The resource events exposed to the realtime connections of `@appweaver/realtime`, none unless set */
+  events?: ResourceEventsConfig;
 };
 
 export type ResourceSchemaConfig = {

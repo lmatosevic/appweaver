@@ -10,6 +10,7 @@ import {
   QuerySort,
   Resource,
   ResourceClient,
+  ResourceEvent,
   ResourceData,
   ResourceId
 } from '../types';
@@ -160,4 +161,12 @@ export interface IResourceService<
    * @return {Promise<Object[]>} A promise that resolves with the deleted resources, in the order of the ids.
    */
   bulkDelete(ids: ResourceId[]): Promise<ReadOne[]>;
+
+  /**
+   * Checks whether the current user may receive a resource event, i.e. on the realtime connection of the user.
+   *
+   * @param {ResourceEvent} event The action and the resource of the event.
+   * @return {Promise<boolean>} True if the user may receive the event.
+   */
+  checkEventAccess(event: ResourceEvent<ReadOne>): Promise<boolean>;
 }

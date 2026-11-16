@@ -4,6 +4,7 @@ export * from './events';
 export * from './image-processor';
 export * from './mailer';
 export * from './memory';
+export * from './pubsub';
 export * from './queue';
 export * from './scheduler';
 export * from './security-store';

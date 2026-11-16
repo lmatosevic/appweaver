@@ -5,6 +5,8 @@ import {
   inlineResponseErrorCodes,
   nameErrorCodeEnum,
   normalizeNullTypes,
+  realtimeModuleType,
+  realtimeSpec,
   rewriteEnumsAsObjects,
   toSchemaObject
 } from '../utils';
@@ -663,6 +665,12 @@ function combineModuleTypes(typeContent: string, schema: OpenAPI3): string {
       buildModuleType(`${name}${RESOURCE_MODULE_TYPE}`, types)
     )
   ];
+
+  // The realtime module type of an API with realtime routes
+  const realtime = realtimeSpec(schema);
+  if (realtime) {
+    moduleTypes.push(realtimeModuleType(realtime, typeContent));
+  }
 
   return typeContent + `\n${moduleTypes.join('\n\n')}`;
 }

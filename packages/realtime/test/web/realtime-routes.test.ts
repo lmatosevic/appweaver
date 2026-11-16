@@ -1,0 +1,663 @@
+import { Type } from '@sinclair/typebox';
+import { configOverrides, Events } from '@appweaver/common';
+import { inject } from '@appweaver/core';
+import { context } from '@appweaver/core/internal';
+import { createModel } from '@appweaver/data';
+import { linkModels, resetContext } from '@appweaver/testing';
+import { createRealtimeAction } from '../../action';
+import { createChannel } from '../../channel';
+import {
+  openEventStream,
+  RealtimeServer,
+  startRealtimeServer,
+  TestSocket
+} from '../fixtures/realtime-server';
+
+const user = { id: 1, email: 'user@test.com', enabled: true, roles: [] };
+const admin = {
+  id: 2,
+  email: 'admin@test.com',
+  enabled: true,
+  roles: [{ id: 1, name: 'admin', permissions: [] }]
+};
+
+describe('realtime routes', () => {
+  let app: RealtimeServer;
+  let sockets: TestSocket[];
+
+  const ticket = async (authUser: object = user, headers = {}) => {
+    const response = await fetch(`${app.url}/ticket`, {
+      method: 'POST',
+      headers: { 'x-user': JSON.stringify(authUser), ...headers }
+    });
+    return (await response.json()).ticket as string;
+  };
+
+  const connect = async (authUser: object = user) => {
+    const socket = await TestSocket.open(
+      `${app.ws}/ws?ticket=${await ticket(authUser)}`
+    );
+    sockets.push(socket);
+    await socket.next((m) => m.type === 'welcome');
+    return socket;
+  };
+
+  beforeEach(async () => {
+    resetContext();
+    sockets = [];
+  });
+
+  afterEach(async () => {
+    sockets.forEach((socket) => socket.close());
+    await app?.close();
+    for (const key of Object.keys(configOverrides)) {
+      delete configOverrides[key];
+    }
+  });
+
+  describe('POST /ticket', () => {
+    test('issues a ticket to an authenticated user', async () => {
+      app = await startRealtimeServer();
+
+      const response = await fetch(`${app.url}/ticket`, {
+        method: 'POST',
+        headers: { 'x-user': JSON.stringify(user) }
+      });
+
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({
+        ticket: expect.stringMatching(/^[\w-]{43}$/),
+        expiresIn: 30000
+      });
+    });
+
+    test('refuses an anonymous request', async () => {
+      app = await startRealtimeServer();
+
+      const response = await fetch(`${app.url}/ticket`, { method: 'POST' });
+
+      expect(response.status).toBe(401);
+    });
+  });
+
+  describe('GET /ws', () => {
+    test('opens a connection with a ticket used once', async () => {
+      app = await startRealtimeServer();
+      const used = await ticket();
+
+      const socket = await TestSocket.open(`${app.ws}/ws?ticket=${used}`);
+      sockets.push(socket);
+      const welcome = await socket.next((m) => m.type === 'welcome');
+      const again = await TestSocket.open(`${app.ws}/ws?ticket=${used}`);
+      sockets.push(again);
+      const refused = await again.next((m) => m.type === 'error');
+
+      expect(welcome).toEqual({
+        type: 'welcome',
+        connectionId: expect.any(String),
+        expiresAt: expect.any(String),
+        heartbeat: 25000
+      });
+      expect(refused.error.code).toBe('REALTIME_TICKET_INVALID');
+      await again.next(() => false).catch(() => undefined);
+      expect(again.closeCode).toBe(4403);
+    });
+
+    test('closes a connection without a ticket', async () => {
+      app = await startRealtimeServer();
+
+      const socket = await TestSocket.open(`${app.ws}/ws`);
+      sockets.push(socket);
+      const error = await socket.next((m) => m.type === 'error');
+
+      expect(error.error.code).toBe('REALTIME_TICKET_INVALID');
+    });
+
+    test('opens an anonymous connection when allowed', async () => {
+      configOverrides.REALTIME_ANONYMOUS_ENABLED = true;
+      app = await startRealtimeServer();
+      createChannel({
+        name: 'news',
+        payload: Type.Object({ title: Type.String() }),
+        public: true
+      });
+      createChannel({ name: 'private', payload: Type.Object({}) });
+
+      const socket = await TestSocket.open(`${app.ws}/ws`);
+      sockets.push(socket);
+      socket.send({ type: 'subscribe', id: 'n', channel: 'news' });
+      socket.send({ type: 'subscribe', id: 'p', channel: 'private' });
+
+      expect(await socket.next((m) => m.id === 'n')).toEqual({
+        type: 'subscribed',
+        id: 'n'
+      });
+      expect((await socket.next((m) => m.id === 'p')).error.code).toBe(
+        'REALTIME_SUBSCRIPTION_DENIED'
+      );
+    });
+
+    test('closes the connection when the token expires', async () => {
+      app = await startRealtimeServer();
+      const expiring = await ticket(user, {
+        'x-exp': String(Math.floor(Date.now() / 1000) + 1)
+      });
+
+      const socket = await TestSocket.open(`${app.ws}/ws?ticket=${expiring}`);
+      sockets.push(socket);
+      const reauth = await socket.next((m) => m.type === 'reauth', 3000);
+      await socket.next(() => false, 1000).catch(() => undefined);
+
+      expect(reauth).toEqual({ type: 'reauth' });
+      expect(socket.closeCode).toBe(4401);
+    });
+
+    test('delivers the payloads of a channel to its subscriptions', async () => {
+      app = await startRealtimeServer();
+      const shipped = createChannel({
+        name: 'order.shipped',
+        payload: Type.Object({ orderId: Type.Integer() }),
+        params: Type.Object({ orderId: Type.Optional(Type.Integer()) }),
+        deliver: (_, payload, params) =>
+          !params.orderId || params.orderId === payload.orderId
+      });
+      const socket = await connect();
+
+      socket.send({ type: 'subscribe', id: 'all', channel: 'order.shipped' });
+      socket.send({
+        type: 'subscribe',
+        id: 'two',
+        channel: 'order.shipped',
+        params: { orderId: 2 }
+      });
+      await socket.next((m) => m.type === 'subscribed' && m.id === 'two');
+      await shipped.publish({ orderId: 1 });
+      await shipped.publish({ orderId: 2 });
+      await socket.next(
+        (m) => m.type === 'event' && m.id === 'two' && m.data.orderId === 2
+      );
+
+      const events = socket.messages.filter((m) => m.type === 'event');
+      expect(events.map((e) => [e.id, e.data.orderId])).toEqual([
+        ['all', 1],
+        ['all', 2],
+        ['two', 2]
+      ]);
+      expect(events[0]).toEqual({
+        type: 'event',
+        id: 'all',
+        channel: 'order.shipped',
+        eventId: expect.any(String),
+        data: { orderId: 1 }
+      });
+    });
+
+    test('stops delivering to a removed subscription', async () => {
+      app = await startRealtimeServer();
+      const news = createChannel({
+        name: 'news',
+        payload: Type.Object({ n: Type.Integer() })
+      });
+      const socket = await connect();
+
+      socket.send({ type: 'subscribe', id: 'a', channel: 'news' });
+      await socket.next((m) => m.type === 'subscribed');
+      socket.send({ type: 'unsubscribe', id: 'a' });
+      await socket.next((m) => m.type === 'unsubscribed');
+      await news.publish({ n: 1 });
+      socket.send({ type: 'ping', id: 'p' });
+      await socket.next((m) => m.type === 'pong');
+
+      expect(socket.messages.filter((m) => m.type === 'event')).toEqual([]);
+    });
+
+    test('answers an invalid subscription with its error', async () => {
+      app = await startRealtimeServer();
+      createChannel({
+        name: 'admins',
+        payload: Type.Object({}),
+        roles: ['admin'],
+        params: Type.Object({ room: Type.Integer() })
+      });
+      createChannel({
+        name: 'closed',
+        payload: Type.Object({}),
+        subscribe: () => false
+      });
+      const socket = await connect();
+
+      socket.send({ type: 'subscribe', id: 'u', channel: 'unknown' });
+      socket.send({ type: 'subscribe', id: 'r', channel: 'admins' });
+      socket.send({ type: 'subscribe', id: 'c', channel: 'closed' });
+      socket.send({ type: 'subscribe', id: 'x y', channel: 'closed' });
+      const errors = await Promise.all(
+        ['u', 'r', 'c'].map((id) => socket.next((m) => m.id === id))
+      );
+      const admin1 = await connect(admin);
+      admin1.send({
+        type: 'subscribe',
+        id: 'p',
+        channel: 'admins',
+        params: { room: 'one' }
+      });
+      const invalid = await admin1.next((m) => m.id === 'p');
+
+      expect(errors.map((e) => e.error.code)).toEqual([
+        'REALTIME_CHANNEL_UNKNOWN',
+        'REALTIME_SUBSCRIPTION_DENIED',
+        'REALTIME_SUBSCRIPTION_DENIED'
+      ]);
+      expect((await socket.next((m) => m.id === 'x y')).error.code).toBe(
+        'REALTIME_MESSAGE_INVALID'
+      );
+      expect(invalid.error).toMatchObject({
+        status: 400,
+        code: 'REALTIME_PAYLOAD_INVALID',
+        details: { errors: [{ path: '/room', message: expect.any(String) }] }
+      });
+    });
+
+    test('answers the messages breaking the protocol', async () => {
+      app = await startRealtimeServer();
+      const socket = await connect();
+
+      socket.socket.send('not json');
+      socket.send([1]);
+      socket.send({ type: 'shout', id: 's' });
+      await socket.next((m) => m.id === 's');
+
+      expect(
+        socket.messages
+          .filter((m) => m.type === 'error')
+          .map((m) => [m.id, m.error.code])
+      ).toEqual([
+        [undefined, 'REALTIME_MESSAGE_INVALID'],
+        [undefined, 'REALTIME_MESSAGE_INVALID'],
+        ['s', 'REALTIME_MESSAGE_INVALID']
+      ]);
+    });
+
+    test('calls an action with an ack and without one', async () => {
+      app = await startRealtimeServer();
+      const calls: unknown[] = [];
+      createRealtimeAction({
+        name: 'chat.typing',
+        payload: Type.Object({ roomId: Type.Integer() }),
+        response: Type.Object({ seen: Type.Integer() }),
+        handler: (payload, actionContext) => {
+          calls.push([payload, actionContext]);
+          return { seen: payload.roomId * 2 };
+        }
+      });
+      createRealtimeAction({
+        name: 'broken',
+        payload: Type.Object({}),
+        handler: () => {
+          throw new Error('broken');
+        }
+      });
+      const socket = await connect();
+
+      socket.send({
+        type: 'action',
+        id: 'a1',
+        action: 'chat.typing',
+        payload: { roomId: 21 }
+      });
+      socket.send({
+        type: 'action',
+        action: 'chat.typing',
+        payload: { roomId: 1 }
+      });
+      socket.send({ type: 'action', action: 'broken', payload: {} });
+      socket.send({ type: 'action', id: 'a2', action: 'missing' });
+      socket.send({ type: 'action', id: 'a3', action: 'chat.typing' });
+      socket.send({ type: 'action', id: 'a4' });
+
+      expect(await socket.next((m) => m.id === 'a1')).toEqual({
+        type: 'result',
+        id: 'a1',
+        result: { seen: 42 }
+      });
+      expect((await socket.next((m) => m.id === 'a2')).error.code).toBe(
+        'REALTIME_ACTION_UNKNOWN'
+      );
+      expect((await socket.next((m) => m.id === 'a3')).error.code).toBe(
+        'REALTIME_PAYLOAD_INVALID'
+      );
+      expect((await socket.next((m) => m.id === 'a4')).error.code).toBe(
+        'REALTIME_MESSAGE_INVALID'
+      );
+      expect(calls).toEqual([
+        [
+          { roomId: 21 },
+          {
+            user,
+            transport: 'websocket',
+            connectionId: expect.any(String),
+            ack: true
+          }
+        ],
+        [{ roomId: 1 }, expect.objectContaining({ ack: false })]
+      ]);
+      expect(socket.messages.filter((m) => m.type === 'error')).toHaveLength(3);
+    });
+
+    test('limits the messages of a client', async () => {
+      configOverrides.REALTIME_MESSAGE_RATE_LIMIT = 2;
+      app = await startRealtimeServer();
+      const socket = await connect();
+
+      for (const id of ['1', '2', '3']) {
+        socket.send({ type: 'ping', id });
+      }
+
+      expect((await socket.next((m) => m.id === '3')).error.code).toBe(
+        'REALTIME_RATE_LIMITED'
+      );
+    });
+
+    test('limits the connections of a user', async () => {
+      configOverrides.REALTIME_MAX_CONNECTIONS_PER_USER = 1;
+      app = await startRealtimeServer();
+      await connect();
+
+      const second = await TestSocket.open(
+        `${app.ws}/ws?ticket=${await ticket()}`
+      );
+      sockets.push(second);
+      const error = await second.next((m) => m.type === 'error');
+      await second.next(() => false).catch(() => undefined);
+
+      expect(error.error.code).toBe('REALTIME_CONNECTION_LIMIT');
+      expect(second.closeCode).toBe(4429);
+    });
+
+    test('limits the subscriptions of a connection', async () => {
+      configOverrides.REALTIME_MAX_SUBSCRIPTIONS = 1;
+      app = await startRealtimeServer();
+      createChannel({ name: 'news', payload: Type.Object({}) });
+      const socket = await connect();
+
+      socket.send({ type: 'subscribe', id: 'a', channel: 'news' });
+      socket.send({ type: 'subscribe', id: 'a', channel: 'news' });
+      socket.send({ type: 'subscribe', id: 'b', channel: 'news' });
+
+      expect((await socket.next((m) => m.id === 'b')).error.code).toBe(
+        'REALTIME_SUBSCRIPTION_LIMIT'
+      );
+      expect(
+        socket.messages.filter((m) => m.id === 'a').map((m) => m.type)
+      ).toEqual(['subscribed', 'error']);
+    });
+
+    test('closes the connections when the server closes', async () => {
+      app = await startRealtimeServer();
+      const socket = await connect();
+
+      await app.server.close();
+      await socket.next(() => false).catch(() => undefined);
+
+      expect(socket.closeCode).toBe(1001);
+      expect(app.gateway.connections.size).toBe(0);
+    });
+  });
+
+  describe('resource events', () => {
+    beforeEach(() => {
+      createModel({
+        name: 'Post',
+        scalars: {
+          title: { type: 'string' },
+          secret: { type: 'string', hidden: true },
+          ownerId: { type: 'int' }
+        }
+      });
+      linkModels();
+    });
+
+    const exposePost = (events: object) => {
+      context.resource.routes.set('Post', {
+        config: { modelName: 'Post', events },
+        basePath: 'posts',
+        handler: () => undefined
+      } as never);
+      context.resource.services.set('Post', {
+        checkEventAccess: async (event: any) =>
+          inject(Events) && event.current.ownerId !== 99
+      } as never);
+    };
+
+    test('delivers the exposed events, projected and checked', async () => {
+      exposePost({ actions: ['create', 'update'] });
+      app = await startRealtimeServer();
+      await app.gateway.onReady();
+      const socket = await connect();
+
+      socket.send({ type: 'subscribe', id: 'posts', channel: 'resource:Post' });
+      socket.send({
+        type: 'subscribe',
+        id: 'mine',
+        channel: 'resource:Post.update',
+        filter: { ownerId: 1 }
+      });
+      await socket.next((m) => m.id === 'mine');
+      const events = inject(Events);
+      events.emitResourceEvent('Post', 'create', {
+        current: { id: 1, title: 'A', secret: 's', ownerId: 1 }
+      });
+      events.emitResourceEvent('Post', 'create', {
+        current: { id: 2, title: 'B', secret: 's', ownerId: 99 }
+      });
+      events.emitResourceEvent('Post', 'delete', {
+        current: { id: 1, title: 'A', secret: 's', ownerId: 1 }
+      });
+      events.emitResourceEvent('Post', 'update', {
+        previous: { id: 3, title: 'C', ownerId: 2 },
+        current: { id: 3, title: 'D', ownerId: 2 }
+      });
+      events.emitResourceEvent('Post', 'update', {
+        previous: { id: 1, title: 'A', ownerId: 1 },
+        current: { id: 1, title: 'E', ownerId: 1 }
+      });
+      await socket.next((m) => m.type === 'event' && m.id === 'mine');
+
+      const received = socket.messages
+        .filter((m) => m.type === 'event')
+        .map((m) => [m.id, m.data]);
+      expect(received).toEqual([
+        [
+          'posts',
+          {
+            model: 'Post',
+            action: 'create',
+            current: { id: 1, title: 'A', ownerId: 1 }
+          }
+        ],
+        [
+          'posts',
+          {
+            model: 'Post',
+            action: 'update',
+            previous: { id: 3, title: 'C', ownerId: 2 },
+            current: { id: 3, title: 'D', ownerId: 2 }
+          }
+        ],
+        ['posts', expect.objectContaining({ action: 'update' })],
+        [
+          'mine',
+          expect.objectContaining({
+            current: expect.objectContaining({ title: 'E' })
+          })
+        ]
+      ]);
+    });
+
+    test('refuses the channels of the events a model does not expose', async () => {
+      exposePost({ actions: ['create'], roles: ['admin'] });
+      app = await startRealtimeServer();
+      const socket = await connect();
+      const adminSocket = await connect(admin);
+
+      socket.send({
+        type: 'subscribe',
+        id: 'u',
+        channel: 'resource:Post.update'
+      });
+      socket.send({ type: 'subscribe', id: 'c', channel: 'resource:Post' });
+      socket.send({ type: 'subscribe', id: 'm', channel: 'resource:Comment' });
+      adminSocket.send({
+        type: 'subscribe',
+        id: 'a',
+        channel: 'resource:Post'
+      });
+
+      expect((await socket.next((m) => m.id === 'u')).error.code).toBe(
+        'REALTIME_CHANNEL_UNKNOWN'
+      );
+      expect((await socket.next((m) => m.id === 'c')).error.code).toBe(
+        'REALTIME_SUBSCRIPTION_DENIED'
+      );
+      expect((await socket.next((m) => m.id === 'm')).error.code).toBe(
+        'REALTIME_CHANNEL_UNKNOWN'
+      );
+      expect(await adminSocket.next((m) => m.id === 'a')).toEqual({
+        type: 'subscribed',
+        id: 'a'
+      });
+    });
+  });
+
+  describe('GET /events', () => {
+    test('streams the events of the subscriptions of the query', async () => {
+      app = await startRealtimeServer();
+      const news = createChannel({
+        name: 'news',
+        payload: Type.Object({ title: Type.String() })
+      });
+      const subscriptions = encodeURIComponent(
+        JSON.stringify([
+          { id: 'n', channel: 'news' },
+          { id: 'x', channel: 'unknown' }
+        ])
+      );
+
+      const stream = await openEventStream(
+        `${app.url}/events?ticket=${await ticket()}&subscriptions=${subscriptions}`
+      );
+      await stream.next((m) => m.id === 'x');
+      await news.publish({ title: 'Hello' });
+      const event = await stream.next((m) => m.type === 'event');
+      stream.abort();
+
+      expect(stream.status).toBe(200);
+      expect(stream.messages.slice(0, 3)).toEqual([
+        expect.objectContaining({ type: 'welcome' }),
+        { type: 'subscribed', id: 'n' },
+        expect.objectContaining({
+          type: 'error',
+          id: 'x',
+          error: expect.objectContaining({ code: 'REALTIME_CHANNEL_UNKNOWN' })
+        })
+      ]);
+      expect(event).toEqual({
+        type: 'event',
+        id: 'n',
+        channel: 'news',
+        eventId: expect.any(String),
+        data: { title: 'Hello' }
+      });
+    });
+
+    test('answers an invalid ticket with a problem', async () => {
+      app = await startRealtimeServer();
+
+      const stream = await openEventStream(`${app.url}/events?ticket=nope`);
+
+      expect(stream.status).toBe(401);
+      expect(JSON.parse(stream.body).code).toBe('REALTIME_TICKET_INVALID');
+    });
+
+    test('answers invalid subscriptions with a problem', async () => {
+      app = await startRealtimeServer();
+
+      const stream = await openEventStream(
+        `${app.url}/events?ticket=${await ticket()}&subscriptions=nope`
+      );
+
+      expect(stream.status).toBe(400);
+      expect(JSON.parse(stream.body).code).toBe('REALTIME_MESSAGE_INVALID');
+    });
+
+    test('releases the connection when the client disconnects', async () => {
+      app = await startRealtimeServer();
+
+      const stream = await openEventStream(
+        `${app.url}/events?ticket=${await ticket()}`
+      );
+      await stream.next((m) => m.type === 'welcome');
+      expect(app.gateway.connections.size).toBe(1);
+      stream.abort();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(app.gateway.connections.size).toBe(0);
+    });
+  });
+
+  describe('POST /actions/:name', () => {
+    test('calls an action with the payload of the body', async () => {
+      app = await startRealtimeServer();
+      const handler = jest.fn(({ a }: { a: number }) => ({ double: a * 2 }));
+      createRealtimeAction({
+        name: 'double',
+        payload: Type.Object({ a: Type.Integer() }),
+        handler
+      });
+
+      const call = (query = '', body: unknown = { a: 2 }) =>
+        fetch(`${app.url}/actions/double${query}`, {
+          method: 'POST',
+          headers: {
+            'x-user': JSON.stringify(user),
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+
+      const acked = await call();
+      const forgotten = await call('?ack=false');
+      const invalid = await call('', { a: 'x' });
+
+      expect(acked.status).toBe(200);
+      expect(await acked.json()).toEqual({ result: { double: 4 } });
+      expect(forgotten.status).toBe(202);
+      expect(invalid.status).toBe(400);
+      expect(handler).toHaveBeenCalledWith(
+        { a: 2 },
+        { user, transport: 'http', ack: false }
+      );
+    });
+
+    test('denies an action to a user without its role', async () => {
+      app = await startRealtimeServer();
+      createRealtimeAction({
+        name: 'admin.only',
+        payload: Type.Object({}),
+        roles: ['admin'],
+        handler: () => 'done'
+      });
+
+      const response = await fetch(`${app.url}/actions/admin.only`, {
+        method: 'POST',
+        headers: {
+          'x-user': JSON.stringify(user),
+          'content-type': 'application/json'
+        },
+        body: '{}'
+      });
+
+      expect(response.status).toBe(403);
+      expect((await response.json()).code).toBe('REALTIME_ACTION_DENIED');
+    });
+  });
+});

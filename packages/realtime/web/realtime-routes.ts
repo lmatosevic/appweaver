@@ -1,0 +1,382 @@
+import { FastifyReply, FastifyRequest } from 'fastify';
+import fastifyWebsocket from '@fastify/websocket';
+import type { RawData, WebSocket } from 'ws';
+import { Type } from '@sinclair/typebox';
+import {
+  AuthType,
+  createLogger,
+  ErrorCode,
+  isAppweaverError,
+  RealtimeError,
+  textToBytes
+} from '@appweaver/common';
+import {
+  currentAuthSource,
+  currentAuthType,
+  currentAuthUser,
+  inject
+} from '@appweaver/core';
+import {
+  registerPlugin,
+  registerRoute,
+  registerSpecExtension,
+  Router,
+  toProblem
+} from '@appweaver/web';
+import { realtimeConfig } from '../config';
+import { ConnectionAuth, RealtimeConnection } from '../gateway/connection';
+import { RealtimeGateway } from '../gateway/realtime-gateway';
+import { TicketService } from '../gateway/ticket-service';
+import { SseConnection } from '../transport/sse-connection';
+import { WsConnection } from '../transport/ws-connection';
+import { RealtimeCloseCode, SubscriptionRequest } from '../types';
+import { realtimeSpec } from './realtime-spec';
+
+const logger = createLogger('realtime');
+
+const TicketResponse = Type.Object({
+  ticket: Type.String({ description: 'The ticket, used once' }),
+  expiresIn: Type.Integer({
+    description: 'The milliseconds the ticket is valid for'
+  })
+});
+
+const ConnectQuery = Type.Object({
+  ticket: Type.Optional(
+    Type.String({ description: 'The ticket of `POST /ticket`' })
+  )
+});
+
+const EventsQuery = Type.Composite([
+  ConnectQuery,
+  Type.Object({
+    subscriptions: Type.Optional(
+      Type.String({
+        description:
+          'The subscriptions of the stream, a JSON array of `{ id, channel, params?, filter? }`'
+      })
+    )
+  })
+]);
+
+const ActionQuery = Type.Object({
+  ack: Type.Optional(
+    Type.Boolean({
+      description:
+        'Wait for the result, `false` to answer with 202 at once (fire-and-forget)',
+      default: true
+    })
+  )
+});
+
+/**
+ * Registers the WebSocket plugin and the realtime routes under `realtime.routePrefix`: the tickets, the event stream,
+ * the WebSocket and the actions, and the `x-appweaver-realtime` extension of the OpenAPI document. The web part of
+ * `@appweaver/realtime`.
+ */
+export function registerRealtimeRoutes(): void {
+  if (!realtimeConfig.ENABLED) {
+    return;
+  }
+
+  const prefix = realtimeConfig.ROUTE_PREFIX.replace(/\/$/, '');
+
+  registerPlugin('appweaver-realtime', (server) => {
+    // The open connections would keep the server from closing
+    server.addHook('preClose', (done) => {
+      inject(RealtimeGateway).closeAll(
+        RealtimeCloseCode.GoingAway,
+        'Server shutting down'
+      );
+      done();
+    });
+
+    if (realtimeConfig.WEBSOCKET_ENABLED) {
+      server.register(fastifyWebsocket, {
+        options: { maxPayload: textToBytes(realtimeConfig.MAX_MESSAGE_SIZE) }
+      });
+    }
+  });
+
+  registerRoute(
+    (router: Router) => {
+      router.post(
+        `${prefix}/ticket`,
+        {
+          schema: {
+            tags: ['Realtime'],
+            summary: 'Issue a realtime ticket',
+            description:
+              'Issues a short-lived ticket opening one realtime connection as the authenticated user, since a ' +
+              'browser cannot send the credentials with an `EventSource` or a `WebSocket`.',
+            response: { 200: TicketResponse }
+          }
+        },
+        async (request) => issueTicket(request)
+      );
+
+      router.post(
+        `${prefix}/actions/:name`,
+        {
+          schema: {
+            tags: ['Realtime'],
+            summary: 'Call a realtime action',
+            description:
+              'Calls an action of the realtime connections with the payload of the body, answering with its ' +
+              'result, or with 202 at once for `ack=false`.',
+            params: Type.Object({ name: Type.String() }),
+            querystring: ActionQuery,
+            body: Type.Unknown(),
+            response: {
+              200: Type.Object({ result: Type.Unknown() }),
+              202: Type.Null()
+            }
+          },
+          config: {
+            errorCodes: [
+              ErrorCode.RealtimeActionUnknown,
+              ErrorCode.RealtimeActionDenied,
+              ErrorCode.RealtimePayloadInvalid
+            ]
+          }
+        },
+        (async (request: FastifyRequest, reply: FastifyReply) =>
+          callAction(request as never, reply)) as never
+      );
+    },
+    { auth: Object.values(AuthType) }
+  );
+
+  registerRoute(
+    (router: Router) => {
+      if (realtimeConfig.SSE_ENABLED) {
+        router.get(
+          `${prefix}/events`,
+          {
+            schema: {
+              tags: ['Realtime'],
+              summary: 'Open a realtime event stream',
+              description:
+                'Opens a Server-Sent Events stream with the subscriptions of the query, every message being the ' +
+                'JSON data of an event. The subscriptions change by opening a new stream.',
+              querystring: EventsQuery,
+              response: {
+                200: {
+                  description: 'The event stream',
+                  content: { 'text/event-stream': { schema: Type.String() } }
+                }
+              }
+            },
+            config: {
+              errorCodes: [
+                ErrorCode.RealtimeTicketInvalid,
+                ErrorCode.RealtimeConnectionLimit,
+                ErrorCode.RealtimeMessageInvalid
+              ],
+              rateLimit: false
+            } as never
+          },
+          async (request, reply) => openEventStream(request as never, reply)
+        );
+      }
+
+      if (realtimeConfig.WEBSOCKET_ENABLED) {
+        router.get(
+          `${prefix}/ws`,
+          {
+            websocket: true,
+            schema: { querystring: ConnectQuery },
+            config: { rateLimit: false } as never
+          } as never,
+          ((socket: WebSocket, request: FastifyRequest) =>
+            openWebSocket(socket, request as never)) as never
+        );
+      }
+    },
+    { public: true }
+  );
+
+  registerSpecExtension('realtime', realtimeSpec);
+}
+
+async function issueTicket(
+  request: FastifyRequest
+): Promise<{ ticket: string; expiresIn: number }> {
+  const authType = currentAuthType() ?? null;
+  const exp = (request as { user?: { exp?: number } }).user?.exp;
+
+  return inject(TicketService).issue({
+    user: currentAuthUser()!,
+    authType,
+    authSource: currentAuthSource() ?? null,
+    expiresAt: authType === AuthType.Jwt && exp ? exp * 1000 : null
+  });
+}
+
+async function callAction(
+  request: FastifyRequest<{
+    Params: { name: string };
+    Querystring: { ack?: boolean };
+  }>,
+  reply: FastifyReply
+): Promise<unknown> {
+  const gateway = inject(RealtimeGateway);
+  const ack = request.query.ack !== false;
+  const call = gateway.callAction(request.params.name, request.body, {
+    user: currentAuthUser() ?? null,
+    transport: 'http',
+    ack
+  });
+
+  if (ack) {
+    return { result: (await call) ?? null };
+  }
+
+  call.catch((e) =>
+    logger.debug(
+      { err: e, action: request.params.name },
+      'Realtime fire-and-forget action failed'
+    )
+  );
+  return reply.status(202).send(null);
+}
+
+async function openEventStream(
+  request: FastifyRequest<{
+    Querystring: { ticket?: string; subscriptions?: string };
+  }>,
+  reply: FastifyReply
+): Promise<void> {
+  const gateway = inject(RealtimeGateway);
+  const subscriptions = parseSubscriptions(request.query.subscriptions);
+  const auth = await connectionAuth(request.query.ticket);
+
+  const headers = {
+    ...reply.getHeaders(),
+    'content-type': 'text/event-stream; charset=utf-8',
+    'cache-control': 'no-cache, no-transform',
+    connection: 'keep-alive',
+    // Keeps nginx from buffering the stream
+    'x-accel-buffering': 'no'
+  };
+  const connection = new SseConnection(auth, reply.raw, () => {
+    reply.hijack();
+    reply.raw.writeHead(200, headers as never);
+  });
+
+  // Throws the connection limit before anything is written
+  gateway.open(connection);
+
+  request.raw.on('close', () => {
+    connection.close(RealtimeCloseCode.GoingAway, 'Client disconnected');
+    void gateway.release(connection);
+  });
+
+  await subscribeAll(gateway, connection, subscriptions);
+}
+
+async function openWebSocket(
+  socket: WebSocket,
+  request: FastifyRequest<{ Querystring: { ticket?: string } }>
+): Promise<void> {
+  const gateway = inject(RealtimeGateway);
+
+  let connection: WsConnection;
+  try {
+    connection = new WsConnection(
+      await connectionAuth(request.query.ticket),
+      socket
+    );
+    gateway.open(connection);
+  } catch (e) {
+    socket.send(JSON.stringify({ type: 'error', error: toProblem(e) }));
+    socket.close(
+      isAppweaverError(e) &&
+        (e.code as ErrorCode) === ErrorCode.RealtimeConnectionLimit
+        ? RealtimeCloseCode.TooManyConnections
+        : RealtimeCloseCode.Unauthorized,
+      'Connection refused'
+    );
+    return;
+  }
+
+  socket.on('message', (data, isBinary) => {
+    if (isBinary) {
+      connection.close(RealtimeCloseCode.PolicyViolation, 'Binary message');
+      return;
+    }
+    void gateway.handleMessage(connection, messageText(data));
+  });
+  socket.on('close', () => {
+    connection.closed = true;
+    void gateway.release(connection);
+  });
+}
+
+/** The text of a WebSocket message, received as one buffer or as fragments. */
+function messageText(data: RawData): string {
+  if (Array.isArray(data)) {
+    return Buffer.concat(data).toString();
+  }
+  return Buffer.from(data as ArrayBuffer).toString();
+}
+
+/** The authentication of a ticket, or of an anonymous connection when they are allowed and there is no ticket. */
+async function connectionAuth(ticket?: string): Promise<ConnectionAuth> {
+  if (!ticket) {
+    if (realtimeConfig.ANONYMOUS_ENABLED) {
+      return { user: null, authType: null, authSource: null, expiresAt: null };
+    }
+    throw new RealtimeError(
+      ErrorCode.RealtimeTicketInvalid,
+      'Realtime ticket required'
+    );
+  }
+
+  const { user, authType, authSource, expiresAt } =
+    await inject(TicketService).redeem(ticket);
+  return { user, authType, authSource, expiresAt };
+}
+
+function parseSubscriptions(json?: string): SubscriptionRequest[] {
+  if (!json) {
+    return [];
+  }
+
+  let subscriptions: unknown;
+  try {
+    subscriptions = JSON.parse(json);
+  } catch {
+    subscriptions = undefined;
+  }
+
+  if (!Array.isArray(subscriptions)) {
+    throw new RealtimeError(
+      ErrorCode.RealtimeMessageInvalid,
+      'The subscriptions must be a JSON array'
+    );
+  }
+  return subscriptions;
+}
+
+/** Subscribes an event stream, answering every subscription with `subscribed` or its error. */
+async function subscribeAll(
+  gateway: RealtimeGateway,
+  connection: RealtimeConnection,
+  subscriptions: SubscriptionRequest[]
+): Promise<void> {
+  for (const subscription of subscriptions) {
+    try {
+      await gateway.subscribe(connection, subscription);
+      connection.send({ type: 'subscribed', id: subscription.id });
+    } catch (e) {
+      connection.send({
+        type: 'error',
+        ...(typeof subscription?.id === 'string'
+          ? { id: subscription.id }
+          : {}),
+        error: toProblem(e)
+      });
+    }
+  }
+}

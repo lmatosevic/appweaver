@@ -82,6 +82,14 @@ events.removeResourceEvent(listenerId);
 
 ---
 
+## Realtime
+
+The resource events stay in the process: the listeners of `onResourceEvent` run once, on the instance of the change. To
+push them to the clients, expose them on the routes of the model with `createRoutes({ events: { actions } })` and the
+`@appweaver/realtime` module, which publishes them through the `PubSub` contract (`memory` or `redis`) to the
+realtime connections of every instance, each event checked against the access of the subscribed user. The `find` and
+`query` events are never exposed. See [realtime.md](./realtime.md).
+
 ## Configuration
 
 | Key                    | Type     | Default  | Description                           |

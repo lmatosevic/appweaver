@@ -28,6 +28,9 @@ import {
   HealthClient,
   HealthInterface,
   HealthType,
+  RealtimeClient,
+  RealtimeClientOptions,
+  RealtimeType,
   ResourceClient,
   ResourceInterface,
   ResourceMethods,
@@ -45,6 +48,7 @@ type ClientModules = {
   twoFactor?: TwoFactorClient<TwoFactorType>;
   health?: HealthClient<HealthType>;
   files?: FilesClient;
+  realtime?: RealtimeClient<RealtimeType>;
 };
 
 export type ClientResult<
@@ -155,6 +159,8 @@ export type ClientConfig = {
   auth?: AuthConfig;
   /** Custom fetch handler implementation for making HTTP requests and transforming responses. */
   fetch?: FetchHandler;
+  /** Options of the realtime connection of `client.realtime`. */
+  realtime?: RealtimeClientOptions;
 };
 
 /**
@@ -570,6 +576,26 @@ export abstract class BaseClient<
     const health = new HealthClient<Health>(this as any, healthPath);
     this._modules.health = health;
     return health as any;
+  }
+
+  /**
+   * Creates and returns the RealtimeClient of the realtime connection, its channels, resource events and actions.
+   * It is the same for the Angular client, since its subscriptions are callbacks, and `observe` returns an
+   * observable for the `from` of RxJS.
+   *
+   * @param {string} realtimePath - The path of the realtime routes, i.e. `/api/realtime`.
+   * @return {RealtimeClient} An instance of RealtimeClient with the options of the client config.
+   */
+  protected realtimeClient<Realtime extends RealtimeType>(
+    realtimePath: string
+  ): RealtimeClient<Realtime> {
+    const realtime = new RealtimeClient<Realtime>(
+      this as any,
+      realtimePath,
+      this._config.realtime
+    );
+    this._modules.realtime = realtime;
+    return realtime;
   }
 
   /**

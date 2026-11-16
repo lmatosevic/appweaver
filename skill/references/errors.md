@@ -103,6 +103,7 @@ their prefix:
 | `LockError`          | `@appweaver/common` | `LOCK_`          | A lock that could not be acquired                                                        |
 | `TimeSeriesError`    | `@appweaver/common` | `TIMESERIES_`    | The time series service and stores: invalid points and queries                           |
 | `SpatialError`       | `@appweaver/common` | `SPATIAL_`       | The geo fields: invalid geometries and spatial filters                                   |
+| `RealtimeError`      | `@appweaver/common` | `REALTIME_`      | The realtime connections: tickets, subscriptions, actions and limits                     |
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
@@ -244,6 +245,17 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `SPATIAL_INVALID_GEOMETRY`           | 400    | Invalid geometry                      |
 | `SPATIAL_INVALID_FILTER`             | 400    | Invalid spatial filter                |
 | `SPATIAL_TOO_MANY_CANDIDATES`        | 400    | Too many spatial matches              |
+| `REALTIME_TICKET_INVALID`            | 401    | Invalid realtime ticket               |
+| `REALTIME_CHANNEL_UNKNOWN`           | 404    | Unknown realtime channel              |
+| `REALTIME_SUBSCRIPTION_DENIED`       | 403    | Realtime subscription denied          |
+| `REALTIME_SUBSCRIPTION_LIMIT`        | 429    | Too many realtime subscriptions       |
+| `REALTIME_ACTION_UNKNOWN`            | 404    | Unknown realtime action               |
+| `REALTIME_ACTION_DENIED`             | 403    | Realtime action denied                |
+| `REALTIME_PAYLOAD_INVALID`           | 400    | Invalid realtime payload              |
+| `REALTIME_MESSAGE_INVALID`           | 400    | Invalid realtime message              |
+| `REALTIME_CONNECTION_LIMIT`          | 429    | Too many realtime connections         |
+| `REALTIME_RATE_LIMITED`              | 429    | Realtime messages rate limited        |
+| `REALTIME_TRANSPORT_DISABLED`        | 404    | Realtime transport disabled           |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 

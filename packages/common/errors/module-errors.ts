@@ -73,6 +73,13 @@ export class SmsError<
   public readonly module = 'sms';
 }
 
+/** An error of a realtime connection, i.e. a subscription to an unknown channel or a denied action. */
+export class RealtimeError<
+  C extends ModuleErrorCode<'REALTIME'> = ModuleErrorCode<'REALTIME'>
+> extends AppweaverError<C> {
+  public readonly module = 'realtime';
+}
+
 /** An error of a lock on a shared resource. */
 export class LockError<
   C extends ModuleErrorCode<'LOCK'> = ModuleErrorCode<'LOCK'>

@@ -35,7 +35,8 @@ export type TelemetryInstrumentation =
   | 'mailer'
   | 'sms'
   | 'cache'
-  | 'task';
+  | 'task'
+  | 'realtime';
 
 /** The trace context of a span as text, i.e. its `traceparent`, carried in a queue job or the headers of a request. */
 export type TraceCarrier = Record<string, string>;

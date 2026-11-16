@@ -320,7 +320,7 @@ describe('apply-modules', () => {
           'sms'
         );
         await add(added, 'data', 'scheduler', 'queue', 'web');
-        await add(added, 'timeseries', 'telemetry');
+        await add(added, 'timeseries', 'telemetry', 'realtime');
 
         expect(snapshot(added)).toEqual(snapshot(created));
       }

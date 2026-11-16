@@ -26,6 +26,7 @@ There is no telemetry contract and no provider per vendor: OTLP is the standard 
 | `mailer`, `sms`                           | A client span per sent email (`mailer send`) and text message (`sms send`), inside the span of their queue job          | —                                                                    |
 | `cache`                                   | —                                                                                                                       | `appweaver.cache.requests` (`appweaver.cache.result`: `hit`, `miss`) |
 | `task` (`weaver run`)                     | The root span of the task, `task <name>`, exported when the task ends                                                   | —                                                                    |
+| `realtime` (`@appweaver/realtime`)        | A server span per action call, `realtime action <name>`, over the WebSocket or HTTP                                      | `appweaver.realtime.connections`, `appweaver.realtime.events` (`appweaver.realtime.outcome`: `delivered`, `denied`, `dropped`), `appweaver.realtime.messages` |
 | `fetch` (`@appweaver/opentelemetry`)      | A client span per outbound `fetch` request, which also sends the `traceparent` header. Node.js only                     | `http.client.request.duration`                                       |
 
 The names and the attributes follow the OpenTelemetry semantic conventions (`http.*`, `db.*`, `messaging.*`), the ones

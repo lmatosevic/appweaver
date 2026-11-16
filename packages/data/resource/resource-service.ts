@@ -28,6 +28,7 @@ import {
   ResourceId,
   ResourceClient,
   ResourceData,
+  ResourceEvent,
   uncapitalize,
   isAppweaverError,
   ResourceError
@@ -77,6 +78,7 @@ import {
 } from './utils/cursor-util';
 import { mapQueryFilter } from './utils/filter-util';
 import { mapStableSortValues, sortEntries } from './utils/sort-util';
+import { matchesWhere } from './utils/where-util';
 import { SpatialDistances, SpatialService } from '../spatial/spatial-service';
 
 const logger = createLogger('resource');
@@ -869,6 +871,31 @@ export abstract class ResourceService<
   }
 
   /**
+   * Checks whether the current user may receive a resource event, i.e. on the
+   * realtime connection of the user, run as that user with `runAs`. Always
+   * granted for the calls run with internal access (see `withoutPolicies`).
+   *
+   * @param {ResourceEvent} event The action and the resource of the event.
+   * @return {Promise<boolean>} True if the user may receive the event.
+   */
+  public async checkEventAccess(
+    event: ResourceEvent<ReadOne>
+  ): Promise<boolean> {
+    if (arePoliciesSkipped() || (await this.eventAccess(event))) {
+      return true;
+    }
+    logger.debug(
+      {
+        model: this._client.name,
+        action: event.action,
+        id: (event.current as Resource | undefined)?.id
+      },
+      'Resource event denied by its policy'
+    );
+    return false;
+  }
+
+  /**
    * Updates an existing resource the same way as {@link ResourceService.update},
    * returning the state the resource had before the update along with the
    * updated one.
@@ -1100,6 +1127,40 @@ export abstract class ResourceService<
     resource: ReadOne
   ): Promise<boolean> {
     return true;
+  }
+
+  /**
+   * Checks whether the current user may receive a resource event. By default
+   * the user must pass the {@link ResourceService.checkAccess} of a `find` of
+   * the resource, which must match the {@link ResourceService.readRestrictions}
+   * of the `find`. The restrictions are matched in memory, and by the database
+   * when they filter by a relation, so a deleted resource whose restrictions
+   * only the database can match is denied.
+   *
+   * @param {ResourceEvent} event The action and the resource of the event.
+   * @return {Promise<boolean>} True if the user may receive the event.
+   */
+  protected async eventAccess(event: ResourceEvent<ReadOne>): Promise<boolean> {
+    const resource = event.current as Resource;
+
+    if (!(await this.checkAccess('find', event.current))) {
+      return false;
+    }
+
+    const restrictions = await this.readRestrictions('find', resource.id);
+    const matched = matchesWhere(resource, restrictions);
+
+    if (matched !== undefined) {
+      return matched;
+    }
+    if (event.action === 'delete') {
+      return false;
+    }
+
+    const count = await this._client.count({
+      where: { AND: [{ id: resource.id }, restrictions] }
+    });
+    return count > 0;
   }
 
   /**
