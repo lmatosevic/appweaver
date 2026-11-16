@@ -8,30 +8,30 @@ const PASSWORD = 'Passw0rd!';
 
 const staff = [
   {
-    firstName: 'Petra',
-    lastName: 'Kovač',
+    firstName: 'Emma',
+    lastName: 'Clark',
     email: 'dispatch@fleet.example.com',
     role: Role.Dispatcher,
     licenceCategories: []
   },
   {
-    firstName: 'Marko',
-    lastName: 'Babić',
-    email: 'marko@fleet.example.com',
+    firstName: 'James',
+    lastName: 'Miller',
+    email: 'james@fleet.example.com',
     role: Role.Driver,
     licenceCategories: ['B']
   },
   {
-    firstName: 'Ana',
-    lastName: 'Jurić',
-    email: 'ana@fleet.example.com',
+    firstName: 'Olivia',
+    lastName: 'Brown',
+    email: 'olivia@fleet.example.com',
     role: Role.Driver,
     licenceCategories: ['B', 'C']
   },
   {
-    firstName: 'Ivan',
-    lastName: 'Novak',
-    email: 'ivan@fleet.example.com',
+    firstName: 'Henry',
+    lastName: 'Wilson',
+    email: 'henry@fleet.example.com',
     role: Role.Driver,
     licenceCategories: ['B', 'C', 'CE']
   }

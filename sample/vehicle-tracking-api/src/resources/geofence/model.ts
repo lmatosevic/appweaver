@@ -11,7 +11,7 @@ export default createModel({
       type: 'string',
       minLength: 2,
       maxLength: 100,
-      example: 'Jankomir depot'
+      example: 'West depot'
     },
     kind: {
       type: 'enum',

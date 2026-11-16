@@ -41,8 +41,8 @@ describe('Fleet map', () => {
     app = await createApp();
     await createRoles();
 
-    dispatcher = (await account(app, 'Petra', Role.Dispatcher)).auth;
-    driver = await account(app, 'Marko', Role.Driver);
+    dispatcher = (await account(app, 'Emma', Role.Dispatcher)).auth;
+    driver = await account(app, 'James', Role.Driver);
 
     // About 800 m, 1.6 km, 2.4 km and 4 km east of 17.5° E, 44.5° N
     const at = (lng: number, data: object = {}) =>

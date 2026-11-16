@@ -28,13 +28,13 @@ const point = (lng: number, lat: number) => ({
 // Around Zagreb, the positions [lng, lat] in WGS 84
 const geofences = [
   {
-    name: 'Jankomir depot',
+    name: 'West depot',
     kind: 'Depot' as const,
     area: box(15.876, 45.792, 15.884, 45.798),
     description: 'Where the vehicles park overnight and refuel'
   },
   {
-    name: 'Dolac market',
+    name: 'Central market',
     kind: 'Customer' as const,
     area: box(15.9755, 45.8125, 15.9795, 45.8148)
   },
@@ -67,7 +67,7 @@ const geofences = [
     area: box(15.95, 45.798, 16.0, 45.82)
   },
   {
-    name: 'School zone Trešnjevka',
+    name: 'School zone',
     kind: 'SpeedZone' as const,
     speedLimit: 30,
     area: box(15.95, 45.8, 15.956, 45.804),
@@ -79,7 +79,7 @@ const routes = [
   {
     code: 'ZG-CENTER',
     name: 'Depot to the city center',
-    description: 'Along Ljubljanska avenue and Savska to the Dolac market',
+    description: 'Along the main avenue east, then north to the central market',
     corridorMeters: 250,
     path: {
       type: 'LineString' as const,
@@ -95,8 +95,8 @@ const routes = [
       ] as GeoPosition[]
     },
     stops: [
-      { name: 'Savska drop-off', location: point(15.966, 45.807) },
-      { name: 'Dolac market', location: point(15.9775, 45.8135) }
+      { name: 'City drop-off', location: point(15.966, 45.807) },
+      { name: 'Central market', location: point(15.9775, 45.8135) }
     ]
   },
   {
@@ -149,7 +149,7 @@ export async function createFleet(): Promise<string> {
       deviceId: '356938035643801',
       type: 'Van',
       fuelCapacity: 80,
-      driverId: await driverId('marko@fleet.example.com'),
+      driverId: await driverId('james@fleet.example.com'),
       assignedRouteId: routeIds.get('ZG-CENTER'),
       position: point(15.8795, 45.7951),
       fuelLevel: 72,
@@ -164,7 +164,7 @@ export async function createFleet(): Promise<string> {
       deviceId: '356938035643802',
       type: 'Van',
       fuelCapacity: 80,
-      driverId: await driverId('ana@fleet.example.com'),
+      driverId: await driverId('olivia@fleet.example.com'),
       assignedRouteId: routeIds.get('ZG-ARENA'),
       position: point(15.977, 45.8133),
       heading: 90,
@@ -181,7 +181,7 @@ export async function createFleet(): Promise<string> {
       type: 'Truck',
       speedLimit: 80,
       fuelCapacity: 300,
-      driverId: await driverId('ivan@fleet.example.com'),
+      driverId: await driverId('henry@fleet.example.com'),
       position: point(15.9452, 45.7712),
       fuelLevel: 55,
       odometer: 212_870,

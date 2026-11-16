@@ -62,8 +62,8 @@ describe('Telemetry', () => {
     await createRoles();
 
     tracker = await gateway();
-    admin = (await account(app, 'Iva', Role.Admin)).auth;
-    dispatcher = (await account(app, 'Petra', Role.Dispatcher)).auth;
+    admin = (await account(app, 'Sophie', Role.Admin)).auth;
+    dispatcher = (await account(app, 'Emma', Role.Dispatcher)).auth;
 
     const depot = await db().geofence.create({
       data: {

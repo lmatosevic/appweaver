@@ -1200,6 +1200,7 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   `vehicle-tracking-api` runs its migrations as the owner (`database.migrationUrl`, `${DB_MIGRATION_USER}` and
   `${DB_MIGRATION_PASSWORD}`) and the application as `${DB_USER}` (`database.url`), a user of the rows only, created by
   its `database/postgres-init.sh`.
+- The seeders, tests and examples of the samples use English names of people.
 - The driver adapters of all the samples are root dev dependencies, so the samples run on the root `node_modules`.
 - Each sample also declares every package it needs (`@appweaver/data`, `@appweaver/web` and the driver packages it
   uses, `@appweaver/sharp` for the image transforms), locked in its own `package-lock.json` (`bun.lock` for the Bun

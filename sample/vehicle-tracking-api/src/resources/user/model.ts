@@ -7,20 +7,20 @@ export default createAuthModel({
       type: 'string',
       minLength: 1,
       maxLength: 100,
-      example: 'Ivana'
+      example: 'Sarah'
     },
     lastName: {
       type: 'string',
       minLength: 1,
       maxLength: 100,
-      example: 'Horvat'
+      example: 'Smith'
     },
     email: {
       type: 'string',
       unique: true,
       format: 'email',
       maxLength: 255,
-      example: 'ivana@fleet.example.com'
+      example: 'sarah@fleet.example.com'
     },
     phone: {
       type: 'string',

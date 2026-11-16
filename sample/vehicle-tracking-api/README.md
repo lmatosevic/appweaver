@@ -75,7 +75,7 @@ owner.
 
 The seeder prints the generated admin password (`admin@fleet.example.com`) and the **telematics gateway API key**.
 Keep the key, since it is not shown again. The dispatcher `dispatch@fleet.example.com` and the drivers
-`marko@fleet.example.com`, `ana@fleet.example.com` and `ivan@fleet.example.com` sign in with `Passw0rd!`.
+`james@fleet.example.com`, `olivia@fleet.example.com` and `henry@fleet.example.com` sign in with `Passw0rd!`.
 
 ## Try it out
 
@@ -118,7 +118,7 @@ curl -s localhost:5008/api/telemetry -H "x-api-key: $GATEWAY_KEY" -H 'content-ty
     { "deviceId": "356938035643802", "position": [15.9765, 45.8160], "speed": 25, "ignition": true, "fuelLevel": 11.5 }
   ]
 }'
-# {"accepted":2,"stale":0,"rejected":[],"alerts":3}: both start a trip, and Van 02 left the Dolac market, drove
+# {"accepted":2,"stale":0,"rejected":[],"alerts":3}: both start a trip, and Van 02 left the central market, drove
 # into the pedestrian zone, and away from its route ZG-ARENA
 ```
 
