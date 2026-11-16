@@ -10,7 +10,8 @@ export const realtimeConfig = defineConfig('realtime', {
   SSE_ENABLED: Type.Boolean({ default: true }),
   /** Enable the WebSocket transport (`GET <prefix>/ws`). Default: `true`. */
   WEBSOCKET_ENABLED: Type.Boolean({ default: true }),
-  /** Allow the connections without a ticket, which subscribe to the public channels only. Default: `false`. */
+  /** Allow the anonymous clients: the connections without a ticket, which subscribe to the public channels and call
+   * the public actions only, and the calls of the public actions over HTTP without credentials. Default: `false`. */
   ANONYMOUS_ENABLED: Type.Boolean({ default: false }),
   /** Milliseconds a connection ticket is valid for, used once. Default: `30000` (30 sec). */
   TICKET_TTL: Type.Integer({ default: 30000, minimum: 1000 }),
@@ -23,6 +24,9 @@ export const realtimeConfig = defineConfig('realtime', {
   MAX_CONNECTIONS: Type.Integer({ default: 10000, minimum: 0 }),
   /** Maximum number of open connections of a user on the instance, `0` for no limit. Default: `10`. */
   MAX_CONNECTIONS_PER_USER: Type.Integer({ default: 10, minimum: 0 }),
+  /** Maximum number of open anonymous connections of an IP address on the instance, `0` for no limit. Default:
+   * `10`. */
+  MAX_ANONYMOUS_CONNECTIONS_PER_IP: Type.Integer({ default: 10, minimum: 0 }),
   /** Maximum number of subscriptions of a connection. Default: `50`. */
   MAX_SUBSCRIPTIONS: Type.Integer({ default: 50, minimum: 1 }),
   /** Maximum size of a WebSocket message of a client. Default: `64KB`. */

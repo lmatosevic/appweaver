@@ -493,7 +493,7 @@ describe('generate-client', () => {
       const generated = await generateClient(createRealtimeOpenApiSchema());
 
       expect(generated).toContain(
-        "public realtime = this.realtimeClient<RealtimeModuleType>('/api/realtime');"
+        "public realtime = this.realtimeClient<RealtimeModuleType>('/api/realtime', ['sse', 'websocket']);"
       );
       expect(generated).not.toContain("'/api/realtime/ticket'");
       expect(generated).not.toContain("'/api/realtime/actions/{name}'");
@@ -509,7 +509,16 @@ describe('generate-client', () => {
       );
 
       expect(generated).toContain(
-        "public realtime = this.realtimeClient('/api/realtime');"
+        "public realtime = this.realtimeClient('/api/realtime', ['sse', 'websocket']);"
+      );
+    });
+
+    test('passes no transports of an extension listing none', async () => {
+      const schema = createRealtimeOpenApiSchema() as any;
+      schema['x-appweaver-realtime'].transports = ['carrier-pigeon'];
+
+      expect(await generateClient(schema)).toContain(
+        "this.realtimeClient<RealtimeModuleType>('/api/realtime');"
       );
     });
 

@@ -566,7 +566,7 @@ as custom methods.
 
 ```ts
 type RealtimeClientOptions = {
-  transport?: 'auto' | 'websocket' | 'sse'; // auto: the WebSocket when the runtime has one
+  transport?: 'auto' | 'websocket' | 'sse'; // auto: the WebSocket when the runtime has one and the server enables it
   anonymous?: boolean;         // connect without a ticket, when the server allows it (default: false)
   reconnect?: boolean;         // default: true
   reconnectDelay?: number;     // ms before the first reconnection, doubled each time (default: 500)
@@ -579,7 +579,10 @@ const client = createClient({ baseUrl, auth: { jwt: () => store.accessToken }, r
 client.realtime.on('Order', ({ action, current }) => refresh(current), { filter: { status: 'open' } });
 ```
 
-Over SSE, a change of the subscriptions opens a new stream (with a new ticket), and the actions are sent with the
+The generated client passes the transports the server enables (`this.realtimeClient<T>('/api/realtime', ['sse'])`),
+so `auto` falls back to SSE on a server without the WebSocket. With `anonymous: true` the client connects without a
+ticket and calls the HTTP actions without credentials, for the `public` channels and actions of a server with
+`realtime.anonymousEnabled`. Over SSE, a change of the subscriptions opens a new stream (with a new ticket), and the actions are sent with the
 HTTP route of the actions. Delivery is at-most-once: reload the state after a reconnection when it matters. See
 [realtime.md](./realtime.md).
 

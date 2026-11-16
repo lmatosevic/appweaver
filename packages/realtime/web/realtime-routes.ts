@@ -1,10 +1,11 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyWebsocket from '@fastify/websocket';
 import type { RawData, WebSocket } from 'ws';
 import { Type } from '@sinclair/typebox';
 import {
   AuthType,
   createLogger,
+  AuthError,
   ErrorCode,
   isAppweaverError,
   RealtimeError,
@@ -19,10 +20,13 @@ import {
 import {
   registerPlugin,
   registerRoute,
+  authErrorCodes,
   registerSpecExtension,
   Router,
+  Server,
   toProblem
 } from '@appweaver/web';
+import { apiKeyConfig } from '@appweaver/data/config';
 import { realtimeConfig } from '../config';
 import { ConnectionAuth, RealtimeConnection } from '../gateway/connection';
 import { RealtimeGateway } from '../gateway/realtime-gateway';
@@ -114,7 +118,12 @@ export function registerRealtimeRoutes(): void {
         },
         async (request) => issueTicket(request)
       );
+    },
+    { auth: Object.values(AuthType) }
+  );
 
+  registerRoute(
+    (router: Router) => {
       router.post(
         `${prefix}/actions/:name`,
         {
@@ -123,7 +132,8 @@ export function registerRealtimeRoutes(): void {
             summary: 'Call a realtime action',
             description:
               'Calls an action of the realtime connections with the payload of the body, answering with its ' +
-              'result, or with 202 at once for `ack=false`.',
+              'result, or with 202 at once for `ack=false`. The credentials are optional: a call without them ' +
+              'is anonymous, allowed for a public action with `realtime.anonymousEnabled`.',
             params: Type.Object({ name: Type.String() }),
             querystring: ActionQuery,
             body: Type.Unknown(),
@@ -132,8 +142,12 @@ export function registerRealtimeRoutes(): void {
               202: Type.Null()
             }
           },
+          // Authenticated when the request carries credentials, so the
+          // access of each action decides whether it needs a user
+          onRequest: optionalAuthentication,
           config: {
             errorCodes: [
+              ...authErrorCodes(),
               ErrorCode.RealtimeActionUnknown,
               ErrorCode.RealtimeActionDenied,
               ErrorCode.RealtimePayloadInvalid
@@ -144,7 +158,7 @@ export function registerRealtimeRoutes(): void {
           callAction(request as never, reply)) as never
       );
     },
-    { auth: Object.values(AuthType) }
+    { public: true }
   );
 
   registerRoute(
@@ -180,6 +194,22 @@ export function registerRealtimeRoutes(): void {
         );
       }
 
+      if (!realtimeConfig.SSE_ENABLED) {
+        router.get(
+          `${prefix}/events`,
+          { schema: { hide: true } } as never,
+          async () => transportDisabled('sse')
+        );
+      }
+
+      if (!realtimeConfig.WEBSOCKET_ENABLED) {
+        router.get(
+          `${prefix}/ws`,
+          { schema: { hide: true } } as never,
+          async () => transportDisabled('websocket')
+        );
+      }
+
       if (realtimeConfig.WEBSOCKET_ENABLED) {
         router.get(
           `${prefix}/ws`,
@@ -197,6 +227,49 @@ export function registerRealtimeRoutes(): void {
   );
 
   registerSpecExtension('realtime', realtimeSpec);
+}
+
+/**
+ * Authenticates a request carrying credentials, a bearer or basic `Authorization` header or an API key, and leaves a
+ * request without any anonymous, refused unless `realtime.anonymousEnabled`.
+ */
+function optionalAuthentication(
+  this: FastifyInstance,
+  request: FastifyRequest,
+  reply: FastifyReply,
+  done: (error?: Error) => void
+): void {
+  const apiKeyHeader = apiKeyConfig.ENABLED
+    ? request.headers[apiKeyConfig.HEADER_NAME.toLowerCase()]
+    : undefined;
+
+  if (request.headers.authorization || apiKeyHeader) {
+    const { authenticate } = this as unknown as {
+      authenticate: () => unknown;
+    };
+    (authenticate() as (...args: unknown[]) => void).call(
+      this,
+      request,
+      reply,
+      done
+    );
+    return;
+  }
+
+  done(
+    realtimeConfig.ANONYMOUS_ENABLED
+      ? undefined
+      : new AuthError(ErrorCode.AuthUnauthorized, 'Unauthorized')
+  );
+}
+
+/** Answers a route of a disabled transport. */
+function transportDisabled(transport: 'sse' | 'websocket'): never {
+  throw new RealtimeError(
+    ErrorCode.RealtimeTransportDisabled,
+    `The realtime ${transport} transport is disabled`,
+    { transport }
+  );
 }
 
 async function issueTicket(
@@ -263,6 +336,7 @@ async function openEventStream(
     reply.hijack();
     reply.raw.writeHead(200, headers as never);
   });
+  connection.ip = request.ip;
 
   // Throws the connection limit before anything is written
   gateway.open(connection);
@@ -287,6 +361,7 @@ async function openWebSocket(
       await connectionAuth(request.query.ticket),
       socket
     );
+    connection.ip = request.ip;
     gateway.open(connection);
   } catch (e) {
     socket.send(JSON.stringify({ type: 'error', error: toProblem(e) }));

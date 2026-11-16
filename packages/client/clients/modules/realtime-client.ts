@@ -12,6 +12,9 @@ export type RealtimeType = {
   actions: Record<string, { payload: unknown; response: unknown }>;
 };
 
+/** A transport of the realtime connections. */
+export type RealtimeTransport = 'websocket' | 'sse';
+
 /** The state of the connection of a {@link RealtimeClient}. */
 export type RealtimeState = 'idle' | 'connecting' | 'open' | 'reconnecting';
 
@@ -50,8 +53,9 @@ export type RealtimeSubscription = {
 
 /** The options of a {@link RealtimeClient}. */
 export type RealtimeClientOptions = {
-  /** The transport: `websocket`, `sse`, or `auto` for the WebSocket when the runtime has one. Default: `auto` */
-  transport?: 'auto' | 'websocket' | 'sse';
+  /** The transport: `websocket`, `sse`, or `auto` for the WebSocket when the runtime has one and the server enables
+   * it, otherwise SSE. Default: `auto` */
+  transport?: 'auto' | RealtimeTransport;
   /** Connect without a ticket, as an anonymous client, when the server allows it. Default: `false` */
   anonymous?: boolean;
   /** Reconnect after a lost connection, with the subscriptions. Default: `true` */
@@ -149,10 +153,18 @@ export class RealtimeClient<
   /** @internal */
   private _connectionId?: string;
 
+  /**
+   * @param {BaseClientInterface} _baseClient - The client sending the requests of the tickets and the actions.
+   * @param {string} basePath - The path of the realtime routes, i.e. `/api/realtime`.
+   * @param {RealtimeClientOptions} [_options] - The options of the connection.
+   * @param {string[]} [_serverTransports] - The transports the server enables, of its OpenAPI document, which `auto`
+   * chooses from. Every transport when unknown.
+   */
   constructor(
     private readonly _baseClient: BaseClientInterface,
     public readonly basePath: string,
-    private readonly _options: RealtimeClientOptions = {}
+    private readonly _options: RealtimeClientOptions = {},
+    private readonly _serverTransports?: readonly RealtimeTransport[]
   ) {
     super(_baseClient);
   }
@@ -168,12 +180,18 @@ export class RealtimeClient<
   }
 
   /** The transport the client connects with. */
-  public get transport(): 'websocket' | 'sse' {
+  public get transport(): RealtimeTransport {
     const transport = this._options.transport ?? 'auto';
     if (transport !== 'auto') {
       return transport;
     }
-    return this.webSocketClass() ? 'websocket' : 'sse';
+    const enabled = (name: RealtimeTransport) =>
+      !this._serverTransports || this._serverTransports.includes(name);
+
+    if (this.webSocketClass() && enabled('websocket')) {
+      return 'websocket';
+    }
+    return enabled('sse') ? 'sse' : 'websocket';
   }
 
   /**

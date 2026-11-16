@@ -27,6 +27,8 @@ export abstract class RealtimeConnection {
   public readonly openedAt: number = Date.now();
   /** Whether the connection is closed */
   public closed: boolean = false;
+  /** The IP address of the client, limiting its anonymous connections */
+  public ip?: string;
 
   /** The transport of the connection */
   public abstract readonly transport: 'sse' | 'websocket';

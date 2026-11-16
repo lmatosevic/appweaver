@@ -49,6 +49,24 @@ describe('RealtimeGateway', () => {
       );
     });
 
+    test('limits the anonymous connections of an IP address', () => {
+      configOverrides.REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP = 1;
+      const anonymous = (ip: string) => {
+        const connection = new FakeConnection(null);
+        connection.ip = ip;
+        return connection;
+      };
+      gateway.open(anonymous('10.0.0.1'));
+      gateway.open(anonymous('10.0.0.2'));
+
+      expect(() => gateway.open(anonymous('10.0.0.1'))).toThrow(
+        expect.objectContaining({
+          code: ErrorCode.RealtimeConnectionLimit,
+          details: { limit: 1 }
+        })
+      );
+    });
+
     test('opens anonymous connections beside the user limit', () => {
       configOverrides.REALTIME_MAX_CONNECTIONS_PER_USER = 1;
       gateway.open(new FakeConnection(null));

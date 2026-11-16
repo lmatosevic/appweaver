@@ -618,6 +618,7 @@ describe('realtime routes', () => {
         fetch(`${app.url}/actions/double${query}`, {
           method: 'POST',
           headers: {
+            authorization: 'Bearer test',
             'x-user': JSON.stringify(user),
             'content-type': 'application/json'
           },
@@ -650,6 +651,7 @@ describe('realtime routes', () => {
       const response = await fetch(`${app.url}/actions/admin.only`, {
         method: 'POST',
         headers: {
+          authorization: 'Bearer test',
           'x-user': JSON.stringify(user),
           'content-type': 'application/json'
         },
@@ -658,6 +660,124 @@ describe('realtime routes', () => {
 
       expect(response.status).toBe(403);
       expect((await response.json()).code).toBe('REALTIME_ACTION_DENIED');
+    });
+
+    describe('anonymous calls', () => {
+      const anonymousCall = (name: string, headers = {}) =>
+        fetch(`${app.url}/actions/${name}`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', ...headers },
+          body: '{}'
+        });
+
+      beforeEach(() => {
+        createRealtimeAction({
+          name: 'visit',
+          payload: Type.Object({}),
+          public: true,
+          handler: (_, { user: caller }) => ({ anonymous: caller === null })
+        });
+        createRealtimeAction({
+          name: 'private',
+          payload: Type.Object({}),
+          handler: () => 'secret'
+        });
+      });
+
+      test('calls a public action without credentials when allowed', async () => {
+        configOverrides.REALTIME_ANONYMOUS_ENABLED = true;
+        app = await startRealtimeServer();
+
+        const response = await anonymousCall('visit');
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({
+          result: { anonymous: true }
+        });
+      });
+
+      test('denies a private action without credentials', async () => {
+        configOverrides.REALTIME_ANONYMOUS_ENABLED = true;
+        app = await startRealtimeServer();
+
+        const response = await anonymousCall('private');
+
+        expect(response.status).toBe(403);
+        expect((await response.json()).code).toBe('REALTIME_ACTION_DENIED');
+      });
+
+      test('refuses a call without credentials unless allowed', async () => {
+        app = await startRealtimeServer();
+
+        const response = await anonymousCall('visit');
+
+        expect(response.status).toBe(401);
+        expect((await response.json()).code).toBe('AUTH_UNAUTHORIZED');
+      });
+
+      test('refuses invalid credentials instead of calling anonymously', async () => {
+        configOverrides.REALTIME_ANONYMOUS_ENABLED = true;
+        app = await startRealtimeServer();
+
+        const response = await anonymousCall('visit', {
+          authorization: 'Bearer broken'
+        });
+
+        expect(response.status).toBe(401);
+      });
+
+      test('authenticates a call with an API key', async () => {
+        configOverrides.SECURITY_API_KEY_ENABLED = true;
+        app = await startRealtimeServer();
+
+        const response = await anonymousCall('visit', {
+          'x-api-key': 'key',
+          'x-user': JSON.stringify(user)
+        });
+
+        expect(await response.json()).toEqual({
+          result: { anonymous: false }
+        });
+      });
+    });
+  });
+
+  describe('disabled transports', () => {
+    test('answers the route of a disabled transport', async () => {
+      configOverrides.REALTIME_SSE_ENABLED = false;
+      configOverrides.REALTIME_WEBSOCKET_ENABLED = false;
+      app = await startRealtimeServer();
+
+      const responses = await Promise.all(
+        ['events', 'ws'].map((path) => fetch(`${app.url}/${path}`))
+      );
+
+      expect(responses.map((r) => r.status)).toEqual([404, 404]);
+      expect(
+        await Promise.all(responses.map(async (r) => (await r.json()).details))
+      ).toEqual([{ transport: 'sse' }, { transport: 'websocket' }]);
+    });
+  });
+
+  describe('anonymous connections', () => {
+    test('limits the anonymous connections of an IP address', async () => {
+      configOverrides.REALTIME_ANONYMOUS_ENABLED = true;
+      configOverrides.REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP = 1;
+      app = await startRealtimeServer();
+
+      const first = await TestSocket.open(`${app.ws}/ws`);
+      sockets.push(first);
+      await first.next((m) => m.type === 'welcome');
+      const second = await TestSocket.open(`${app.ws}/ws`);
+      sockets.push(second);
+      const error = await second.next((m) => m.type === 'error');
+      const authenticated = await connect();
+
+      expect(error.error).toMatchObject({
+        code: 'REALTIME_CONNECTION_LIMIT',
+        details: { limit: 1 }
+      });
+      expect(authenticated.messages[0].type).toBe('welcome');
     });
   });
 });

@@ -113,26 +113,28 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
    * @throws {RealtimeError} `REALTIME_CONNECTION_LIMIT` when the instance or the user has too many connections.
    */
   public open(connection: RealtimeConnection): void {
-    const userConnections = connection.user
-      ? [...this._connections.values()].filter(
-          (c) => c.user && String(c.user.id) === String(connection.user!.id)
-        ).length
-      : 0;
+    const others = [...this._connections.values()];
+    const limits: [count: number, limit: number][] = [
+      [others.length, realtimeConfig.MAX_CONNECTIONS],
+      connection.user
+        ? [
+            others.filter(
+              (c) => c.user && String(c.user.id) === String(connection.user!.id)
+            ).length,
+            realtimeConfig.MAX_CONNECTIONS_PER_USER
+          ]
+        : [
+            others.filter((c) => !c.user && c.ip === connection.ip).length,
+            realtimeConfig.MAX_ANONYMOUS_CONNECTIONS_PER_IP
+          ]
+    ];
 
-    if (
-      exceeds(this._connections.size, realtimeConfig.MAX_CONNECTIONS) ||
-      exceeds(userConnections, realtimeConfig.MAX_CONNECTIONS_PER_USER)
-    ) {
-      const limit = exceeds(
-        this._connections.size,
-        realtimeConfig.MAX_CONNECTIONS
-      )
-        ? realtimeConfig.MAX_CONNECTIONS
-        : realtimeConfig.MAX_CONNECTIONS_PER_USER;
+    const exceeded = limits.find(([count, limit]) => exceeds(count, limit));
+    if (exceeded) {
       throw new RealtimeError(
         ErrorCode.RealtimeConnectionLimit,
         'Too many realtime connections',
-        { limit }
+        { limit: exceeded[1] }
       );
     }
 

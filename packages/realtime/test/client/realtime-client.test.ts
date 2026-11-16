@@ -57,6 +57,7 @@ describe('RealtimeClient', () => {
         {
           onRequest: ({ request }) => {
             request.headers.set('x-user', JSON.stringify(user));
+            request.headers.set('authorization', 'Bearer test');
             return request;
           }
         }

@@ -23,7 +23,8 @@ import { RealtimeGateway } from '../../gateway/realtime-gateway';
 import { TicketService } from '../../gateway/ticket-service';
 import { registerRealtimeRoutes } from '../../web/realtime-routes';
 
-/** A realtime server listening on a random port, authenticating the `x-user` header as a JWT user. */
+/** A realtime server listening on a random port, authenticating the `x-user` header as a JWT user. A request of an
+ * optional authentication also sends an `Authorization` header to be authenticated. */
 export type RealtimeServer = {
   server: Server;
   url: string;
@@ -52,20 +53,26 @@ export async function startRealtimeServer(): Promise<RealtimeServer> {
   });
   server.setErrorHandler(errorHandler);
   server.addHook('onRoute', stashErrorResponses);
-  server.decorate('authenticate', () => async (request: FastifyRequest) => {
-    const header = request.headers['x-user'];
-    if (!header) {
-      throw new AuthError(ErrorCode.AuthUnauthorized, 'Unauthorized');
+  // Called back like the handler of @fastify/auth
+  server.decorate(
+    'authenticate',
+    () => (request: FastifyRequest, _: unknown, done: (e?: Error) => void) => {
+      const header = request.headers['x-user'];
+      if (!header) {
+        done(new AuthError(ErrorCode.AuthUnauthorized, 'Unauthorized'));
+        return;
+      }
+      const exp = request.headers['x-exp'];
+      if (exp) {
+        (request as { user?: unknown }).user = { exp: Number(exp) };
+      }
+      setAuthContext({
+        authUser: JSON.parse(String(header)),
+        authType: AuthType.Jwt
+      });
+      done();
     }
-    const exp = request.headers['x-exp'];
-    if (exp) {
-      (request as { user?: unknown }).user = { exp: Number(exp) };
-    }
-    setAuthContext({
-      authUser: JSON.parse(String(header)),
-      authType: AuthType.Jwt
-    });
-  });
+  );
 
   for (const { plugin } of injectAll<{ plugin: any }>(PLUGIN)) {
     server.register(plugin);

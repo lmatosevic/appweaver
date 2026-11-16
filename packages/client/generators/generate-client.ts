@@ -252,7 +252,7 @@ export async function generateClient(
       : `<${typePrefix}${REALTIME_MODULE_TYPE}>`;
     clientMethods.push({
       name: 'realtime',
-      expression: `this.realtimeClient${genericTypes}('${realtime.routePrefix}')`
+      expression: `this.realtimeClient${genericTypes}('${realtime.routePrefix}'${realtimeTransports(realtime.transports)})`
     });
   }
 
@@ -763,4 +763,18 @@ function toCamelCase(text: string): string {
     match.replace(/[\s\-_]+/, '').toUpperCase()
   );
   return result.charAt(0).toUpperCase() + result.slice(1);
+}
+
+/**
+ * The transports argument of the realtime client, the ones the server enables, so the `auto` transport of the client
+ * picks one of them.
+ *
+ * @param {string[]} [transports] - The transports of the `x-appweaver-realtime` extension.
+ * @return {string} The argument, empty when the extension lists none.
+ */
+function realtimeTransports(transports?: string[]): string {
+  const known = (transports ?? []).filter((t) =>
+    ['websocket', 'sse'].includes(t)
+  );
+  return known.length > 0 ? `, [${known.map((t) => `'${t}'`).join(', ')}]` : '';
 }

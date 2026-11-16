@@ -30,6 +30,7 @@ import {
   HealthType,
   RealtimeClient,
   RealtimeClientOptions,
+  RealtimeTransport,
   RealtimeType,
   ResourceClient,
   ResourceInterface,
@@ -584,15 +585,19 @@ export abstract class BaseClient<
    * observable for the `from` of RxJS.
    *
    * @param {string} realtimePath - The path of the realtime routes, i.e. `/api/realtime`.
+   * @param {RealtimeTransport[]} [transports] - The transports the server enables, which the `auto` transport
+   * chooses from.
    * @return {RealtimeClient} An instance of RealtimeClient with the options of the client config.
    */
   protected realtimeClient<Realtime extends RealtimeType>(
-    realtimePath: string
+    realtimePath: string,
+    transports?: RealtimeTransport[]
   ): RealtimeClient<Realtime> {
     const realtime = new RealtimeClient<Realtime>(
       this as any,
       realtimePath,
-      this._config.realtime
+      this._config.realtime,
+      transports
     );
     this._modules.realtime = realtime;
     return realtime;

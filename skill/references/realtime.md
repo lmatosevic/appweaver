@@ -59,7 +59,7 @@ await orderShipped.publish({ orderId: 7, customerId: 1, carrier: 'DHL' });
 | `name`                         | `[a-zA-Z0-9][\w.:-]*`, never starting with `resource:`, unique                               |
 | `payload`                      | TypeBox schema of the payloads, validated by `publish` (`REALTIME_PAYLOAD_INVALID`)          |
 | `params`                       | TypeBox schema of the subscription parameters, validated when subscribing                    |
-| `public`, `roles`, `permissions` | Who may subscribe: anyone (anonymous connections too), or a user with one of the roles/permissions, otherwise any authenticated user |
+| `public`, `roles`, `permissions` | Who may subscribe: anyone (anonymous connections too, see [Public access](#public-access)), or a user with one of the roles/permissions, otherwise any authenticated user |
 | `subscribe(user, params)`      | Returns false to deny the subscription (`REALTIME_SUBSCRIPTION_DENIED`)                       |
 | `deliver(user, payload, params)` | Returns false to keep a payload from a subscription                                         |
 | `description`                  | Description in the OpenAPI document                                                          |
@@ -100,9 +100,9 @@ Before an event reaches a user, `ResourceService.checkEventAccess` runs as that 
 ```ts
 createPolicy({
   modelName: 'order',
-  readRestrictions: (user) => (hasRole(user, 'admin') ? {} : { customerId: user?.id }),
+  readRestrictions: (user) => (user && hasRole(user, 'admin') ? {} : { customerId: user?.id }),
   // Optional, replacing the default check of the events
-  events: (user, { action, current, previous }) => hasRole(user, 'admin') || current.customerId === user?.id
+  events: (user, { action, current, previous }) => (!!user && hasRole(user, 'admin')) || current.customerId === user?.id
 });
 ```
 
@@ -149,10 +149,12 @@ on every instance):
 | `POST <api>/realtime/ticket`               | Any authentication. Answers `{ ticket, expiresIn }`                                                |
 | `GET <api>/realtime/ws?ticket=`            | The WebSocket. Not in the OpenAPI paths (the `x-appweaver-realtime` extension describes it)        |
 | `GET <api>/realtime/events?ticket=&subscriptions=` | The SSE stream with the subscriptions of the query, a JSON array of `{ id, channel, params?, filter? }`. Changing them opens a new stream |
-| `POST <api>/realtime/actions/:name?ack=`   | Calls an action as the authenticated user, answers `{ result }`, or 202 with `ack=false`           |
+| `POST <api>/realtime/actions/:name?ack=`   | Calls an action, authenticated when the request carries credentials, answers `{ result }`, or 202 with `ack=false` |
 
 Without a ticket a connection is refused (`REALTIME_TICKET_INVALID`), unless `REALTIME_ANONYMOUS_ENABLED`: then it is
-anonymous and subscribes to the `public` channels only. The HTTP actions route always requires authentication.
+anonymous, see [Public access](#public-access). A disabled transport (`REALTIME_SSE_ENABLED`,
+`REALTIME_WEBSOCKET_ENABLED`) answers its route with `404 REALTIME_TRANSPORT_DISABLED`, and the `transports` of the
+`x-appweaver-realtime` extension list only the enabled ones, which the `auto` transport of the client chooses from.
 
 A connection is closed when the token of its ticket expires (`exp` of the JWT) or after `REALTIME_CONNECTION_MAX_AGE`,
 with a `reauth` message and the close code `4401`: the client reconnects with a new ticket, and the user is loaded
@@ -191,6 +193,78 @@ is chosen by the client (`[\w.:-]{1,64}`, unique on the connection).
 
 Delivery is at-most-once: an event published while a client reconnects is lost. Reload the state the client shows after
 a reconnection when it matters.
+
+## Public access
+
+Every realtime part is private by default: a subscription or a call needs an authenticated user. Two switches open
+a part to the anonymous clients, both needed:
+
+1. `realtime.anonymousEnabled` (`REALTIME_ANONYMOUS_ENABLED`) lets the clients connect without a ticket, and call the
+   HTTP actions route without credentials.
+2. `public: true` on a channel, the `events` of a model or an action marks what those clients may use. `roles` and
+   `permissions` are ignored on a public part, and an authenticated user uses it too.
+
+```jsonc
+// appweaver.json
+{
+  "config": {
+    "realtime": {
+      "anonymousEnabled": true,
+      "maxAnonymousConnectionsPerIp": 5 // per instance, by the IP of server.trustProxy
+    }
+  }
+}
+```
+
+```dotenv
+# .env
+REALTIME_ANONYMOUS_ENABLED=true
+REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP=5
+```
+
+```ts
+// src/realtime/index.ts: a public channel, i.e. the stock prices of a homepage
+export const stockPrice = createChannel({
+  name: 'stock.price',
+  public: true,
+  payload: Type.Object({ symbol: Type.String(), price: Type.Number() }),
+  params: Type.Object({ symbol: Type.Optional(Type.String()) }),
+  deliver: (_, payload, params) => !params.symbol || params.symbol === payload.symbol
+});
+
+// A public action, called anonymously over the WebSocket or with POST /api/realtime/actions/page.view
+createRealtimeAction({
+  name: 'page.view',
+  public: true,
+  payload: Type.Object({ path: Type.String() }),
+  handler: async ({ path }, { user }) => views.record(path, user?.id ?? null)
+});
+
+// src/resources/product/routes.ts: the public resource events of a model
+export default createRoutes({
+  modelName: 'product',
+  events: { actions: ['create', 'update', 'delete'], public: true }
+});
+
+// src/resources/product/policy.ts: the events still pass the policy, called with a null user
+export default createPolicy({
+  modelName: 'product',
+  events: (user, { current }) => current.published || (!!user && hasRole(user, 'admin'))
+});
+```
+
+```ts
+// The client of a page without a login
+const client = createClient({ baseUrl: 'https://api.example.com', realtime: { anonymous: true } });
+client.realtime.subscribe('stock.price', ({ symbol, price }) => render(symbol, price), { symbol: 'AAPL' });
+client.realtime.on('Product', ({ action, current }) => refresh(action, current));
+client.realtime.emit('page.view', { path: location.pathname });
+```
+
+A public channel without a `deliver` sends every payload to everyone, so publish nothing private on it. The resource
+events of a public model go through the `events` callback of its policy, else its `checkAccess` and
+`readRestrictions`, with a `null` user. An HTTP call with invalid credentials fails with `401` instead of running
+anonymously.
 
 ## Client
 
@@ -236,9 +310,9 @@ See [client.md](./client.md#realtime-client) for the options.
 | `REALTIME_ACTION_DENIED`       | 403    | The access of the action denies the user                     |
 | `REALTIME_PAYLOAD_INVALID`     | 400    | A payload or params not matching the schema                  |
 | `REALTIME_MESSAGE_INVALID`     | 400    | A message breaking the protocol                              |
-| `REALTIME_CONNECTION_LIMIT`    | 429    | `REALTIME_MAX_CONNECTIONS` or `_PER_USER` reached            |
+| `REALTIME_CONNECTION_LIMIT`    | 429    | `REALTIME_MAX_CONNECTIONS`, `_PER_USER` or `REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP` reached |
 | `REALTIME_RATE_LIMITED`        | 429    | More than `REALTIME_MESSAGE_RATE_LIMIT` messages a second    |
-| `REALTIME_TRANSPORT_DISABLED`  | 404    | Reserved for a disabled transport                            |
+| `REALTIME_TRANSPORT_DISABLED`  | 404    | The route of a disabled transport                            |
 
 ## Telemetry
 

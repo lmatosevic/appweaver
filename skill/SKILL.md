@@ -928,7 +928,9 @@ createRealtimeAction({
 
 Without an `events` callback, a resource event reaches a user who passes the `checkAccess` of a `find` and whose
 `readRestrictions` the resource matches. With the `redis` module the events reach the connections of every instance.
-The generated client subscribes with `client.realtime.subscribe('order.shipped', handler)` and
+A channel, the `events` of a model or an action with `public: true` is open to the anonymous clients once
+`realtime.anonymousEnabled` is set, i.e. the stock prices of a homepage. The generated client subscribes with
+`client.realtime.subscribe('order.shipped', handler)` and
 `client.realtime.on('Order', handler)`, and calls actions with `send` (waits for the result) or `emit`
 (fire-and-forget). See [realtime.md](references/realtime.md) for the protocol, the tickets, the config and the limits.
 

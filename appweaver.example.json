@@ -387,6 +387,7 @@
       "connectionMaxAge": 3600000,
       "maxConnections": 10000,
       "maxConnectionsPerUser": 10,
+      "maxAnonymousConnectionsPerIp": 10,
       "maxSubscriptions": 50,
       "maxMessageSize": "64KB",
       "sendBufferLimit": "1MB",
