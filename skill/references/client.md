@@ -115,6 +115,8 @@ weaver-client generate ./openapi.json \
 
 ## Typical end-to-end workflow
 
+The specification comes from [`weaver openapi`](./cli.md#weaver-openapi) of the API project:
+
 ```bash
 # 1. Export the OpenAPI spec from the running Appweaver API
 weaver openapi --output-path ./openapi.json
@@ -362,7 +364,8 @@ const client = createClient({
 
 ### `ResourceClient`
 
-Exposes CRUD and file operations for a single resource endpoint.
+Exposes CRUD and file operations for a single resource endpoint. The `filter` and `sort` of `query`, `aggregate` and
+`export` take the syntax of [resources.md](./resources.md#query-filters).
 
 | Method                            | HTTP                                 | Description                                              |
 |-----------------------------------|--------------------------------------|----------------------------------------------------------|
@@ -445,6 +448,8 @@ await client.post.deleteFiles({ fileIds: [42, 43] });
 
 ### `AuthClient`
 
+The routes of [security.md](./security.md#auth-routes).
+
 | Method                              | HTTP                         | Description                                 |
 |-------------------------------------|------------------------------|---------------------------------------------|
 | `login(request, options?)`          | `POST /auth/login`           | Authenticate with credentials               |
@@ -461,6 +466,9 @@ await client.auth.logout();
 ```
 
 ### `AccountClient`
+
+The routes of [security.md](./security.md#account-management) and its
+[phone verification](./security.md#phone-verification).
 
 | Method                                 | HTTP                                      | Description                        |
 |----------------------------------------|-------------------------------------------|------------------------------------|
@@ -482,7 +490,8 @@ await client.account.resetPassword({ token: 'abc123', password: 'newpass' });
 ### `TwoFactorClient`
 
 The two-factor authentication, under the `/2fa` path of the account routes (`twoFactor` of the
-`x-appweaver-config.routePrefixes` of the schema).
+`x-appweaver-config.routePrefixes` of the schema), described in
+[security.md](./security.md#two-factor-authentication-2fa).
 
 | Method                                      | HTTP                                        | Description                                  |
 |---------------------------------------------|---------------------------------------------|----------------------------------------------|

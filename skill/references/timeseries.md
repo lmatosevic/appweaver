@@ -157,13 +157,14 @@ one fails at once, then applied in one of two ways:
 | `auto`   | Queued on a durable queue (BullMQ), written directly on the in-memory one                                  |
 
 The worker runs in every instance with `timeseries.queueWorker` (`true` by default), `timeseries.queueConcurrency` jobs
-at once, retried with the `queue.retryAttempts` and `queue.retryBackoff` of the queue. Since a point merges into the one
-stored at its time, a retried job writes no duplicate. The points of a resource deleted since they were queued are
-dropped, the others of the job written. `queue` with the in-memory queue loses the queued points on a restart.
+at once, retried with the `queue.retryAttempts` and `queue.retryBackoff` of the queue ([queue.md](./queue.md)). Since
+a point merges into the one stored at its time, a retried job writes no duplicate. The points of a resource deleted
+since they were queued are dropped, the others of the job written. `queue` with the in-memory queue loses the queued
+points on a restart.
 
-A write made in a transaction (`runTransaction`, a service hook) takes part in it on the `database` and `timescale`
-stores, while a queued write, or a write to a store outside the database (a driver whose `transactional` is `false`),
-waits for the commit and is dropped on a rollback.
+A write made in a transaction ([`runTransaction`](./database.md#transactions), a service hook) takes part in it on the
+`database` and `timescale` stores, while a queued write, or a write to a store outside the database (a driver whose
+`transactional` is `false`), waits for the commit and is dropped on a rollback.
 
 A store unreachable when the application starts is set up by the next write or query (the hypertables of
 TimescaleDB), and a failed retention delete is logged and run again at the next interval, while an invalid setup (a

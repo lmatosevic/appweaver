@@ -73,6 +73,24 @@ only to read and write the rows of the tables. The application container gets no
 or a hypertable itself, and fails to start, asking for it, when one is out of date. The end-to-end tests run as the
 owner.
 
+On a database of your own, run as its owner the grants of the init script, the default privileges given for every
+schema the owner creates rather than `IN SCHEMA public`: `weaver migration reset` (`prisma migrate reset`) drops and
+recreates the `public` schema, dropping with it the grants and the default privileges of the schema, so the application
+user would lose its access after every reset.
+
+```sql
+ALTER DEFAULT PRIVILEGES FOR ROLE "vehicle-tracking-api-owner"
+  GRANT USAGE ON SCHEMAS TO "vehicle-tracking-api";
+ALTER DEFAULT PRIVILEGES FOR ROLE "vehicle-tracking-api-owner"
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "vehicle-tracking-api";
+ALTER DEFAULT PRIVILEGES FOR ROLE "vehicle-tracking-api-owner"
+  GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO "vehicle-tracking-api";
+```
+
+They apply to the schemas, tables and sequences the owner creates from then on, so on a database already migrated,
+also grant `USAGE ON SCHEMA public`, and the same privileges `ON ALL TABLES IN SCHEMA public` and
+`ON ALL SEQUENCES IN SCHEMA public`, once.
+
 The seeder prints the generated admin password (`admin@fleet.example.com`) and the **telematics gateway API key**.
 Keep the key, since it is not shown again. The dispatcher `dispatch@fleet.example.com` and the drivers
 `james@fleet.example.com`, `olivia@fleet.example.com` and `henry@fleet.example.com` sign in with `Passw0rd!`.

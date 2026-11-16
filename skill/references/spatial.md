@@ -1,8 +1,8 @@
 # Geo fields and spatial queries
 
 The `geo` section of a resource model declares fields holding geometries: the location of a store, the delivery area
-of a restaurant, the route of a delivery. A geo field is read and written like a scalar, as a GeoJSON geometry
-(RFC 7946, WGS 84 longitude and latitude), and filtered with the operators `_near`, `_within`, `_withinBox` and
+of a restaurant, the route of a delivery. A geo field is read and written like a scalar, as a GeoJSON geometry (RFC
+7946, WGS 84 longitude and latitude), and filtered with the operators `_near`, `_within`, `_withinBox` and
 `_intersects`, in every route and `ResourceService` method taking a filter.
 
 ## Declaring geo fields
@@ -58,8 +58,9 @@ A value is a GeoJSON geometry of the type of the field, its positions `[lng, lat
 
 ## Spatial filters
 
-The operators of a geo field combine with every other filter, in the logical operators (`_and`, `_or`, `_not`, `_nor`)
-and in the filters of the relations. Distances are in meters, measured on a sphere of the mean radius of the Earth.
+The operators of a geo field combine with every other filter ([resources.md](./resources.md#query-filters)), in the
+logical operators (`_and`, `_or`, `_not`, `_nor`) and in the filters of the relations. Distances are in meters, measured
+on a sphere of the mean radius of the Earth.
 
 | Operator      | Value                                  | Matches the geometries                                     |
 |---------------|----------------------------------------|------------------------------------------------------------|
@@ -128,11 +129,11 @@ fails with `RESOURCE_INVALID_SORT`. The pages, the cursors and the total count w
 
 Every geo field is stored in three or four columns, on every database:
 
-| Column                    | Holds                                                                                    |
-|---------------------------|------------------------------------------------------------------------------------------|
-| `<field>`                 | The GeoJSON (`Json`, a `NVARCHAR(MAX)` serialized by the data layer on SQL Server)       |
-| `<field>MinLng` … `MaxLat` | Its bounding box, four nullable floats with an index on the minimums                    |
-| `<field>Geom`             | With the `postgis` provider, a `geometry(<Type>, 4326)` with a GiST index                |
+| Column                     | Holds                                                                              |
+|----------------------------|------------------------------------------------------------------------------------|
+| `<field>`                  | The GeoJSON (`Json`, a `NVARCHAR(MAX)` serialized by the data layer on SQL Server) |
+| `<field>MinLng` … `MaxLat` | Its bounding box, four nullable floats with an index on the minimums               |
+| `<field>Geom`              | With the `postgis` provider, a `geometry(<Type>, 4326)` with a GiST index          |
 
 The data layer writes the bounding box on every write through the Prisma client and leaves it out of the results, so
 a record written with plain SQL needs it written too.
@@ -140,10 +141,10 @@ a record written with plain SQL needs it written too.
 The `spatial.provider` config selects how `_near`, `_within` and `_intersects` are matched. It changes the generated
 schema, so run `weaver generate` and create a migration after changing it.
 
-| Provider   | Databases  | Matches with                                                                     |
-|------------|------------|----------------------------------------------------------------------------------|
+| Provider   | Databases  | Matches with                                                                                    |
+|------------|------------|-------------------------------------------------------------------------------------------------|
 | `postgis`  | PostgreSQL | The functions of PostGIS on the geometry column (`ST_DWithin`, `ST_CoveredBy`, `ST_Intersects`) |
-| `database` | All        | The bounding box narrows the records in the database, the application matches each geometry    |
+| `database` | All        | The bounding box narrows the records in the database, the application matches each geometry     |
 
 `auto` (the default) selects `postgis` on PostgreSQL and `database` on SQLite, MySQL and SQL Server. Set it to
 `database` on a PostgreSQL server without PostGIS.
@@ -168,12 +169,12 @@ sets the triggers up too, after the migrations, as the user of `database.migrati
 
 ## Configuration
 
-| Key                     | Env                      | Default | Description                                                     |
-|-------------------------|--------------------------|---------|-----------------------------------------------------------------|
-| `spatial.provider`      | `SPATIAL_PROVIDER`       | `auto`  | `auto`, `postgis` or `database`                                 |
-| `spatial.maxCandidates` | `SPATIAL_MAX_CANDIDATES` | `10000` | Maximum records a `_near`, `_within` or `_intersects` matches   |
-| `spatial.maxVertices`   | `SPATIAL_MAX_VERTICES`   | `10000` | Maximum positions of a geometry, written or in a filter         |
-| `spatial.setupTimeout`  | `SPATIAL_SETUP_TIMEOUT`  | `60000` | Milliseconds the `postgis` provider takes to set up at startup  |
+| Key                     | Env                      | Default | Description                                                    |
+|-------------------------|--------------------------|---------|----------------------------------------------------------------|
+| `spatial.provider`      | `SPATIAL_PROVIDER`       | `auto`  | `auto`, `postgis` or `database`                                |
+| `spatial.maxCandidates` | `SPATIAL_MAX_CANDIDATES` | `10000` | Maximum records a `_near`, `_within` or `_intersects` matches  |
+| `spatial.maxVertices`   | `SPATIAL_MAX_VERTICES`   | `10000` | Maximum positions of a geometry, written or in a filter        |
+| `spatial.setupTimeout`  | `SPATIAL_SETUP_TIMEOUT`  | `60000` | Milliseconds the `postgis` provider takes to set up at startup |
 
 ## Programmatic use
 

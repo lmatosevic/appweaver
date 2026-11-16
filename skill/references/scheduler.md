@@ -147,7 +147,8 @@ await scheduler.removeJob(jobId);
 
 Every application instance runs its own cron jobs, so a job registered at startup runs once per instance. When it must
 run once per tick (sending a digest, charging a subscription), guard it with a lock of the `Memory` provider configured
-for Redis (`MEMORY_PROVIDER=redis`, the default when `@appweaver/redis` is installed). The `memory` provider locks
+for Redis (`MEMORY_PROVIDER=redis`, the default when `@appweaver/redis` is installed, see
+[configuration.md](./configuration.md#providers)). The `memory` provider locks
 within one process only, so it guards nothing across instances.
 
 ```ts

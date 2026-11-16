@@ -55,6 +55,9 @@ function createModel(config: ResourceModelConfig, override ?: Partial<ResourceMo
 | `unique`           | string[] \| string[][]         | no       | -                     | Composite unique constraints, in the same shape as `index`.         |
 | `softDelete`       | boolean                        | no       | `false`               | Mark deleted records instead of removing them.                      |
 
+The `geo` fields are described in [spatial.md](./spatial.md#declaring-geo-fields), the `series` fields and
+`seriesOptions` in [timeseries.md](./timeseries.md#declaring-series-fields).
+
 ### ID field
 
 ```ts
@@ -693,6 +696,8 @@ const config = {
 
 ### File fields
 
+The files are saved by `FileService` in the `Storage` provider, see [storage.md](./storage.md#fileservice-usage).
+
 ```ts
 const config = {
   files: {
@@ -1039,7 +1044,9 @@ function createService(config: ResourceServiceConfig, override ?: Partial<Resour
 | `afterDelete`     | `(resource) => void`           | Hook called after deleting a resource.                                                                                          |
 | `textSearch`      | object \| function             | Prisma filter object or function `(input: string) => filter` for text search. Use `'{input}'` as placeholder in filter objects. |
 
-All hooks can be synchronous or return a `Promise`.
+All hooks can be synchronous or return a `Promise`. Every operation also emits a resource event once committed,
+received with `onResourceEvent` ([events.md](./events.md)), and the service calls made inside `runTransaction` commit
+together ([database.md](./database.md#transactions)).
 
 ### Service methods
 
@@ -1522,9 +1529,13 @@ export default createRoutes({
 | `turnstileAction` | string                   | -       | Expected Turnstile action name (enables the check).                                                                           |
 | `errorCodes`      | ErrorCode[]              | -       | Codes the route responds with besides the framework ones (a service hook throws them), listed in its OpenAPI error responses. |
 
+`roles`, `permissions` and `auth` are checked as described in [security.md](./security.md#authorization), and the
+`errorCodes` are documented like the `errorResponses` of a custom route
+([errors.md](./errors.md#documenting-the-errors-of-a-route)).
+
 ### Read route config (find, query, aggregate)
 
-Extends RouteConfig with caching options:
+Extends RouteConfig with caching options (the global TTL and invalidation strategy are in [cache.md](./cache.md)):
 
 | Property                | Type               | Default | Description                                                    |
 |-------------------------|--------------------|---------|----------------------------------------------------------------|
@@ -1604,8 +1615,9 @@ All items run in one transaction (`RESOURCE_BULK_TRANSACTION_TIMEOUT`, `5000` ms
 success returns the array of records, each the same as its single route responds with (generated ids, defaults, virtual
 fields), in the order of the items. With `returnRecords: false` it returns only `{ "success": true, "count": n }`
 instead, for callers that ignore the records or refetch them anyway. The `after*` hooks run before the commit, so keep
-side effects in resource events. A bulk delete checks every id exists first, and skips ids removed by an earlier
-cascade, leaving them out of the records (its `count` still includes them). A request counts once for rate limiting.
+side effects in resource events ([events.md](./events.md)). A bulk delete checks every id exists first, and skips ids
+removed by an earlier cascade, leaving them out of the records (its `count` still includes them). A request counts once
+for rate limiting.
 
 ```ts
 createRoutes({
@@ -1644,7 +1656,8 @@ const config = {
 ## createPolicy
 
 Creates row-level security policies for a resource. The service layer evaluates the policy on every CRUD operation to
-enforce fine-grained authorization beyond static role/permission checks.
+enforce fine-grained authorization beyond static role/permission checks (see
+[security.md](./security.md#authorization-check-order) for where it runs among them).
 
 ```ts
 import { createPolicy } from '@appweaver/data';
@@ -1762,6 +1775,9 @@ registerRoute(
 | `cacheSkipInvalidation` | boolean                  | Skip automatic cache invalidation.          |
 | `cacheModelName`        | string                   | Model name for cache invalidation tracking. |
 | `cacheRelations`        | string[]                 | Related model names for cache invalidation. |
+
+The error codes a custom route responds with are listed in its `errorResponses`, see
+[errors.md](./errors.md#documenting-the-errors-of-a-route).
 
 ---
 

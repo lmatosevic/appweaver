@@ -367,7 +367,7 @@ codes.
 The `code` of the `ProblemDetails` schema is an enum of every framework code and every application code registered
 with `defineErrors` before the server is created, i.e. by the application modules. The generated client exports it as
 `ErrorCode`, with `isApiError` and `client.isRouteError` typing a caught error by the codes of the API or of a route
-(see `client.md`).
+(see [client.md](./client.md#error-handling)).
 
 ## Handling errors outside the API
 

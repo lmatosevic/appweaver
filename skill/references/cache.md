@@ -24,7 +24,7 @@ Redis) is down or a command fails, every method returns its empty result (`get` 
 with an error, and the recovery once with info. Entries written before an outage may have missed invalidations made
 during it, so the whole cache is cleared once the memory is available again. Calling code does not need its own
 `try`/`catch`around cache access. While the Redis circuit breaker is open, the cache skips Redis entirely
-(see `configuration.md`).
+(see [configuration.md](./configuration.md#memory-memory_)).
 
 Set `CACHE_SKIP_ON_ERROR` to `false` to make every method throw the memory error instead, so requests that read or
 write the cache fail while its backend is down. Resource cache invalidation still only logs its errors.

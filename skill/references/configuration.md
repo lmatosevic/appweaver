@@ -742,8 +742,8 @@ outage and recovery is logged once, and commands fail right away instead of wait
 in a row the circuit breaker skips Redis (`isAvailable()` is `false`) until a probe after the cooldown, or a
 reconnection, succeeds. The failures are `MEMORY_UNAVAILABLE` errors (`503`). By default the cache falls back to the
 database (see `CACHE_SKIP_ON_ERROR`), rate limiting is skipped except on the secure routes (see
-`RATE_LIMIT_SECURE_SKIP_ON_ERROR`), and queues throw (see `queue.md`). The BullMQ connections have neither the timeout
-nor the breaker, which would fail their blocking commands.
+`RATE_LIMIT_SECURE_SKIP_ON_ERROR`), and queues throw (see [queue.md](./queue.md#unavailable-backend)). The BullMQ
+connections have neither the timeout nor the breaker, which would fail their blocking commands.
 
 ### Cache (CACHE\_\*)
 

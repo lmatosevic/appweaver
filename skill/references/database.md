@@ -99,7 +99,7 @@ await runTransaction({ isolationLevel: 'Serializable', timeout: 10_000, maxWait:
   a `RESOURCE_NOT_FOUND` or `RESOURCE_FORBIDDEN` of a service).
 - A failed database operation of a resource service throws a `DatabaseError` describing it, i.e.
   `DATABASE_UNIQUE_VIOLATION` with the violated `fields` in its details. Translate the errors of a direct Prisma call
-  the same way with `toDatabaseError(e, 'Model')` (see `errors.md`).
+  the same way with `toDatabaseError(e, 'Model')` (see [errors.md](./errors.md#throwing-errors-in-the-application)).
 
 ---
 
@@ -146,6 +146,8 @@ Run pending migrations, or print them with their SQL first:
 weaver migrate --dry-run
 weaver migrate
 ```
+
+The options of these commands are in [cli.md](./cli.md#weaver-generate).
 
 ---
 

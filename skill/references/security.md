@@ -700,10 +700,11 @@ resource routes):
 
 The number is in the E.164 format. Without one, the code goes to the `phoneNumber` of the user (i.e. stored by the
 sign-up code of the application), and without that the request fails with `ACCOUNT_PHONE_NOT_SET`. A new number
-replaces the current one only once verified. Verifying another number than the current one removes the `Sms` method of the user,
-enabled again for the new number. The routes are registered only with an SMS sender, and `AccountService` answers
-`ACCOUNT_FEATURE_UNAVAILABLE` without one.
-`AccountService.sendPhoneVerification` and `AccountService.verifyPhone` do the same in code.
+replaces the current one only once verified. Verifying another number than the current one removes the `Sms` method of
+the user, enabled again for the new number. The routes are registered only with an SMS sender
+([sms.md](./sms.md#account-messages)), and
+`AccountService` answers `ACCOUNT_FEATURE_UNAVAILABLE` without one. `AccountService.sendPhoneVerification` and
+`AccountService.verifyPhone` do the same in code.
 
 ### 2FA routes
 
@@ -820,7 +821,8 @@ or unreachable API with `TURNSTILE_UNAVAILABLE`. The password reset routes also 
 ## Account management
 
 The email verification and password reset routes are registered only with a mailer (`@appweaver/nodemailer`, or the
-`json` one) and their `enabled` config, so an application without one offers neither in its API.
+`json` one) and their `enabled` config, so an application without one offers neither in its API. Their emails are
+described in [mailer.md](./mailer.md#account-emails).
 
 ### Email verification
 
@@ -904,15 +906,15 @@ Both stores behave the same way:
 The security module automatically adds the following fields to the user model. `verifiedEmail`, `phoneNumber` and
 `verifiedPhone` are never accepted as input of the resource routes:
 
-| Field           | Type             | Default | Description                                                            |
-|-----------------|------------------|---------|------------------------------------------------------------------------|
-| `email`         | string (unique)  | -       | User's email address.                                                  |
-| `passwordHash`  | string? (hidden) | -       | Argon2id password hash (never exposed in API).                         |
-| `verifiedEmail` | boolean          | `false` | Whether the user's email is verified.                                  |
-| `phoneNumber`   | string?          | -       | The phone number (E.164), set by the phone verification or the app.    |
-| `verifiedPhone` | boolean          | `false` | Whether the phone number is verified.                                  |
-| `enabled`       | boolean          | `true`  | Whether the account is active.                                         |
-| `logoutAt`      | dateTime?        | -       | Timestamp used to invalidate tokens issued before this time.           |
+| Field           | Type             | Default | Description                                                         |
+|-----------------|------------------|---------|---------------------------------------------------------------------|
+| `email`         | string (unique)  | -       | User's email address.                                               |
+| `passwordHash`  | string? (hidden) | -       | Argon2id password hash (never exposed in API).                      |
+| `verifiedEmail` | boolean          | `false` | Whether the user's email is verified.                               |
+| `phoneNumber`   | string?          | -       | The phone number (E.164), set by the phone verification or the app. |
+| `verifiedPhone` | boolean          | `false` | Whether the phone number is verified.                               |
+| `enabled`       | boolean          | `true`  | Whether the account is active.                                      |
+| `logoutAt`      | dateTime?        | -       | Timestamp used to invalidate tokens issued before this time.        |
 
 **Relations:**
 

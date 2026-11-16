@@ -54,8 +54,9 @@ events.onResourceEvent<User>('User', 'update', ({ previous, current }) => {
 
 #### `events.emitResourceEvent<T>(resourceName, event, data)`
 
-Emits an event for a resource. The framework calls this automatically after every resource mutation; use it directly
-only when you need to emit custom events from your own service logic.
+Emits an event for a resource. The framework calls this automatically after every resource mutation of a resource
+service ([resources.md](./resources.md#createservice)); use it directly only when you need to emit custom events from
+your own service logic.
 
 | Parameter      | Type           | Description                                     |
 |----------------|----------------|-------------------------------------------------|
@@ -119,7 +120,8 @@ export function registerNotificationListeners() {
 }
 ```
 
-Call `registerNotificationListeners()` during application startup, after the providers are loaded.
+Call `registerNotificationListeners()` during application startup, after the providers are loaded. A listener runs in
+the process that made the change, so move slow or retried work to a queue ([queue.md](./queue.md)).
 
 ---
 
