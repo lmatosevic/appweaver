@@ -400,8 +400,9 @@ disabling or a deletion closes them (`revoke`), any other change loads the user 
 lost (`refresh`). Redeeming a ticket loads the user as it is now (`utils/auth-user.ts`). A resource
 event reaches a user when `ResourceService.checkEventAccess` passes as that user: the `events` callback of
 the policy, or the `checkAccess` of a `find` and the `readRestrictions` matched in memory (`matchesWhere` of
-`data/resource/utils/where-util.ts`), with a `count` of the database for a relation filter. The protocol, the close
-codes and the client are documented in `skill/references/realtime.md`.
+`data/resource/utils/where-util.ts`), with a `count` of the database for a relation filter: one query per event and
+distinct subscribed user, a known cost left to the `events` callback of a busy model. The protocol, the close codes and
+the client are documented in `skill/references/realtime.md`.
 
 ### `packages/testing`
 

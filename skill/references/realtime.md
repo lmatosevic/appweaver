@@ -76,10 +76,23 @@ createPolicy({
 });
 ```
 
-The access is checked once per event and user, on every instance holding a connection of the user. Relation
-restrictions cost a query per subscribed user and event, so a busy model defines the `events` callback instead. A
-service of `createService` overrides `eventAccess(event)` for the same. The records of the pub/sub messages hold the
-hidden fields, so the Redis server must be private.
+The access is checked once per event and user, on every instance holding a connection of the user. A service of
+`createService` overrides `eventAccess(event)` for the same. The records of the pub/sub messages hold the hidden
+fields, so the Redis server must be as private as the database.
+
+> **Known limitation: relation restrictions cost a query per user and event.** Without an `events` callback, a model
+> whose `readRestrictions` filter by a relation (`{ team: { members: { some: { userId } } } }`) is checked with one
+> `count` of the database for every event and every distinct subscribed user: 1,000 users on `resource:Post` and 50
+> post updates a second make 50,000 queries a second. The number of connections of a user does not matter, the number
+> of users does. A busy model with such restrictions defines the `events` callback, checked in memory:
+>
+> ```ts
+> createPolicy({
+>   modelName: 'post',
+>   readRestrictions: (user) => ({ team: { members: { some: { userId: user?.id } } } }),
+>   events: (user, { current }) => !!user && userTeamIds(user).includes(current.teamId)
+> });
+> ```
 
 ## Actions
 
