@@ -126,7 +126,8 @@ carrying credentials (an invalid one fails with `401`), and runs one without as 
 
 A browser cannot send the `Authorization` header with an `EventSource` or a `WebSocket`, so the client asks for a ticket
 with its credentials, used once and valid `realtime.ticketTtl` milliseconds on every instance (kept in the `Memory`,
-with the user but never their password hash).
+with the user but never their password hash). The user is loaded again when the ticket is redeemed, refused once
+deleted, disabled or logged out since.
 
 | Route                                              | Description                                                                          |
 |----------------------------------------------------|--------------------------------------------------------------------------------------|
@@ -141,10 +142,12 @@ reconnects with a new ticket. A disabled transport (`realtime.sseEnabled`, `real
 route with `404 REALTIME_TRANSPORT_DISABLED`, and is left out of the `transports` of the extension. Delivery is
 at-most-once: an event published while a client reconnects is lost.
 
-The connections of a user close the same way on every instance once the user of the auth model logs out (a new
-`logoutAt`, also set by a password change), is disabled, deleted or given other roles, so the client reconnects as the
-user is now, or fails to. A change the auth model does not see, i.e. the permissions of a role, applies at the next
-reconnection. `inject(RealtimeGateway).revoke(userId)` closes them for any other reason.
+A change of a user of the auth model reaches their connections on every instance. A logout (a new `logoutAt`, also
+set by a password change), a disabling or a deletion closes them the same way, and the client fails to reconnect. Any
+other change, i.e. other roles, loads the user of the connections again from the database: the checks of the next
+events use it, and the subscriptions the user lost are removed, each answered with a `REALTIME_SUBSCRIPTION_DENIED`
+error. A change the auth model does not see, i.e. the permissions of a role, applies at the next reconnection, or with
+`inject(RealtimeGateway).refresh(userId)`; `revoke(userId)` closes the connections.
 
 ### Protocol
 

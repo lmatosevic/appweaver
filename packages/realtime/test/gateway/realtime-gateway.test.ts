@@ -1,10 +1,29 @@
-// The auth model of the revocation tests, without the services of the auth resources
+// The auth model of the user change tests, its users kept in a map
 let mockAuthModel: string | undefined;
-jest.mock('@appweaver/data', () => ({
-  ...jest.requireActual('@appweaver/data'),
-  resourceAuthService: () =>
-    mockAuthModel ? { modelName: mockAuthModel } : undefined
-}));
+const mockUsers = new Map<number, object>();
+jest.mock('@appweaver/data', () => {
+  const actual = jest.requireActual('@appweaver/data');
+  const common = jest.requireActual('@appweaver/common');
+  return {
+    ...actual,
+    resourceAuthService: () =>
+      mockAuthModel
+        ? {
+            modelName: mockAuthModel,
+            find: async (id: number) => {
+              if (!mockUsers.has(id)) {
+                throw new common.ResourceError(
+                  common.ErrorCode.ResourceNotFound,
+                  'Not found',
+                  { model: 'User', id }
+                );
+              }
+              return mockUsers.get(id);
+            }
+          }
+        : undefined
+  };
+});
 
 import { Type } from '@sinclair/typebox';
 import { configOverrides, ErrorCode, Events, PubSub } from '@appweaver/common';
@@ -273,18 +292,20 @@ describe('RealtimeGateway', () => {
     });
   });
 
-  describe('revoke', () => {
+  describe('user changes', () => {
     const user = (overrides = {}) => ({
       id: 1,
       email: 'u@test.com',
       enabled: true,
       logoutAt: null,
-      roles: [{ id: 1, name: 'user' }],
+      roles: [{ id: 1, name: 'user', permissions: [] }],
       ...overrides
     });
+    const admin = { roles: [{ id: 2, name: 'admin', permissions: [] }] };
 
     beforeEach(async () => {
       mockAuthModel = 'User';
+      mockUsers.clear();
       await gateway.onReady();
     });
 
@@ -292,23 +313,18 @@ describe('RealtimeGateway', () => {
       mockAuthModel = undefined;
     });
 
-    const openOf = (id: number) => {
-      const connection = new FakeConnection({
-        id,
-        email: 'u@test.com',
-        roles: []
-      });
+    const openOf = (connectionUser: ReturnType<typeof user>) => {
+      const connection = new FakeConnection(connectionUser);
       gateway.open(connection);
       return connection;
     };
 
     test.each([
       ['a logout', { logoutAt: new Date('2026-01-01T00:00:00.000Z') }],
-      ['a disabling', { enabled: false }],
-      ['other roles', { roles: [{ id: 2, name: 'admin' }] }]
+      ['a disabling', { enabled: false }]
     ])('closes the connections of a user after %s', async (_, change) => {
-      const revoked = openOf(1);
-      const kept = openOf(2);
+      const revoked = openOf(user());
+      const kept = openOf(user({ id: 2 }));
 
       inject(Events).emitResourceEvent('User', 'update', {
         previous: user(),
@@ -323,7 +339,7 @@ describe('RealtimeGateway', () => {
     });
 
     test('closes the connections of a deleted user', async () => {
-      const revoked = openOf(1);
+      const revoked = openOf(user());
 
       inject(Events).emitResourceEvent('User', 'delete', { current: user() });
       await wait(20);
@@ -331,23 +347,86 @@ describe('RealtimeGateway', () => {
       expect(revoked.closedWith?.[0]).toBe(RealtimeCloseCode.Reauthenticate);
     });
 
-    test('keeps the connections after another update', async () => {
-      const kept = openOf(1);
+    test('reloads the user and checks the subscriptions again', async () => {
+      createChannel({
+        name: 'admins',
+        payload: Type.Object({}),
+        roles: ['admin']
+      });
+      createChannel({ name: 'news', payload: Type.Object({}) });
+      context.resource.models.set('Post', {} as never);
+      context.resource.routes.set('Post', {
+        config: {
+          modelName: 'Post',
+          events: {
+            actions: [{ action: 'create', roles: ['admin'] }, 'update']
+          }
+        },
+        basePath: 'posts',
+        handler: () => undefined
+      } as never);
+      const connection = openOf(user(admin));
+      for (const [id, channel] of [
+        ['a', 'admins'],
+        ['n', 'news'],
+        ['p', 'resource:Post']
+      ]) {
+        await gateway.subscribe(connection, { id, channel });
+      }
+      mockUsers.set(1, user());
 
       inject(Events).emitResourceEvent('User', 'update', {
-        previous: user(),
-        current: user({ email: 'new@test.com', roles: undefined })
-      });
-      inject(Events).emitResourceEvent('User', 'update', {
-        current: user({ enabled: false })
+        previous: user(admin),
+        current: user()
       });
       await wait(20);
 
-      expect(kept.closed).toBe(false);
+      expect(connection.closed).toBe(false);
+      expect(connection.user).toEqual(user());
+      expect([...connection.subscriptions.keys()]).toEqual(['n', 'p']);
+      const posts = connection.subscriptions.get('p')!;
+      expect(posts.kind === 'resource' && [...posts.actions]).toEqual([
+        'update'
+      ]);
+      expect(connection.messages.at(-1)).toMatchObject({
+        type: 'error',
+        id: 'a',
+        error: { code: 'REALTIME_SUBSCRIPTION_DENIED' }
+      });
     });
 
-    test('closes the connections a revoke of another instance names', async () => {
-      const revoked = openOf(1);
+    test.each([
+      ['deleted', undefined],
+      ['disabled', user({ enabled: false })]
+    ])(
+      'closes the connections of a user found %s on a refresh',
+      async (_, stored) => {
+        const connection = openOf(user());
+        if (stored) {
+          mockUsers.set(1, stored);
+        }
+
+        await gateway.refresh(1);
+        await wait(20);
+
+        expect(connection.closedWith?.[0]).toBe(
+          RealtimeCloseCode.Reauthenticate
+        );
+      }
+    );
+
+    test('leaves the connections of the other users', async () => {
+      const other = openOf(user({ id: 2 }));
+
+      await gateway.refresh(1);
+      await wait(20);
+
+      expect(other.closed).toBe(false);
+      expect(other.user).toEqual(user({ id: 2 }));
+    });
+
+    test('applies a revoke of another instance', async () => {
+      const revoked = openOf(user());
       const other = new RealtimeGateway();
 
       await other.revoke(1);
@@ -356,7 +435,7 @@ describe('RealtimeGateway', () => {
       expect(revoked.closedWith?.[0]).toBe(RealtimeCloseCode.Reauthenticate);
     });
 
-    test('logs a failed revoke', async () => {
+    test('logs a failed publish', async () => {
       jest.spyOn(pubsub, 'publish').mockRejectedValue(new Error('down'));
 
       expect(() =>
@@ -371,6 +450,21 @@ describe('RealtimeGateway', () => {
       await gateway.onReady();
 
       expect(subscribe).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('user changes without an auth model', () => {
+    test('keeps the connections on a refresh', async () => {
+      const connection = new FakeConnection();
+      gateway.open(connection);
+      mockAuthModel = 'User';
+      await gateway.onReady();
+      mockAuthModel = undefined;
+
+      await gateway.refresh(1);
+      await wait(20);
+
+      expect(connection.closed).toBe(false);
     });
   });
 

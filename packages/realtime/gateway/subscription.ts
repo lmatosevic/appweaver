@@ -15,7 +15,9 @@ export type ActiveSubscription = {
       kind: 'resource';
       /** The name of the model */
       model: string;
-      /** The actions whose events the subscription receives */
+      /** The action the client subscribed to, every action of the model when none */
+      action?: string;
+      /** The actions whose events the subscription receives, the ones of `action` the user has the access of */
       actions: Set<string>;
       /** The `where` filter of Prisma the resource must match, mapped from the filter of the client */
       where?: Record<string, unknown>;

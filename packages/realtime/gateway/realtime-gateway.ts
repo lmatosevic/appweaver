@@ -34,6 +34,7 @@ import {
 } from '../channel';
 import { realtimeConfig } from '../config';
 import {
+  Channel,
   RealtimeActionContext,
   RealtimeClientMessage,
   RealtimeCloseCode,
@@ -41,6 +42,7 @@ import {
   SubscriptionRequest
 } from '../types';
 import { hasAccess } from '../utils/access';
+import { loadAuthUser } from '../utils/auth-user';
 import { projectRecord } from '../utils/project-record';
 import { resourceEventActions } from '../utils/resource-events';
 import { validatePayload } from '../utils/validate';
@@ -57,8 +59,11 @@ type ResourceChannelMessage = ChannelMessage & {
 
 const SUBSCRIPTION_ID_PATTERN = /^[\w.:-]{1,64}$/;
 
-/** The pub/sub channel of the users whose connections close, never a channel name (they start with a letter or digit). */
-const REVOKE_CHANNEL = `${PUBSUB_CHANNEL_PREFIX}_revoke`;
+/** The pub/sub channel of the changed users, never a channel name (they start with a letter or digit). */
+const USERS_CHANNEL = `${PUBSUB_CHANNEL_PREFIX}_users`;
+
+/** A change of a user, closing their connections or loading the user of their connections again. */
+type UserMessage = { userId: string; change: 'revoke' | 'refresh' };
 
 /**
  * The realtime connections of the instance: their subscriptions to the channels, the delivery of the messages the
@@ -99,7 +104,7 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   /** @internal */
   private _heartbeat?: NodeJS.Timeout;
   /** @internal */
-  private _revokeSubscription?: Promise<string>;
+  private _usersSubscription?: Promise<string>;
 
   /** The open connections of the instance. */
   public get connections(): ReadonlyMap<string, RealtimeConnection> {
@@ -117,23 +122,35 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     for (const listenerId of this._listeners.splice(0)) {
       events?.removeResourceEvent(listenerId);
     }
-    const revoke = this._revokeSubscription;
-    this._revokeSubscription = undefined;
-    if (revoke) {
-      await this._pubsub.unsubscribe(await revoke).catch(() => false);
+    const users = this._usersSubscription;
+    this._usersSubscription = undefined;
+    if (users) {
+      await this._pubsub.unsubscribe(await users).catch(() => false);
     }
   }
 
   /**
    * Closes the connections of a user on every instance, with a `reauth` message and the code `4401`, so the client
-   * reconnects with a new ticket of the user as it is now, or fails to once logged out or disabled. Done on its own
-   * when the user logs out, is disabled, deleted, or has other roles.
+   * reconnects with a new ticket, refused once the user is logged out or disabled. Done on its own when the user of
+   * the auth model logs out, is disabled or deleted.
    *
    * @param {ResourceId} userId - The ID of the user.
    * @return {Promise<void>} Resolves once published.
    */
   public async revoke(userId: ResourceId): Promise<void> {
-    await this._pubsub.publish(REVOKE_CHANNEL, { userId: String(userId) });
+    await this.publishUser({ userId: String(userId), change: 'revoke' });
+  }
+
+  /**
+   * Loads the user of the connections of a user again on every instance, so the access checks use the user as it is
+   * now, and removes the subscriptions the user has lost the access of, each answered with its error. Done on its own
+   * on every other change of the user of the auth model, i.e. other roles.
+   *
+   * @param {ResourceId} userId - The ID of the user.
+   * @return {Promise<void>} Resolves once published.
+   */
+  public async refresh(userId: ResourceId): Promise<void> {
+    await this.publishUser({ userId: String(userId), change: 'refresh' });
   }
 
   /**
@@ -485,24 +502,7 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     const [model, action] = request.channel
       .slice(RESOURCE_CHANNEL_PREFIX.length)
       .split('.');
-    const events = context.resource.routes.get(model)?.config.events;
-    const exposed = events ? resourceEventActions(events) : new Map();
-
-    if (
-      !context.resource.models.has(model) ||
-      exposed.size === 0 ||
-      (action !== undefined && !exposed.has(action))
-    ) {
-      throw unknownChannel(request.channel);
-    }
-
-    // The channel of every action receives the actions the user may receive
-    const allowed = [...exposed]
-      .filter(
-        ([name, access]) =>
-          (action === undefined || name === action) && hasAccess(user, access)
-      )
-      .map(([name]) => name as string);
+    const allowed = this.allowedActions(user, model, action, request.channel);
     if (allowed.length === 0) {
       throw deniedSubscription(request.channel);
     }
@@ -514,11 +514,43 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       pubsubChannel: `${PUBSUB_CHANNEL_PREFIX}${RESOURCE_CHANNEL_PREFIX}${model}`,
       params: {},
       model,
+      action,
       actions: new Set(allowed),
       where: request.filter
         ? queryFilterWhere(request.filter, model)
         : undefined
     };
+  }
+
+  /**
+   * The exposed actions of a model a user has the access of: the one subscribed to, or every one of the channel of
+   * every action.
+   *
+   * @internal
+   */
+  private allowedActions(
+    user: AuthUser | null,
+    model: string,
+    action: string | undefined,
+    channel: string
+  ): string[] {
+    const events = context.resource.routes.get(model)?.config.events;
+    const exposed = events ? resourceEventActions(events) : new Map();
+
+    if (
+      !context.resource.models.has(model) ||
+      exposed.size === 0 ||
+      (action !== undefined && !exposed.has(action))
+    ) {
+      throw unknownChannel(channel);
+    }
+
+    return [...exposed]
+      .filter(
+        ([name, access]) =>
+          (action === undefined || name === action) && hasAccess(user, access)
+      )
+      .map(([name]) => name as string);
   }
 
   /** @internal */
@@ -540,10 +572,7 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       ? validatePayload(config.params, request.params ?? {})
       : {};
 
-    if (
-      config.subscribe &&
-      !(await runAs(user, () => config.subscribe!(user, params as never)))
-    ) {
+    if (!(await this.channelAccess(user, definition, params))) {
       throw deniedSubscription(request.channel);
     }
 
@@ -555,6 +584,20 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       params: params as Record<string, unknown>,
       definition
     };
+  }
+
+  /** @internal */
+  private async channelAccess(
+    user: AuthUser | null,
+    definition: Channel,
+    params: unknown
+  ): Promise<boolean> {
+    const config = definition.config;
+    return (
+      hasAccess(user, config) &&
+      (!config.subscribe ||
+        (await runAs(user, () => config.subscribe!(user, params as never))))
+    );
   }
 
   /** @internal */
@@ -788,51 +831,121 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   }
 
   /**
-   * Revokes the connections of the users of the auth model who log out, are disabled, deleted or have other roles,
-   * and closes the local connections of the users every instance revokes.
+   * Revokes the connections of the users of the auth model who log out, are disabled or deleted, refreshes the ones of
+   * the users changed otherwise, and applies the changes every instance publishes to its own connections.
    *
    * @internal
    */
   private async watchAuthUsers(): Promise<void> {
     const events = inject(Events, false);
     const service = resourceAuthService();
-    if (!events || !service || this._revokeSubscription) {
+    if (!events || !service || this._usersSubscription) {
       return;
     }
 
-    const revoke = (user: AuthUser) =>
-      this.revoke(user.id).catch((e) =>
-        logger.error(e, 'Realtime connections revoke failed')
+    const publish = (user: AuthUser, change: UserMessage['change']) =>
+      this.publishUser({ userId: String(user.id), change }).catch((e) =>
+        logger.error(e, 'Realtime user change publish failed')
       );
 
     this._listeners.push(
       events.onResourceEvent<AuthUser>(
         service.modelName,
         'update',
-        ({ previous, current }) => {
-          if (previous && revokesAccess(previous, current)) {
-            void revoke(current);
-          }
-        }
+        ({ previous, current }) =>
+          void publish(
+            current,
+            previous && endsAccess(previous, current) ? 'revoke' : 'refresh'
+          )
       ),
       events.onResourceEvent<AuthUser>(
         service.modelName,
         'delete',
-        ({ current }) => void revoke(current)
+        ({ current }) => void publish(current, 'revoke')
       )
     );
 
-    this._revokeSubscription = this._pubsub.subscribe<{ userId: string }>(
-      REVOKE_CHANNEL,
-      ({ userId }) => {
-        for (const connection of [...this._connections.values()]) {
-          if (connection.user && String(connection.user.id) === userId) {
-            this.expire(connection);
-          }
-        }
-      }
+    this._usersSubscription = this._pubsub.subscribe<UserMessage>(
+      USERS_CHANNEL,
+      (message) => this.applyUserChange(message)
     );
-    await this._revokeSubscription;
+    await this._usersSubscription;
+  }
+
+  /** @internal */
+  private async publishUser(message: UserMessage): Promise<void> {
+    await this._pubsub.publish(USERS_CHANNEL, message);
+  }
+
+  /** @internal */
+  private async applyUserChange({
+    userId,
+    change
+  }: UserMessage): Promise<void> {
+    const connections = [...this._connections.values()].filter(
+      (c) => c.user && String(c.user.id) === userId
+    );
+    if (connections.length === 0) {
+      return;
+    }
+
+    const user =
+      change === 'refresh' ? await loadAuthUser(connections[0].user!.id) : null;
+    if (user === undefined) {
+      return;
+    }
+    if (!user || user.enabled === false) {
+      connections.forEach((connection) => this.expire(connection));
+      return;
+    }
+
+    for (const connection of connections) {
+      connection.auth.user = user;
+      await this.recheckSubscriptions(connection);
+    }
+    logger.debug({ userId }, 'Realtime connections of a user refreshed');
+  }
+
+  /**
+   * Checks the subscriptions of a connection against the access of its user again, removing the ones the user lost.
+   *
+   * @internal
+   */
+  private async recheckSubscriptions(
+    connection: RealtimeConnection
+  ): Promise<void> {
+    for (const subscription of [...connection.subscriptions.values()]) {
+      let allowed: boolean;
+      try {
+        if (subscription.kind === 'resource') {
+          const actions = this.allowedActions(
+            connection.user,
+            subscription.model,
+            subscription.action,
+            subscription.channel
+          );
+          subscription.actions = new Set(actions);
+          allowed = actions.length > 0;
+        } else {
+          allowed = await this.channelAccess(
+            connection.user,
+            subscription.definition,
+            subscription.params
+          );
+        }
+      } catch {
+        allowed = false;
+      }
+
+      if (!allowed && connection.subscriptions.delete(subscription.id)) {
+        await this.releaseChannel(subscription);
+        connection.send({
+          type: 'error',
+          id: subscription.id,
+          error: toProblem(deniedSubscription(subscription.channel))
+        });
+      }
+    }
   }
 
   /** @internal */
@@ -891,24 +1004,13 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   }
 }
 
-/** Whether an update of a user ends the access of their connections: a logout, a disabling or other roles. */
-function revokesAccess(previous: AuthUser, current: AuthUser): boolean {
+/** Whether an update of a user ends the access of their connections: a logout or a disabling. */
+function endsAccess(previous: AuthUser, current: AuthUser): boolean {
   const time = (date?: Date | string | null) =>
     date ? new Date(date).getTime() : null;
-  const roles = (user: AuthUser) =>
-    Array.isArray(user.roles)
-      ? user.roles
-          .map((role) => String(role.id))
-          .sort()
-          .join()
-      : undefined;
-
   return (
     (current.enabled === false && previous.enabled !== false) ||
-    time(current.logoutAt) !== time(previous.logoutAt) ||
-    (roles(previous) !== undefined &&
-      roles(current) !== undefined &&
-      roles(previous) !== roles(current))
+    time(current.logoutAt) !== time(previous.logoutAt)
   );
 }
 

@@ -395,8 +395,9 @@ stay in the process.
 | `web/realtime-spec.ts`        | The `x-appweaver-realtime` extension of the OpenAPI document (`registerSpecExtension` of web)               |
 | `utils/project-record.ts`     | Projects the record of a resource event onto the `find` response schema of its model                        |
 
-The gateway closes the connections of a user on every instance (`revoke`, through the pub/sub) once the user of the
-auth model logs out, is disabled, deleted or has other roles, so the client reconnects as the user is now. A resource
+A change of a user of the auth model reaches their connections on every instance through the pub/sub: a logout, a
+disabling or a deletion closes them (`revoke`), any other change loads the user again and removes the subscriptions it
+lost (`refresh`). Redeeming a ticket loads the user as it is now (`utils/auth-user.ts`). A resource
 event reaches a user when `ResourceService.checkEventAccess` passes as that user: the `events` callback of
 the policy, or the `checkAccess` of a `find` and the `readRestrictions` matched in memory (`matchesWhere` of
 `data/resource/utils/where-util.ts`), with a `count` of the database for a relation filter. The protocol, the close
