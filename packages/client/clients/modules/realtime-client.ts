@@ -371,6 +371,7 @@ export class RealtimeClient<
   /** Closes the connection without reconnecting, keeping the subscriptions for the next {@link connect}. */
   public disconnect(): void {
     clearTimeout(this._reconnectTimer);
+    this._reconnectTimer = undefined;
     const transport = this._transport;
     this._transport = undefined;
     this._connectionId = undefined;
@@ -418,7 +419,7 @@ export class RealtimeClient<
     } else if (this._state === 'open') {
       this.sendSubscribe(this._entries.get(id)!);
     } else {
-      this.connect().catch((e) => this.fail(id, e));
+      this.connect().catch((e) => this.recover(e, [id]));
     }
 
     return {
@@ -682,7 +683,8 @@ export class RealtimeClient<
     this._attempts++;
     clearTimeout(this._reconnectTimer);
     this._reconnectTimer = setTimeout(() => {
-      this.connect().catch((e) => this.report(e));
+      this._reconnectTimer = undefined;
+      this.connect().catch((e) => this.recover(e, this._entries.keys()));
     }, delay);
   }
 
@@ -703,11 +705,7 @@ export class RealtimeClient<
         return;
       }
       this._state = 'idle';
-      this.connect().catch((e) => {
-        for (const id of this._entries.keys()) {
-          this.fail(id, e);
-        }
-      });
+      this.connect().catch((e) => this.recover(e, this._entries.keys()));
     });
   }
 
@@ -720,6 +718,30 @@ export class RealtimeClient<
       ...(entry.params ? { params: entry.params } : {}),
       ...(entry.filter ? { filter: entry.filter } : {})
     });
+  }
+
+  /**
+   * Handles a failed connection: a refusal of the server fails the subscriptions waiting for it, any other error, i.e.
+   * a server or a network down, is reported and retried with the backoff of the reconnections.
+   *
+   * @internal
+   */
+  private recover(error: unknown, ids: Iterable<string>): void {
+    if (isRefusal(error)) {
+      for (const id of [...ids]) {
+        this.fail(id, error);
+      }
+      if (!this._transport) {
+        this.setState('idle');
+      }
+      return;
+    }
+
+    this.report(error);
+    // A transport lost before its welcome already scheduled the next attempt
+    if (this._state !== 'idle' && this._reconnectTimer === undefined) {
+      this.lost(1006);
+    }
   }
 
   /** @internal */
@@ -807,6 +829,19 @@ function problemError(problem: ClientProblem): ClientError {
     status: problem.status ?? 500,
     data: problem
   });
+}
+
+/**
+ * Whether the server refused a connection for good, i.e. invalid subscriptions, rather than for a while: a ticket
+ * refused or expired, too many connections, a server or a network error.
+ */
+function isRefusal(error: unknown): boolean {
+  return (
+    error instanceof ClientError &&
+    error.status >= 400 &&
+    error.status < 500 &&
+    ![401, 408, 429].includes(error.status)
+  );
 }
 
 function requestFailed(message: string): ClientError {

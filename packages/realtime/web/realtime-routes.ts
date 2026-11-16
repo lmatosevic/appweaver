@@ -23,7 +23,6 @@ import {
   authErrorCodes,
   registerSpecExtension,
   Router,
-  Server,
   toProblem
 } from '@appweaver/web';
 import { apiKeyConfig } from '@appweaver/data/config';
@@ -37,6 +36,9 @@ import { RealtimeCloseCode, SubscriptionRequest } from '../types';
 import { realtimeSpec } from './realtime-spec';
 
 const logger = createLogger('realtime');
+
+/** The messages a WebSocket client may send before its ticket is redeemed. */
+const EARLY_MESSAGES_LIMIT = 50;
 
 const TicketResponse = Type.Object({
   ticket: Type.String({ description: 'The ticket, used once' }),
@@ -192,21 +194,11 @@ export function registerRealtimeRoutes(): void {
           },
           async (request, reply) => openEventStream(request as never, reply)
         );
-      }
-
-      if (!realtimeConfig.SSE_ENABLED) {
+      } else {
         router.get(
           `${prefix}/events`,
           { schema: { hide: true } } as never,
           async () => transportDisabled('sse')
-        );
-      }
-
-      if (!realtimeConfig.WEBSOCKET_ENABLED) {
-        router.get(
-          `${prefix}/ws`,
-          { schema: { hide: true } } as never,
-          async () => transportDisabled('websocket')
         );
       }
 
@@ -220,6 +212,12 @@ export function registerRealtimeRoutes(): void {
           } as never,
           ((socket: WebSocket, request: FastifyRequest) =>
             openWebSocket(socket, request as never)) as never
+        );
+      } else {
+        router.get(
+          `${prefix}/ws`,
+          { schema: { hide: true } } as never,
+          async () => transportDisabled('websocket')
         );
       }
     },
@@ -322,7 +320,24 @@ async function openEventStream(
 ): Promise<void> {
   const gateway = inject(RealtimeGateway);
   const subscriptions = parseSubscriptions(request.query.subscriptions);
+
+  // Listened to before the ticket is redeemed, so a client leaving meanwhile
+  // never leaves an open connection behind
+  let connection: SseConnection | undefined;
+  let left = false;
+  request.raw.on('close', () => {
+    left = true;
+    if (connection) {
+      connection.close(RealtimeCloseCode.GoingAway, 'Client disconnected');
+      void gateway.release(connection);
+    }
+  });
+
   const auth = await connectionAuth(request.query.ticket);
+  if (left) {
+    reply.hijack();
+    return;
+  }
 
   const headers = {
     ...reply.getHeaders(),
@@ -332,19 +347,19 @@ async function openEventStream(
     // Keeps nginx from buffering the stream
     'x-accel-buffering': 'no'
   };
-  const connection = new SseConnection(auth, reply.raw, () => {
+  connection = new SseConnection(auth, reply.raw, () => {
     reply.hijack();
     reply.raw.writeHead(200, headers as never);
   });
   connection.ip = request.ip;
 
   // Throws the connection limit before anything is written
-  gateway.open(connection);
-
-  request.raw.on('close', () => {
-    connection.close(RealtimeCloseCode.GoingAway, 'Client disconnected');
-    void gateway.release(connection);
-  });
+  try {
+    gateway.open(connection);
+  } catch (e) {
+    connection = undefined;
+    throw e;
+  }
 
   await subscribeAll(gateway, connection, subscriptions);
 }
@@ -355,14 +370,40 @@ async function openWebSocket(
 ): Promise<void> {
   const gateway = inject(RealtimeGateway);
 
-  let connection: WsConnection;
+  // Listened to before the ticket is redeemed: the messages of the client
+  // wait for the connection, and a client leaving meanwhile leaves none
+  let connection: WsConnection | undefined;
+  let left = false;
+  const early: string[] = [];
+
+  socket.on('message', (data, isBinary) => {
+    if (isBinary) {
+      socket.close(RealtimeCloseCode.PolicyViolation, 'Binary message');
+    } else if (connection) {
+      void gateway.handleMessage(connection, messageText(data));
+    } else if (early.length < EARLY_MESSAGES_LIMIT) {
+      early.push(messageText(data));
+    }
+  });
+  socket.on('close', () => {
+    left = true;
+    if (connection) {
+      connection.closed = true;
+      void gateway.release(connection);
+    }
+  });
+
   try {
-    connection = new WsConnection(
+    const opened = new WsConnection(
       await connectionAuth(request.query.ticket),
       socket
     );
-    connection.ip = request.ip;
-    gateway.open(connection);
+    if (left) {
+      return;
+    }
+    opened.ip = request.ip;
+    gateway.open(opened);
+    connection = opened;
   } catch (e) {
     socket.send(JSON.stringify({ type: 'error', error: toProblem(e) }));
     socket.close(
@@ -375,17 +416,9 @@ async function openWebSocket(
     return;
   }
 
-  socket.on('message', (data, isBinary) => {
-    if (isBinary) {
-      connection.close(RealtimeCloseCode.PolicyViolation, 'Binary message');
-      return;
-    }
-    void gateway.handleMessage(connection, messageText(data));
-  });
-  socket.on('close', () => {
-    connection.closed = true;
-    void gateway.release(connection);
-  });
+  for (const message of early.splice(0)) {
+    void gateway.handleMessage(connection, message);
+  }
 }
 
 /** The text of a WebSocket message, received as one buffer or as fragments. */
@@ -408,9 +441,7 @@ async function connectionAuth(ticket?: string): Promise<ConnectionAuth> {
     );
   }
 
-  const { user, authType, authSource, expiresAt } =
-    await inject(TicketService).redeem(ticket);
-  return { user, authType, authSource, expiresAt };
+  return inject(TicketService).redeem(ticket);
 }
 
 function parseSubscriptions(json?: string): SubscriptionRequest[] {

@@ -1,5 +1,4 @@
 import {
-  ActionType,
   AuthUser,
   createLogger,
   ErrorCode,
@@ -9,7 +8,6 @@ import {
   LIFECYCLE,
   OnDestroy,
   OnReady,
-  OnShutdown,
   PubSub,
   RealtimeError,
   SpanKind,
@@ -60,7 +58,7 @@ const SUBSCRIPTION_ID_PATTERN = /^[\w.:-]{1,64}$/;
  * resource events of the models exposing them (`createRoutes({ events })`) to the pub/sub, so the connections of
  * every instance receive them.
  */
-export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
+export class RealtimeGateway implements OnReady, OnDestroy {
   static [LIFECYCLE] = true;
 
   /** @internal */
@@ -70,8 +68,15 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
   /** @internal */
   private readonly _channels = new Map<
     string,
-    { subscription: Promise<string>; count: number }
+    {
+      subscription: Promise<string>;
+      subscribers: Map<ActiveSubscription, RealtimeConnection>;
+    }
   >();
+  /** @internal */
+  private readonly _counts = new Map<string, number>();
+  /** @internal */
+  private _sendBufferLimit: [text: string, bytes: number] = ['', 0];
   /** @internal */
   private readonly _timers = new Map<string, NodeJS.Timeout>();
   /** @internal */
@@ -95,10 +100,6 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
     this.bridgeResourceEvents();
   }
 
-  public async onShutdown(): Promise<void> {
-    this.closeAll(RealtimeCloseCode.GoingAway, 'Server shutting down');
-  }
-
   public async onDestroy(): Promise<void> {
     this.closeAll(RealtimeCloseCode.GoingAway, 'Server shutting down');
     const events = inject(Events, false);
@@ -114,20 +115,14 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
    * @throws {RealtimeError} `REALTIME_CONNECTION_LIMIT` when the instance or the user has too many connections.
    */
   public open(connection: RealtimeConnection): void {
-    const others = [...this._connections.values()];
     const limits: [count: number, limit: number][] = [
-      [others.length, realtimeConfig.MAX_CONNECTIONS],
-      connection.user
-        ? [
-            others.filter(
-              (c) => c.user && String(c.user.id) === String(connection.user!.id)
-            ).length,
-            realtimeConfig.MAX_CONNECTIONS_PER_USER
-          ]
-        : [
-            others.filter((c) => !c.user && c.ip === connection.ip).length,
-            realtimeConfig.MAX_ANONYMOUS_CONNECTIONS_PER_IP
-          ]
+      [this._connections.size, realtimeConfig.MAX_CONNECTIONS],
+      [
+        this._counts.get(countKey(connection)) ?? 0,
+        connection.user
+          ? realtimeConfig.MAX_CONNECTIONS_PER_USER
+          : realtimeConfig.MAX_ANONYMOUS_CONNECTIONS_PER_IP
+      ]
     ];
 
     const exceeded = limits.find(([count, limit]) => exceeds(count, limit));
@@ -139,6 +134,8 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
       );
     }
 
+    const key = countKey(connection);
+    this._counts.set(key, (this._counts.get(key) ?? 0) + 1);
     this._connections.set(connection.id, connection);
     realtimeMetrics.connections(connection.transport, 1);
 
@@ -188,11 +185,17 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
     this._queues.delete(connection.id);
     realtimeMetrics.connections(connection.transport, -1);
 
+    const key = countKey(connection);
+    const count = (this._counts.get(key) ?? 1) - 1;
+    if (count > 0) {
+      this._counts.set(key, count);
+    } else {
+      this._counts.delete(key);
+    }
+
     const subscriptions = [...connection.subscriptions.values()];
     connection.subscriptions.clear();
-    await Promise.all(
-      subscriptions.map((s) => this.releaseChannel(s.pubsubChannel))
-    );
+    await Promise.all(subscriptions.map((s) => this.releaseChannel(s)));
 
     if (this._connections.size === 0) {
       clearInterval(this._heartbeat);
@@ -240,7 +243,7 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
 
     connection.subscriptions.set(request.id, subscription);
     try {
-      await this.acquireChannel(subscription.pubsubChannel);
+      await this.acquireChannel(connection, subscription);
     } catch (e) {
       connection.subscriptions.delete(request.id);
       throw e;
@@ -268,7 +271,7 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
       return false;
     }
     connection.subscriptions.delete(id);
-    await this.releaseChannel(subscription.pubsubChannel);
+    await this.releaseChannel(subscription);
     return true;
   }
 
@@ -527,39 +530,52 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
   }
 
   /** @internal */
-  private async acquireChannel(pubsubChannel: string): Promise<void> {
-    const channel = this._channels.get(pubsubChannel);
-    if (channel) {
-      channel.count++;
-      await channel.subscription;
-      return;
-    }
+  private async acquireChannel(
+    connection: RealtimeConnection,
+    subscription: ActiveSubscription
+  ): Promise<void> {
+    const name = subscription.pubsubChannel;
+    let channel = this._channels.get(name);
 
-    const subscription = this._pubsub.subscribe<ChannelMessage>(
-      pubsubChannel,
-      (message) => this.deliver(pubsubChannel, message)
-    );
-    this._channels.set(pubsubChannel, { subscription, count: 1 });
+    if (!channel) {
+      channel = {
+        subscription: this._pubsub.subscribe<ChannelMessage>(name, (message) =>
+          this.deliver(name, message)
+        ),
+        subscribers: new Map()
+      };
+      this._channels.set(name, channel);
+    }
+    channel.subscribers.set(subscription, connection);
 
     try {
-      await subscription;
+      await channel.subscription;
     } catch (e) {
-      this._channels.delete(pubsubChannel);
+      channel.subscribers.delete(subscription);
+      if (this._channels.get(name) === channel) {
+        this._channels.delete(name);
+      }
       throw e;
     }
   }
 
   /** @internal */
-  private async releaseChannel(pubsubChannel: string): Promise<void> {
-    const channel = this._channels.get(pubsubChannel);
-    if (!channel || --channel.count > 0) {
+  private async releaseChannel(
+    subscription: ActiveSubscription
+  ): Promise<void> {
+    const name = subscription.pubsubChannel;
+    const channel = this._channels.get(name);
+    if (
+      !channel?.subscribers.delete(subscription) ||
+      channel.subscribers.size > 0
+    ) {
       return;
     }
-    this._channels.delete(pubsubChannel);
+    this._channels.delete(name);
     try {
       await this._pubsub.unsubscribe(await channel.subscription);
     } catch (e) {
-      logger.warn(e, `Realtime channel '${pubsubChannel}' unsubscribe failed`);
+      logger.warn(e, `Realtime channel '${name}' unsubscribe failed`);
     }
   }
 
@@ -568,15 +584,8 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
     pubsubChannel: string,
     message: ChannelMessage
   ): Promise<void> {
-    const targets: [RealtimeConnection, ActiveSubscription][] = [];
-    for (const connection of this._connections.values()) {
-      for (const subscription of connection.subscriptions.values()) {
-        if (subscription.pubsubChannel === pubsubChannel) {
-          targets.push([connection, subscription]);
-        }
-      }
-    }
-    if (targets.length === 0) {
+    const subscribers = this._channels.get(pubsubChannel)?.subscribers;
+    if (!subscribers?.size) {
       return;
     }
 
@@ -585,7 +594,7 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
     let projected: Record<string, unknown> | undefined;
 
     await Promise.all(
-      targets.map(async ([connection, subscription]) => {
+      [...subscribers].map(async ([subscription, connection]) => {
         let data: unknown;
 
         try {
@@ -664,10 +673,7 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
     if (connection.closed) {
       return;
     }
-    if (
-      connection.bufferedAmount() >
-      textToBytes(realtimeConfig.SEND_BUFFER_LIMIT)
-    ) {
+    if (connection.bufferedAmount() > this.sendBufferLimit()) {
       realtimeMetrics.events(message.channel, 'dropped');
       logger.warn(
         { connectionId: connection.id },
@@ -679,6 +685,15 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
     }
     connection.send(message);
     realtimeMetrics.events(message.channel, 'delivered');
+  }
+
+  /** @internal */
+  private sendBufferLimit(): number {
+    const text = realtimeConfig.SEND_BUFFER_LIMIT;
+    if (this._sendBufferLimit[0] !== text) {
+      this._sendBufferLimit = [text, textToBytes(text)];
+    }
+    return this._sendBufferLimit[1];
   }
 
   /** @internal */
@@ -798,6 +813,13 @@ export class RealtimeGateway implements OnReady, OnShutdown, OnDestroy {
     }, realtimeConfig.HEARTBEAT_INTERVAL);
     this._heartbeat.unref();
   }
+}
+
+/** The key counting the connections of a user, or the anonymous ones of an IP address. */
+function countKey(connection: RealtimeConnection): string {
+  return connection.user
+    ? `user:${String(connection.user.id)}`
+    : `ip:${connection.ip ?? ''}`;
 }
 
 function exceeds(count: number, limit: number): boolean {

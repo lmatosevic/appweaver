@@ -1,28 +1,13 @@
 import { randomBytes } from 'node:crypto';
-import {
-  AuthSource,
-  AuthType,
-  AuthUser,
-  ErrorCode,
-  Memory,
-  RealtimeError
-} from '@appweaver/common';
+import { AuthUser, ErrorCode, Memory, RealtimeError } from '@appweaver/common';
 import { inject } from '@appweaver/core';
 import { realtimeConfig } from '../config';
+import { ConnectionAuth } from './connection';
 
 const KEY_PREFIX = 'realtime:ticket:';
 
-/** The authentication a ticket carries to the connection it opens. */
-export type RealtimeTicket = {
-  /** The authenticated user */
-  user: AuthUser;
-  /** How the user authenticated */
-  authType: AuthType | null;
-  /** The source of the authentication, i.e. an OAuth2 provider */
-  authSource: AuthSource | null;
-  /** The epoch milliseconds the credentials of the user expire at, i.e. of the JWT, null when they do not expire */
-  expiresAt: number | null;
-};
+/** The authentication a ticket carries to the connection it opens, always of a user. */
+export type RealtimeTicket = ConnectionAuth & { user: AuthUser };
 
 /**
  * Issues and redeems the tickets of the realtime connections. A browser cannot send the `Authorization` header with

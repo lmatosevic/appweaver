@@ -542,51 +542,37 @@ const fileData = await file.base64(); // or use file.stream to pipe output to fi
 
 ### Realtime client
 
-`client.realtime` (a `RealtimeClient`) is generated for an API with `@appweaver/realtime`, typed by the
-`RealtimeModuleType` of the types file, built from the `x-appweaver-realtime` extension of the OpenAPI document. It
-connects on the first subscription or action: it asks for a ticket (`POST <api>/realtime/ticket`) with the `auth` of
-the client, opens a WebSocket (or an SSE stream), and reconnects with its subscriptions after a lost connection, at
-once when the server closes it for an expired token (`4401`), with a new ticket. The realtime routes are not generated
-as custom methods.
+`client.realtime` (`RealtimeClient`) is generated for an API with `@appweaver/realtime`, typed by the
+`RealtimeModuleType` of the `x-appweaver-realtime` extension. It connects on the first subscription or action with a
+ticket of the client's `auth`, over a WebSocket, or SSE where the runtime or the server has none (SSE reopens its stream
+on a change of the subscriptions, and sends the actions over HTTP). It reconnects with its subscriptions after a lost
+connection or a failed attempt, with a backoff, and at once on an expired token (`4401`).
 
-| Method                                  | Description                                                                                             |
-|-----------------------------------------|---------------------------------------------------------------------------------------------------------|
-| `subscribe(channel, handler, params?)`  | Subscribes to a channel, `handler(payload, { eventId, channel })`. Returns `{ id, ready, unsubscribe }` |
-| `on(model, handler, { action?, filter? })` | Subscribes to the resource events of a model, `handler({ model, action, current, previous? })`       |
-| `observe(channel, params?)`             | An observable of the payloads of a channel, for `from(...)` of RxJS                                     |
-| `send(action, payload)`                 | Calls an action and resolves to its result, rejects with its `ClientError`                              |
-| `emit(action, payload)`                 | Calls an action fire-and-forget, without a result or an error                                           |
-| `connect()` / `disconnect()`            | Opens the connection / closes it without reconnecting, keeping the subscriptions                       |
-| `reconnect()`                           | Opens the connection again with a new ticket and the subscriptions, i.e. after a login or a logout     |
-| `onStateChange(listener)`               | `idle`, `connecting`, `open`, `reconnecting`; returns the function removing the listener                |
-| `onError(listener)`                     | The errors not answering a subscription or an action, i.e. a refused ticket                             |
-| `state`, `connectionId`, `transport`    | The state, the ID of the open connection, and the transport used                                        |
-| `authenticated`                         | Whether the open connection is of a user, false for an anonymous one                                    |
+| Method                                     | Description                                                                                    |
+|--------------------------------------------|------------------------------------------------------------------------------------------------|
+| `subscribe(channel, handler, params?)`     | `handler(payload, { eventId, channel })`; returns `{ id, ready, unsubscribe }`                 |
+| `on(model, handler, { action?, filter? })` | Resource events, `handler({ model, action, current, previous? })`                              |
+| `observe(channel, params?)`                | An observable of the payloads, for `from(...)` of RxJS                                         |
+| `send(action, payload)` / `emit(...)`      | Calls an action, resolving to its result / fire-and-forget                                     |
+| `connect()`, `disconnect()`, `reconnect()` | Opens, closes (keeping the subscriptions), or reopens with a new ticket, i.e. after a login    |
+| `onStateChange(listener)`, `onError(...)`  | `idle`, `connecting`, `open`, `reconnecting`; the errors answering no subscription or action   |
+| `state`, `connectionId`, `transport`, `authenticated` | The state of the connection, and whether it is of a user                            |
 
-`subscription.ready` rejects with the `ClientError` of a refused subscription (`REALTIME_CHANNEL_UNKNOWN`,
-`REALTIME_SUBSCRIPTION_DENIED`), which is then not renewed by a reconnection.
+`subscription.ready` rejects with the `ClientError` of a refused subscription, which a reconnection does not renew.
 
 ```ts
 type RealtimeClientOptions = {
-  transport?: 'auto' | 'websocket' | 'sse'; // auto: the WebSocket when the runtime has one and the server enables it
-  anonymous?: boolean | 'auto'; // true: no ticket; 'auto': anonymous when the ticket is refused (401) (default: false)
-  reconnect?: boolean;         // default: true
-  reconnectDelay?: number;     // ms before the first reconnection, doubled each time (default: 500)
-  maxReconnectDelay?: number;  // default: 30000
-  actionTimeout?: number;      // ms an action waits for its result (default: 30000)
-  WebSocket?: typeof WebSocket; // the implementation, the global one by default
+  transport?: 'auto' | 'websocket' | 'sse'; // default: auto
+  anonymous?: boolean | 'auto'; // true: no ticket; 'auto': anonymous when the ticket is refused (401). Default: false
+  reconnect?: boolean;          // default: true
+  reconnectDelay?: number;      // ms, doubled each attempt (default: 500)
+  maxReconnectDelay?: number;   // default: 30000
+  actionTimeout?: number;       // default: 30000
+  WebSocket?: typeof WebSocket; // default: the global one
 };
-
-const client = createClient({ baseUrl, auth: { jwt: () => store.accessToken }, realtime: { transport: 'sse' } });
-client.realtime.on('Order', ({ action, current }) => refresh(current), { filter: { status: 'open' } });
 ```
 
-The generated client passes the transports the server enables (`this.realtimeClient<T>('/api/realtime', ['sse'])`),
-so `auto` falls back to SSE on a server without the WebSocket. With `anonymous: true` the client connects without a
-ticket and calls the HTTP actions without credentials, for the `public` channels and actions of a server with
-`realtime.anonymousEnabled`. Over SSE, a change of the subscriptions opens a new stream (with a new ticket), and the actions are sent with the
-HTTP route of the actions. Delivery is at-most-once: reload the state after a reconnection when it matters. See
-[realtime.md](./realtime.md).
+See [realtime.md](./realtime.md) for the server side and the protocol.
 
 ### `FileDataResponse`
 

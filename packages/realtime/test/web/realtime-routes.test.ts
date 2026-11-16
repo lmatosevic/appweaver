@@ -6,6 +6,7 @@ import { createModel } from '@appweaver/data';
 import { linkModels, resetContext } from '@appweaver/testing';
 import { createRealtimeAction } from '../../action';
 import { createChannel } from '../../channel';
+import { TicketService } from '../../gateway/ticket-service';
 import {
   openEventStream,
   RealtimeServer,
@@ -834,6 +835,78 @@ describe('realtime routes', () => {
         details: { limit: 1 }
       });
       expect(authenticated.messages[0].type).toBe('welcome');
+    });
+  });
+
+  describe('ticket redemption', () => {
+    const delayRedeem = () => {
+      const redeem = TicketService.prototype.redeem;
+      return jest
+        .spyOn(TicketService.prototype, 'redeem')
+        .mockImplementation(async function (this: TicketService, ticket) {
+          await new Promise((resolve) => setTimeout(resolve, 150));
+          return redeem.call(this, ticket);
+        });
+    };
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    test('handles the messages a client sends before its ticket is redeemed', async () => {
+      app = await startRealtimeServer();
+      createChannel({ name: 'news', payload: Type.Object({}) });
+      delayRedeem();
+
+      const socket = await TestSocket.open(
+        `${app.ws}/ws?ticket=${await ticket()}`
+      );
+      sockets.push(socket);
+      socket.send({ type: 'subscribe', id: 'n', channel: 'news' });
+
+      expect(await socket.next((m) => m.id === 'n')).toEqual({
+        type: 'subscribed',
+        id: 'n'
+      });
+    });
+
+    test('opens no WebSocket connection of a client leaving meanwhile', async () => {
+      app = await startRealtimeServer();
+      delayRedeem();
+
+      const socket = await TestSocket.open(
+        `${app.ws}/ws?ticket=${await ticket()}`
+      );
+      socket.close();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      expect(app.gateway.connections.size).toBe(0);
+    });
+
+    test('opens no event stream of a client leaving meanwhile', async () => {
+      app = await startRealtimeServer();
+      delayRedeem();
+      const controller = new AbortController();
+
+      const request = fetch(`${app.url}/events?ticket=${await ticket()}`, {
+        signal: controller.signal
+      }).catch(() => undefined);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      controller.abort();
+      await request;
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      expect(app.gateway.connections.size).toBe(0);
+    });
+
+    test('closes a WebSocket sending a binary message', async () => {
+      app = await startRealtimeServer();
+      const socket = await connect();
+
+      socket.socket.send(new Uint8Array([1, 2]));
+      await socket.next(() => false).catch(() => undefined);
+
+      expect(socket.closeCode).toBe(1008);
     });
   });
 });

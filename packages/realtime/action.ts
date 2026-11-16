@@ -1,14 +1,11 @@
 import { TSchema } from '@sinclair/typebox';
-import { ConfigurationError, createLogger, ErrorCode } from '@appweaver/common';
-import { define, injectAll } from '@appweaver/core';
 import { RealtimeAction, RealtimeActionConfig } from './types';
-
-const logger = createLogger('realtime');
+import { createRegistry } from './utils/registry';
 
 /** The key of the actions in the application context. */
 export const REALTIME_ACTION = Symbol.for('appweaver.RealtimeAction');
 
-const NAME_PATTERN = /^[a-zA-Z0-9][\w.:-]{0,127}$/;
+const actions = createRegistry<RealtimeAction>(REALTIME_ACTION, 'action');
 
 /**
  * Creates an action the clients call over the WebSocket, with or without waiting for its result, or with a
@@ -31,26 +28,10 @@ export function createRealtimeAction<
   P extends TSchema,
   R extends TSchema = TSchema
 >(config: RealtimeActionConfig<P, R>): RealtimeAction<P, R> {
-  if (!NAME_PATTERN.test(config.name)) {
-    throw new ConfigurationError(
-      ErrorCode.ConfigurationInvalid,
-      `Invalid realtime action name '${config.name}'`
-    );
-  }
-  if (findRealtimeAction(config.name)) {
-    throw new ConfigurationError(
-      ErrorCode.ConfigurationInvalid,
-      `Realtime action '${config.name}' is already defined`
-    );
-  }
-
-  const action: RealtimeAction<P, R> = { name: config.name, config };
-
-  // Wrapped in an object, since the context would instantiate a function
-  define({ action }, REALTIME_ACTION, 'append');
-  logger.debug({ action: config.name }, 'Created realtime action');
-
-  return action;
+  return actions.add({
+    name: config.name,
+    config
+  }) as RealtimeAction<P, R>;
 }
 
 /**
@@ -59,9 +40,7 @@ export function createRealtimeAction<
  * @return {RealtimeAction[]} The actions.
  */
 export function realtimeActions(): RealtimeAction[] {
-  return injectAll<{ action: RealtimeAction }>(REALTIME_ACTION).map(
-    (entry) => entry.action
-  );
+  return actions.all();
 }
 
 /**
@@ -71,5 +50,5 @@ export function realtimeActions(): RealtimeAction[] {
  * @return {RealtimeAction | undefined} The action, or `undefined` when none has the name.
  */
 export function findRealtimeAction(name: string): RealtimeAction | undefined {
-  return realtimeActions().find((action) => action.name === name);
+  return actions.find(name);
 }

@@ -901,40 +901,30 @@ See [telemetry.md](references/telemetry.md) for what is recorded, the config, th
 
 ### Realtime events
 
-With the `realtime` module (`@appweaver/realtime`), the clients subscribe over a WebSocket or Server-Sent Events to the
-channels of the application and to the resource events of the models exposing them, and call custom actions. Nothing
-is exposed unless declared, and every event is checked against the access of the subscribed user:
+With the `realtime` module (`@appweaver/realtime`), clients subscribe over WebSocket or SSE to the channels of the
+application and the resource events of the models exposing them, and call custom actions. Nothing is exposed unless
+declared, every event is checked against the access of the user, and `public: true` opens a part to anonymous clients
+once `realtime.anonymousEnabled` is set:
 
 ```ts
-import { createChannel, createRealtimeAction } from '@appweaver/realtime';
-
 export const orderShipped = createChannel({
   name: 'order.shipped',
   payload: Type.Object({ orderId: Type.Integer(), customerId: Type.Integer() }),
-  roles: ['customer'],
   deliver: (user, payload) => payload.customerId === user?.id
 });
 await orderShipped.publish({ orderId: 7, customerId: 1 });
 
-createRoutes({ modelName: 'order', events: { actions: ['create', { action: 'update', public: true }] } }); // resource:Order channels
+createRoutes({ modelName: 'order', events: { actions: ['create', { action: 'update', public: true }] } });
 createPolicy({ modelName: 'order', events: (user, { current }) => current.customerId === user?.id });
-
 createRealtimeAction({
   name: 'chat.typing',
   payload: Type.Object({ roomId: Type.Integer() }),
-  handler: async ({ roomId }, { user }) => typing.publish({ roomId, userId: user!.id })
+  handler: ({ roomId }, { user }) => typing.publish({ roomId, userId: user!.id })
 });
 ```
 
-Without an `events` callback, a resource event reaches a user who passes the `checkAccess` of a `find` and whose
-`readRestrictions` the resource matches. With the `redis` module the events reach the connections of every instance.
-A channel, the `events` of a model or an action with `public: true` is open to the anonymous clients once
-`realtime.anonymousEnabled` is set, i.e. the stock prices of a homepage. The generated client subscribes with
-`client.realtime.subscribe('order.shipped', handler)` and
-`client.realtime.on('Order', handler)`, and calls actions with `send` (waits for the result) or `emit`
-(fire-and-forget). One client with `auth` uses the public and the private parts; `realtime: { anonymous: 'auto' }`
-connects anonymously before a login, and `client.realtime.reconnect()` as the user after it. See
-[realtime.md](references/realtime.md) for the protocol, the tickets, the config and the limits.
+The generated client calls `client.realtime.subscribe`, `on`, `send` and `emit`. See
+[realtime.md](references/realtime.md).
 
 ### Registering a custom model
 

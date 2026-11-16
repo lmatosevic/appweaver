@@ -328,4 +328,56 @@ describe('RealtimeClient', () => {
       await expect(client.realtime.connect()).rejects.toBeDefined();
     });
   });
+
+  describe.each(['websocket', 'sse'] as const)(
+    'recovery over %s',
+    (transport) => {
+      test('retries a connection failing for a while', async () => {
+        let failures = 1;
+        const errors: string[] = [];
+        client = new TestClient({
+          baseUrl: app.url.replace('/api/realtime', ''),
+          fetch: (input, init) => {
+            if (failures > 0) {
+              failures--;
+              return Promise.reject(new TypeError('Network down'));
+            }
+            const request = new Request(input, init);
+            request.headers.set('x-user', JSON.stringify(user));
+            request.headers.set('authorization', 'Bearer test');
+            return fetch(request);
+          },
+          realtime: { transport, reconnectDelay: 20 }
+        });
+        client.realtime.onError((e) => errors.push(e.message));
+
+        await client.realtime.subscribe('news', () => undefined).ready;
+
+        expect(client.realtime.state).toBe('open');
+        expect(errors).toEqual(['Network down']);
+      });
+
+      test('fails the subscriptions of a refused connection', async () => {
+        client = new TestClient({
+          baseUrl: app.url.replace('/api/realtime', ''),
+          fetch: async () =>
+            new Response(
+              JSON.stringify({
+                status: 404,
+                code: 'REALTIME_TRANSPORT_DISABLED'
+              }),
+              { status: 404 }
+            ),
+          realtime: { transport, reconnectDelay: 20 }
+        });
+
+        const subscription = client.realtime.subscribe('news', () => undefined);
+
+        await expect(subscription.ready).rejects.toMatchObject({
+          status: 404
+        });
+        expect(client.realtime.state).toBe('idle');
+      });
+    }
+  );
 });

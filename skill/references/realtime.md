@@ -1,248 +1,115 @@
 # Realtime
 
-The `@appweaver/realtime` module pushes events to the clients over a WebSocket or a stream of Server-Sent Events
-(SSE), and lets the WebSocket clients call custom actions. A client subscribes to:
+The `@appweaver/realtime` module (`weaver module add realtime`, requires `web`) pushes events to the clients over a
+WebSocket or Server-Sent Events (SSE), and lets them call custom actions. A client subscribes to the **channels** of
+`createChannel` and to the **resource events** (`create`, `update`, `delete`) of the models exposing them. Nothing is
+exposed unless declared, and every event is checked against the access of the subscribed user before it is sent.
 
-- **channels** of the application or of a module, created with `createChannel`, publishing a typed payload
-- **resource events** of the models exposing them, the `create`, `update` and `delete` of a resource service
-
-Nothing is exposed unless declared: a channel by its `createChannel`, the events of a model by the `events` of its
-`createRoutes`. Every event is checked against the access of the subscribed user before it is sent.
-
-```sh
-weaver module add realtime   # requires web, uses the Redis pub/sub with the redis module
-```
-
-## How it works
-
-```
-ResourceService ──emitResourceEvent──▶ Events (in process, after the commit)
-                                          │ bridge of the models with `events`
-channel.publish() ───────────────────────▶│
-                                          ▼
-                                   PubSub (memory | redis) ── every instance
-                                          ▼
-                     RealtimeGateway of each instance: the subscriptions of its connections,
-                     the access check of each user, the projection of the records, the send
-```
-
-The messages go through the `PubSub` contract of core: `memory` in the process, `redis` (`@appweaver/redis`) to the
-connections of every instance. `auto` selects `redis` when the module is enabled. The `Events` stay in the process, so
-the server-side listeners still run once.
+Every message goes through the `PubSub` contract of core: `memory` in the process, or `redis` (`@appweaver/redis`,
+selected by `auto`) to the connections of every instance. The `Events` stay in the process, so the server-side
+listeners still run once. The messages are JSON: the callbacks and the clients receive the dates as ISO strings.
 
 ## Channels
 
 ```ts
-// src/realtime/index.ts (an application file, loaded at startup)
+// src/realtime/index.ts (an application file, loaded at startup; a module creates its channels in its `main` part)
 import { Type } from '@sinclair/typebox';
 import { createChannel } from '@appweaver/realtime';
 
 export const orderShipped = createChannel({
   name: 'order.shipped',
-  description: 'An order of the customer is shipped',
   payload: Type.Object({ orderId: Type.Integer(), customerId: Type.Integer(), carrier: Type.String() }),
   params: Type.Object({ orderId: Type.Optional(Type.Integer()) }),
   roles: ['customer', 'admin'],
-  // Once, when the client subscribes
-  subscribe: (user, params) => true,
-  // For every payload and subscription
-  deliver: (user, payload, params) =>
+  subscribe: (user, params) => true, // once, when the client subscribes
+  deliver: (user, payload, params) => // for every payload and subscription
     payload.customerId === user?.id && (!params.orderId || params.orderId === payload.orderId)
 });
 
-// Anywhere in the application, i.e. a service hook or a queue worker
-await orderShipped.publish({ orderId: 7, customerId: 1, carrier: 'DHL' });
+await orderShipped.publish({ orderId: 7, customerId: 1, carrier: 'DHL' }); // validated against `payload`
 ```
 
-| Option                         | Description                                                                                  |
-|--------------------------------|----------------------------------------------------------------------------------------------|
-| `name`                         | `[a-zA-Z0-9][\w.:-]*`, never starting with `resource:`, unique                               |
-| `payload`                      | TypeBox schema of the payloads, validated by `publish` (`REALTIME_PAYLOAD_INVALID`)          |
-| `params`                       | TypeBox schema of the subscription parameters, validated when subscribing                    |
-| `public`, `roles`, `permissions` | Who may subscribe: anyone (anonymous connections too, see [Public access](#public-access)), or a user with one of the roles/permissions, otherwise any authenticated user |
-| `subscribe(user, params)`      | Returns false to deny the subscription (`REALTIME_SUBSCRIPTION_DENIED`)                       |
-| `deliver(user, payload, params)` | Returns false to keep a payload from a subscription                                         |
-| `description`                  | Description in the OpenAPI document                                                          |
-
-The callbacks run as the user (`runAs`), so the resource services apply the policies of the user. A module creates its
-channels in its `main` or `web` part. The payloads are JSON: a `Date` reaches the client as an ISO string.
+| Option                           | Description                                                                                 |
+|----------------------------------|---------------------------------------------------------------------------------------------|
+| `name`                           | `[a-zA-Z0-9][\w.:-]*`, unique, never starting with `resource:`                              |
+| `payload`, `params`              | TypeBox schemas of the payloads and of the subscription parameters                          |
+| `public`, `roles`, `permissions` | Who may subscribe, see [Access](#access)                                                    |
+| `subscribe`, `deliver`           | Return false to deny the subscription, or to keep a payload from it. They run as the user   |
+| `description`                    | Description in the OpenAPI document                                                         |
 
 ## Resource events
-
-```ts
-createRoutes({
-  modelName: 'order',
-  events: { actions: ['create', 'update', 'delete'], roles: ['customer'] }
-});
-```
-
-The model exposes the channels `resource:Order` (every action listed) and `resource:Order.<action>`. The `events` take
-`actions` and the `public`, `roles` and `permissions` of the subscriptions. An action can have an access of its own,
-an object replacing the access of the `events` when it sets any of `public`, `roles` and `permissions`:
 
 ```ts
 createRoutes({
   modelName: 'product',
   events: {
     actions: [
-      'create',                                   // the access of the events: roles ['staff']
-      { action: 'update', public: true },         // anyone, anonymous connections too
-      { action: 'delete', roles: ['admin'] }      // admins only
+      'create',                              // the access of the events: roles ['staff']
+      { action: 'update', public: true },    // an access of its own, replacing it
+      { action: 'delete', roles: ['admin'] }
     ],
     roles: ['staff']
   }
 });
 ```
 
-A subscription to `resource:Product.<action>` is refused (`REALTIME_SUBSCRIPTION_DENIED`) without the access of the
-action, and one to `resource:Product` receives the actions the user has the access of, refused only when none. The
-`x-appweaver-realtime` extension lists the access of every action. The event data is:
-
-```ts
-{ model: 'Order', action: 'update', current: OrderSingle, previous?: OrderSingle }
-```
-
-`current` and `previous` are projected onto the response schema of the `find` route: the virtual fields added, the
-hidden fields (`passwordHash`) and anything the schema does not declare left out, relations included.
+The model exposes `resource:Product` (every action the user has the access of, refused when none) and
+`resource:Product.<action>`. The event data is `{ model, action, current, previous? }`, the records projected onto the
+`find` response schema: the virtual fields added, the hidden fields and anything undeclared left out, relations
+included. A subscription `filter` in the query filter syntax of the routes (`{ status: 'open', total: { _gt: 100 } }`)
+is matched against the scalar fields of `current`; a relation filter matches nothing.
 
 ### The `events` policy
 
-Before an event reaches a user, `ResourceService.checkEventAccess` runs as that user:
+Before an event reaches a user, `ResourceService.checkEventAccess` runs as that user (`null` when anonymous):
 
-1. The `events` callback of the policy, when defined, decides alone.
-2. Otherwise the `checkAccess` of a `find` of the resource must pass, and the resource must match the
-   `readRestrictions` of the `find`. The restrictions are matched in memory (`AND`, `OR`, `NOT`, `equals`, `not`, `in`,
-   `notIn`, `lt`, `lte`, `gt`, `gte`, `contains`, `startsWith`, `endsWith`, `mode: 'insensitive'`), and with one
-   `count` of the database when they filter by a relation. A deleted resource whose restrictions only the database can
-   match is denied: define the `events` callback for such a model.
+1. the `events` callback of the policy decides alone, when defined;
+2. otherwise the `checkAccess` of a `find` must pass, and the record must match the `readRestrictions` of the `find`,
+   matched in memory (`AND`, `OR`, `NOT`, `equals`, `not`, `in`, `notIn`, `lt`, `lte`, `gt`, `gte`, `contains`,
+   `startsWith`, `endsWith`, `mode`), or by a `count` of the database when they filter by a relation. A deleted record
+   only the database can match is denied.
 
 ```ts
 createPolicy({
   modelName: 'order',
-  readRestrictions: (user) => (user && hasRole(user, 'admin') ? {} : { customerId: user?.id }),
-  // Optional, replacing the default check of the events
   events: (user, { action, current, previous }) => (!!user && hasRole(user, 'admin')) || current.customerId === user?.id
 });
 ```
 
-A service of `createService` overrides `eventAccess(event)` for the same. The access is checked once per event and user,
-on every instance holding a connection of the user. The resources of the pub/sub messages are the records of the
-service, hidden fields included, so the Redis server must be private.
-
-A subscription can narrow the events with a `filter` in the query filter syntax of the routes
-(`{ status: 'open', total: { _gt: 100 } }`), matched in memory against the scalar fields of `current`. A filter on a
-relation matches nothing.
+The access is checked once per event and user, on every instance holding a connection of the user. Relation
+restrictions cost a query per subscribed user and event, so a busy model defines the `events` callback instead. A
+service of `createService` overrides `eventAccess(event)` for the same. The records of the pub/sub messages hold the
+hidden fields, so the Redis server must be private.
 
 ## Actions
 
-The clients call the custom actions of the application over the WebSocket, or with `POST <prefix>/actions/<name>`. CRUD
-never goes through an action: it keeps its routes, validation and policies.
+Custom operations only: CRUD keeps its routes, validation and policies.
 
 ```ts
-import { createRealtimeAction } from '@appweaver/realtime';
-
 createRealtimeAction({
   name: 'chat.typing',
   payload: Type.Object({ roomId: Type.Integer() }),
   response: Type.Object({ seen: Type.Integer() }),
   roles: ['user'],
-  handler: async ({ roomId }, { user, transport, connectionId, ack }) => {
-    await typing.publish({ roomId, userId: user!.id });
-    return { seen: 3 };
-  }
+  handler: async ({ roomId }, { user, transport, connectionId, ack }) => ({ seen: 3 }) // runs as the user
 });
 ```
 
-The handler runs as the user of the connection or the request. A call with an `id` waits for the `result` or the
-`error`; a call without one is fire-and-forget: nothing answers it, its errors are only logged at `debug`. Use it for
-data whose loss is harmless (a cursor position, a typing indicator). Over HTTP, `?ack=false` answers 202 at once.
+A call with an `id` waits for its `result` or `error`; one without is fire-and-forget, its errors only logged at
+`debug`, for data whose loss is harmless (a cursor, a typing indicator). Over HTTP, `?ack=false` answers 202 at once.
 
-## Connecting
+## Access
 
-A browser cannot send the `Authorization` header with an `EventSource` or a `WebSocket`, so the client first asks for
-a ticket with its credentials, valid `REALTIME_TICKET_TTL` milliseconds and used once (stored in the `Memory`, so valid
-on every instance):
-
-| Route                                      | Description                                                                                        |
-|--------------------------------------------|----------------------------------------------------------------------------------------------------|
-| `POST <api>/realtime/ticket`               | Any authentication. Answers `{ ticket, expiresIn }`                                                |
-| `GET <api>/realtime/ws?ticket=`            | The WebSocket. Not in the OpenAPI paths (the `x-appweaver-realtime` extension describes it)        |
-| `GET <api>/realtime/events?ticket=&subscriptions=` | The SSE stream with the subscriptions of the query, a JSON array of `{ id, channel, params?, filter? }`. Changing them opens a new stream |
-| `POST <api>/realtime/actions/:name?ack=`   | Calls an action, authenticated when the request carries credentials, answers `{ result }`, or 202 with `ack=false` |
-
-Without a ticket a connection is refused (`REALTIME_TICKET_INVALID`), unless `REALTIME_ANONYMOUS_ENABLED`: then it is
-anonymous, see [Public access](#public-access). A disabled transport (`REALTIME_SSE_ENABLED`,
-`REALTIME_WEBSOCKET_ENABLED`) answers its route with `404 REALTIME_TRANSPORT_DISABLED`, and the `transports` of the
-`x-appweaver-realtime` extension list only the enabled ones, which the `auto` transport of the client chooses from.
-
-A connection is closed when the token of its ticket expires (`exp` of the JWT) or after `REALTIME_CONNECTION_MAX_AGE`,
-with a `reauth` message and the close code `4401`: the client reconnects with a new ticket, and the user is loaded
-again.
-
-### Protocol
-
-Every message is a JSON object, a WebSocket text frame or the `data` of an SSE event (whose `id` is the `eventId`).
-
-| Client → server (WebSocket)                                      | Answer                                     |
-|------------------------------------------------------------------|--------------------------------------------|
-| `{ type: 'subscribe', id, channel, params?, filter? }`           | `{ type: 'subscribed', id }`               |
-| `{ type: 'unsubscribe', id }`                                    | `{ type: 'unsubscribed', id }`             |
-| `{ type: 'action', id, action, payload }`                        | `{ type: 'result', id, result }`           |
-| `{ type: 'action', action, payload }` (fire-and-forget)          | nothing                                    |
-| `{ type: 'ping', id? }`                                          | `{ type: 'pong', id? }`                    |
-
-| Server → client                                                    | When                                                 |
-|--------------------------------------------------------------------|------------------------------------------------------|
-| `{ type: 'welcome', connectionId, expiresAt, heartbeat }`          | The connection is open                               |
-| `{ type: 'event', id, channel, eventId, data }`                    | An event of the subscription `id`                    |
-| `{ type: 'error', id?, error }`                                    | `error` is the problem details of the failed message |
-| `{ type: 'reauth' }`                                               | The connection closes, reconnect with a new ticket   |
-
-The subscriptions of a connection change in the order of its messages; the actions run at once. The subscription `id`
-is chosen by the client (`[\w.:-]{1,64}`, unique on the connection).
-
-| Close code | Meaning                                                    |
-|------------|------------------------------------------------------------|
-| `1001`     | The server shuts down                                      |
-| `1008`     | A binary message                                           |
-| `4401`     | The authentication expired, reconnect with a new ticket    |
-| `4403`     | The ticket is missing or invalid                           |
-| `4408`     | The client reads too slowly (`REALTIME_SEND_BUFFER_LIMIT`) |
-| `4429`     | Too many connections of the instance or the user           |
-
-Delivery is at-most-once: an event published while a client reconnects is lost. Reload the state the client shows after
-a reconnection when it matters.
-
-## Public access
-
-Every realtime part is private by default: a subscription or a call needs an authenticated user. Two switches open
-a part to the anonymous clients, both needed:
-
-1. `realtime.anonymousEnabled` (`REALTIME_ANONYMOUS_ENABLED`) lets the clients connect without a ticket, and call the
-   HTTP actions route without credentials.
-2. `public: true` on a channel, the `events` of a model or an action marks what those clients may use. `roles` and
-   `permissions` are ignored on a public part, and an authenticated user uses it too.
+Every part is private by default: a subscription or a call needs a user. `public`, `roles` and `permissions` on a
+channel, an action, the `events` of a model or one of its actions set who may use it (`roles` and `permissions` ignored
+on a public part). The anonymous clients use the public parts once `realtime.anonymousEnabled` is set:
 
 ```jsonc
-// appweaver.json
-{
-  "config": {
-    "realtime": {
-      "anonymousEnabled": true,
-      "maxAnonymousConnectionsPerIp": 5 // per instance, by the IP of server.trustProxy
-    }
-  }
-}
-```
-
-```dotenv
-# .env
-REALTIME_ANONYMOUS_ENABLED=true
-REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP=5
+// appweaver.json, or REALTIME_ANONYMOUS_ENABLED=true and REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP=5
+{ "config": { "realtime": { "anonymousEnabled": true, "maxAnonymousConnectionsPerIp": 5 } } }
 ```
 
 ```ts
-// src/realtime/index.ts: a public channel, i.e. the stock prices of a homepage
 export const stockPrice = createChannel({
   name: 'stock.price',
   public: true,
@@ -250,121 +117,84 @@ export const stockPrice = createChannel({
   params: Type.Object({ symbol: Type.Optional(Type.String()) }),
   deliver: (_, payload, params) => !params.symbol || params.symbol === payload.symbol
 });
-
-// A public action, called anonymously over the WebSocket or with POST /api/realtime/actions/page.view
-createRealtimeAction({
-  name: 'page.view',
-  public: true,
-  payload: Type.Object({ path: Type.String() }),
-  handler: async ({ path }, { user }) => views.record(path, user?.id ?? null)
-});
-
-// src/resources/product/routes.ts: the price updates of a product are public, its creation and deletion are not
-export default createRoutes({
-  modelName: 'product',
-  events: {
-    actions: ['create', { action: 'update', public: true }, 'delete'],
-    roles: ['staff']
-  }
-});
-
-// src/resources/product/policy.ts: the events still pass the policy, called with a null user
-export default createPolicy({
-  modelName: 'product',
-  events: (user, { current }) => current.published || (!!user && hasRole(user, 'admin'))
-});
 ```
 
-```ts
-// The client of a page without a login
-const client = createClient({ baseUrl: 'https://api.example.com', realtime: { anonymous: true } });
-client.realtime.subscribe('stock.price', ({ symbol, price }) => render(symbol, price), { symbol: 'AAPL' });
-client.realtime.on('Product', ({ current }) => refresh(current), { action: 'update' });
-client.realtime.emit('page.view', { path: location.pathname });
-```
+A public channel without `deliver` sends every payload to everyone. The HTTP actions route authenticates a request
+carrying credentials (an invalid one fails with `401`), and runs one without as anonymous.
 
-One client serves both: a client with `auth` connects as the user, who uses the public parts too. For a page the user
-logs in to later, `anonymous: 'auto'` asks for a ticket and connects anonymously when it is refused for want of
-credentials (`401`); `reconnect()` once logged in opens the connection of the user, with the subscriptions:
+## Connections
+
+A browser cannot send the `Authorization` header with an `EventSource` or a `WebSocket`, so the client asks for a ticket
+with its credentials, used once and valid `realtime.ticketTtl` milliseconds on every instance (kept in the `Memory`).
+
+| Route                                              | Description                                                                          |
+|----------------------------------------------------|--------------------------------------------------------------------------------------|
+| `POST <api>/realtime/ticket`                       | `{ ticket, expiresIn }`, any authentication                                          |
+| `GET <api>/realtime/ws?ticket=`                    | The WebSocket, described by the `x-appweaver-realtime` extension                     |
+| `GET <api>/realtime/events?ticket=&subscriptions=` | The SSE stream of the subscriptions of the query, a JSON array; a change reopens it  |
+| `POST <api>/realtime/actions/:name?ack=`           | Calls an action, answers `{ result }`, or 202 with `ack=false`                       |
+
+A connection without a ticket is anonymous, or refused (`REALTIME_TICKET_INVALID`). It closes with a `reauth` message
+and the code `4401` when the token of its ticket expires or after `realtime.connectionMaxAge`, and the client
+reconnects with a new ticket. A disabled transport (`realtime.sseEnabled`, `realtime.websocketEnabled`) answers its
+route with `404 REALTIME_TRANSPORT_DISABLED`, and is left out of the `transports` of the extension. Delivery is
+at-most-once: an event published while a client reconnects is lost.
+
+### Protocol
+
+Every message is a JSON object: a WebSocket text frame, or the `data` of an SSE event whose `id` is the `eventId`.
+
+| Client → server (WebSocket)                            | Answer                           |
+|--------------------------------------------------------|----------------------------------|
+| `{ type: 'subscribe', id, channel, params?, filter? }` | `{ type: 'subscribed', id }`     |
+| `{ type: 'unsubscribe', id }`                          | `{ type: 'unsubscribed', id }`   |
+| `{ type: 'action', id, action, payload }`              | `{ type: 'result', id, result }` |
+| `{ type: 'action', action, payload }`                  | nothing (fire-and-forget)        |
+| `{ type: 'ping', id? }`                                | `{ type: 'pong', id? }`          |
+
+The server sends `{ type: 'welcome', connectionId, expiresAt, heartbeat }` once open, `{ type: 'event', id, channel,
+eventId, data }` for the subscription `id` (chosen by the client, `[\w.:-]{1,64}`), `{ type: 'error', id?, error }` with
+the problem details of a failed message, and `{ type: 'reauth' }` before `4401`. The subscriptions change in the order
+of the messages; the actions run at once.
+
+| Close code | Meaning                                          |
+|------------|--------------------------------------------------|
+| `1001`     | The server shuts down                            |
+| `1008`     | A binary message                                 |
+| `4401`     | The authentication expired                       |
+| `4403`     | The ticket is missing or invalid                 |
+| `4408`     | The client reads too slowly                      |
+| `4429`     | Too many connections of the instance, user or IP |
+
+## Client
+
+The generated client has `client.realtime`, typed by the channels, resources and actions of the server:
 
 ```ts
 const client = createClient({
   baseUrl: 'https://api.example.com',
-  auth: { jwt: () => session.accessToken },   // nothing before the login
-  realtime: { anonymous: 'auto' }
+  auth: { jwt: () => session.accessToken },
+  realtime: { anonymous: 'auto' } // anonymous until the login
 });
-client.realtime.subscribe('stock.price', show);   // anonymous until the login
+
+client.realtime.subscribe('stock.price', show, { symbol: 'AAPL' });
+client.realtime.on('Product', ({ action, current }) => refresh(current), { action: 'update' });
+await client.realtime.send('chat.typing', { roomId: 1 });
+client.realtime.emit('cursor.move', { x: 10, y: 20 });
 
 await login();
-await client.realtime.reconnect();                // the connection of the user
-client.realtime.authenticated;                    // true
-client.realtime.subscribe('portfolio.updated', refreshPortfolio); // a private channel
+await client.realtime.reconnect(); // the connection of the user, with the subscriptions
 ```
 
-A subscription refused while anonymous is not renewed by `reconnect()`: subscribe to the private channels once logged
-in.
+See [client.md](./client.md#realtime-client) for the methods and the options.
 
-A public channel without a `deliver` sends every payload to everyone, so publish nothing private on it. The resource
-events of a public model go through the `events` callback of its policy, else its `checkAccess` and
-`readRestrictions`, with a `null` user. An HTTP call with invalid credentials fails with `401` instead of running
-anonymously.
+## Config, errors, telemetry, testing
 
-## Client
-
-The client generated by `weaver-client generate` has a `realtime` module, typed by the `RealtimeModuleType` generated
-from the `x-appweaver-realtime` extension of the OpenAPI document:
-
-```ts
-const client = createClient({
-  baseUrl: 'http://localhost:5000',
-  auth: { jwt: () => tokens.accessToken },
-  realtime: { transport: 'auto', reconnect: true }
-});
-
-const subscription = client.realtime.subscribe('order.shipped', (payload, meta) => show(payload), { orderId: 7 });
-await subscription.ready; // rejects with the ClientError of a refused subscription
-subscription.unsubscribe();
-
-client.realtime.on('Order', (event) => update(event.current), { action: 'update', filter: { status: 'open' } });
-
-const { seen } = await client.realtime.send('chat.typing', { roomId: 1 }); // waits for the result
-client.realtime.emit('cursor.move', { x: 10, y: 20 });                       // fire-and-forget
-
-client.realtime.onStateChange((state) => console.log(state)); // idle, connecting, open, reconnecting
-client.realtime.onError((error) => console.error(error.code));
-client.realtime.observe('order.shipped').subscribe({ next: show }); // from(...) of RxJS in Angular
-```
-
-See [client.md](./client.md#realtime-client) for the options.
-
-## Config
-
-`realtime.*` (`REALTIME_*`) and `pubsub.*` (`PUBSUB_*`), see [configuration.md](./configuration.md#realtime-realtime_).
-
-## Errors
-
-| Code                           | Status | When                                                         |
-|--------------------------------|--------|--------------------------------------------------------------|
-| `REALTIME_TICKET_INVALID`      | 401    | A missing, expired or used ticket                            |
-| `REALTIME_CHANNEL_UNKNOWN`     | 404    | No such channel, or a model not exposing the action          |
-| `REALTIME_SUBSCRIPTION_DENIED` | 403    | The access of the channel or its `subscribe` denies the user |
-| `REALTIME_SUBSCRIPTION_LIMIT`  | 429    | `REALTIME_MAX_SUBSCRIPTIONS` reached                         |
-| `REALTIME_ACTION_UNKNOWN`      | 404    | No such action                                               |
-| `REALTIME_ACTION_DENIED`       | 403    | The access of the action denies the user                     |
-| `REALTIME_PAYLOAD_INVALID`     | 400    | A payload or params not matching the schema                  |
-| `REALTIME_MESSAGE_INVALID`     | 400    | A message breaking the protocol                              |
-| `REALTIME_CONNECTION_LIMIT`    | 429    | `REALTIME_MAX_CONNECTIONS`, `_PER_USER` or `REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP` reached |
-| `REALTIME_RATE_LIMITED`        | 429    | More than `REALTIME_MESSAGE_RATE_LIMIT` messages a second    |
-| `REALTIME_TRANSPORT_DISABLED`  | 404    | The route of a disabled transport                            |
-
-## Telemetry
-
-With `telemetry.instrumentations.realtime`: the span `realtime action <name>` of every action, and the metrics
-`appweaver.realtime.connections` (open connections by transport), `appweaver.realtime.events` (by channel and outcome:
-`delivered`, `denied`, `dropped`) and `appweaver.realtime.messages` (client actions, by ack).
-
-## Testing
-
-An end-to-end test starts the application and connects with the global `WebSocket` and `fetch` of Node (or the
-generated client), after a `POST <api>/realtime/ticket`. A unit test defines `MemoryPubSub` of `@appweaver/core/drivers`
-for the `PubSub` of a channel. Test a `PubSub` driver with `testPubSubContract` of `@appweaver/testing`.
+- Config: `realtime.*` (`REALTIME_*`) and `pubsub.*` (`PUBSUB_*`), see
+  [configuration.md](./configuration.md#realtime-realtime_).
+- Errors: the `REALTIME_*` codes of [errors.md](./errors.md#error-codes).
+- Telemetry (`telemetry.instrumentations.realtime`): the span `realtime action <name>`, the metrics
+  `appweaver.realtime.connections`, `appweaver.realtime.events` (`delivered`, `denied`, `dropped`) and
+  `appweaver.realtime.messages`.
+- Testing: connect with the global `WebSocket` and `fetch` of Node after a `POST <api>/realtime/ticket`, define
+  `MemoryPubSub` of `@appweaver/core/drivers` in a unit test, and test a `PubSub` driver with `testPubSubContract`.

@@ -1,16 +1,12 @@
 import { Static, TSchema } from '@sinclair/typebox';
-import { AuthUser, ProblemDetails } from '@appweaver/common';
+import {
+  AuthUser,
+  ProblemDetails,
+  RealtimeAccess,
+  ResourceEvent
+} from '@appweaver/common';
 
-/** Who may subscribe to a channel or call an action. */
-export type RealtimeAccess = {
-  /** Allow the anonymous connections. If any of the `roles` or `permissions` properties are set, they will be
-   * ignored. */
-  public?: boolean;
-  /** Roles required, any of them */
-  roles?: string[];
-  /** Permissions required, any of them */
-  permissions?: string[];
-};
+export type { RealtimeAccess };
 
 /** The config of a channel of {@link createChannel}. */
 export type ChannelConfig<
@@ -141,15 +137,9 @@ export type RealtimeServerMessage =
   | { type: 'reauth' };
 
 /** The data of the event of a `resource:` channel. */
-export type ResourceEventMessage<T = unknown> = {
+export type ResourceEventMessage<T = unknown> = ResourceEvent<T> & {
   /** The name of the model */
   model: string;
-  /** The action changing the resource */
-  action: 'create' | 'update' | 'delete';
-  /** The resource after the action, the deleted resource for a delete */
-  current: T;
-  /** The resource before an update */
-  previous?: T;
 };
 
 /** The close codes of a WebSocket connection. */

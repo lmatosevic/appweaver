@@ -1,10 +1,10 @@
+import { RealtimeAccess } from '@appweaver/common';
 import { TSchema } from '@sinclair/typebox';
 import { serverConfig } from '@appweaver/web/config';
 import { context } from '@appweaver/core/internal';
 import { realtimeActions } from '../action';
 import { realtimeChannels, RESOURCE_CHANNEL_PREFIX } from '../channel';
 import { realtimeConfig } from '../config';
-import { RealtimeAccess } from '../types';
 import { resourceEventActions } from '../utils/resource-events';
 
 /** The `x-appweaver-realtime` extension of the OpenAPI document, typing the realtime client the client generates. */

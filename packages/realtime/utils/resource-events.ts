@@ -1,8 +1,8 @@
-import { ResourceEventsConfig } from '@appweaver/common';
-import { RealtimeAccess } from '../types';
-
-/** An action of the resource events of a model. */
-export type ResourceEventAction = 'create' | 'update' | 'delete';
+import {
+  RealtimeAccess,
+  ResourceEventAction,
+  ResourceEventsConfig
+} from '@appweaver/common';
 
 /**
  * Reads the exposed actions of the resource events of a model, each with its access: the `public`, `roles` and

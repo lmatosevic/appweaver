@@ -1,16 +1,9 @@
 import { TSchema } from '@sinclair/typebox';
-import {
-  ConfigurationError,
-  createLogger,
-  ErrorCode,
-  PubSub,
-  uuid
-} from '@appweaver/common';
-import { define, inject, injectAll } from '@appweaver/core';
+import { PubSub, uuid } from '@appweaver/common';
+import { inject } from '@appweaver/core';
 import { Channel, ChannelConfig } from './types';
+import { createRegistry } from './utils/registry';
 import { validatePayload } from './utils/validate';
-
-const logger = createLogger('realtime');
 
 /** The key of the channels in the application context. */
 export const REALTIME_CHANNEL = Symbol.for('appweaver.RealtimeChannel');
@@ -24,7 +17,9 @@ export const PUBSUB_CHANNEL_PREFIX = 'realtime:';
 /** A message of a channel, as it is published to the pub/sub. */
 export type ChannelMessage = { eventId: string; payload: unknown };
 
-const NAME_PATTERN = /^[a-zA-Z0-9][\w.:-]{0,127}$/;
+const channels = createRegistry<Channel>(REALTIME_CHANNEL, 'channel', (name) =>
+  name.startsWith(RESOURCE_CHANNEL_PREFIX)
+);
 
 /**
  * Creates a channel, publishing its payloads to the realtime connections subscribed to it on every instance. The
@@ -48,22 +43,6 @@ const NAME_PATTERN = /^[a-zA-Z0-9][\w.:-]{0,127}$/;
 export function createChannel<P extends TSchema, Q extends TSchema = TSchema>(
   config: ChannelConfig<P, Q>
 ): Channel<P, Q> {
-  if (
-    !NAME_PATTERN.test(config.name) ||
-    config.name.startsWith(RESOURCE_CHANNEL_PREFIX)
-  ) {
-    throw new ConfigurationError(
-      ErrorCode.ConfigurationInvalid,
-      `Invalid realtime channel name '${config.name}'`
-    );
-  }
-  if (findChannel(config.name)) {
-    throw new ConfigurationError(
-      ErrorCode.ConfigurationInvalid,
-      `Realtime channel '${config.name}' is already defined`
-    );
-  }
-
   const channel: Channel<P, Q> = {
     name: config.name,
     config,
@@ -77,11 +56,7 @@ export function createChannel<P extends TSchema, Q extends TSchema = TSchema>(
     }
   };
 
-  // Wrapped in an object, since the context would instantiate a function
-  define({ channel }, REALTIME_CHANNEL, 'append');
-  logger.debug({ channel: config.name }, 'Created realtime channel');
-
-  return channel;
+  return channels.add(channel) as Channel<P, Q>;
 }
 
 /**
@@ -90,9 +65,7 @@ export function createChannel<P extends TSchema, Q extends TSchema = TSchema>(
  * @return {Channel[]} The channels.
  */
 export function realtimeChannels(): Channel[] {
-  return injectAll<{ channel: Channel }>(REALTIME_CHANNEL).map(
-    (entry) => entry.channel
-  );
+  return channels.all();
 }
 
 /**
@@ -102,5 +75,5 @@ export function realtimeChannels(): Channel[] {
  * @return {Channel | undefined} The channel, or `undefined` when none has the name.
  */
 export function findChannel(name: string): Channel | undefined {
-  return realtimeChannels().find((channel) => channel.name === name);
+  return channels.find(name);
 }

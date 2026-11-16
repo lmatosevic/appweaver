@@ -1,6 +1,5 @@
-import { AuthUser } from '@appweaver/common';
+import { AuthUser, RealtimeAccess } from '@appweaver/common';
 import { hasPermissions, hasRoles } from '@appweaver/data';
-import { RealtimeAccess } from '../types';
 
 /**
  * Checks whether a user may subscribe to a channel or call an action: any user of a public one, and an authenticated
