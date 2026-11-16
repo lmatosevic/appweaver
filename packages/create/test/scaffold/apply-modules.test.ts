@@ -14,6 +14,29 @@ import {
   Runtime
 } from '../../scaffold/types';
 
+// The edits of docker-compose.yml are pure, and parsing the YAML takes most of the time of the thousands of projects
+// the tests create, so each one runs once per input (compose-util.test.ts tests them)
+jest.mock('../../scaffold/compose-util', () =>
+  Object.fromEntries(
+    Object.entries(jest.requireActual('../../scaffold/compose-util')).map(
+      ([name, edit]) => {
+        const results = new Map<string, unknown>();
+        const memoized = (...args: unknown[]) => {
+          const key = JSON.stringify(args);
+          if (!results.has(key)) {
+            results.set(
+              key,
+              (edit as (...args: unknown[]) => unknown)(...args)
+            );
+          }
+          return results.get(key);
+        };
+        return [name, typeof edit === 'function' ? memoized : edit];
+      }
+    )
+  )
+);
+
 /**
  * The files of a project kept in memory only, like the staged changes of a project without any file on disk, so the
  * hundreds of projects the tests create never touch the disk. A commit leaves the files in place.
@@ -21,7 +44,7 @@ import {
 class MemoryFiles extends ProjectFiles {
   constructor(
     dir: string,
-    private readonly contents = new Map<string, string | Buffer>()
+    private readonly contents = new Map<string, string>()
   ) {
     super(dir);
   }
@@ -31,11 +54,12 @@ class MemoryFiles extends ProjectFiles {
   }
 
   public override read(file: string): string | undefined {
-    return this.contents.get(normalize(file))?.toString();
+    return this.contents.get(normalize(file));
   }
 
+  /** Kept as text, which every read returns, instead of decoding a buffer on every read. */
   public override write(file: string, content: string | Buffer): void {
-    this.contents.set(normalize(file), content);
+    this.contents.set(normalize(file), content.toString());
   }
 
   public override remove(file: string): void {
@@ -157,14 +181,23 @@ describe('apply-modules', () => {
     }
   };
 
+  /** The parsed JSON files by their content, since most projects share them. Never mutated by the tests. */
+  const parsedJson = new Map<string, unknown>();
+
   /** Reads every file of a project, parsing the JSON files so their key order does not matter. */
   const snapshot = (project: Project): Record<string, unknown> => {
     const files =
       typeof project === 'string' ? new ProjectFiles(project) : project;
+    const parse = (content: string) => {
+      if (!parsedJson.has(content)) {
+        parsedJson.set(content, JSON.parse(content));
+      }
+      return parsedJson.get(content);
+    };
     return Object.fromEntries(
       files.list('').map((file) => {
         const content = files.read(file)!;
-        return [file, file.endsWith('.json') ? JSON.parse(content) : content];
+        return [file, file.endsWith('.json') ? parse(content) : content];
       })
     );
   };

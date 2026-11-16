@@ -96,5 +96,10 @@ function databaseName(url: string): string | undefined {
       return undefined;
     }
   }
-  return path.normalize(url.replace(/^file:/, '').split('?')[0]);
+  // With forward slashes on every platform, so a Windows path compares and reads the same
+  const file = url
+    .replace(/^file:/, '')
+    .split('?')[0]
+    .replace(/\\/g, '/');
+  return path.posix.normalize(file);
 }
