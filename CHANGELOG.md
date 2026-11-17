@@ -1,3 +1,20 @@
+## [2.6.0](https://github.com/lmatosevic/appweaver/compare/v2.5.0...v2.6.0) (2026-11-17)
+
+### Features
+
+* add geo fields and spatial queries ([6800299](https://github.com/lmatosevic/appweaver/commit/68002998eb4e2d4ac6eead10aea1c97c2188a1b1))
+* add OpenTelemetry support for traces, metrics and logs ([a6bd1a9](https://github.com/lmatosevic/appweaver/commit/a6bd1a93d87cca742c67b7f9638660c0b5237f3a))
+* add the realtime module with WebSocket and SSE subscriptions ([7f5b280](https://github.com/lmatosevic/appweaver/commit/7f5b280e1e82b7724af2154f1d3a7afbb10df3b1))
+* migration check, migrate and seed dry runs, and SMS driver template ([7639730](https://github.com/lmatosevic/appweaver/commit/7639730fdd87fed69f8473124fd6dd25ca77d426))
+* run the migrations with a separate database URL ([f0cbb0c](https://github.com/lmatosevic/appweaver/commit/f0cbb0c2f24d34c85c17232324c00d0a3d837575))
+
+### Bug Fixes
+
+* compare the SQLite paths of the migration URL with forward slashes ([09563ba](https://github.com/lmatosevic/appweaver/commit/09563ba80514ca1dc95e84f246bd1eaa7915ad63))
+* ensure timescaledb extension is created under a lock ([70e57b3](https://github.com/lmatosevic/appweaver/commit/70e57b3af5ac8c4b3db231f915f9a2e87bb306d2))
+* run the e2e test files one at a time ([bd09f52](https://github.com/lmatosevic/appweaver/commit/bd09f52224fed6549bbaa5b6903fff78ed7dc849))
+* update nodemailer version to mitigate CVE ([b98d3e8](https://github.com/lmatosevic/appweaver/commit/b98d3e87ad9829582ec4734f453d08a5c2436c8a))
+
 ## [2.5.0](https://github.com/lmatosevic/appweaver/compare/v2.4.1...v2.5.0) (2026-11-08)
 
 ### Features
