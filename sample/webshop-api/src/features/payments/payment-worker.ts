@@ -1,7 +1,6 @@
 import { CacheService, inject } from '@appweaver/core';
 import { createLogger, Events, Queue } from '@appweaver/common';
 import db from '@db/client';
-import { Order } from '@/types';
 import { sendOrderEmail } from '@/features/orders/order-emails';
 import { releaseOrder } from '@/features/orders/order-release';
 import { charge } from './payment-gateway';

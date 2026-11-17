@@ -1,7 +1,6 @@
 import { CacheService, inject } from '@appweaver/core';
 import { createLogger, Events } from '@appweaver/common';
 import db from '@db/client';
-import { Ticket } from '@/types';
 import { Role } from '@/features/access/roles';
 
 const logger = createLogger('assignment');

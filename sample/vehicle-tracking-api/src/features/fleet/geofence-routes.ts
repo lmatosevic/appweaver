@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { ErrorCode, GeoPolygon } from '@appweaver/common';
+import { ErrorCode } from '@appweaver/common';
 import { injectService } from '@appweaver/core';
 import { errorResponses, registerRoute } from '@appweaver/web';
 import { Role } from '@/features/access/roles';

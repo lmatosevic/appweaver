@@ -1,6 +1,5 @@
 import { EmailService, inject } from '@appweaver/core';
 import { createLogger, Events } from '@appweaver/common';
-import { Employee } from '@/types';
 import { openNewHireBalance } from '@/features/leave/leave-accrual';
 
 const logger = createLogger('onboarding');
