@@ -532,6 +532,9 @@
                 "queue": {
                   "$ref": "#/definitions/logLevel"
                 },
+                "realtime": {
+                  "$ref": "#/definitions/logLevel"
+                },
                 "resource": {
                   "$ref": "#/definitions/logLevel"
                 },
@@ -719,6 +722,79 @@
             "secureSkipOnError": {
               "default": false,
               "type": "boolean"
+            }
+          }
+        },
+        "realtime": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "routePrefix": {
+              "default": "/realtime",
+              "type": "string"
+            },
+            "sseEnabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "websocketEnabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "anonymousEnabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "ticketTtl": {
+              "default": 30000,
+              "minimum": 1000,
+              "type": "integer"
+            },
+            "heartbeatInterval": {
+              "default": 25000,
+              "minimum": 1000,
+              "type": "integer"
+            },
+            "connectionMaxAge": {
+              "default": 3600000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxConnections": {
+              "default": 10000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxConnectionsPerUser": {
+              "default": 10,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxAnonymousConnectionsPerIp": {
+              "default": 10,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxSubscriptions": {
+              "default": 50,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxMessageSize": {
+              "default": "64KB",
+              "type": "string"
+            },
+            "sendBufferLimit": {
+              "default": "1MB",
+              "type": "string"
+            },
+            "messageRateLimit": {
+              "default": 20,
+              "minimum": 0,
+              "type": "integer"
             }
           }
         },

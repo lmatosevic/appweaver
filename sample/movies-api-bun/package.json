@@ -18,7 +18,8 @@
     "lint": "eslint \"./**/*.ts\"",
     "openapi": "weaver openapi --output-path ./client/openapi.json",
     "client:generate": "weaver-client generate ./client/openapi.json --output-path ./client/generated/movies-client.ts --client-name MoviesClient",
-    "client:example": "bun run ./client/example.ts"
+    "client:example": "bun run ./client/example.ts",
+    "client:realtime": "bun run ./client/realtime-example.ts"
   },
   "dependencies": {
     "@appweaver/cli": "^2.6.0",
@@ -28,6 +29,7 @@
     "@appweaver/cron": "^2.6.0",
     "@appweaver/data": "^2.6.0",
     "@appweaver/handlebars": "^2.6.0",
+    "@appweaver/realtime": "^2.6.0",
     "@appweaver/sharp": "^2.6.0",
     "@appweaver/web": "^2.6.0",
     "@prisma/adapter-libsql": "7.9.1",

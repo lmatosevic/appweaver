@@ -24,5 +24,10 @@ export default createRoutes({
   },
   export: {
     roles: catalogEditors
+  },
+  // A live feed of the new reviews, public like the reviews themselves
+  events: {
+    actions: ['create'],
+    public: true
   }
 });
