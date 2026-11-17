@@ -526,6 +526,9 @@
                 "mailer": {
                   "$ref": "#/definitions/logLevel"
                 },
+                "pubsub": {
+                  "$ref": "#/definitions/logLevel"
+                },
                 "queue": {
                   "$ref": "#/definitions/logLevel"
                 },
@@ -618,6 +621,15 @@
               "type": "string"
             },
             "maxSize": {
+              "type": "string"
+            }
+          }
+        },
+        "pubsub": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "default": "auto",
               "type": "string"
             }
           }
@@ -1692,6 +1704,10 @@
                   "type": "boolean"
                 },
                 "task": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "realtime": {
                   "default": true,
                   "type": "boolean"
                 }

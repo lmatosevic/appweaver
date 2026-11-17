@@ -529,6 +529,9 @@
                 "memory": {
                   "$ref": "#/definitions/logLevel"
                 },
+                "pubsub": {
+                  "$ref": "#/definitions/logLevel"
+                },
                 "queue": {
                   "$ref": "#/definitions/logLevel"
                 },
@@ -670,6 +673,24 @@
                   "default": 10000,
                   "minimum": 0,
                   "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "pubsub": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "default": "auto",
+              "type": "string"
+            },
+            "redis": {
+              "type": "object",
+              "properties": {
+                "channelPrefix": {
+                  "default": "appweaver:",
+                  "type": "string"
                 }
               }
             }
@@ -1803,6 +1824,10 @@
                   "type": "boolean"
                 },
                 "task": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "realtime": {
                   "default": true,
                   "type": "boolean"
                 },

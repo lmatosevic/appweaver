@@ -1,4 +1,5 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { packagesDir, distDir } = require('./constants');
@@ -192,9 +193,7 @@ function neededReleases(pkgJson, releases) {
       continue;
     }
     needed.set(name, dev);
-    for (const dependency of Object.keys(
-      release.manifest.dependencies ?? {}
-    )) {
+    for (const dependency of Object.keys(release.manifest.dependencies ?? {})) {
       pending.push([dependency, dev]);
     }
   }
@@ -239,7 +238,11 @@ function pinPackageLock(content, releases, needed) {
 
   for (const [name, dev] of needed) {
     if (!lock.packages[`node_modules/${name}`]) {
-      pin(`node_modules/${name}`, { dev: dev || undefined }, releases.get(name));
+      pin(
+        `node_modules/${name}`,
+        { dev: dev || undefined },
+        releases.get(name)
+      );
     }
   }
 
@@ -284,11 +287,71 @@ function pinBunLock(content, releases, needed, pkgJson) {
   const missing = [...needed.keys()].filter(
     (name) => !pinned.includes(`"${name}": [`)
   );
+  const lines = [
+    ...missing.map((name) => `"${name}": ${entry(name)},`),
+    ...lockDependencies(pinned, releases, needed)
+  ];
   return withWorkspaceReleases(pinned, releases, pkgJson).replace(
     /^(\s*)"packages": \{\n/m,
     (section, indent) =>
-      section +
-      missing.map((name) => `${indent}  "${name}": ${entry(name)},\n`).join('')
+      section + lines.map((line) => `${indent}  ${line}\n`).join('')
+  );
+}
+
+/**
+ * Locks the dependencies a release adds that the bun.lock lacks, which bun
+ * would otherwise reject the whole lockfile for. They are published, so bun
+ * resolves them in a temporary project, whose entries are returned as lines
+ * of the "packages" section. An entry the lockfile has at another version is
+ * left for bun to resolve again.
+ */
+function lockDependencies(content, releases, needed) {
+  const locked = new Set(bunLockEntries(content).map(([key]) => key));
+  const dependencies = {};
+  for (const name of needed.keys()) {
+    const { manifest } = releases.get(name);
+    for (const [dependency, range] of Object.entries({
+      ...manifest.dependencies,
+      ...manifest.optionalDependencies
+    })) {
+      if (!releases.has(dependency) && !locked.has(dependency)) {
+        dependencies[dependency] = range;
+      }
+    }
+  }
+  if (Object.keys(dependencies).length === 0) {
+    return [];
+  }
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lock-samples-'));
+  try {
+    fs.writeFileSync(
+      path.join(tempDir, 'package.json'),
+      JSON.stringify({ name: 'lock-samples', private: true, dependencies })
+    );
+    console.log(
+      `Locking the new dependencies ${Object.keys(dependencies).join(', ')}...`
+    );
+    run('bun', ['install', '--lockfile-only'], tempDir);
+
+    return bunLockEntries(
+      fs.readFileSync(path.join(tempDir, 'bun.lock'), 'utf8')
+    )
+      .filter(([key]) => !locked.has(key))
+      .map(([, line]) => line);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Lists the entries of the "packages" section of a bun.lock, each a key and
+ * its line without the indentation.
+ */
+function bunLockEntries(content) {
+  const section = content.slice(content.indexOf('"packages": {'));
+  return [...section.matchAll(/^\s*("([^"]+)": \[.*\],?)$/gm)].map(
+    ([, line, key]) => [key, line.endsWith(',') ? line : `${line},`]
   );
 }
 
@@ -312,13 +375,20 @@ function withWorkspaceReleases(content, releases, pkgJson) {
         const lines = body
           .split('\n')
           .filter((line) => line.trim() !== '')
-          .filter((line) => !ranges.some(([name]) => line.includes(`"${name}":`)));
+          .filter(
+            (line) => !ranges.some(([name]) => line.includes(`"${name}":`))
+          );
         lines.push(
           ...ranges.map(
-            ([name, range]) => `${indent}  ${JSON.stringify(name)}: ${JSON.stringify(range)},`
+            ([name, range]) =>
+              `${indent}  ${JSON.stringify(name)}: ${JSON.stringify(range)},`
           )
         );
-        lines.sort((a, b) => a.trim().localeCompare(b.trim()));
+        // Sorted by name like bun, which a locale comparison is not
+        const name = (line) => JSON.parse(line.trim().split(/":\s/)[0] + '"');
+        lines.sort((a, b) =>
+          name(a) < name(b) ? -1 : name(a) > name(b) ? 1 : 0
+        );
         return `${indent}"${field}": {\n${lines.join('\n')}\n${indent}},`;
       }
     );
