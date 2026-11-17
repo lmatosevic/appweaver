@@ -1,21 +1,20 @@
 import { TSchema } from '@sinclair/typebox';
 import { isArray, isPlainObject } from '@appweaver/common';
 import { injectModel } from '@appweaver/core';
-import { projectVirtualFields } from '@appweaver/data';
 
 const MAX_DEPTH = 8;
 
 /**
- * Projects a record of a resource event onto the response schema of its model, as its `find` route responds with
- * it: with its virtual fields, and without its hidden fields or any field the schema does not declare, relations
- * included.
+ * Projects a record of a resource event, the record the resource service returns (its virtual fields and relation
+ * counts set, its soft deleted relations hidden), onto the response schema of its model, as its `find` route
+ * responds with it: without its hidden fields or any field the schema does not declare, relations included.
  *
  * @param {string} modelName - The name of the model of the record.
  * @param {Object} record - The record, as the resource service returned it.
  * @return {Object} The projected record.
  */
 export function projectRecord(modelName: string, record: unknown): unknown {
-  return project(modelName, projectVirtualFields(record, modelName), 0);
+  return project(modelName, record, 0);
 }
 
 function project(modelName: string, record: unknown, depth: number): unknown {

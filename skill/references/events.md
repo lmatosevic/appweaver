@@ -29,10 +29,15 @@ Registers a listener for a specific resource and action. Returns a listener ID t
 
 ```ts
 type EventData<T> = {
-  previous?: T; // present on 'update' and 'delete'
-  current: T;
+  previous?: T; // present on 'update'
+  current: T;   // an array of resources on 'query'
 };
 ```
+
+The resources are the ones the service returns, the same objects: their virtual fields set (computed once, so a
+non-deterministic one has the same value in the event and in the API response), their relation counts set (`postsCount`
+instead of `_count`), and their soft deleted relations hidden. They still hold the hidden fields (i.e. `passwordHash`),
+which only the response serialization leaves out. Read them, never change them: a change would reach the response.
 
 ```ts
 const listenerId = events.onResourceEvent<Product>('Product', 'create', ({ current }) => {

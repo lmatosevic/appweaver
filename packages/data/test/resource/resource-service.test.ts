@@ -217,16 +217,17 @@ describe('resource-service', () => {
       });
     });
 
-    test('emits a find resource event', async () => {
+    test('emits a find resource event with the resource it returns', async () => {
       const handler = jest.fn();
       events.onResourceEvent('Post', 'find', handler);
       db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
 
-      await service.find(1);
+      const post = await service.find(1);
 
-      expect(handler).toHaveBeenCalledWith(
-        expect.objectContaining({ current: { id: 1, title: 'First' } })
-      );
+      expect(handler).toHaveBeenCalledWith({
+        current: { id: 1, title: 'First', excerpt: 'First...' }
+      });
+      expect(handler.mock.calls[0][0].current).toBe(post);
     });
   });
 
@@ -2441,6 +2442,59 @@ describe('resource-service', () => {
       await expect(
         service.aggregate({ select: { views: { sum: true } } as any })
       ).rejects.toBeInstanceOf(DatabaseError);
+    });
+  });
+
+  describe('resource events', () => {
+    const listen = (action: 'create' | 'update' | 'delete' | 'query') => {
+      const handler = jest.fn();
+      events.onResourceEvent('Post', action, handler);
+      return handler;
+    };
+
+    test('emits the resource a create returns', async () => {
+      db.setResult('Post', 'create', (args: any) => ({ id: 1, ...args.data }));
+      const handler = listen('create');
+
+      const post = await service.create({ title: 'First' });
+
+      expect(handler.mock.calls[0][0].current).toBe(post);
+      expect(post).toMatchObject({ excerpt: 'First...' });
+    });
+
+    test('emits the previous and current resources an update returns', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First', tags: [] });
+      db.setResult('Post', 'update', (args: any) => ({ id: 1, ...args.data }));
+      const handler = listen('update');
+
+      const post = await service.update(1, { title: 'Updated' });
+
+      const { previous, current } = handler.mock.calls[0][0];
+      expect(current).toBe(post);
+      expect(previous).toMatchObject({ title: 'First', excerpt: 'First...' });
+    });
+
+    test('emits the resource a delete returns', async () => {
+      db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+      db.setResult('Post', 'delete', { id: 1, title: 'First' });
+      const handler = listen('delete');
+
+      const post = await service.delete(1);
+
+      expect(handler.mock.calls[0][0].current).toBe(post);
+    });
+
+    test('emits the resources a query returns', async () => {
+      db.setResult('Post', 'findMany', [
+        { id: 1, title: 'First', _count: { tags: 3 } }
+      ]);
+      db.setResult('Post', 'count', 1);
+      const handler = listen('query');
+
+      const { items } = await service.query();
+
+      expect(handler.mock.calls[0][0].current).toBe(items);
+      expect(items[0]).not.toHaveProperty('_count');
     });
   });
 });

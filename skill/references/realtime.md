@@ -54,9 +54,9 @@ createRoutes({
 ```
 
 The model exposes `resource:Product` (every action the user has the access of, refused when none) and
-`resource:Product.<action>`. The event data is `{ model, action, current, previous? }`, the records projected onto the
-`find` response schema: the virtual fields added, the hidden fields and anything undeclared left out, relations
-included. A subscription `filter` in the query filter syntax of the routes (`{ status: 'open', total: { _gt: 100 } }`)
+`resource:Product.<action>`. The event data is `{ model, action, current, previous? }`, the records the service
+returned to the request (the same virtual field values, relation counts and hidden soft deleted relations), without
+the hidden fields or anything the `find` response schema does not declare, relations included. A subscription `filter` in the query filter syntax of the routes (`{ status: 'open', total: { _gt: 100 } }`)
 is matched against the scalar fields of `current`; a relation filter matches nothing.
 
 ### The `events` policy

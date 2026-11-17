@@ -180,11 +180,12 @@ export abstract class ResourceService<
       );
     }
 
+    const projected = this.projectResource(resource);
     this._events.emitResourceEvent(this._client.name, 'find', {
-      current: resource
+      current: projected
     });
 
-    return this.projectResource(resource);
+    return projected;
   }
 
   /**
@@ -301,15 +302,16 @@ export abstract class ResourceService<
     const hasPrev = backward ? hasMore : !!decodedCursor || page > 1;
 
     setDistances(resources, distances);
+    const items = resources.map((resource) => this.projectResource(resource));
     this._events.emitResourceEvent(this._client.name, 'query', {
-      current: resources
+      current: items
     });
 
     return {
       resultCount: resources.length,
       totalCount: count ?? null,
       ...pageCursors(resources, fingerprint, hasNext, hasPrev),
-      items: resources.map((resource) => this.projectResource(resource))
+      items
     };
   }
 
@@ -378,11 +380,12 @@ export abstract class ResourceService<
       );
     }
 
+    const projected = this.projectResource(resource);
     this._events.emitResourceEvent(this._client.name, 'find', {
-      current: resource
+      current: projected
     });
 
-    return this.projectResource(resource);
+    return projected;
   }
 
   /**
@@ -617,8 +620,9 @@ export abstract class ResourceService<
 
     await this._cacheService.invalidateCache(this._client.name, 'create');
 
+    const projected = this.projectResource(resource);
     this._events.emitResourceEvent(this._client.name, 'create', {
-      current: resource
+      current: projected
     });
 
     logger.debug(
@@ -626,7 +630,7 @@ export abstract class ResourceService<
       'Resource created'
     );
 
-    return this.projectResource(resource);
+    return projected;
   }
 
   /**
@@ -777,8 +781,9 @@ export abstract class ResourceService<
 
     await this.cleanupDeletedRecords(deleted);
 
+    const projected = this.projectResource(resource);
     this._events.emitResourceEvent(this._client.name, 'delete', {
-      current: resource
+      current: projected
     });
 
     logger.debug(
@@ -786,7 +791,7 @@ export abstract class ResourceService<
       'Resource deleted'
     );
 
-    return this.projectResource(resource);
+    return projected;
   }
 
   /**
@@ -998,17 +1003,15 @@ export abstract class ResourceService<
     await this._cacheService.invalidateCache(this._client.name, 'update');
     await this.cleanupDeletedRecords(orphans);
 
-    this._events.emitResourceEvent(this._client.name, 'update', {
-      previous: updateResource,
-      current: resource
-    });
-
-    logger.debug({ model: this._client.name, id }, 'Resource updated');
-
-    return {
+    const projected = {
       previous: this.projectResource(updateResource),
       current: this.projectResource(resource)
     };
+    this._events.emitResourceEvent(this._client.name, 'update', projected);
+
+    logger.debug({ model: this._client.name, id }, 'Resource updated');
+
+    return projected;
   }
 
   /**
@@ -1412,15 +1415,16 @@ export abstract class ResourceService<
     const hasPrev = start > 0;
 
     setDistances(resources, distances);
+    const items = resources.map((resource) => this.projectResource(resource));
     this._events.emitResourceEvent(this._client.name, 'query', {
-      current: resources
+      current: items
     });
 
     return {
       resultCount: resources.length,
       totalCount: totalCount ? ids.length : null,
       ...pageCursors(resources, fingerprint, hasNext, hasPrev),
-      items: resources.map((resource) => this.projectResource(resource))
+      items
     };
   }
 

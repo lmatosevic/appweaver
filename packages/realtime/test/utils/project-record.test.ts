@@ -35,6 +35,7 @@ describe('project-record', () => {
         projectRecord('Post', {
           id: 1,
           title: 'Hello',
+          slug: 'hello',
           internal: true,
           author: { id: 2, email: 'a@test.com', passwordHash: 'x' },
           editors: [{ id: 3, email: 'e@test.com', passwordHash: 'y' }]
@@ -48,10 +49,16 @@ describe('project-record', () => {
       });
     });
 
+    test('keeps the virtual fields the service set', () => {
+      expect(
+        projectRecord('Post', { id: 1, title: 'Hello', slug: 'random-42' })
+      ).toEqual({ id: 1, title: 'Hello', slug: 'random-42' });
+    });
+
     test('keeps a null relation', () => {
       expect(
         projectRecord('Post', { id: 1, title: 'A', author: null })
-      ).toEqual({ id: 1, title: 'A', slug: 'a', author: null });
+      ).toEqual({ id: 1, title: 'A', author: null });
     });
 
     test('leaves out the record of an unknown model', () => {
