@@ -843,7 +843,10 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       return;
     }
 
-    const publish = (user: AuthUser, change: UserMessage['change']) =>
+    const publish = (
+      user: Pick<AuthUser, 'id'>,
+      change: UserMessage['change']
+    ) =>
       this.publishUser({ userId: String(user.id), change }).catch((e) =>
         logger.error(e, 'Realtime user change publish failed')
       );
@@ -1005,7 +1008,10 @@ export class RealtimeGateway implements OnReady, OnDestroy {
 }
 
 /** Whether an update of a user ends the access of their connections: a logout or a disabling. */
-function endsAccess(previous: AuthUser, current: AuthUser): boolean {
+function endsAccess(
+  previous: Pick<AuthUser, 'enabled' | 'logoutAt'>,
+  current: Pick<AuthUser, 'enabled' | 'logoutAt'>
+): boolean {
   const time = (date?: Date | string | null) =>
     date ? new Date(date).getTime() : null;
   return (

@@ -42,7 +42,10 @@ type EventData<T> = {
 The resources are the ones the service returns, the same objects: their virtual fields set (computed once, so a
 non-deterministic one has the same value in the event and in the API response), their relation counts set (`postsCount`
 instead of `_count`), and their soft deleted relations hidden. They still hold the hidden fields (i.e. `passwordHash`),
-which only the response serialization leaves out. Read them, never change them: a change would reach the response.
+which only the response serialization leaves out. A change of a listener would reach the response, so the listener
+receives them readonly at every depth (`DeepReadonly` of `@appweaver/common`): `current.status = 'x'` or
+`current.items.push(item)` fails to compile. A function taking a record of an event takes it as
+`DeepReadonly<Product>`, or the `Pick` of the fields it reads; to change one, copy it (`{ ...current, status: 'x' }`).
 
 ```ts
 const listenerId = events.onResourceEvent('Product', 'create', ({ current }) => {

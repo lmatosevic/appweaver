@@ -1,9 +1,18 @@
 import { EventEmitter } from 'node:events';
-import { ActionType, ModelName, ResourceRecord } from '../types';
+import { ActionType, DeepReadonly, ModelName, ResourceRecord } from '../types';
 
 export type EventData<T = any> = { current: T; previous?: T };
 
-export type EventListener<T = any> = (data: EventData<T>) => void;
+/**
+ * The data a listener receives, readonly at every depth: the records are the ones the resource service returns to the
+ * request, so a change of a listener would reach its response.
+ */
+export type ReadonlyEventData<T = any> = {
+  readonly current: DeepReadonly<T>;
+  readonly previous?: DeepReadonly<T>;
+};
+
+export type EventListener<T = any> = (data: ReadonlyEventData<T>) => void;
 
 /**
  * The data of a resource event of a model, typed by its name once the types are generated: the record of the model,
@@ -12,7 +21,9 @@ export type EventListener<T = any> = (data: EventData<T>) => void;
 export type ResourceEventData<
   N extends string,
   A extends ActionType
-> = EventData<A extends 'query' ? ResourceRecord<N>[] : ResourceRecord<N>>;
+> = ReadonlyEventData<
+  A extends 'query' ? ResourceRecord<N>[] : ResourceRecord<N>
+>;
 
 export abstract class Events extends EventEmitter {
   /**
