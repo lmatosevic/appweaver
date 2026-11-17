@@ -15,6 +15,11 @@ export class MoviesClient extends FetchClient<paths> {
 
   public files = this.filesClient('/files');
 
+  public realtime = this.realtimeClient<RealtimeModuleType>('/api/realtime', [
+    'sse',
+    'websocket'
+  ]);
+
   public credit = this.resourceClient<
     CreditResourceModuleType,
     [
@@ -25,7 +30,12 @@ export class MoviesClient extends FetchClient<paths> {
       'bulkCreate',
       'bulkUpdate',
       'bulkReplace',
-      'bulkDelete'
+      'bulkDelete',
+      'writeSeries',
+      'writeManySeries',
+      'querySeries',
+      'queryManySeries',
+      'deleteSeries'
     ]
   >('/api/credits');
 
@@ -39,18 +49,44 @@ export class MoviesClient extends FetchClient<paths> {
       'bulkCreate',
       'bulkUpdate',
       'bulkReplace',
-      'bulkDelete'
+      'bulkDelete',
+      'writeSeries',
+      'writeManySeries',
+      'querySeries',
+      'queryManySeries',
+      'deleteSeries'
     ]
   >('/api/genres');
 
   public movie = this.resourceClient<
     MovieResourceModuleType,
-    ['bulkCreate', 'bulkUpdate', 'bulkReplace', 'bulkDelete']
+    [
+      'bulkCreate',
+      'bulkUpdate',
+      'bulkReplace',
+      'bulkDelete',
+      'writeSeries',
+      'writeManySeries',
+      'querySeries',
+      'queryManySeries',
+      'deleteSeries'
+    ]
   >('/api/movies');
 
   public person = this.resourceClient<
     PersonResourceModuleType,
-    ['aggregate', 'bulkCreate', 'bulkUpdate', 'bulkReplace', 'bulkDelete']
+    [
+      'aggregate',
+      'bulkCreate',
+      'bulkUpdate',
+      'bulkReplace',
+      'bulkDelete',
+      'writeSeries',
+      'writeManySeries',
+      'querySeries',
+      'queryManySeries',
+      'deleteSeries'
+    ]
   >('/api/people');
 
   public review = this.resourceClient<
@@ -61,13 +97,29 @@ export class MoviesClient extends FetchClient<paths> {
       'bulkCreate',
       'bulkUpdate',
       'bulkReplace',
-      'bulkDelete'
+      'bulkDelete',
+      'writeSeries',
+      'writeManySeries',
+      'querySeries',
+      'queryManySeries',
+      'deleteSeries'
     ]
   >('/api/reviews');
 
   public user = this.resourceClient<
     UserResourceModuleType,
-    ['export', 'bulkCreate', 'bulkUpdate', 'bulkReplace', 'bulkDelete']
+    [
+      'export',
+      'bulkCreate',
+      'bulkUpdate',
+      'bulkReplace',
+      'bulkDelete',
+      'writeSeries',
+      'writeManySeries',
+      'querySeries',
+      'queryManySeries',
+      'deleteSeries'
+    ]
   >('/api/users');
 
   public watchlistEntry = this.resourceClient<
@@ -80,7 +132,12 @@ export class MoviesClient extends FetchClient<paths> {
       'bulkCreate',
       'bulkUpdate',
       'bulkReplace',
-      'bulkDelete'
+      'bulkDelete',
+      'writeSeries',
+      'writeManySeries',
+      'querySeries',
+      'queryManySeries',
+      'deleteSeries'
     ]
   >('/api/watchlist');
 
@@ -2984,6 +3041,162 @@ export type paths = {
     patch?: never;
     trace?: never;
   };
+  '/api/realtime/ticket': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Issue a realtime ticket
+     * @description Issues a short-lived ticket opening one realtime connection as the authenticated user, since a browser cannot send the credentials with an `EventSource` or a `WebSocket`.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** @description The ticket, used once */
+              ticket: string;
+              /** @description The milliseconds the ticket is valid for */
+              expiresIn: number;
+            };
+          };
+        };
+        400: components['responses']['BadRequestError_a06dd6'];
+        401: components['responses']['UnauthorizedError_e72428'];
+        403: components['responses']['ForbiddenError_4e336d'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalError'];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/realtime/actions/{name}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Call a realtime action
+     * @description Calls an action of the realtime connections with the payload of the body, answering with its result, or with 202 at once for `ack=false`. The credentials are optional: a call without them is anonymous, allowed for a public action with `realtime.anonymousEnabled`.
+     */
+    post: {
+      parameters: {
+        query?: {
+          /** @description Wait for the result, `false` to answer with 202 at once (fire-and-forget) */
+          ack?: boolean;
+        };
+        header?: never;
+        path: {
+          name: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': unknown;
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              result: unknown;
+            };
+          };
+        };
+        /** @description Default Response */
+        202: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        400: components['responses']['BadRequestError_a06dd6'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalError'];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/realtime/events': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Open a realtime event stream
+     * @description Opens a Server-Sent Events stream with the subscriptions of the query, every message being the JSON data of an event. The subscriptions change by opening a new stream.
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description The ticket of `POST /ticket` */
+          ticket?: string;
+          /** @description The subscriptions of the stream, a JSON array of `{ id, channel, params?, filter? }` */
+          subscriptions?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The event stream */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'text/event-stream': string;
+          };
+        };
+        400: components['responses']['BadRequestError_a06dd6'];
+        429: components['responses']['RateLimitedError'];
+        500: components['responses']['InternalError'];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/movies/{id}/similar': {
     parameters: {
       query?: never;
@@ -3087,12 +3300,12 @@ export type components = {
      * AggregateDateOperators
      * @description Aggregation operators applicable to a date field
      */
-    'def-224': AggregateDateOperators;
+    'def-225': AggregateDateOperators;
     /**
      * AggregateNumericOperators
      * @description Aggregation operators applicable to a numeric field
      */
-    'def-223': AggregateNumericOperators;
+    'def-224': AggregateNumericOperators;
     /** AuthenticationResponse */
     'def-169': AuthenticationResponse;
     /** ChangePasswordRequest */
@@ -3105,16 +3318,16 @@ export type components = {
      * CreditQueryFilter
      * @description Query filter for the Credit resource
      */
-    'def-199': CreditQueryFilter;
+    'def-200': CreditQueryFilter;
     /** CreditQueryRequest */
-    'def-238': CreditQueryRequest;
+    'def-239': CreditQueryRequest;
     /** CreditQueryResponse */
-    'def-237': CreditQueryResponse;
+    'def-238': CreditQueryResponse;
     /**
      * CreditQuerySort
      * @description Query sort for the Credit resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-211': CreditQuerySort;
+    'def-212': CreditQuerySort;
     /** CreditReplace */
     'def-6': CreditReplace;
     /** CreditSingle */
@@ -3125,12 +3338,12 @@ export type components = {
      * FileQueryFilter
      * @description Query filter for the File resource
      */
-    'def-210': FileQueryFilter;
+    'def-211': FileQueryFilter;
     /**
      * FileQuerySort
      * @description Query sort for the File resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-222': FileQuerySort;
+    'def-223': FileQuerySort;
     /** FileSingle */
     'def-155': FileSingle;
     /** GenreCreate */
@@ -3141,16 +3354,16 @@ export type components = {
      * GenreQueryFilter
      * @description Query filter for the Genre resource
      */
-    'def-200': GenreQueryFilter;
+    'def-201': GenreQueryFilter;
     /** GenreQueryRequest */
-    'def-243': GenreQueryRequest;
+    'def-244': GenreQueryRequest;
     /** GenreQueryResponse */
-    'def-242': GenreQueryResponse;
+    'def-243': GenreQueryResponse;
     /**
      * GenreQuerySort
      * @description Query sort for the Genre resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-212': GenreQuerySort;
+    'def-213': GenreQuerySort;
     /** GenreRelationCreate */
     'def-21': GenreRelationCreate;
     /** GenreReplace */
@@ -3172,18 +3385,18 @@ export type components = {
     /** LogoutResponse */
     'def-171': LogoutResponse;
     /** MovieAggregateRequest */
-    'def-250': MovieAggregateRequest;
+    'def-251': MovieAggregateRequest;
     /** MovieAggregateResponse */
-    'def-249': MovieAggregateResponse;
+    'def-250': MovieAggregateResponse;
     /**
      * MovieAggregateSelect
      * @description Aggregate selection for the Movie resource, holding the operators to apply per aggregated field
      */
-    'def-227': MovieAggregateSelect;
+    'def-228': MovieAggregateSelect;
     /** MovieCreate */
     'def-32': MovieCreate;
     /** MovieExportRequest */
-    'def-251': MovieExportRequest;
+    'def-252': MovieExportRequest;
     /** MovieFileDelete */
     'def-41': MovieFileDelete;
     /** MovieFiles */
@@ -3196,16 +3409,16 @@ export type components = {
      * MovieQueryFilter
      * @description Query filter for the Movie resource
      */
-    'def-201': MovieQueryFilter;
+    'def-202': MovieQueryFilter;
     /** MovieQueryRequest */
-    'def-248': MovieQueryRequest;
+    'def-249': MovieQueryRequest;
     /** MovieQueryResponse */
-    'def-247': MovieQueryResponse;
+    'def-248': MovieQueryResponse;
     /**
      * MovieQuerySort
      * @description Query sort for the Movie resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-213': MovieQuerySort;
+    'def-214': MovieQuerySort;
     /** MovieReplace */
     'def-34': MovieReplace;
     /** MovieSingle */
@@ -3216,13 +3429,13 @@ export type components = {
      * PermissionQueryFilter
      * @description Query filter for the Permission resource
      */
-    'def-208': PermissionQueryFilter;
+    'def-209': PermissionQueryFilter;
     /** PermissionSingle */
     'def-127': PermissionSingle;
     /** PersonCreate */
     'def-46': PersonCreate;
     /** PersonExportRequest */
-    'def-256': PersonExportRequest;
+    'def-257': PersonExportRequest;
     /** PersonFileDelete */
     'def-55': PersonFileDelete;
     /** PersonFiles */
@@ -3235,16 +3448,16 @@ export type components = {
      * PersonQueryFilter
      * @description Query filter for the Person resource
      */
-    'def-202': PersonQueryFilter;
+    'def-203': PersonQueryFilter;
     /** PersonQueryRequest */
-    'def-253': PersonQueryRequest;
+    'def-254': PersonQueryRequest;
     /** PersonQueryResponse */
-    'def-252': PersonQueryResponse;
+    'def-253': PersonQueryResponse;
     /**
      * PersonQuerySort
      * @description Query sort for the Person resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-214': PersonQuerySort;
+    'def-215': PersonQuerySort;
     /** PersonReplace */
     'def-48': PersonReplace;
     /** PersonSingle */
@@ -3259,34 +3472,34 @@ export type components = {
      */
     'def-198': QueryCondition;
     /** ReviewAggregateRequest */
-    'def-260': ReviewAggregateRequest;
+    'def-261': ReviewAggregateRequest;
     /** ReviewAggregateResponse */
-    'def-259': ReviewAggregateResponse;
+    'def-260': ReviewAggregateResponse;
     /**
      * ReviewAggregateSelect
      * @description Aggregate selection for the Review resource, holding the operators to apply per aggregated field
      */
-    'def-229': ReviewAggregateSelect;
+    'def-230': ReviewAggregateSelect;
     /** ReviewCreate */
     'def-60': ReviewCreate;
     /** ReviewExportRequest */
-    'def-261': ReviewExportRequest;
+    'def-262': ReviewExportRequest;
     /** ReviewMultiple */
     'def-58': ReviewMultiple;
     /**
      * ReviewQueryFilter
      * @description Query filter for the Review resource
      */
-    'def-203': ReviewQueryFilter;
+    'def-204': ReviewQueryFilter;
     /** ReviewQueryRequest */
-    'def-258': ReviewQueryRequest;
+    'def-259': ReviewQueryRequest;
     /** ReviewQueryResponse */
-    'def-257': ReviewQueryResponse;
+    'def-258': ReviewQueryResponse;
     /**
      * ReviewQuerySort
      * @description Query sort for the Review resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-215': ReviewQuerySort;
+    'def-216': ReviewQuerySort;
     /** ReviewReplace */
     'def-62': ReviewReplace;
     /** ReviewSingle */
@@ -3297,18 +3510,18 @@ export type components = {
      * RoleQueryFilter
      * @description Query filter for the Role resource
      */
-    'def-207': RoleQueryFilter;
+    'def-208': RoleQueryFilter;
     /** RoleSingle */
     'def-113': RoleSingle;
     /** UserAggregateRequest */
-    'def-265': UserAggregateRequest;
+    'def-266': UserAggregateRequest;
     /** UserAggregateResponse */
-    'def-264': UserAggregateResponse;
+    'def-265': UserAggregateResponse;
     /**
      * UserAggregateSelect
      * @description Aggregate selection for the User resource, holding the operators to apply per aggregated field
      */
-    'def-230': UserAggregateSelect;
+    'def-231': UserAggregateSelect;
     /** UserCreate */
     'def-74': UserCreate;
     /** UserFileDelete */
@@ -3323,16 +3536,16 @@ export type components = {
      * UserQueryFilter
      * @description Query filter for the User resource
      */
-    'def-204': UserQueryFilter;
+    'def-205': UserQueryFilter;
     /** UserQueryRequest */
-    'def-263': UserQueryRequest;
+    'def-264': UserQueryRequest;
     /** UserQueryResponse */
-    'def-262': UserQueryResponse;
+    'def-263': UserQueryResponse;
     /**
      * UserQuerySort
      * @description Query sort for the User resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-216': UserQuerySort;
+    'def-217': UserQuerySort;
     /** UserReplace */
     'def-76': UserReplace;
     /** UserSingle */
@@ -3347,16 +3560,16 @@ export type components = {
      * WatchlistEntryQueryFilter
      * @description Query filter for the WatchlistEntry resource
      */
-    'def-205': WatchlistEntryQueryFilter;
+    'def-206': WatchlistEntryQueryFilter;
     /** WatchlistEntryQueryRequest */
-    'def-268': WatchlistEntryQueryRequest;
+    'def-269': WatchlistEntryQueryRequest;
     /** WatchlistEntryQueryResponse */
-    'def-267': WatchlistEntryQueryResponse;
+    'def-268': WatchlistEntryQueryResponse;
     /**
      * WatchlistEntryQuerySort
      * @description Query sort for the WatchlistEntry resource, applying its fields in the order they are declared. A nested object sorts by a field of a relation, which has to be included in the response.
      */
-    'def-217': WatchlistEntryQuerySort;
+    'def-218': WatchlistEntryQuerySort;
     /** WatchlistEntryReplace */
     'def-90': WatchlistEntryReplace;
     /** WatchlistEntrySingle */
@@ -3911,6 +4124,7 @@ export const ErrorCode = {
   AccountEmailNotVerified: 'ACCOUNT_EMAIL_NOT_VERIFIED',
   AccountPhoneNotVerified: 'ACCOUNT_PHONE_NOT_VERIFIED',
   AccountPhoneAlreadyVerified: 'ACCOUNT_PHONE_ALREADY_VERIFIED',
+  AccountPhoneNotSet: 'ACCOUNT_PHONE_NOT_SET',
   Account2FAMethodUnavailable: 'ACCOUNT_2FA_METHOD_UNAVAILABLE',
   Account2FAMethodNotEnabled: 'ACCOUNT_2FA_METHOD_NOT_ENABLED',
   Account2FAMethodAlreadyEnabled: 'ACCOUNT_2FA_METHOD_ALREADY_ENABLED',
@@ -3956,6 +4170,31 @@ export const ErrorCode = {
   LocaleLoadFailed: 'LOCALE_LOAD_FAILED',
   LockNotAcquired: 'LOCK_NOT_ACQUIRED',
   MemoryUnavailable: 'MEMORY_UNAVAILABLE',
+  TimeSeriesNotEnabled: 'TIMESERIES_NOT_ENABLED',
+  TimeSeriesInvalidField: 'TIMESERIES_INVALID_FIELD',
+  TimeSeriesInvalidValue: 'TIMESERIES_INVALID_VALUE',
+  TimeSeriesInvalidTime: 'TIMESERIES_INVALID_TIME',
+  TimeSeriesInvalidRange: 'TIMESERIES_INVALID_RANGE',
+  TimeSeriesInvalidBucket: 'TIMESERIES_INVALID_BUCKET',
+  TimeSeriesInvalidAggregate: 'TIMESERIES_INVALID_AGGREGATE',
+  TimeSeriesTooManyPoints: 'TIMESERIES_TOO_MANY_POINTS',
+  TimeSeriesTooManyResources: 'TIMESERIES_TOO_MANY_RESOURCES',
+  TimeSeriesForbidden: 'TIMESERIES_FORBIDDEN',
+  TimeSeriesUnsupported: 'TIMESERIES_UNSUPPORTED',
+  SpatialInvalidGeometry: 'SPATIAL_INVALID_GEOMETRY',
+  SpatialInvalidFilter: 'SPATIAL_INVALID_FILTER',
+  SpatialTooManyCandidates: 'SPATIAL_TOO_MANY_CANDIDATES',
+  RealtimeTicketInvalid: 'REALTIME_TICKET_INVALID',
+  RealtimeChannelUnknown: 'REALTIME_CHANNEL_UNKNOWN',
+  RealtimeSubscriptionDenied: 'REALTIME_SUBSCRIPTION_DENIED',
+  RealtimeSubscriptionLimit: 'REALTIME_SUBSCRIPTION_LIMIT',
+  RealtimeActionUnknown: 'REALTIME_ACTION_UNKNOWN',
+  RealtimeActionDenied: 'REALTIME_ACTION_DENIED',
+  RealtimePayloadInvalid: 'REALTIME_PAYLOAD_INVALID',
+  RealtimeMessageInvalid: 'REALTIME_MESSAGE_INVALID',
+  RealtimeConnectionLimit: 'REALTIME_CONNECTION_LIMIT',
+  RealtimeRateLimited: 'REALTIME_RATE_LIMITED',
+  RealtimeTransportDisabled: 'REALTIME_TRANSPORT_DISABLED',
   AlreadyReviewed: 'ALREADY_REVIEWED',
   AlreadyOnWatchlist: 'ALREADY_ON_WATCHLIST'
 } as const;
@@ -5808,6 +6047,8 @@ export type ProblemDetails = {
   instance?: string;
   /** @example req-1 */
   requestId?: string;
+  /** @example 4bf92f3577b34da6a3ce929d0e0e4736 */
+  traceId?: string;
   errors?: {
     /** @example email */
     field: string;
@@ -6981,6 +7222,11 @@ export type CreditResourceModuleType = {
   files: never;
   fileUpload: never;
   fileDelete: never;
+  seriesWrite: never;
+  seriesBulkWrite: never;
+  seriesQuery: never;
+  seriesPoints: never;
+  seriesBulkPoints: never;
 };
 
 export type GenreResourceModuleType = {
@@ -6998,6 +7244,11 @@ export type GenreResourceModuleType = {
   files: never;
   fileUpload: never;
   fileDelete: never;
+  seriesWrite: never;
+  seriesBulkWrite: never;
+  seriesQuery: never;
+  seriesPoints: never;
+  seriesBulkPoints: never;
 };
 
 export type MovieResourceModuleType = {
@@ -7015,6 +7266,11 @@ export type MovieResourceModuleType = {
   files: MovieFiles;
   fileUpload: MovieFileUpload;
   fileDelete: MovieFileDelete;
+  seriesWrite: never;
+  seriesBulkWrite: never;
+  seriesQuery: never;
+  seriesPoints: never;
+  seriesBulkPoints: never;
 };
 
 export type PersonResourceModuleType = {
@@ -7032,6 +7288,11 @@ export type PersonResourceModuleType = {
   fileDelete: PersonFileDelete;
   aggregateRequest: never;
   aggregateResponse: never;
+  seriesWrite: never;
+  seriesBulkWrite: never;
+  seriesQuery: never;
+  seriesPoints: never;
+  seriesBulkPoints: never;
 };
 
 export type ReviewResourceModuleType = {
@@ -7049,6 +7310,11 @@ export type ReviewResourceModuleType = {
   files: never;
   fileUpload: never;
   fileDelete: never;
+  seriesWrite: never;
+  seriesBulkWrite: never;
+  seriesQuery: never;
+  seriesPoints: never;
+  seriesBulkPoints: never;
 };
 
 export type UserResourceModuleType = {
@@ -7066,6 +7332,11 @@ export type UserResourceModuleType = {
   fileUpload: UserFileUpload;
   fileDelete: UserFileDelete;
   exportRequest: never;
+  seriesWrite: never;
+  seriesBulkWrite: never;
+  seriesQuery: never;
+  seriesPoints: never;
+  seriesBulkPoints: never;
 };
 
 export type WatchlistEntryResourceModuleType = {
@@ -7083,4 +7354,42 @@ export type WatchlistEntryResourceModuleType = {
   files: never;
   fileUpload: never;
   fileDelete: never;
+  seriesWrite: never;
+  seriesBulkWrite: never;
+  seriesQuery: never;
+  seriesPoints: never;
+  seriesBulkPoints: never;
+};
+
+export type RealtimeModuleType = {
+  channels: {
+    'movie.chat': {
+      payload: {
+        movieId: string;
+        messageId: string;
+        authorName: string;
+        text: string;
+        sentAt: string;
+      };
+      params: { movieId: string };
+    };
+    'movie.typing': {
+      payload: { movieId: string; authorName: string };
+      params: { movieId: string };
+    };
+  };
+  resources: {
+    Review: { actions: 'create'; record: ReviewSingle };
+    WatchlistEntry: {
+      actions: 'create' | 'update' | 'delete';
+      record: WatchlistEntrySingle;
+    };
+  };
+  actions: {
+    'chat.send': {
+      payload: { movieId: string; text: string };
+      response: { messageId: string; sentAt: string };
+    };
+    'chat.typing': { payload: { movieId: string }; response: unknown };
+  };
 };
