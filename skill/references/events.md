@@ -103,6 +103,26 @@ push them to the clients, expose them on the routes of the model with `createRou
 realtime connections of every instance, each event checked against the access of the subscribed user. The `find` and
 `query` events are never exposed. See [realtime.md](./realtime.md).
 
+## Broadcasting between instances
+
+`Events` stay in the process. To tell every instance something, use the `PubSub` contract: with `@appweaver/redis`
+every subscribed instance receives a message (Redis pub/sub), otherwise only the process itself.
+
+```ts
+import { PubSub } from '@appweaver/common';
+import { inject } from '@appweaver/core';
+
+const pubsub = inject(PubSub);
+
+await pubsub.subscribe<{ key: string }>('cache.cleared', ({ key }) => localCache.delete(key));
+await pubsub.publish('cache.cleared', { key: 'products' });
+```
+
+A message is JSON (dates arrive as strings), reaches the publisher too, and is delivered at most once: an instance
+down or reconnecting misses it. Use it for what every instance should know now (a local cache, a flag, an ops
+signal), and the `Queue` for work that must run once and survive a failure (an email, a payment). The `realtime:`
+channels belong to `@appweaver/realtime`.
+
 ## Configuration
 
 | Key                    | Type     | Default  | Description                           |
