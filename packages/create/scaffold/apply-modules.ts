@@ -23,8 +23,8 @@ import { packageVersion } from './package-versions';
 import { ProjectFiles } from './project-files';
 import {
   collectTemplateFiles,
-  readTemplateFile,
   readTemplateSource,
+  readTemplateText,
   TemplateFile,
   templatesDir
 } from './template-files';
@@ -494,17 +494,19 @@ function copyFiles(scaffold: ModuleScaffold, unit: string): void {
   const baseFiles = collectBaseFiles(context.runtime);
 
   for (const file of collectModuleFiles(unit, context)) {
-    let content = readTemplateFile(file, variables);
+    // Compared as text, written as the buffer of a file without variables
+    let text = readTemplateText(file, variables);
+    let content = file.render ? text : readTemplateSource(file.source);
     if (file.path.endsWith('.hbs') && !scaffold.enabled.has('locales')) {
-      content = inlineTemplate(
+      content = text = inlineTemplate(
         file.path,
-        content.toString(),
+        text,
         loadSourceTranslations()
       );
     }
 
     const existing = files.read(file.path);
-    if (existing === content.toString()) {
+    if (existing === text) {
       continue;
     }
     // A module file replacing a file of the base project, i.e. the end-to-end test of the server
@@ -543,8 +545,7 @@ function removeFiles(scaffold: ModuleScaffold, unit: string): void {
 
     const existing = files.read(file.path);
     const changed =
-      existing !== undefined &&
-      existing !== readTemplateFile(file, variables).toString();
+      existing !== undefined && existing !== readTemplateText(file, variables);
     const base = readBaseFile(baseFiles, file.path);
     if (
       changed &&
@@ -586,8 +587,7 @@ function reportDeletedFiles(
   const written = files.list(dir).filter((file) => {
     const template = scaffolded.find((module) => module.path === file);
     return (
-      !template ||
-      files.read(file) !== readTemplateFile(template, variables).toString()
+      !template || files.read(file) !== readTemplateText(template, variables)
     );
   });
   if (written.length > 0) {
@@ -606,14 +606,21 @@ function templateVariables(context: ProjectContext): Record<string, string> {
   return { LOWER_NAME: context.name };
 }
 
-/** The files of the base project template, by their path. */
-function collectBaseFiles(runtime: Runtime): Map<string, TemplateFile> {
-  return new Map(
-    collectTemplateFiles(path.join(templatesDir, 'base'), runtime).map(
-      (file) => [file.path, file]
-    )
-  );
+/** The files of the base project template, by their path, collected once per runtime. */
+function collectBaseFiles(runtime: Runtime): ReadonlyMap<string, TemplateFile> {
+  let files = baseFilesByRuntime.get(runtime);
+  if (!files) {
+    files = new Map(
+      collectTemplateFiles(path.join(templatesDir, 'base'), runtime).map(
+        (file) => [file.path, file]
+      )
+    );
+    baseFilesByRuntime.set(runtime, files);
+  }
+  return files;
 }
+
+const baseFilesByRuntime = new Map<Runtime, Map<string, TemplateFile>>();
 
 /**
  * Reads a file of the base project template, or returns `undefined` when it has none at the path. Its variables stay
@@ -622,11 +629,11 @@ function collectBaseFiles(runtime: Runtime): Map<string, TemplateFile> {
  * changed.
  */
 function readBaseFile(
-  baseFiles: Map<string, TemplateFile>,
+  baseFiles: ReadonlyMap<string, TemplateFile>,
   file: string
 ): string | undefined {
   const template = baseFiles.get(file);
-  return template && readTemplateFile(template, {}).toString();
+  return template && readTemplateText(template, {});
 }
 
 /** The start.sh container roles applying the migrations and seeding the database. */
@@ -706,10 +713,13 @@ function readSourceTranslations(): Record<string, any> {
   );
 }
 
-/** The flattened English translations of the scaffolded templates. */
-function loadSourceTranslations(): Record<string, string> {
-  return flattenTranslations(readSourceTranslations());
+/** The flattened English translations of the scaffolded templates, read once, never changed by the callers. */
+function loadSourceTranslations(): Readonly<Record<string, string>> {
+  sourceTranslations ??= flattenTranslations(readSourceTranslations());
+  return sourceTranslations;
 }
+
+let sourceTranslations: Record<string, string> | undefined;
 
 /** Adds the translations missing from the target, overwriting the existing ones when forced. */
 function addTranslations(

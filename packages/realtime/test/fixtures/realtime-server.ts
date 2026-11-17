@@ -116,12 +116,13 @@ export class TestSocket {
   static async open(url: string): Promise<TestSocket> {
     const socket = new WebSocket(url);
     const client = new TestSocket(socket);
+    let timer: NodeJS.Timeout | undefined;
     await new Promise<void>((resolve, reject) => {
       socket.addEventListener('open', () => resolve());
       socket.addEventListener('error', () => resolve());
       socket.addEventListener('close', () => resolve());
-      setTimeout(() => reject(new Error('WebSocket not opened')), 2000);
-    });
+      timer = setTimeout(() => reject(new Error('WebSocket not opened')), 2000);
+    }).finally(() => clearTimeout(timer));
     return client;
   }
 
@@ -144,8 +145,11 @@ export class TestSocket {
         throw new Error('No matching message');
       }
       await new Promise<void>((resolve) => {
-        this._waiters.push(resolve);
-        setTimeout(resolve, 50);
+        const timer = setTimeout(resolve, 50);
+        this._waiters.push(() => {
+          clearTimeout(timer);
+          resolve();
+        });
       });
     }
   }

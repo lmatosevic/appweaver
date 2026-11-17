@@ -22,6 +22,17 @@ const admin = {
   roles: [{ id: 1, name: 'admin', permissions: [] }]
 };
 
+/** Waits until the condition holds, failing after two seconds. */
+async function until(condition: () => boolean): Promise<void> {
+  const deadline = Date.now() + 2000;
+  while (!condition()) {
+    if (Date.now() > deadline) {
+      throw new Error('Condition not met');
+    }
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+}
+
 describe('realtime routes', () => {
   let app: RealtimeServer;
   let sockets: TestSocket[];
@@ -140,13 +151,14 @@ describe('realtime routes', () => {
 
     test('closes the connection when the token expires', async () => {
       app = await startRealtimeServer();
+      // An exp already reached, so the connection expires once opened
       const expiring = await ticket(user, {
-        'x-exp': String(Math.floor(Date.now() / 1000) + 1)
+        'x-exp': String(Math.floor(Date.now() / 1000))
       });
 
       const socket = await TestSocket.open(`${app.ws}/ws?ticket=${expiring}`);
       sockets.push(socket);
-      const reauth = await socket.next((m) => m.type === 'reauth', 3000);
+      const reauth = await socket.next((m) => m.type === 'reauth');
       await socket.next(() => false, 1000).catch(() => undefined);
 
       expect(reauth).toEqual({ type: 'reauth' });
@@ -655,7 +667,7 @@ describe('realtime routes', () => {
       await stream.next((m) => m.type === 'welcome');
       expect(app.gateway.connections.size).toBe(1);
       stream.abort();
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await until(() => app.gateway.connections.size === 0);
 
       expect(app.gateway.connections.size).toBe(0);
     });
@@ -839,14 +851,23 @@ describe('realtime routes', () => {
   });
 
   describe('ticket redemption', () => {
+    /** Delays the redemptions, and returns a promise settled once the first one has been handled by its route. */
     const delayRedeem = () => {
       const redeem = TicketService.prototype.redeem;
-      return jest
+      let redeemed!: Promise<unknown>;
+      jest
         .spyOn(TicketService.prototype, 'redeem')
-        .mockImplementation(async function (this: TicketService, ticket) {
-          await new Promise((resolve) => setTimeout(resolve, 150));
-          return redeem.call(this, ticket);
+        .mockImplementation(function (this: TicketService, ticket) {
+          redeemed = new Promise((resolve) => setTimeout(resolve, 150)).then(
+            () => redeem.call(this, ticket)
+          );
+          return redeemed as ReturnType<typeof redeem>;
         });
+      return async () => {
+        await until(() => redeemed !== undefined);
+        await redeemed.catch(() => undefined);
+        await new Promise((resolve) => setImmediate(resolve));
+      };
     };
 
     afterEach(() => {
@@ -872,29 +893,31 @@ describe('realtime routes', () => {
 
     test('opens no WebSocket connection of a client leaving meanwhile', async () => {
       app = await startRealtimeServer();
-      delayRedeem();
+      const redeemed = delayRedeem();
 
       const socket = await TestSocket.open(
         `${app.ws}/ws?ticket=${await ticket()}`
       );
       socket.close();
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await redeemed();
 
       expect(app.gateway.connections.size).toBe(0);
     });
 
     test('opens no event stream of a client leaving meanwhile', async () => {
       app = await startRealtimeServer();
-      delayRedeem();
+      const redeemed = delayRedeem();
       const controller = new AbortController();
 
       const request = fetch(`${app.url}/events?ticket=${await ticket()}`, {
         signal: controller.signal
       }).catch(() => undefined);
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await until(
+        () => jest.mocked(TicketService.prototype.redeem).mock.calls.length > 0
+      );
       controller.abort();
       await request;
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await redeemed();
 
       expect(app.gateway.connections.size).toBe(0);
     });

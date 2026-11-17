@@ -20,6 +20,10 @@ const runtimes: Runtime[] = ['node', 'bun'];
 // listed and each file read once, however many modules a change applies
 const listings = new Map<string, TemplateFile[]>();
 const sources = new Map<string, Buffer>();
+const texts = new Map<string, string>();
+
+/** A `{{NAME}}` variable of a `.tpl` file. */
+const VARIABLE = /\{\{([A-Z_]+)\}\}/g;
 
 /**
  * Lists the files of a template directory for a runtime. A `.tpl` file has its variables replaced, and a `.node` or
@@ -53,20 +57,36 @@ export function readTemplateFile(
   file: TemplateFile,
   variables: Record<string, string>
 ): string | Buffer {
-  if (!file.render) {
-    return readTemplateSource(file.source);
-  }
+  return file.render
+    ? readTemplateText(file, variables)
+    : readTemplateSource(file.source);
+}
 
-  let content = readTemplateSource(file.source).toString('utf8');
-  // Inserted as they are, since a replacement string would read the '$$'
-  // escapes of docker-compose as a pattern
-  for (const [key, value] of Object.entries(variables)) {
-    content = content.replace(
-      new RegExp(`\\{\\{${key}\\}\\}`, 'g'),
-      () => value
-    );
+/**
+ * Reads a template file as text, replacing the `{{NAME}}` variables of a `.tpl` file with their values, i.e. to compare
+ * it with a project file.
+ *
+ * @param {TemplateFile} file - The template file.
+ * @param {Record<string, string>} variables - The values of the variables, keyed by name.
+ * @return {string} The content of the file.
+ */
+export function readTemplateText(
+  file: TemplateFile,
+  variables: Record<string, string>
+): string {
+  let text = texts.get(file.source);
+  if (text === undefined) {
+    text = readTemplateSource(file.source).toString('utf8');
+    texts.set(file.source, text);
   }
-  return content;
+  if (!file.render) {
+    return text;
+  }
+  // Inserted by a function, since a replacement string would read the '$$'
+  // escapes of docker-compose as a pattern
+  return text.replace(VARIABLE, (match, name: string) =>
+    Object.hasOwn(variables, name) ? variables[name] : match
+  );
 }
 
 /**

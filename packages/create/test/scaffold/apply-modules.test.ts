@@ -37,6 +37,9 @@ jest.mock('../../scaffold/compose-util', () =>
   )
 );
 
+/** The text of the buffers written to the projects. */
+const decoded = new WeakMap<Buffer, string>();
+
 /**
  * The files of a project kept in memory only, like the staged changes of a project without any file on disk, so the
  * hundreds of projects the tests create never touch the disk. A commit leaves the files in place.
@@ -57,9 +60,22 @@ class MemoryFiles extends ProjectFiles {
     return this.contents.get(normalize(file));
   }
 
-  /** Kept as text, which every read returns, instead of decoding a buffer on every read. */
+  /**
+   * Kept as text, which every read returns, instead of decoding a buffer on every read. The template files are read
+   * as the same buffers, so each one is decoded once.
+   */
   public override write(file: string, content: string | Buffer): void {
-    this.contents.set(normalize(file), content.toString());
+    let text: string | undefined;
+    if (typeof content === 'string') {
+      text = content;
+    } else {
+      text = decoded.get(content);
+      if (text === undefined) {
+        text = content.toString();
+        decoded.set(content, text);
+      }
+    }
+    this.contents.set(normalize(file), text);
   }
 
   public override remove(file: string): void {
@@ -167,7 +183,10 @@ describe('apply-modules', () => {
       const { files, context, enabled } = load(project);
       const result = enableModules(files, context, enabled, [name]);
       await files.commit();
-      expect(result.warnings).toEqual([]);
+      // Asserted only when failing, since thousands of changes run
+      if (result.warnings.length > 0) {
+        expect([name, result.warnings]).toEqual([name, []]);
+      }
     }
   };
 
@@ -177,7 +196,9 @@ describe('apply-modules', () => {
       const { files, context, enabled } = load(project);
       const result = disableModules(files, context, enabled, [name]);
       await files.commit();
-      expect(result.warnings).toEqual([]);
+      if (result.warnings.length > 0) {
+        expect([name, result.warnings]).toEqual([name, []]);
+      }
     }
   };
 
