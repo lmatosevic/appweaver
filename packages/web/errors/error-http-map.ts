@@ -374,6 +374,10 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     status: 413,
     title: 'Realtime input too large'
   },
+  [ErrorCode.RealtimeShuttingDown]: {
+    status: 503,
+    title: 'Realtime server shutting down'
+  },
 
   [ErrorCode.TimeSeriesNotEnabled]: {
     status: 404,

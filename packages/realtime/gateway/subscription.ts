@@ -44,6 +44,13 @@ export type ActiveSubscription = {
       resume?: { streamId: string; seq: number };
     }
   | {
+      kind: 'remote-call';
+      /** The ID of the stream of a call of another instance, resumed here */
+      streamId: string;
+      /** The subscriber of the stream, writing to the connection */
+      sink: StreamSink;
+    }
+  | {
       kind: 'action-call';
       /** The call of an action with a stream or an input */
       call: ActionCall;

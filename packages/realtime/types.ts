@@ -201,6 +201,8 @@ export type ResourceEventMessage<T = unknown> = ResourceEvent<T> & {
 export enum RealtimeCloseCode {
   /** The server shuts down */
   GoingAway = 1001,
+  /** The server restarts, the client reconnects at once to another instance */
+  ServiceRestart = 1012,
   /** A message breaks the protocol */
   PolicyViolation = 1008,
   /** The authentication of the connection expired, the client reconnects with a new ticket */

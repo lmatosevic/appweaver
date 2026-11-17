@@ -948,6 +948,9 @@ i.e. the audio of a microphone. A stream with `resource: { model }` lets subscri
 record of the key, so the policy of the model decides. A logout, a disabling or a lost role ends the calls of a user at
 once (their `signal` aborts), over HTTP too.
 
+On a rolling update an instance drains: it moves its clients to the other instances (`1012`), relays the streaming
+actions they resume there until they end, and waits for its calls at most `realtime.shutdownGracePeriod`.
+
 The generated client calls `client.realtime.subscribe`, `on`, `send`, `emit`, `call` (a streaming action, an async
 iterable of its chunks, with `call.input` or `{ input }` for an input) and `stream`. See
 [realtime.md](references/realtime.md).

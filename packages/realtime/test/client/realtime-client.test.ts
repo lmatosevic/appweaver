@@ -220,6 +220,55 @@ describe('RealtimeClient', () => {
     });
   });
 
+  describe.each(['websocket', 'sse'] as const)(
+    'restarting servers over %s',
+    (transport) => {
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      test('reconnects at once to a restarting server', async () => {
+        jest.spyOn(Math, 'random').mockReturnValue(0);
+        client = createClient({ transport, reconnectDelay: 10000 });
+        const received: unknown[] = [];
+        await client.realtime.subscribe('news', (payload) =>
+          received.push(payload)
+        ).ready;
+        const first = client.realtime.connectionId;
+
+        app.gateway.closeAll(RealtimeCloseCode.ServiceRestart, 'Restarting');
+        await waitFor(
+          () =>
+            client.realtime.state === 'open' &&
+            client.realtime.connectionId !== first &&
+            [...app.gateway.connections.values()][0]?.subscriptions.size === 1
+        );
+        await news.publish({ title: 'Back' });
+        await waitFor(() => received.length === 1);
+
+        expect(received).toEqual([{ title: 'Back' }]);
+      });
+
+      test('waits a randomized backoff after a lost connection', async () => {
+        jest.spyOn(Math, 'random').mockReturnValue(0);
+        client = createClient({ transport, reconnectDelay: 100 });
+        await client.realtime.subscribe('news', () => undefined).ready;
+        const first = client.realtime.connectionId;
+        const lost = Date.now();
+
+        app.gateway.closeAll(RealtimeCloseCode.GoingAway, 'Gone');
+        await waitFor(
+          () =>
+            client.realtime.state === 'open' &&
+            client.realtime.connectionId !== first
+        );
+
+        // Half the delay, with the lowest random value
+        expect(Date.now() - lost).toBeGreaterThanOrEqual(45);
+      });
+    }
+  );
+
   test('observes a channel', async () => {
     client = createClient();
     const received: unknown[] = [];

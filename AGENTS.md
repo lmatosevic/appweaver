@@ -425,6 +425,13 @@ the WebSocket only, as `input` messages or binary messages (`1`, the length of t
 `input.credit` messages of the server instead of the rate limit. A stream with `resource: { model, id? }` lets subscribe
 the users the `find` of the record passes for, as themselves, so the policy of the model decides.
 
+On shutdown the `preClose` hook of the server runs `RealtimeGateway.drain()`: new connections and calls are refused
+(`REALTIME_SHUTTING_DOWN`), the connections close with `1012` except the ones streaming an input, and the calls get
+up to `realtime.shutdownGracePeriod` to end. A streaming action is relayed like a stream of a key, under the
+`$action` topic of its stream ID with its owner in the snapshot, so a client resuming it on another instance reads it
+from the draining one (`StreamHub.resumeAction`), a cancellation travels back as a `cancel` control message, and its
+owner lingers it only once no instance relays it.
+
 ### `packages/testing`
 
 `@appweaver/testing` holds the test helpers of the packages and their modules: `resetContext` (clears the application

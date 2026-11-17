@@ -186,7 +186,8 @@ export enum ErrorCode {
   RealtimeStreamEnded = 'REALTIME_STREAM_ENDED',
   RealtimeStreamLost = 'REALTIME_STREAM_LOST',
   RealtimeStreamAccept = 'REALTIME_STREAM_ACCEPT',
-  RealtimeInputLimit = 'REALTIME_INPUT_LIMIT'
+  RealtimeInputLimit = 'REALTIME_INPUT_LIMIT',
+  RealtimeShuttingDown = 'REALTIME_SHUTTING_DOWN'
 }
 
 /** The error codes starting with the prefix of a module, i.e. `'RESOURCE'`. */

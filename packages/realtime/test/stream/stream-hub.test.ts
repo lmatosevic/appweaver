@@ -376,6 +376,7 @@ describe('stream-hub', () => {
 
     describe('action streams', () => {
       test('resumes the stream of its caller only', async () => {
+        configOverrides.REALTIME_STREAM_RELAY_HEARTBEAT = 100;
         const hub = await createHub();
         const instance = hub.openAction('assistant', streamSettings({}), '1');
         const sink = new FakeSink();
@@ -385,22 +386,21 @@ describe('stream-hub', () => {
         instance.detach(sink);
 
         const resumed = new FakeSink();
-        expect(hub.resumeAction(instance.streamId, '1', resumed, 1)).toBe(
-          instance
-        );
+        await expect(
+          hub.resumeAction(instance.streamId, '1', resumed, 1)
+        ).resolves.toEqual({ instance, remote: false });
         expect(resumed.chunks).toEqual(['b']);
-        expect(() =>
+        await expect(
           hub.resumeAction(instance.streamId, '2', new FakeSink(), 0)
-        ).toThrow(
-          expect.objectContaining({ code: ErrorCode.RealtimeStreamNotFound })
-        );
-        expect(() => hub.resumeAction('x', '1', new FakeSink(), 0)).toThrow(
-          expect.objectContaining({ code: ErrorCode.RealtimeStreamNotFound })
-        );
+        ).rejects.toMatchObject({ code: ErrorCode.RealtimeStreamNotFound });
+        await expect(
+          hub.resumeAction('x', '1', new FakeSink(), 0)
+        ).rejects.toMatchObject({ code: ErrorCode.RealtimeStreamNotFound });
       });
 
       test('cancels a stream left without its caller for the linger', async () => {
         configOverrides.REALTIME_STREAM_LINGER = 20;
+        configOverrides.REALTIME_STREAM_RELAY_HEARTBEAT = 100;
         const hub = await createHub();
         const instance = hub.openAction('assistant', streamSettings({}), null);
         const sink = new FakeSink();
@@ -414,31 +414,127 @@ describe('stream-hub', () => {
           cancelled: true
         });
         await wait(40);
-        expect(() =>
+        await expect(
           hub.resumeAction(instance.streamId, null, new FakeSink(), 0)
-        ).toThrow(
-          expect.objectContaining({ code: ErrorCode.RealtimeStreamNotFound })
-        );
+        ).rejects.toMatchObject({ code: ErrorCode.RealtimeStreamNotFound });
       });
 
       test('keeps an ended stream resumable for the linger', async () => {
         configOverrides.REALTIME_STREAM_LINGER = 20;
+        configOverrides.REALTIME_STREAM_RELAY_HEARTBEAT = 100;
         const hub = await createHub();
         const instance = hub.openAction('assistant', streamSettings({}), null);
         instance.write('a');
         instance.end();
 
         const sink = new FakeSink();
-        hub.resumeAction(instance.streamId, null, sink, 0);
+        await hub.resumeAction(instance.streamId, null, sink, 0);
         expect(sink.chunks).toEqual(['a']);
         expect(sink.finished).toHaveLength(1);
 
         await wait(40);
-        expect(() =>
+        await expect(
           hub.resumeAction(instance.streamId, null, new FakeSink(), 0)
-        ).toThrow(
-          expect.objectContaining({ code: ErrorCode.RealtimeStreamNotFound })
+        ).rejects.toMatchObject({ code: ErrorCode.RealtimeStreamNotFound });
+      });
+
+      test('resumes the stream of an action of another instance, relayed from it', async () => {
+        const owner = await createHub();
+        const other = await createHub();
+        const instance = owner.openAction('assistant', streamSettings(), '1');
+        instance.write('a');
+        instance.write('b');
+
+        const sink = new FakeSink();
+        const resumed = await other.resumeAction(
+          instance.streamId,
+          '1',
+          sink,
+          1
         );
+        instance.write('c');
+        await wait(20);
+        await settle();
+        instance.end('done');
+        await settle();
+
+        expect(resumed.remote).toBe(true);
+        expect(sink.chunks).toEqual(['b', 'c']);
+        expect(sink.messages.at(-1)).toMatchObject({
+          type: 'stream.end',
+          result: 'done'
+        });
+        expect(sink.finished).toHaveLength(1);
+      });
+
+      test('resumes an ended action of another instance with its end', async () => {
+        const owner = await createHub();
+        const other = await createHub();
+        const instance = owner.openAction('assistant', streamSettings(), '1');
+        instance.write('a');
+        instance.end('done');
+
+        const sink = new FakeSink();
+        await other.resumeAction(instance.streamId, '1', sink, 0);
+
+        expect(sink.chunks).toEqual(['a']);
+        expect(sink.messages.at(-1)).toMatchObject({ result: 'done' });
+      });
+
+      test('refuses to resume an action of another instance of another user, or gone', async () => {
+        configOverrides.REALTIME_STREAM_RELAY_HEARTBEAT = 100;
+        const owner = await createHub();
+        const other = await createHub();
+        const instance = owner.openAction('assistant', streamSettings(), '1');
+
+        await expect(
+          other.resumeAction(instance.streamId, '2', new FakeSink(), 0)
+        ).rejects.toMatchObject({ code: ErrorCode.RealtimeStreamNotFound });
+        await expect(
+          other.resumeAction('gone', '1', new FakeSink(), 0)
+        ).rejects.toMatchObject({ code: ErrorCode.RealtimeStreamNotFound });
+        instance.cancel();
+      });
+
+      test('keeps an action relayed to another instance, lingering it once no more', async () => {
+        configOverrides.REALTIME_STREAM_LINGER = 30;
+        const owner = await createHub();
+        const other = await createHub();
+        const instance = owner.openAction('assistant', streamSettings(), '1');
+        const local = new FakeSink();
+        instance.attach(local);
+        const sink = new FakeSink();
+        await other.resumeAction(instance.streamId, '1', sink, 0);
+        await settle();
+
+        // Its caller left this instance for the other one
+        instance.detach(local);
+        await wait(60);
+        expect(instance.ended).toBe(false);
+
+        await other.unsubscribe('$action', instance.streamId, sink);
+        await settle();
+        await wait(60);
+        expect(instance.endEntry?.frame.message).toMatchObject({
+          cancelled: true
+        });
+      });
+
+      test('cancels an action of its caller, on its own instance or another', async () => {
+        const owner = await createHub();
+        const other = await createHub();
+        const first = owner.openAction('assistant', streamSettings(), '1');
+        const second = owner.openAction('assistant', streamSettings(), '1');
+
+        await owner.cancelAction(first.streamId, '2');
+        await other.cancelAction(second.streamId, '2');
+        await settle();
+        expect([first.ended, second.ended]).toEqual([false, false]);
+
+        await owner.cancelAction(first.streamId, '1');
+        await other.cancelAction(second.streamId, '1');
+        await settle();
+        expect([first.ended, second.ended]).toEqual([true, true]);
       });
 
       test('ends the action streams on shutdown', async () => {

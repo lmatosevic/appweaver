@@ -368,6 +368,35 @@ A change of a user reaches their connections and their calls on every instance, 
 Ending a call aborts its `signal` and fails its `input`, so the generation of an LLM or the reading of an input stops;
 `inject(RealtimeGateway).calls` lists the calls running on the instance.
 
+## Rolling updates
+
+A deployment replacing the instances one by one keeps the streams of the clients running. On `SIGTERM` (`app.stop()`)
+the readiness answers `503`, then the realtime part of the instance drains before the server closes:
+
+1. it refuses the new connections (a WebSocket closed with `1012`, an event stream answered `503`) and the new calls
+   with a stream or an input (`503 REALTIME_SHUTTING_DOWN`);
+2. it closes its connections with `1012` (Service Restart), except the ones streaming an input not ended yet, which
+   cannot move. The clients reconnect at once to another instance, each after a random part of `reconnectDelay` so
+   they do not all arrive together, with their subscriptions;
+3. a client resuming a streaming action on the new instance (`{ type: 'resume', id, streamId, seq }`) receives it
+   relayed from the draining instance, which keeps generating it, checked as the same user. Cancelling it on the new
+   instance cancels it on the owner;
+4. it waits for its calls to end, the ones over HTTP too, at most `realtime.shutdownGracePeriod` milliseconds
+   (`30000`), ends the rest with `REALTIME_SHUTTING_DOWN`, and closes what remains with `1001`.
+
+| Part                                    | On a rolling update                                                                                     |
+|-----------------------------------------|---------------------------------------------------------------------------------------------------------|
+| Channels, resource events               | Subscribed again on another instance; the events published during the reconnection are lost            |
+| Streams of a key (`createStream`)       | Subscribed again, a stream of a surviving instance resumed from its last chunk; the producer of a stream on the stopping instance stops with it (`REALTIME_STREAM_LOST`) |
+| Streaming actions over the WebSocket    | Resumed on another instance, relayed from the draining one until they end, within the grace period      |
+| Streaming actions over HTTP             | Kept on their connection until they end, within the grace period                                        |
+| Inputs                                  | Their connection kept until the client ends the input, within the grace period                          |
+
+Set the termination grace period of the platform (`terminationGracePeriodSeconds` of Kubernetes) above
+`realtime.shutdownGracePeriod`, and the generations to fit in it. A crash or a kill loses the calls of the instance:
+the clients get `REALTIME_STREAM_NOT_FOUND` when resuming, and call again. The tickets and the relay between the
+instances need the `redis` providers of `Memory` and `PubSub`.
+
 ## Connections
 
 A browser cannot send the `Authorization` header with an `EventSource` or a `WebSocket`, so the client asks for a ticket
@@ -427,6 +456,7 @@ receives the same encoded frame: `{ type: 'chunk', sid, seq, data, sync? }` (`da
 | Close code | Meaning                                          |
 |------------|--------------------------------------------------|
 | `1001`     | The server shuts down                            |
+| `1012`     | The server restarts, reconnect at once elsewhere |
 | `1008`     | A binary message                                 |
 | `4401`     | The authentication expired                       |
 | `4403`     | The ticket is missing or invalid                 |

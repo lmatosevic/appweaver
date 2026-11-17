@@ -153,7 +153,9 @@ export type RealtimeClientOptions = {
   anonymous?: boolean | 'auto';
   /** Reconnect after a lost connection, with the subscriptions. Default: `true` */
   reconnect?: boolean;
-  /** Milliseconds before the first reconnection, doubled up to `maxReconnectDelay`. Default: `500` */
+  /** Milliseconds before the first reconnection, doubled up to `maxReconnectDelay`, each delay randomized from its
+   * half to itself so the clients of a server do not reconnect at once. A server restarting (`1012`) is left within
+   * the first delay. Default: `500` */
   reconnectDelay?: number;
   /** Milliseconds between the reconnections at most. Default: `30000` */
   maxReconnectDelay?: number;
@@ -247,6 +249,9 @@ type Transport = {
 
 /** The close codes of the server after which the client reconnects at once, with a new ticket. */
 const REAUTHENTICATE = 4401;
+
+/** The close code of a server restarting, i.e. on a rolling update: the client reconnects at once to another one. */
+const SERVICE_RESTART = 1012;
 
 /**
  * The realtime connection of a client, over a WebSocket or a stream of Server-Sent Events. It connects on the first
@@ -782,17 +787,28 @@ export class RealtimeClient<
 
     return new Promise((resolve, reject) => {
       let welcomed = false;
+      let closeCode = 1006;
 
       const read = async (): Promise<void> => {
         try {
-          await readEvents(body, (message) => {
-            if (message.type === 'welcome') {
-              welcomed = true;
-              this.opened(message.connectionId);
-              resolve();
+          await readEvents(
+            body,
+            (message) => {
+              if (message.type === 'welcome') {
+                welcomed = true;
+                this.opened(message.connectionId);
+                resolve();
+              }
+              this.handle(message);
+            },
+            // An event stream tells its close code in a comment
+            (comment) => {
+              const match = /^close (\d+)/.exec(comment);
+              if (match) {
+                closeCode = Number(match[1]);
+              }
             }
-            this.handle(message);
-          });
+          );
         } catch {
           // Aborted, or the connection is lost
         }
@@ -801,7 +817,7 @@ export class RealtimeClient<
           if (!welcomed) {
             reject(requestFailed('Realtime connection refused'));
           }
-          this.lost(1006);
+          this.lost(closeCode);
         }
       };
 
@@ -908,13 +924,17 @@ export class RealtimeClient<
     }
 
     this.setState('reconnecting');
+    const backoff = Math.min(
+      (this._options.reconnectDelay ?? 500) * 2 ** this._attempts,
+      this._options.maxReconnectDelay ?? 30000
+    );
+    // Randomized, so the clients of a restarting server spread over the others
     const delay =
       code === REAUTHENTICATE
         ? 0
-        : Math.min(
-            (this._options.reconnectDelay ?? 500) * 2 ** this._attempts,
-            this._options.maxReconnectDelay ?? 30000
-          );
+        : code === SERVICE_RESTART
+          ? Math.random() * backoff
+          : backoff * (0.5 + Math.random() * 0.5);
     this._attempts++;
     clearTimeout(this._reconnectTimer);
     this._reconnectTimer = setTimeout(() => {
@@ -1524,7 +1544,8 @@ function decodeChunk(
 /** Reads the messages of a body of Server-Sent Events until it ends. */
 async function readEvents(
   body: ReadableStream<Uint8Array>,
-  onMessage: (message: ServerMessage) => void
+  onMessage: (message: ServerMessage) => void,
+  onComment?: (comment: string) => void
 ): Promise<void> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
@@ -1540,8 +1561,13 @@ async function readEvents(
     while ((index = buffer.indexOf('\n\n')) >= 0) {
       const block = buffer.slice(0, index);
       buffer = buffer.slice(index + 2);
-      const data = block
-        .split('\n')
+      const lines = block.split('\n');
+      for (const line of lines) {
+        if (line.startsWith(':')) {
+          onComment?.(line.slice(1).trim());
+        }
+      }
+      const data = lines
         .filter((line) => line.startsWith('data: '))
         .map((line) => line.slice(6))
         .join('\n');

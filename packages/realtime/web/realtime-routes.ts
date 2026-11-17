@@ -99,13 +99,10 @@ export function registerRealtimeRoutes(): void {
   const prefix = realtimeConfig.ROUTE_PREFIX.replace(/\/$/, '');
 
   registerPlugin('appweaver-realtime', (server) => {
-    // The open connections would keep the server from closing
-    server.addHook('preClose', (done) => {
-      inject(RealtimeGateway).closeAll(
-        RealtimeCloseCode.GoingAway,
-        'Server shutting down'
-      );
-      done();
+    // Moves the clients to the other instances and lets the calls end, since
+    // the open connections would keep the server from closing
+    server.addHook('preClose', async () => {
+      await inject(RealtimeGateway).drain();
     });
 
     if (realtimeConfig.WEBSOCKET_ENABLED) {
@@ -175,7 +172,8 @@ export function registerRealtimeRoutes(): void {
               ErrorCode.RealtimeActionDenied,
               ErrorCode.RealtimePayloadInvalid,
               ErrorCode.RealtimeMessageInvalid,
-              ErrorCode.RealtimeStreamAccept
+              ErrorCode.RealtimeStreamAccept,
+              ErrorCode.RealtimeShuttingDown
             ]
           }
         },
@@ -210,7 +208,8 @@ export function registerRealtimeRoutes(): void {
               errorCodes: [
                 ErrorCode.RealtimeTicketInvalid,
                 ErrorCode.RealtimeConnectionLimit,
-                ErrorCode.RealtimeMessageInvalid
+                ErrorCode.RealtimeMessageInvalid,
+                ErrorCode.RealtimeShuttingDown
               ],
               rateLimit: false
             } as never
@@ -474,18 +473,25 @@ async function openWebSocket(
     connection = opened;
   } catch (e) {
     socket.send(JSON.stringify({ type: 'error', error: toProblem(e) }));
-    socket.close(
-      isAppweaverError(e) &&
-        (e.code as ErrorCode) === ErrorCode.RealtimeConnectionLimit
-        ? RealtimeCloseCode.TooManyConnections
-        : RealtimeCloseCode.Unauthorized,
-      'Connection refused'
-    );
+    socket.close(closeCode(e), 'Connection refused');
     return;
   }
 
   for (const message of early.splice(0)) {
     void gateway.handleMessage(connection, message);
+  }
+}
+
+/** The close code of a refused WebSocket connection. */
+function closeCode(error: unknown): RealtimeCloseCode {
+  const code = isAppweaverError(error) ? (error.code as ErrorCode) : undefined;
+  switch (code) {
+    case ErrorCode.RealtimeConnectionLimit:
+      return RealtimeCloseCode.TooManyConnections;
+    case ErrorCode.RealtimeShuttingDown:
+      return RealtimeCloseCode.ServiceRestart;
+    default:
+      return RealtimeCloseCode.Unauthorized;
   }
 }
 

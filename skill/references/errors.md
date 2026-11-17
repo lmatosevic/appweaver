@@ -261,6 +261,7 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `REALTIME_STREAM_LOST`               | 503    | Realtime stream lost                  |
 | `REALTIME_STREAM_ACCEPT`             | 406    | Realtime stream not accepted          |
 | `REALTIME_INPUT_LIMIT`               | 413    | Realtime input too large              |
+| `REALTIME_SHUTTING_DOWN`             | 503    | Realtime server shutting down         |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 

@@ -40,6 +40,7 @@ import { createChannel } from '../../channel';
 import { RealtimeGateway } from '../../gateway/realtime-gateway';
 import { createStream } from '../../stream/create-stream';
 import { StreamHub } from '../../stream/stream-hub';
+import { streamSettings } from '../../stream/stream-instance';
 import { RealtimeCloseCode } from '../../types';
 import { FakeConnection } from '../fixtures/fake-connection';
 import { FakeSink } from '../fixtures/fake-sink';
@@ -1631,6 +1632,280 @@ describe('RealtimeGateway', () => {
           })
         ).rejects.toMatchObject({
           code: ErrorCode.RealtimeSubscriptionDenied
+        });
+      });
+    });
+
+    describe('rolling updates', () => {
+      const createAssistant = (
+        handler: (...args: any[]) => any = async function* (
+          _: unknown,
+          { signal }: any
+        ) {
+          yield 'a';
+          await new Promise((resolve) =>
+            signal.addEventListener('abort', resolve)
+          );
+        }
+      ) =>
+        createRealtimeAction({
+          name: 'assistant',
+          payload: Type.Object({}),
+          public: true,
+          stream: {},
+          handler
+        });
+
+      test('moves the clients to another instance, refusing the new connections and calls', async () => {
+        createAssistant(async function* () {
+          yield 'a';
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await gateway.drain();
+
+        expect(gateway.draining).toBe(true);
+        expect(connection.closedWith).toEqual([
+          RealtimeCloseCode.ServiceRestart,
+          'Server restarting'
+        ]);
+        expect(gateway.connections.size).toBe(0);
+        expect(() => gateway.open(new FakeConnection())).toThrow(
+          expect.objectContaining({ code: ErrorCode.RealtimeShuttingDown })
+        );
+        expect(() =>
+          gateway.openActionCall(
+            'assistant',
+            {},
+            { user: null, transport: 'http', ack: true },
+            { sink: new FakeSink() }
+          )
+        ).toThrow(
+          expect.objectContaining({ code: ErrorCode.RealtimeShuttingDown })
+        );
+      });
+
+      test('lets the calls end, keeping the connections streaming an input', async () => {
+        createRealtimeAction({
+          name: 'voice',
+          payload: Type.Object({}),
+          input: {},
+          async handler(_, { input }) {
+            const chunks: string[] = [];
+            for await (const chunk of input!) {
+              chunks.push(chunk);
+            }
+            return chunks;
+          }
+        });
+        let release!: () => void;
+        const gate = new Promise<void>((resolve) => (release = resolve));
+        createAssistant(async function* () {
+          yield 'a';
+          await gate;
+          yield 'b';
+        });
+        const speaking = new FakeConnection();
+        const idle = new FakeConnection({ id: 2 });
+        gateway.open(speaking);
+        gateway.open(idle);
+        await send(speaking, {
+          type: 'action',
+          id: 'v',
+          action: 'voice',
+          payload: {}
+        });
+        const http = new FakeSink();
+        gateway.openActionCall(
+          'assistant',
+          {},
+          { user: null, transport: 'http', ack: true },
+          { sink: http }
+        );
+        await wait(10);
+
+        const draining = gateway.drain();
+        await wait(50);
+        expect(idle.closedWith?.[0]).toBe(RealtimeCloseCode.ServiceRestart);
+        expect(speaking.closed).toBe(false);
+
+        await send(speaking, { type: 'input', id: 'v', data: 'hi' });
+        await send(speaking, { type: 'input.end', id: 'v' });
+        release();
+        await draining;
+
+        expect(speaking.messages).toContainEqual({
+          type: 'result',
+          id: 'v',
+          result: ['hi']
+        });
+        expect(speaking.closedWith?.[0]).toBe(RealtimeCloseCode.ServiceRestart);
+        expect(http.messages.at(-1)).toMatchObject({ type: 'stream.end' });
+        expect(gateway.calls.size).toBe(0);
+      });
+
+      test('ends the calls still running after the grace period', async () => {
+        configOverrides.REALTIME_SHUTDOWN_GRACE_PERIOD = 50;
+        createAssistant();
+        const sink = new FakeSink();
+        gateway.openActionCall(
+          'assistant',
+          {},
+          { user: null, transport: 'http', ack: true },
+          { sink }
+        );
+
+        await gateway.drain();
+
+        expect(sink.messages.at(-1)).toMatchObject({
+          type: 'stream.error',
+          error: { code: 'REALTIME_SHUTTING_DOWN', status: 503 }
+        });
+      });
+
+      test('cancels the calls when destroyed', async () => {
+        createAssistant();
+        const call = gateway.openActionCall(
+          'assistant',
+          {},
+          { user: null, transport: 'http', ack: true },
+          { sink: new FakeSink() }
+        );
+
+        await gateway.onDestroy();
+
+        expect(call.ended).toBe(true);
+      });
+
+      describe('a call of another instance', () => {
+        let owner: StreamHub;
+
+        beforeEach(async () => {
+          owner = new StreamHub();
+          await owner.onReady();
+        });
+
+        afterEach(async () => {
+          await owner.onDestroy();
+        });
+
+        const resume = async (
+          connection: FakeConnection,
+          streamId: string,
+          seq = 0
+        ) => send(connection, { type: 'resume', id: 'r1', streamId, seq });
+
+        test('resumes the stream of a call of another instance', async () => {
+          const instance = owner.openAction('assistant', streamSettings(), '1');
+          instance.write('a');
+          const connection = new FakeConnection();
+          gateway.open(connection);
+
+          await resume(connection, instance.streamId);
+          instance.write('b');
+          await wait(30);
+          instance.end();
+          await wait(10);
+
+          expect(
+            connection.messages
+              .filter((message) => message.type === 'chunk')
+              .map((message) => (message as { data: unknown }).data)
+          ).toEqual(['a', 'b']);
+          expect(connection.messages.at(-1)).toMatchObject({
+            type: 'stream.end'
+          });
+          expect(connection.subscriptions.size).toBe(0);
+        });
+
+        test('cancels a resumed call on the instance running it', async () => {
+          const instance = owner.openAction('assistant', streamSettings(), '1');
+          const connection = new FakeConnection();
+          gateway.open(connection);
+          await resume(connection, instance.streamId);
+          expect(connection.subscriptions.get('r1')?.kind).toBe('remote-call');
+
+          await send(connection, { type: 'cancel', id: 'r1' });
+          await wait(10);
+
+          expect(instance.endEntry?.frame.message).toMatchObject({
+            cancelled: true
+          });
+          expect(connection.subscriptions.size).toBe(0);
+        });
+
+        test('unsubscribes a resumed call, and lets its owner linger it once its client left', async () => {
+          configOverrides.REALTIME_STREAM_LINGER = 30;
+          const instance = owner.openAction('assistant', streamSettings(), '1');
+          const first = new FakeConnection();
+          const second = new FakeConnection();
+          gateway.open(first);
+          gateway.open(second);
+          await send(first, {
+            type: 'resume',
+            id: 'a',
+            streamId: instance.streamId,
+            seq: 0
+          });
+          await send(second, {
+            type: 'resume',
+            id: 'b',
+            streamId: instance.streamId,
+            seq: 0
+          });
+
+          await send(first, { type: 'unsubscribe', id: 'a' });
+          await wait(10);
+          expect(instance.ended).toBe(true);
+
+          const third = owner.openAction('assistant', streamSettings(), '1');
+          const leaving = new FakeConnection();
+          gateway.open(leaving);
+          await send(leaving, {
+            type: 'resume',
+            id: 'c',
+            streamId: third.streamId,
+            seq: 0
+          });
+          leaving.close(RealtimeCloseCode.GoingAway, 'Gone');
+          await gateway.release(leaving);
+          await wait(80);
+
+          expect(third.endEntry?.frame.message).toMatchObject({
+            cancelled: true
+          });
+        });
+
+        test('refuses to resume the call of another user', async () => {
+          configOverrides.REALTIME_STREAM_RELAY_HEARTBEAT = 100;
+          const instance = owner.openAction('assistant', streamSettings(), '2');
+          const connection = new FakeConnection();
+          gateway.open(connection);
+
+          await resume(connection, instance.streamId);
+
+          expect(connection.messages.at(-1)).toMatchObject({
+            type: 'error',
+            id: 'r1',
+            error: { code: 'REALTIME_STREAM_NOT_FOUND' }
+          });
+          expect(connection.subscriptions.size).toBe(0);
+          instance.cancel();
+        });
+
+        test('leaves a resumed stream of a connection closed meanwhile', async () => {
+          const instance = owner.openAction('assistant', streamSettings(), '1');
+          const connection = new FakeConnection();
+          gateway.open(connection);
+
+          const resuming = resume(connection, instance.streamId);
+          connection.close(RealtimeCloseCode.GoingAway, 'Gone');
+          await resuming;
+          await gateway.release(connection);
+
+          expect(connection.subscriptions.size).toBe(0);
+          instance.cancel();
         });
       });
     });

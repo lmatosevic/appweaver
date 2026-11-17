@@ -71,6 +71,9 @@ const MAX_STREAM_KEY_LENGTH = 256;
 /** The first byte of a binary WebSocket message carrying a chunk of an input. */
 const INPUT_FRAME = 1;
 
+/** Milliseconds between the checks of the calls of a draining instance. */
+const DRAIN_POLL_INTERVAL = 100;
+
 /** A resource event, as the bridge of the resource events publishes it to the pub/sub. */
 type ResourceChannelMessage = ChannelMessage & {
   payload: ResourceEventMessage;
@@ -126,6 +129,8 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   private _usersSubscription?: Promise<string>;
   /** @internal */
   private readonly _calls = new Map<string, ActionCall>();
+  /** @internal */
+  private _draining: boolean = false;
 
   /** The open connections of the instance. */
   public get connections(): ReadonlyMap<string, RealtimeConnection> {
@@ -143,6 +148,9 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   }
 
   public async onDestroy(): Promise<void> {
+    for (const call of [...this._calls.values()]) {
+      call.cancel();
+    }
     this.closeAll(RealtimeCloseCode.GoingAway, 'Server shutting down');
     const events = inject(Events, false);
     for (const listenerId of this._listeners.splice(0)) {
@@ -179,13 +187,61 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     await this.publishUser({ userId: String(userId), change: 'refresh' });
   }
 
+  /** Whether the instance is shutting down, refusing the new connections and calls. */
+  public get draining(): boolean {
+    return this._draining;
+  }
+
+  /**
+   * Shuts the realtime connections of the instance down without losing the calls running on it, i.e. on a rolling
+   * update: the new connections and calls are refused, the clients are told to reconnect to another instance (`1012`),
+   * where they resume the streams of their calls relayed from this one, the ones streaming an input kept until it
+   * ends, then it waits for the calls to end, at most `realtime.shutdownGracePeriod` milliseconds, and closes the rest.
+   *
+   * @return {Promise<void>} Resolves once every connection is closed.
+   */
+  public async drain(): Promise<void> {
+    this._draining = true;
+    const deadline = Date.now() + realtimeConfig.SHUTDOWN_GRACE_PERIOD;
+
+    for (;;) {
+      for (const connection of [...this._connections.values()]) {
+        if (!streamsInput(connection)) {
+          connection.close(
+            RealtimeCloseCode.ServiceRestart,
+            'Server restarting'
+          );
+          void this.release(connection);
+        }
+      }
+      if (this._calls.size === 0 || Date.now() >= deadline) {
+        break;
+      }
+      await new Promise((resolve) =>
+        setTimeout(
+          resolve,
+          Math.min(DRAIN_POLL_INTERVAL, deadline - Date.now())
+        )
+      );
+    }
+
+    for (const call of [...this._calls.values()]) {
+      call.fail(shuttingDown());
+    }
+    this.closeAll(RealtimeCloseCode.GoingAway, 'Server shutting down');
+  }
+
   /**
    * Opens a connection, sending it the `welcome` message, once the connection limits allow it.
    *
    * @param {RealtimeConnection} connection - The connection.
-   * @throws {RealtimeError} `REALTIME_CONNECTION_LIMIT` when the instance or the user has too many connections.
+   * @throws {RealtimeError} `REALTIME_CONNECTION_LIMIT` when the instance or the user has too many connections,
+   * `REALTIME_SHUTTING_DOWN` while the instance shuts down.
    */
   public open(connection: RealtimeConnection): void {
+    if (this._draining) {
+      throw shuttingDown();
+    }
     const limits: [count: number, limit: number][] = [
       [this._connections.size, realtimeConfig.MAX_CONNECTIONS],
       [
@@ -342,6 +398,10 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       subscription.call.cancel();
       return true;
     }
+    if (subscription.kind === 'remote-call') {
+      await this.cancelRemoteCall(connection, subscription);
+      return true;
+    }
     await this.releaseChannel(subscription);
     return true;
   }
@@ -414,6 +474,9 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   ): ActionCall & { done: Promise<unknown> } {
     const action = this.allowedAction(name, actionContext.user);
     const config = action.config;
+    if (this._draining) {
+      throw shuttingDown();
+    }
     if (!config.stream && !config.input) {
       throw invalidMessage(`Realtime action '${name}' does not stream`);
     }
@@ -652,11 +715,14 @@ export class RealtimeGateway implements OnReady, OnDestroy {
           if (!subscription.call.output) {
             connection.subscriptions.delete(message.id);
           }
+        } else if (subscription?.kind === 'remote-call') {
+          connection.subscriptions.delete(message.id);
+          await this.cancelRemoteCall(connection, subscription);
         }
         return;
       }
       case 'resume':
-        this.resumeActionCall(connection, message);
+        await this.resumeActionCall(connection, message);
         return;
       default:
         throw invalidMessage(
@@ -810,10 +876,10 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   }
 
   /** @internal */
-  private resumeActionCall(
+  private async resumeActionCall(
     connection: RealtimeConnection,
     message: { id: string; streamId: unknown; seq: unknown }
-  ): void {
+  ): Promise<void> {
     if (
       typeof message.streamId !== 'string' ||
       !Number.isInteger(message.seq) ||
@@ -825,12 +891,43 @@ export class RealtimeGateway implements OnReady, OnDestroy {
 
     const sink = this.connectionSink(connection, message.id, true);
     const user = connection.user;
-    const instance = inject(StreamHub).resumeAction(
-      message.streamId,
-      user ? String(user.id) : null,
-      sink,
-      message.seq as number
-    );
+    // Reserved while the stream of another instance is awaited
+    const placeholder: ActiveSubscription = {
+      kind: 'remote-call',
+      id: message.id,
+      channel: 'action:',
+      params: {},
+      streamId: message.streamId,
+      sink
+    };
+    connection.subscriptions.set(message.id, placeholder);
+    let resumed: Awaited<ReturnType<StreamHub['resumeAction']>>;
+    try {
+      resumed = await inject(StreamHub).resumeAction(
+        message.streamId,
+        user ? String(user.id) : null,
+        sink,
+        message.seq as number
+      );
+    } finally {
+      if (connection.subscriptions.get(message.id) === placeholder) {
+        connection.subscriptions.delete(message.id);
+      }
+    }
+
+    const { instance, remote } = resumed;
+    if (remote) {
+      if (!instance.ended && !connection.closed) {
+        connection.subscriptions.set(message.id, {
+          ...placeholder,
+          channel: `action:${instance.name}`
+        });
+      } else if (connection.closed) {
+        await inject(StreamHub).unsubscribe('$action', instance.streamId, sink);
+      }
+      return;
+    }
+
     const call = this._calls.get(instance.streamId);
     if (!instance.ended && call) {
       call.connectionId = connection.id;
@@ -843,6 +940,20 @@ export class RealtimeGateway implements OnReady, OnDestroy {
         sink
       });
     }
+  }
+
+  /** @internal */
+  private async cancelRemoteCall(
+    connection: RealtimeConnection,
+    subscription: Extract<ActiveSubscription, { kind: 'remote-call' }>
+  ): Promise<void> {
+    const hub = inject(StreamHub);
+    const user = connection.user;
+    await hub.cancelAction(
+      subscription.streamId,
+      user ? String(user.id) : null
+    );
+    await hub.unsubscribe('$action', subscription.streamId, subscription.sink);
   }
 
   /** @internal */
@@ -867,7 +978,8 @@ export class RealtimeGateway implements OnReady, OnDestroy {
         ? () => {
             const subscription = connection.subscriptions.get(id);
             if (
-              subscription?.kind === 'action-call' &&
+              (subscription?.kind === 'action-call' ||
+                subscription?.kind === 'remote-call') &&
               subscription.sink === sink
             ) {
               connection.subscriptions.delete(id);
@@ -1109,7 +1221,10 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       );
       return;
     }
-    if (subscription.kind === 'action-call') {
+    if (
+      subscription.kind === 'action-call' ||
+      subscription.kind === 'remote-call'
+    ) {
       return;
     }
 
@@ -1146,6 +1261,15 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       await inject(StreamHub).unsubscribe(
         subscription.definition.name,
         subscription.key,
+        subscription.sink
+      );
+      return;
+    }
+    if (subscription.kind === 'remote-call') {
+      // Its owner lingers it for a resume of its caller
+      await inject(StreamHub).unsubscribe(
+        '$action',
+        subscription.streamId,
         subscription.sink
       );
       return;
@@ -1477,8 +1601,11 @@ export class RealtimeGateway implements OnReady, OnDestroy {
             subscription.params,
             subscription.key
           );
-        } else if (subscription.kind === 'action-call') {
-          // Checked with the calls of the user, over HTTP too
+        } else if (
+          subscription.kind === 'action-call' ||
+          subscription.kind === 'remote-call'
+        ) {
+          // Checked with the calls of the user by the instance running them
           allowed = true;
         } else {
           allowed = await this.channelAccess(
@@ -1638,5 +1765,26 @@ function deniedAction(action: string): RealtimeError {
     ErrorCode.RealtimeActionDenied,
     `Realtime action '${action}' denied`,
     { action }
+  );
+}
+
+/** Whether a connection streams the input of a call, which cannot move to another instance. */
+function streamsInput(connection: RealtimeConnection): boolean {
+  for (const subscription of connection.subscriptions.values()) {
+    if (
+      subscription.kind === 'action-call' &&
+      subscription.call.input &&
+      !subscription.call.input.ended
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function shuttingDown(): RealtimeError {
+  return new RealtimeError(
+    ErrorCode.RealtimeShuttingDown,
+    'Realtime server shutting down'
   );
 }

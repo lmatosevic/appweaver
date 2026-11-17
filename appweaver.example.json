@@ -399,7 +399,8 @@
       "streamRelayMaxBatch": "64KB",
       "streamRelayHeartbeat": 5000,
       "streamInputWindow": "256KB",
-      "streamInputMaxBytes": "10MB"
+      "streamInputMaxBytes": "10MB",
+      "shutdownGracePeriod": 30000
     },
     "mailer": {
       "senderName": "John Doe",

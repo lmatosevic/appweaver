@@ -412,7 +412,8 @@ describe('realtime routes', () => {
       await app.server.close();
       await socket.next(() => false).catch(() => undefined);
 
-      expect(socket.closeCode).toBe(1001);
+      // The client reconnects at once to another instance
+      expect(socket.closeCode).toBe(1012);
       expect(app.gateway.connections.size).toBe(0);
     });
   });
