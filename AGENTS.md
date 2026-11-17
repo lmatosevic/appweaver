@@ -147,7 +147,8 @@ helpers every package instruments with, and re-exports the few parts of the API 
 The instrumented parts are the HTTP server (`web/telemetry/http-telemetry.ts`, the server span of a request started in
 an `onRequest` hook and made active in the `createAsyncResource` of the request context), the Prisma client
 (`data/database/telemetry-extension.ts`, a `$allOperations` query extension), the queues (`memory`, `bullmq`), the
-`cron` scheduler, `EmailService`, `SmsService`, `CacheService` (metrics only) and `weaver run`. The logger adds the
+`cron` scheduler, `EmailService`, `SmsService`, `CacheService` (metrics only), `weaver run` and the realtime
+connections of `@appweaver/realtime` (`realtime/utils/telemetry.ts`). The logger adds the
 `trace_id` of the active span to every record, and `addLogDestination` lets the SDK module receive the records.
 
 The SDK is the `@appweaver/opentelemetry` module (`packages/opentelemetry`), never a contract with providers: OTLP is
@@ -183,6 +184,7 @@ on it:
 | `@appweaver/data`                                                 | Prisma, the resources, the auth data model, `FileService`, the seeders and the CSV export    |
 | `@appweaver/web`                                                  | The Fastify server, the resource routes, the authentication, the problem details and Swagger |
 | `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, ... | One driver each, carrying the library it wraps as a dependency                               |
+| `@appweaver/realtime`                                             | The realtime connections over WebSocket and SSE: channels, resource events and actions       |
 | `@appweaver/opentelemetry`                                        | The OpenTelemetry SDK exporting the traces, metrics and logs of the instrumentation          |
 | `@appweaver/testing`                                              | The test helpers shared by the packages                                                      |
 
@@ -221,6 +223,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 | `cache/`      | The `Cache` stored in the `Memory` provider, its eviction indexes and `CacheService`                                                 |
 | `memory/`     | The in-process `memory` driver of `Memory`                                                                                           |
 | `events/`     | The `node` driver of `Events`                                                                                                        |
+| `pubsub/`     | The `pubsub` config and the in-process `memory` driver of `PubSub`, the messages every instance receives (the realtime events)       |
 | `storage/`    | The `local` filesystem driver of `Storage`                                                                                           |
 | `queue/`      | The in-process `memory` driver of `Queue`                                                                                            |
 | `scheduler/`  | The scheduler config, its driver is `@appweaver/cron`                                                                                |
@@ -245,7 +248,7 @@ app and the modules, web the resource routes and the `web` parts), the `main` pa
 `loadProviders` defines the provider of every contract from its `*.provider` key: `auto` (the default) picks the
 driver of an enabled module, else the fallback of core, `none` disables the contract and the services requiring it, a
 name selects a provider, and a module path still loads a class. The provider names are `memory` and `redis`
-(`Memory`), `memory` (`Cache`), `node` (`Events`), `local` (`Storage`), `database` and `memory` (`SecurityStore`),
+(`Memory`), `memory` (`Cache`), `node` (`Events`), `memory` and `redis` (`PubSub`), `local` (`Storage`), `database` and `memory` (`SecurityStore`),
 `memory` and `bullmq` (`Queue`), `smtp` and `json` (`Mailer`), `twilio` and `json` (`SmsSender`), `handlebars`
 (`TemplateEngine`), `cron` (`Scheduler`),
 `prisma` (`Database`), `sharp` (`ImageProcessor`), and `database`, `timescale` and `memory` (`TimeSeries`). A new driver
@@ -345,7 +348,7 @@ the Twilio SDK.
 
 | Package                 | Driver                     | Provider                        | Config                          |
 |-------------------------|----------------------------|---------------------------------|---------------------------------|
-| `@appweaver/redis`      | `RedisMemory`              | `redis` (`Memory`)              | `redisConfig` (`memory.redis`)  |
+| `@appweaver/redis`      | `RedisMemory`, `RedisPubSub` | `redis` (`Memory`, `PubSub`)  | `redisConfig` (`memory.redis`), `redisPubSubConfig` (`pubsub.redis`) |
 | `@appweaver/bullmq`     | `BullQueue`                | `bullmq` (`Queue`)              | — (requires `@appweaver/redis`) |
 | `@appweaver/cron`       | `CronScheduler`            | `cron` (`Scheduler`)            | —                               |
 | `@appweaver/nodemailer` | `SmtpMailer`               | `smtp` (`Mailer`)               | `smtpConfig` (`mailer.smtp`)    |
@@ -372,6 +375,35 @@ out is read by the exporters from the standard `OTEL_EXPORTER_OTLP_*` environmen
 is left in place. The versions of the `@opentelemetry/*` packages move together: the `3.x` SDK packages, the `0.30x`
 exporters and the API version the SDK peers on, the same in the root, `common`, `testing` and this package.
 
+### `packages/realtime`
+
+The realtime module (`@appweaver/realtime`), requiring `@appweaver/web`, with `@fastify/websocket` (and `ws`) as
+dependencies. A client subscribes over a WebSocket or Server-Sent Events to the channels of `createChannel` and to the
+resource events of the models whose `createRoutes` sets `events`, and calls the actions of `createRealtimeAction`
+(with a result, or fire-and-forget without an `id`). Nothing is exposed unless declared. Every message goes through
+the `PubSub` contract of core (`memory`, or `redis` of `@appweaver/redis` to reach every instance), while the `Events`
+stay in the process.
+
+| File                          | Purpose                                                                                                     |
+|-------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `config.ts`                   | The `realtime` section: the routes, the transports, the tickets, the limits                                 |
+| `channel.ts`, `action.ts`     | `createChannel` and `createRealtimeAction`, defined in the context under their symbols                      |
+| `gateway/realtime-gateway.ts` | `RealtimeGateway`: the connections and their subscriptions, the delivery checked per user, the actions, and the bridge of the resource events to the pub/sub |
+| `gateway/ticket-service.ts`   | `TicketService`: the one-time tickets of the connections, kept in the `Memory`                              |
+| `transport/`                  | `SseConnection` and `WsConnection`, the transports of a `RealtimeConnection`                                |
+| `web/realtime-routes.ts`      | The web part: the WebSocket plugin and the ticket, events, ws and actions routes                            |
+| `web/realtime-spec.ts`        | The `x-appweaver-realtime` extension of the OpenAPI document (`registerSpecExtension` of web)               |
+| `utils/project-record.ts`     | Projects the record of a resource event onto the `find` response schema of its model                        |
+
+A change of a user of the auth model reaches their connections on every instance through the pub/sub: a logout, a
+disabling or a deletion closes them (`revoke`), any other change loads the user again and removes the subscriptions it
+lost (`refresh`). Redeeming a ticket loads the user as it is now (`utils/auth-user.ts`). A resource
+event reaches a user when `ResourceService.checkEventAccess` passes as that user: the `events` callback of
+the policy, or the `checkAccess` of a `find` and the `readRestrictions` matched in memory (`matchesWhere` of
+`data/resource/utils/where-util.ts`), with a `count` of the database for a relation filter: one query per event and
+distinct subscribed user, a known cost left to the `events` callback of a busy model. The protocol, the close codes and
+the client are documented in `skill/references/realtime.md`.
+
 ### `packages/testing`
 
 `@appweaver/testing` holds the test helpers of the packages and their modules: `resetContext` (clears the application
@@ -386,10 +418,11 @@ path into another package. Jest maps every `@appweaver/*` import to the sources 
 
 The contract suites of `contracts/` test a driver against the behavior every driver of its contract shares:
 `testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract`, `testMailerContract`,
-`testSmsContract` and `testTimeSeriesContract`, each called as `(name, () => driver)` at the top level of a test
+`testSmsContract`, `testPubSubContract` and `testTimeSeriesContract`, each called as `(name, () => driver)` at the top level of a test
 file. They use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
 and Bun, and create a fresh driver for every test.
-`InMemory`, `RedisMemory` (on `ioredis-mock`, which runs its Lua scripts), `FilesystemStorage`, `MemoryQueue`,
+`InMemory`, `RedisMemory` (on `ioredis-mock`, which runs its Lua scripts), `MemoryPubSub`, `RedisPubSub` (on
+`ioredis-mock`), `FilesystemStorage`, `MemoryQueue`,
 `JsonMailer`, `SmtpMailer` (on a mocked transport), `JsonSms`, `TwilioSms` (on a mocked `fetch`), `CronScheduler`,
 `MemoryTimeSeries`, `DatabaseTimeSeries` and `TimescaleTimeSeries` (on SQLite, and on the databases of
 `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`,
@@ -420,7 +453,8 @@ A type-safe HTTP client generator and runtime library for consuming Appweaver-co
 - **Runtime library** — provides `FetchClient` and a set of module clients (`ResourceClient`, `AuthClient`,
   `AccountClient`, `TwoFactorClient`, `HealthClient`, `FilesClient`) that wrap `openapi-fetch` with built-in
   authentication strategies (JWT
-  Bearer, API key, HTTP Basic), timeout handling, and middleware support.
+  Bearer, API key, HTTP Basic), timeout handling, and middleware support. `RealtimeClient` is the WebSocket or SSE
+  connection of `@appweaver/realtime`, typed by its channels, resource events and actions.
 
 The package exposes a `weaver-client` CLI binary. See **Section 6** for the full command reference.
 
@@ -436,7 +470,8 @@ The package exposes a `weaver-client` CLI binary. See **Section 6** for the full
 | `utils/enum-util.ts`            | Rewrites the generated enums into constant objects and value unions  |
 | `utils/problem-util.ts`         | Inlines the error codes of every error response, names `ErrorCode`   |
 | `clients/fetch-client.ts`       | `FetchClient` base class with auth/middleware                        |
-| `clients/modules/`              | `ResourceClient`, `AuthClient`, `AccountClient`, etc.                |
+| `clients/modules/`              | `ResourceClient`, `AuthClient`, `AccountClient`, `RealtimeClient`... |
+| `utils/realtime-util.ts`        | The `RealtimeModuleType` of the `x-appweaver-realtime` extension      |
 | `errors/client-error.ts`        | `ClientError` with the HTTP status, error code and problem details   |
 | `constants.ts`                  | OpenAPI extension keys and operation/type mapping tables             |
 
@@ -453,12 +488,12 @@ adds the optional modules selected: the default ones (`defaultModules` of `scaff
 with the `--add <modules...>` ones, or every module with `--all`, minus the `--exclude <modules...>` ones, which leave
 out the default modules too, with or without `--all` (`--exclude data web` for the core application alone). The
 modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `sms`,
-`templates`, `locales`, `timeseries` (requires `data`), `telemetry` and `docker`. The base project depends only on
+`templates`, `locales`, `timeseries` (requires `data`), `telemetry`, `realtime` (requires `web`) and `docker`. The base project depends only on
 `@appweaver/cli`, `common`, `core` and TypeBox, and a module
 adds its packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
 `projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`), `@appweaver/twilio` (`sms`, with the `json`
-sender in dev and test and the Twilio keys of `.env`), `@appweaver/handlebars` (`templates`) and
+sender in dev and test and the Twilio keys of `.env`), `@appweaver/handlebars` (`templates`), `@appweaver/realtime` (`realtime`) and
 `@appweaver/opentelemetry` (`telemetry`, with the OTLP endpoint and telemetry off in test), every
 `@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
 `--database`, `--host` and `--port` configure `data` and `web` only (`ProjectContext`), and `weaver module add` takes
@@ -740,7 +775,7 @@ unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any ne
 ### `weaver module` (alias: `mod`)
 
 Add and remove the optional modules of `@appweaver/create` (`data`, `web`, `redis`, `queue`, `scheduler`, `mailer`,
-`sms`, `templates`, `locales`, `timeseries`, `telemetry`, `docker`) in the current project, with the scaffold templates
+`sms`, `templates`, `locales`, `timeseries`, `telemetry`, `realtime`, `docker`) in the current project, with the scaffold templates
 of `@appweaver/create/scaffold`, install module packages, and create local modules.
 
 ```
@@ -1056,6 +1091,7 @@ const users = await client.user.query({ filter: { enabled: true } });
 | `TwoFactorClient` | `challenge`, `verify`, `listMethods`, `enableMethod`, `orderMethods`, `disableMethod`, `setupTotp`, `confirmTotp`, `generateRecoveryCodes`                             |
 | `HealthClient`    | `check`, `ready`                                                                                                                                                       |
 | `FilesClient`     | `public`, `protected`                                                                                                                                                  |
+| `RealtimeClient`  | `subscribe`, `on`, `observe`, `send`, `emit`, `connect`, `disconnect`, `onStateChange`, `onError`                                                                      |
 
 ---
 
@@ -1245,8 +1281,8 @@ This runs the following steps automatically:
 4. **Changelog** (`@semantic-release/changelog`) — appends notes to `CHANGELOG.md`.
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
-   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `opentelemetry`, `handlebars`, `sharp`,
-   `testing`, `cli`, `client` and `create`.
+   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `opentelemetry`, `realtime`,
+   `handlebars`, `sharp`, `testing`, `cli`, `client` and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
@@ -1264,6 +1300,7 @@ This runs the following steps automatically:
     cd packages/nodemailer/dist && npm publish
     cd packages/twilio/dist     && npm publish
     cd packages/opentelemetry/dist && npm publish
+    cd packages/realtime/dist   && npm publish
     cd packages/handlebars/dist && npm publish
     cd packages/sharp/dist      && npm publish
     cd packages/testing/dist    && npm publish

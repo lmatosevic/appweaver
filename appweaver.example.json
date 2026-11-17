@@ -370,6 +370,29 @@
       "maxListeners": 20,
       "provider": "auto"
     },
+    "pubsub": {
+      "provider": "auto",
+      "redis": {
+        "channelPrefix": "appweaver:"
+      }
+    },
+    "realtime": {
+      "enabled": true,
+      "routePrefix": "/realtime",
+      "sseEnabled": true,
+      "websocketEnabled": true,
+      "anonymousEnabled": false,
+      "ticketTtl": 30000,
+      "heartbeatInterval": 25000,
+      "connectionMaxAge": 3600000,
+      "maxConnections": 10000,
+      "maxConnectionsPerUser": 10,
+      "maxAnonymousConnectionsPerIp": 10,
+      "maxSubscriptions": 50,
+      "maxMessageSize": "64KB",
+      "sendBufferLimit": "1MB",
+      "messageRateLimit": 20
+    },
     "mailer": {
       "senderName": "John Doe",
       "senderAddress": "no-reply@appweaver.co",
@@ -433,6 +456,7 @@
         "sms": true,
         "cache": true,
         "task": true,
+        "realtime": true,
         "fetch": true
       }
     },

@@ -23,13 +23,9 @@ payments.onFailed((job, err) => {
 
 // A placed order is charged in the background, the checkout never waits for
 // the payment provider
-inject(Events).onResourceEvent<Order>(
-  'Order',
-  'create',
-  async ({ current }) => {
-    await payments.sendJob({ orderId: current.id }, 'charge');
-  }
-);
+inject(Events).onResourceEvent('Order', 'create', async ({ current }) => {
+  await payments.sendJob({ orderId: current.id }, 'charge');
+});
 
 /**
  * Charges a pending order: an approved payment marks it paid, a declined one

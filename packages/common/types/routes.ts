@@ -1,5 +1,6 @@
 import { AuthType, QueryMethod } from '../enums';
 import { ErrorCode } from '../errors/error-code';
+import { ResourceEventAction } from './policy';
 import { ModelName } from './registry';
 
 export type RouteSchema = {
@@ -120,6 +121,30 @@ export type SeriesWriteRouteConfig = RouteConfig & {
   allowDirect?: boolean;
 };
 
+/** Who may use a realtime part: a channel, the resource events of a model or an action. */
+export type RealtimeAccess = {
+  /** Allow the anonymous clients. If any of the `roles` or `permissions`
+   * properties are set, they will be ignored. */
+  public?: boolean;
+  /** Roles required, any of them */
+  roles?: string[];
+  /** Permissions required, any of them */
+  permissions?: string[];
+};
+
+/** An action whose events are exposed, with an access of its own replacing the access of the `events`. */
+export type ResourceEventActionConfig = RealtimeAccess & {
+  /** The action, `create`, `update` or `delete`. */
+  action: ResourceEventAction;
+};
+
+/** The resource events a model exposes to the realtime connections, as the `resource:<Model>.<action>` channels. */
+export type ResourceEventsConfig = RealtimeAccess & {
+  /** The actions whose events are exposed, each with the access of the `events`, or an object with its own `public`,
+   * `roles` and `permissions` replacing them, i.e. `['create', { action: 'update', public: true }]`. */
+  actions: (ResourceEventAction | ResourceEventActionConfig)[];
+};
+
 export type ResourceRoutesConfig = {
   /** Resource model name */
   modelName: ModelName;
@@ -172,6 +197,8 @@ export type ResourceRoutesConfig = {
   /** Config for the bulk delete route, excluded unless
    * `RESOURCE_BULK_DELETE_ENABLED` is set (or `exclude: false`) */
   bulkDelete?: BulkRouteConfig;
+  /** The resource events exposed to the realtime connections of `@appweaver/realtime`, none unless set */
+  events?: ResourceEventsConfig;
 };
 
 export type ResourceSchemaConfig = {

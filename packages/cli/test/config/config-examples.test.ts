@@ -16,6 +16,7 @@ import data from '@appweaver/data/module';
 import handlebars from '@appweaver/handlebars/module';
 import nodemailer from '@appweaver/nodemailer/module';
 import opentelemetry from '@appweaver/opentelemetry/module';
+import realtime from '@appweaver/realtime/module';
 import redis from '@appweaver/redis/module';
 import sharp from '@appweaver/sharp/module';
 import twilio from '@appweaver/twilio/module';
@@ -38,6 +39,7 @@ const modules = [
   nodemailer,
   twilio,
   opentelemetry,
+  realtime,
   handlebars,
   sharp
 ];

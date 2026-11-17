@@ -30,6 +30,7 @@ const lockedPackages = [
   'sharp',
   'twilio',
   'opentelemetry',
+  'realtime',
   'testing',
   'cli',
   'client',

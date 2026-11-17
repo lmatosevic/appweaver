@@ -97,6 +97,7 @@ with `data` and `web`:
 | `locales`        | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates    |
 | `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)        |
 | `telemetry`      | `@appweaver/opentelemetry`, the OTLP endpoint, telemetry off in the `test` environment                          | no telemetry exported                       |
+| `realtime`       | `@appweaver/realtime` (requires `web`): channels, resource events and actions over WebSocket and SSE            | no realtime connections                     |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                             |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
@@ -898,6 +899,33 @@ invoices().add(1);
 See [telemetry.md](references/telemetry.md) for what is recorded, the config, the backends (`configureTelemetry`) and
 `recordTelemetry` of `@appweaver/testing`.
 
+### Realtime events
+
+With the `realtime` module (`@appweaver/realtime`), clients subscribe over WebSocket or SSE to the channels of the
+application and the resource events of the models exposing them, and call custom actions. Nothing is exposed unless
+declared, every event is checked against the access of the user, and `public: true` opens a part to anonymous clients
+once `realtime.anonymousEnabled` is set:
+
+```ts
+export const orderShipped = createChannel({
+  name: 'order.shipped',
+  payload: Type.Object({ orderId: Type.Integer(), customerId: Type.Integer() }),
+  deliver: (user, payload) => payload.customerId === user?.id
+});
+await orderShipped.publish({ orderId: 7, customerId: 1 });
+
+createRoutes({ modelName: 'order', events: { actions: ['create', { action: 'update', public: true }] } });
+createPolicy({ modelName: 'order', events: (user, { current }) => current.customerId === user?.id });
+createRealtimeAction({
+  name: 'chat.typing',
+  payload: Type.Object({ roomId: Type.Integer() }),
+  handler: ({ roomId }, { user }) => typing.publish({ roomId, userId: user!.id })
+});
+```
+
+The generated client calls `client.realtime.subscribe`, `on`, `send` and `emit`. See
+[realtime.md](references/realtime.md).
+
 ### Registering a custom model
 
 Use `registerModel` to register a custom [TypeBox](https://github.com/sinclairzx81/typebox) schema as a named model.
@@ -1224,6 +1252,7 @@ npm run lint  # eslint "./**/*.ts"
 - Storage & File management: [storage.md](references/storage.md)
 - Database & Migrations: [database.md](references/database.md)
 - Events & Hooks: [events.md](references/events.md)
+- Realtime channels, resource events & actions (WebSocket, SSE): [realtime.md](references/realtime.md)
 - Cache management: [cache.md](references/cache.md)
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)

@@ -1496,6 +1496,7 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 | `bulkUpdate`  | BulkRouteConfig  | `PATCH /bulk` - Update many (disabled by default).                     |
 | `bulkReplace` | BulkRouteConfig  | `PUT /bulk` - Replace many (enabled along with `bulkUpdate`).          |
 | `bulkDelete`  | BulkRouteConfig  | `DELETE /bulk` - Delete many (disabled by default).                    |
+| `events`      | ResourceEventsConfig | The `create`, `update` and `delete` events exposed to the realtime connections (`{ actions, public?, roles?, permissions? }`, an action as an object `{ action, public?, roles?, permissions? }` with its own access), none unless set ([realtime.md](./realtime.md#resource-events)). |
 
 ### Route defaults
 
@@ -1688,6 +1689,7 @@ function createPolicy(config: ResourcePolicyConfig, override ?: Partial<Resource
 | `readRestrictions`  | `(user, resource, action) => filter`  | Returns a Prisma filter object applied to all read queries (find, query, aggregate). Restricts which records are visible. |
 | `writeRestrictions` | `(user, resource, action) => data`    | Returns data to merge or validate on create/update operations.                                                            |
 | `files`             | Record\<string, FilePolicy>           | Per-file field access policy.                                                                                             |
+| `events`            | `(user, event) => boolean`            | Returns `false` to keep a resource event from the realtime connection of a user, replacing the default `checkAccess` of a `find` and the matching of the `readRestrictions` ([realtime.md](./realtime.md#the-events-policy)). |
 
 **Action types**: `'find'`, `'query'`, `'aggregate'`, `'create'`, `'update'`, `'delete'`
 

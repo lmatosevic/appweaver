@@ -168,7 +168,20 @@ export enum ErrorCode {
   // Spatial
   SpatialInvalidGeometry = 'SPATIAL_INVALID_GEOMETRY',
   SpatialInvalidFilter = 'SPATIAL_INVALID_FILTER',
-  SpatialTooManyCandidates = 'SPATIAL_TOO_MANY_CANDIDATES'
+  SpatialTooManyCandidates = 'SPATIAL_TOO_MANY_CANDIDATES',
+
+  // Realtime
+  RealtimeTicketInvalid = 'REALTIME_TICKET_INVALID',
+  RealtimeChannelUnknown = 'REALTIME_CHANNEL_UNKNOWN',
+  RealtimeSubscriptionDenied = 'REALTIME_SUBSCRIPTION_DENIED',
+  RealtimeSubscriptionLimit = 'REALTIME_SUBSCRIPTION_LIMIT',
+  RealtimeActionUnknown = 'REALTIME_ACTION_UNKNOWN',
+  RealtimeActionDenied = 'REALTIME_ACTION_DENIED',
+  RealtimePayloadInvalid = 'REALTIME_PAYLOAD_INVALID',
+  RealtimeMessageInvalid = 'REALTIME_MESSAGE_INVALID',
+  RealtimeConnectionLimit = 'REALTIME_CONNECTION_LIMIT',
+  RealtimeRateLimited = 'REALTIME_RATE_LIMITED',
+  RealtimeTransportDisabled = 'REALTIME_TRANSPORT_DISABLED'
 }
 
 /** The error codes starting with the prefix of a module, i.e. `'RESOURCE'`. */

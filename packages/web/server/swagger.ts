@@ -27,6 +27,7 @@ import {
 import { PROBLEM_CONTENT_TYPE } from '../errors';
 import { Server } from '../types/server';
 import { swaggerUiFilterPlugin } from './swagger-ui-plugin';
+import { addSpecExtensions } from './register-spec-extension';
 
 /** Names the request model of a route taking its request as query parameters. */
 export const REQUEST_EXTENSION = `x-${CONFIG_NAME}-request`;
@@ -39,11 +40,13 @@ export default fastifyPlugin((server: Server) => {
       url
     }),
     transformObject: (document) =>
-      addConfig(
-        nameErrorCodes(
-          hoistErrorResponses(
-            normalizeUnionTypes(
-              pruneUnusedSchemas(inlineNullableRefs(document))
+      addSpecExtensions(
+        addConfig(
+          nameErrorCodes(
+            hoistErrorResponses(
+              normalizeUnionTypes(
+                pruneUnusedSchemas(inlineNullableRefs(document))
+              )
             )
           )
         )

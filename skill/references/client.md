@@ -279,6 +279,8 @@ type ClientConfig = {
   timeout?: number;          // Request timeout in milliseconds
   middlewares?: Middleware[]; // Additional openapi-fetch middlewares
   auth?: AuthConfig;         // Authentication strategy
+  fetch?: FetchHandler;      // Custom fetch implementation
+  realtime?: RealtimeClientOptions; // Options of client.realtime
 };
 ```
 
@@ -537,6 +539,40 @@ const status = await client.health.check();
 const file = await client.files.public('images/photo.jpg');
 const fileData = await file.base64(); // or use file.stream to pipe output to file etc.
 ```
+
+### Realtime client
+
+`client.realtime` (`RealtimeClient`) is generated for an API with `@appweaver/realtime`, typed by the
+`RealtimeModuleType` of the `x-appweaver-realtime` extension. It connects on the first subscription or action with a
+ticket of the client's `auth`, over a WebSocket, or SSE where the runtime or the server has none (SSE reopens its stream
+on a change of the subscriptions, and sends the actions over HTTP). It reconnects with its subscriptions after a lost
+connection or a failed attempt, with a backoff, and at once on an expired token (`4401`).
+
+| Method                                     | Description                                                                                    |
+|--------------------------------------------|------------------------------------------------------------------------------------------------|
+| `subscribe(channel, handler, params?)`     | `handler(payload, { eventId, channel })`; returns `{ id, ready, unsubscribe }`                 |
+| `on(model, handler, { action?, filter? })` | Resource events, `handler({ model, action, current, previous? })`                              |
+| `observe(channel, params?)`                | An observable of the payloads, for `from(...)` of RxJS                                         |
+| `send(action, payload)` / `emit(...)`      | Calls an action, resolving to its result / fire-and-forget                                     |
+| `connect()`, `disconnect()`, `reconnect()` | Opens, closes (keeping the subscriptions), or reopens with a new ticket, i.e. after a login    |
+| `onStateChange(listener)`, `onError(...)`  | `idle`, `connecting`, `open`, `reconnecting`; the errors answering no subscription or action   |
+| `state`, `connectionId`, `transport`, `authenticated` | The state of the connection, and whether it is of a user                            |
+
+`subscription.ready` rejects with the `ClientError` of a refused subscription, which a reconnection does not renew.
+
+```ts
+type RealtimeClientOptions = {
+  transport?: 'auto' | 'websocket' | 'sse'; // default: auto
+  anonymous?: boolean | 'auto'; // true: no ticket; 'auto': anonymous when the ticket is refused (401). Default: false
+  reconnect?: boolean;          // default: true
+  reconnectDelay?: number;      // ms, doubled each attempt (default: 500)
+  maxReconnectDelay?: number;   // default: 30000
+  actionTimeout?: number;       // default: 30000
+  WebSocket?: typeof WebSocket; // default: the global one
+};
+```
+
+See [realtime.md](./realtime.md) for the server side and the protocol.
 
 ### `FileDataResponse`
 

@@ -263,6 +263,7 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 | `Memory`         | `MEMORY_PROVIDER`         | `memory`, `redis`    | `redis` with `@appweaver/redis`, otherwise `memory`                                     |
 | `Cache`          | `CACHE_PROVIDER`          | `memory`             | `memory`, stored in the selected `Memory` (so in Redis with `redis`)                    |
 | `Events`         | `EVENTS_PROVIDER`         | `node`               | `node`                                                                                  |
+| `PubSub`         | `PUBSUB_PROVIDER`         | `memory`, `redis`    | `redis` with `@appweaver/redis`, otherwise `memory`                                     |
 | `Storage`        | `STORAGE_PROVIDER`        | `local`              | `local`, unless a module of another driver is enabled                                   |
 | `SecurityStore`  | `SECURITY_STORE_PROVIDER` | `database`, `memory` | `database` with the `@appweaver/data` module, otherwise none; `memory` only by its name |
 | `Queue`          | `QUEUE_PROVIDER`          | `memory`, `bullmq`   | `bullmq` with `@appweaver/bullmq` (it requires `@appweaver/redis`), otherwise `memory`  |
@@ -842,6 +843,37 @@ provider changes the generated schema.
 | `EVENTS_MAX_LISTENERS` | integer | `20`     | Maximum event listeners per event type. |
 | `EVENTS_PROVIDER`      | string  | `'auto'` | `auto` or `node`, or a module path.     |
 
+### Pub/sub (PUBSUB\_\*)
+
+The publish/subscribe of the messages every instance receives, i.e. the events of the realtime connections.
+
+| Property                      | Type   | Default        | Description                                                                                                  |
+|-------------------------------|--------|----------------|--------------------------------------------------------------------------------------------------------------|
+| `PUBSUB_PROVIDER`             | string | `'auto'`       | `auto` (`redis` with `@appweaver/redis`, otherwise `memory`), `memory`, `redis`, `none`, or a module path.   |
+| `PUBSUB_REDIS_CHANNEL_PREFIX` | string | `'appweaver:'` | Prefix of the Redis channels the messages are published to, on the server of `MEMORY_REDIS_URL`. (redis)    |
+
+### Realtime (REALTIME\_\*)
+
+The realtime connections of `@appweaver/realtime` ([realtime.md](./realtime.md)).
+
+| Property                            | Type    | Default       | Description                                                                                                                                         |
+|-------------------------------------|---------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `REALTIME_ENABLED`                  | boolean | `true`        | Enable the realtime routes: the tickets, the event streams, the WebSocket and the actions.                                                          |
+| `REALTIME_ROUTE_PREFIX`             | string  | `'/realtime'` | Prefix of the realtime routes, under the API prefix.                                                                                                |
+| `REALTIME_SSE_ENABLED`              | boolean | `true`        | Enable the Server-Sent Events transport (`GET <prefix>/events`).                                                                                    |
+| `REALTIME_WEBSOCKET_ENABLED`        | boolean | `true`        | Enable the WebSocket transport (`GET <prefix>/ws`).                                                                                                 |
+| `REALTIME_ANONYMOUS_ENABLED`        | boolean | `false`       | Allow the anonymous clients: connections without a ticket and HTTP action calls without credentials, limited to the `public` channels and actions. |
+| `REALTIME_TICKET_TTL`               | integer | `30000`       | Milliseconds a connection ticket is valid for, used once.                                                                                           |
+| `REALTIME_HEARTBEAT_INTERVAL`       | integer | `25000`       | Milliseconds between the heartbeats of a connection, a WebSocket ping or an SSE comment.                                                           |
+| `REALTIME_CONNECTION_MAX_AGE`       | integer | `3600000`     | Milliseconds a connection stays open before the client reconnects with a new ticket, closed earlier when its token expires, `0` for no limit.      |
+| `REALTIME_MAX_CONNECTIONS`          | integer | `10000`       | Maximum number of open connections of the instance, `0` for no limit.                                                                              |
+| `REALTIME_MAX_CONNECTIONS_PER_USER` | integer | `10`          | Maximum number of open connections of a user on the instance, `0` for no limit.                                                                    |
+| `REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP` | integer | `10`  | Maximum number of open anonymous connections of an IP address on the instance, `0` for no limit (the IP of `SERVER_TRUST_PROXY`).                  |
+| `REALTIME_MAX_SUBSCRIPTIONS`        | integer | `50`          | Maximum number of subscriptions of a connection.                                                                                                    |
+| `REALTIME_MAX_MESSAGE_SIZE`         | string  | `'64KB'`      | Maximum size of a WebSocket message of a client.                                                                                                    |
+| `REALTIME_SEND_BUFFER_LIMIT`        | string  | `'1MB'`       | Bytes a connection may have waiting to be sent before it is closed as too slow.                                                                    |
+| `REALTIME_MESSAGE_RATE_LIMIT`       | integer | `20`          | Maximum number of WebSocket messages a client sends per second, `0` for no limit.                                                                  |
+
 ### Mailer (MAILER\_\*)
 
 | Property                | Type    | Default       | Description                                                                                                                                                                                                                                                               |
@@ -887,6 +919,7 @@ The OpenTelemetry instrumentation of the framework, and the SDK of `@appweaver/o
 | `TELEMETRY_INSTRUMENTATIONS_SMS`       | boolean  | `true`  | Trace the text messages the SMS sender sends.                                                                     |
 | `TELEMETRY_INSTRUMENTATIONS_CACHE`     | boolean  | `true`  | Count the cache hits and misses.                                                                                  |
 | `TELEMETRY_INSTRUMENTATIONS_TASK`      | boolean  | `true`  | Trace the tasks of `weaver run`.                                                                                  |
+| `TELEMETRY_INSTRUMENTATIONS_REALTIME`  | boolean  | `true`  | Trace the realtime actions and measure the realtime connections and events. (realtime)                            |
 | `TELEMETRY_HTTP_IGNORE_PATHS`          | string[] | `[]`    | URL paths left out of the traces and the metrics: an exact path, or a prefix ending with `*` (`/public/*`). (web) |
 | `TELEMETRY_HTTP_HEALTH_CHECK`          | boolean  | `false` | Trace and measure the requests of the health check routes. (web)                                                  |
 

@@ -1,27 +1,28 @@
-import { Events } from '@appweaver/common';
+import { DeepReadonly, Events } from '@appweaver/common';
 import { inject, TimeSeriesService } from '@appweaver/core';
 import { Product } from '@/types';
 
 type StockChange = { productId: number; stock: number; sold?: number };
 
+/** The fields of a product its history records, of a product event or any product. */
+type ProductValues = DeepReadonly<Pick<Product, 'id' | 'price' | 'stock'>>;
+
 // The price and the stock of a product are recorded whenever an admin sets
 // them, and the units sold with every checkout (see the checkout feature)
-inject(Events).onResourceEvent<Product>('Product', 'create', ({ current }) =>
+inject(Events).onResourceEvent('Product', 'create', ({ current }) =>
   recordProduct(current)
 );
 
-inject(Events).onResourceEvent<Product>(
-  'Product',
-  'update',
-  ({ current, previous }) => recordProduct(current, previous)
+inject(Events).onResourceEvent('Product', 'update', ({ current, previous }) =>
+  recordProduct(current, previous)
 );
 
 /**
  * Records the price and the stock of a product, the ones that changed since its previous state.
  */
 export async function recordProduct(
-  current: Product,
-  previous?: Product
+  current: ProductValues,
+  previous?: ProductValues
 ): Promise<void> {
   const values: { price?: number; stock?: number } = {};
   if (current.price !== previous?.price) {

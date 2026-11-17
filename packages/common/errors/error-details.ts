@@ -121,6 +121,18 @@ export interface ErrorDetailsMap {
 
   [ErrorCode.MemoryUnavailable]: { retryAfter?: number };
 
+  [ErrorCode.RealtimeChannelUnknown]: { channel: string };
+  [ErrorCode.RealtimeSubscriptionDenied]: { channel: string };
+  [ErrorCode.RealtimeSubscriptionLimit]: { limit: number };
+  [ErrorCode.RealtimeActionUnknown]: { action: string };
+  [ErrorCode.RealtimeActionDenied]: { action: string };
+  [ErrorCode.RealtimePayloadInvalid]: {
+    errors: { path: string; message: string }[];
+  };
+  [ErrorCode.RealtimeConnectionLimit]: { limit: number };
+  [ErrorCode.RealtimeRateLimited]: { retryAfter: number };
+  [ErrorCode.RealtimeTransportDisabled]: { transport: string };
+
   [ErrorCode.TimeSeriesNotEnabled]: ModelDetails;
   [ErrorCode.TimeSeriesInvalidField]: ModelDetails & { field: string };
   [ErrorCode.TimeSeriesInvalidValue]: ModelDetails & {

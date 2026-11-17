@@ -9,14 +9,15 @@ first-party module does.
 
 | Module                     | Enabled                      | Brings                                                                                                                                                     |
 |----------------------------|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `@appweaver/core`          | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `local` storage, `memory` queue, `json` mailer, `json` SMS sender, `memory` time series |
+| `@appweaver/core`          | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `memory` pub/sub, `local` storage, `memory` queue, `json` mailer, `json` SMS sender, `memory` time series |
 | `@appweaver/data`          | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store, the `database` and `timescale` time series                             |
 | `@appweaver/web`           | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account, 2FA (`TwoFactorService`) and OAuth2 services                                                   |
-| `@appweaver/redis`         | Installed                    | The `redis` memory, also the store of the cache and the rate limit                                                                                         |
+| `@appweaver/redis`         | Installed                    | The `redis` memory, also the store of the cache and the rate limit, and the `redis` pub/sub                                                               |
 | `@appweaver/bullmq`        | Installed (requires `redis`) | The `bullmq` queue                                                                                                                                         |
 | `@appweaver/cron`          | Installed                    | The `cron` scheduler                                                                                                                                       |
 | `@appweaver/nodemailer`    | Installed                    | The `smtp` mailer                                                                                                                                          |
 | `@appweaver/twilio`        | Installed                    | The `twilio` SMS sender (`SmsSender`), with the REST API of Twilio and no SDK                                                                              |
+| `@appweaver/realtime`      | Installed (requires `web`)   | The realtime connections (`RealtimeGateway`) over WebSocket and SSE: channels, resource events and actions, see [realtime](./realtime.md)                   |
 | `@appweaver/opentelemetry` | Installed                    | The OpenTelemetry SDK (`TelemetryService`) exporting the traces, metrics and logs over OTLP, see [telemetry](./telemetry.md)                               |
 | `@appweaver/handlebars`    | Installed                    | The `handlebars` template engine                                                                                                                           |
 | `@appweaver/sharp`         | Installed                    | The `sharp` image processor                                                                                                                                |

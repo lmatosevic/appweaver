@@ -310,6 +310,51 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
 
   [ErrorCode.MemoryUnavailable]: { status: 503, title: 'Memory unavailable' },
 
+  [ErrorCode.RealtimeTicketInvalid]: {
+    status: 401,
+    title: 'Invalid realtime ticket'
+  },
+  [ErrorCode.RealtimeChannelUnknown]: {
+    status: 404,
+    title: 'Unknown realtime channel'
+  },
+  [ErrorCode.RealtimeSubscriptionDenied]: {
+    status: 403,
+    title: 'Realtime subscription denied'
+  },
+  [ErrorCode.RealtimeSubscriptionLimit]: {
+    status: 429,
+    title: 'Too many realtime subscriptions'
+  },
+  [ErrorCode.RealtimeActionUnknown]: {
+    status: 404,
+    title: 'Unknown realtime action'
+  },
+  [ErrorCode.RealtimeActionDenied]: {
+    status: 403,
+    title: 'Realtime action denied'
+  },
+  [ErrorCode.RealtimePayloadInvalid]: {
+    status: 400,
+    title: 'Invalid realtime payload'
+  },
+  [ErrorCode.RealtimeMessageInvalid]: {
+    status: 400,
+    title: 'Invalid realtime message'
+  },
+  [ErrorCode.RealtimeConnectionLimit]: {
+    status: 429,
+    title: 'Too many realtime connections'
+  },
+  [ErrorCode.RealtimeRateLimited]: {
+    status: 429,
+    title: 'Realtime messages rate limited'
+  },
+  [ErrorCode.RealtimeTransportDisabled]: {
+    status: 404,
+    title: 'Realtime transport disabled'
+  },
+
   [ErrorCode.TimeSeriesNotEnabled]: {
     status: 404,
     title: 'Time series not enabled'

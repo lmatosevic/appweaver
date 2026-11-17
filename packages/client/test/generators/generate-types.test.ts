@@ -1,5 +1,6 @@
 import { generateTypes } from '../../generators/generate-types';
 import { createOpenApiSchema } from '../fixtures/openapi-schema';
+import { createRealtimeOpenApiSchema } from '../fixtures/realtime-spec';
 
 describe('generate-types', () => {
   describe('generateTypes', () => {
@@ -237,6 +238,21 @@ describe('generate-types', () => {
       expect(declarations).not.toContain('as const');
       expect(declarations).toContain(
         'export type SortDirection = (typeof SortDirection)[keyof typeof SortDirection];'
+      );
+    });
+  });
+
+  describe('realtime module type', () => {
+    test('types the realtime client of an API with realtime routes', async () => {
+      const generated = await generateTypes(createRealtimeOpenApiSchema());
+
+      expect(generated).toContain('export type RealtimeModuleType = {');
+      expect(generated).toContain('record: PostSingle');
+    });
+
+    test('adds no realtime type to an API without realtime routes', async () => {
+      expect(await generateTypes(createOpenApiSchema())).not.toContain(
+        'RealtimeModuleType'
       );
     });
   });

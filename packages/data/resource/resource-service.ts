@@ -28,6 +28,7 @@ import {
   ResourceId,
   ResourceClient,
   ResourceData,
+  ResourceEvent,
   uncapitalize,
   isAppweaverError,
   ResourceError
@@ -77,6 +78,7 @@ import {
 } from './utils/cursor-util';
 import { mapQueryFilter } from './utils/filter-util';
 import { mapStableSortValues, sortEntries } from './utils/sort-util';
+import { matchesWhere } from './utils/where-util';
 import { SpatialDistances, SpatialService } from '../spatial/spatial-service';
 
 const logger = createLogger('resource');
@@ -178,11 +180,12 @@ export abstract class ResourceService<
       );
     }
 
+    const projected = this.projectResource(resource);
     this._events.emitResourceEvent(this._client.name, 'find', {
-      current: resource
+      current: projected
     });
 
-    return this.projectResource(resource);
+    return projected;
   }
 
   /**
@@ -299,15 +302,16 @@ export abstract class ResourceService<
     const hasPrev = backward ? hasMore : !!decodedCursor || page > 1;
 
     setDistances(resources, distances);
+    const items = resources.map((resource) => this.projectResource(resource));
     this._events.emitResourceEvent(this._client.name, 'query', {
-      current: resources
+      current: items
     });
 
     return {
       resultCount: resources.length,
       totalCount: count ?? null,
       ...pageCursors(resources, fingerprint, hasNext, hasPrev),
-      items: resources.map((resource) => this.projectResource(resource))
+      items
     };
   }
 
@@ -376,11 +380,12 @@ export abstract class ResourceService<
       );
     }
 
+    const projected = this.projectResource(resource);
     this._events.emitResourceEvent(this._client.name, 'find', {
-      current: resource
+      current: projected
     });
 
-    return this.projectResource(resource);
+    return projected;
   }
 
   /**
@@ -615,8 +620,9 @@ export abstract class ResourceService<
 
     await this._cacheService.invalidateCache(this._client.name, 'create');
 
+    const projected = this.projectResource(resource);
     this._events.emitResourceEvent(this._client.name, 'create', {
-      current: resource
+      current: projected
     });
 
     logger.debug(
@@ -624,7 +630,7 @@ export abstract class ResourceService<
       'Resource created'
     );
 
-    return this.projectResource(resource);
+    return projected;
   }
 
   /**
@@ -775,8 +781,9 @@ export abstract class ResourceService<
 
     await this.cleanupDeletedRecords(deleted);
 
+    const projected = this.projectResource(resource);
     this._events.emitResourceEvent(this._client.name, 'delete', {
-      current: resource
+      current: projected
     });
 
     logger.debug(
@@ -784,7 +791,7 @@ export abstract class ResourceService<
       'Resource deleted'
     );
 
-    return this.projectResource(resource);
+    return projected;
   }
 
   /**
@@ -866,6 +873,31 @@ export abstract class ResourceService<
         }
       }
     );
+  }
+
+  /**
+   * Checks whether the current user may receive a resource event, i.e. on the
+   * realtime connection of the user, run as that user with `runAs`. Always
+   * granted for the calls run with internal access (see `withoutPolicies`).
+   *
+   * @param {ResourceEvent} event The action and the resource of the event.
+   * @return {Promise<boolean>} True if the user may receive the event.
+   */
+  public async checkEventAccess(
+    event: ResourceEvent<ReadOne>
+  ): Promise<boolean> {
+    if (arePoliciesSkipped() || (await this.eventAccess(event))) {
+      return true;
+    }
+    logger.debug(
+      {
+        model: this._client.name,
+        action: event.action,
+        id: (event.current as Resource | undefined)?.id
+      },
+      'Resource event denied by its policy'
+    );
+    return false;
   }
 
   /**
@@ -971,17 +1003,15 @@ export abstract class ResourceService<
     await this._cacheService.invalidateCache(this._client.name, 'update');
     await this.cleanupDeletedRecords(orphans);
 
-    this._events.emitResourceEvent(this._client.name, 'update', {
-      previous: updateResource,
-      current: resource
-    });
-
-    logger.debug({ model: this._client.name, id }, 'Resource updated');
-
-    return {
+    const projected = {
       previous: this.projectResource(updateResource),
       current: this.projectResource(resource)
     };
+    this._events.emitResourceEvent(this._client.name, 'update', projected);
+
+    logger.debug({ model: this._client.name, id }, 'Resource updated');
+
+    return projected;
   }
 
   /**
@@ -1100,6 +1130,40 @@ export abstract class ResourceService<
     resource: ReadOne
   ): Promise<boolean> {
     return true;
+  }
+
+  /**
+   * Checks whether the current user may receive a resource event. By default
+   * the user must pass the {@link ResourceService.checkAccess} of a `find` of
+   * the resource, which must match the {@link ResourceService.readRestrictions}
+   * of the `find`. The restrictions are matched in memory, and by the database
+   * when they filter by a relation, so a deleted resource whose restrictions
+   * only the database can match is denied.
+   *
+   * @param {ResourceEvent} event The action and the resource of the event.
+   * @return {Promise<boolean>} True if the user may receive the event.
+   */
+  protected async eventAccess(event: ResourceEvent<ReadOne>): Promise<boolean> {
+    const resource = event.current as Resource;
+
+    if (!(await this.checkAccess('find', event.current))) {
+      return false;
+    }
+
+    const restrictions = await this.readRestrictions('find', resource.id);
+    const matched = matchesWhere(resource, restrictions);
+
+    if (matched !== undefined) {
+      return matched;
+    }
+    if (event.action === 'delete') {
+      return false;
+    }
+
+    const count = await this._client.count({
+      where: { AND: [{ id: resource.id }, restrictions] }
+    });
+    return count > 0;
   }
 
   /**
@@ -1351,15 +1415,16 @@ export abstract class ResourceService<
     const hasPrev = start > 0;
 
     setDistances(resources, distances);
+    const items = resources.map((resource) => this.projectResource(resource));
     this._events.emitResourceEvent(this._client.name, 'query', {
-      current: resources
+      current: items
     });
 
     return {
       resultCount: resources.length,
       totalCount: totalCount ? ids.length : null,
       ...pageCursors(resources, fingerprint, hasNext, hasPrev),
-      items: resources.map((resource) => this.projectResource(resource))
+      items
     };
   }
 

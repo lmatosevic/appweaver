@@ -14,6 +14,7 @@ const packages = [
   'sharp',
   'twilio',
   'opentelemetry',
+  'realtime',
   'testing',
   'create',
   'cli',

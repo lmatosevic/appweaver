@@ -406,6 +406,90 @@ describe('create-service', () => {
   });
 
   describe('policy integration', () => {
+    describe('checkEventAccess', () => {
+      const event = {
+        action: 'update' as const,
+        current: { id: 1, title: 'First', authorId: 7 },
+        previous: { id: 1, title: 'Old', authorId: 7 }
+      };
+
+      test('applies the events hook of the policy', async () => {
+        const events = jest.fn().mockReturnValue(false);
+        define(policy({ events }), 'Post', 'override');
+        const Service = createService({ modelName: 'Post' });
+
+        await expect(new Service().checkEventAccess(event)).resolves.toBe(
+          false
+        );
+        expect(events).toHaveBeenCalledWith(null, event);
+      });
+
+      test('checks the find access of the resource by default', async () => {
+        const checkAccess = jest.fn().mockReturnValue(false);
+        define(policy({ checkAccess }), 'Post', 'override');
+        const Service = createService({ modelName: 'Post' });
+
+        await expect(new Service().checkEventAccess(event)).resolves.toBe(
+          false
+        );
+        expect(checkAccess).toHaveBeenCalledWith(null, event.current, 'find');
+      });
+
+      test('matches the read restrictions against the resource', async () => {
+        const Service = createService({ modelName: 'Post' });
+        const service = new Service();
+
+        define(
+          policy({ readRestrictions: () => ({ authorId: 7 }) }),
+          'Post',
+          'override'
+        );
+        await expect(service.checkEventAccess(event)).resolves.toBe(true);
+
+        define(
+          policy({ readRestrictions: () => ({ authorId: { in: [1, 2] } }) }),
+          'Post',
+          'override'
+        );
+        await expect(service.checkEventAccess(event)).resolves.toBe(false);
+      });
+
+      test('matches a relation restriction with the database', async () => {
+        define(
+          policy({
+            readRestrictions: () => ({ author: { is: { teamId: 3 } } })
+          }),
+          'Post',
+          'override'
+        );
+        const Service = createService({ modelName: 'Post' });
+        const service = new Service();
+
+        db.setResult('Post', 'count', 0);
+        await expect(service.checkEventAccess(event)).resolves.toBe(false);
+        expect(db.lastQuery('count').args.where).toEqual({
+          AND: [{ id: 1 }, { author: { is: { teamId: 3 } } }]
+        });
+
+        // A deleted resource is no longer in the database
+        await expect(
+          service.checkEventAccess({ ...event, action: 'delete' })
+        ).resolves.toBe(false);
+
+        db.setResult('Post', 'count', 1);
+        await expect(service.checkEventAccess(event)).resolves.toBe(true);
+      });
+
+      test('grants every event with internal access', async () => {
+        define(policy({ events: () => false }), 'Post', 'override');
+        const Service = createService({ modelName: 'Post' });
+
+        await expect(
+          withoutPolicies(() => new Service().checkEventAccess(event))
+        ).resolves.toBe(true);
+      });
+    });
+
     test('applies the read restrictions of the policy', async () => {
       define(
         policy({ readRestrictions: () => ({ authorId: 7 }) }),

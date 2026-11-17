@@ -5,6 +5,7 @@ export * from './filter';
 export * from './geo';
 export * from './model';
 export * from './policy';
+export * from './readonly';
 export * from './registry';
 export * from './resource';
 export * from './resource-id';

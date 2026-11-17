@@ -20,6 +20,7 @@ import {
   RESOURCE_SERVICE_TYPE,
   RESOURCE_TYPE,
   ResourceData,
+  ResourceEvent,
   ResourceId,
   ResourceServiceConfig
 } from '@appweaver/common';
@@ -193,6 +194,17 @@ export function createService<
       }
 
       return super.checkAccess(action, resource);
+    }
+
+    protected async eventAccess(event: ResourceEvent<T>): Promise<boolean> {
+      const policy = injectPolicy(name, false);
+
+      if (policy?.events) {
+        const user = currentAuthUser() ?? null;
+        return policy.events(user, event);
+      }
+
+      return super.eventAccess(event);
     }
   }
 

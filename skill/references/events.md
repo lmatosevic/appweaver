@@ -15,7 +15,7 @@ const events = inject(Events);
 
 ---
 
-#### `events.onResourceEvent<T>(resourceName, event, listener)`
+#### `events.onResourceEvent(resourceName, event, listener)`
 
 Registers a listener for a specific resource and action. Returns a listener ID that can be used to unsubscribe.
 
@@ -25,17 +25,30 @@ Registers a listener for a specific resource and action. Returns a listener ID t
 | `event`        | `ActionType`       | `'create'`, `'update'`, `'delete'`, `'find'`, `'query'` |
 | `listener`     | `EventListener<T>` | Callback receiving `EventData<T>`                       |
 
+Once the types are generated (`weaver generate`), the records are typed by the model name, like `injectService`:
+`current` and `previous` are `ResourceRecord<'Product'>`, the model type with its foreign keys and relation counts,
+and `current` is an array of them for a `query`. Give the type yourself for a model name known only at runtime,
+`events.onResourceEvent<AuthUser>(modelName, 'update', listener)`.
+
 `EventData<T>` shape:
 
 ```ts
 type EventData<T> = {
-  previous?: T; // present on 'update' and 'delete'
-  current: T;
+  previous?: T; // present on 'update'
+  current: T;   // an array of resources on 'query'
 };
 ```
 
+The resources are the ones the service returns, the same objects: their virtual fields set (computed once, so a
+non-deterministic one has the same value in the event and in the API response), their relation counts set (`postsCount`
+instead of `_count`), and their soft deleted relations hidden. They still hold the hidden fields (i.e. `passwordHash`),
+which only the response serialization leaves out. A change of a listener would reach the response, so the listener
+receives them readonly at every depth (`DeepReadonly` of `@appweaver/common`): `current.status = 'x'` or
+`current.items.push(item)` fails to compile. A function taking a record of an event takes it as
+`DeepReadonly<Product>`, or the `Pick` of the fields it reads; to change one, copy it (`{ ...current, status: 'x' }`).
+
 ```ts
-const listenerId = events.onResourceEvent<Product>('Product', 'create', ({ current }) => {
+const listenerId = events.onResourceEvent('Product', 'create', ({ current }) => {
   logger.info('New product created:', current.name);
 });
 ```
@@ -43,7 +56,7 @@ const listenerId = events.onResourceEvent<Product>('Product', 'create', ({ curre
 **Listening to updates** (access both previous and current state):
 
 ```ts
-events.onResourceEvent<User>('User', 'update', ({ previous, current }) => {
+events.onResourceEvent('User', 'update', ({ previous, current }) => {
   if (previous?.email !== current.email) {
     sendEmailChangeNotification(current);
   }
@@ -82,6 +95,34 @@ events.removeResourceEvent(listenerId);
 
 ---
 
+## Realtime
+
+The resource events stay in the process: the listeners of `onResourceEvent` run once, on the instance of the change. To
+push them to the clients, expose them on the routes of the model with `createRoutes({ events: { actions } })` and the
+`@appweaver/realtime` module, which publishes them through the `PubSub` contract (`memory` or `redis`) to the
+realtime connections of every instance, each event checked against the access of the subscribed user. The `find` and
+`query` events are never exposed. See [realtime.md](./realtime.md).
+
+## Broadcasting between instances
+
+`Events` stay in the process. To tell every instance something, use the `PubSub` contract: with `@appweaver/redis`
+every subscribed instance receives a message (Redis pub/sub), otherwise only the process itself.
+
+```ts
+import { PubSub } from '@appweaver/common';
+import { inject } from '@appweaver/core';
+
+const pubsub = inject(PubSub);
+
+await pubsub.subscribe<{ key: string }>('cache.cleared', ({ key }) => localCache.delete(key));
+await pubsub.publish('cache.cleared', { key: 'products' });
+```
+
+A message is JSON (dates arrive as strings), reaches the publisher too, and is delivered at most once: an instance
+down or reconnecting misses it. Use it for what every instance should know now (a local cache, a flag, an ops
+signal), and the `Queue` for work that must run once and survive a failure (an email, a payment). The `realtime:`
+channels belong to `@appweaver/realtime`.
+
 ## Configuration
 
 | Key                    | Type     | Default  | Description                           |
@@ -104,7 +145,7 @@ export function registerNotificationListeners() {
   const events = inject(Events);
   const mailer = inject(Mailer, false);
 
-  events.onResourceEvent<Order>('Order', 'create', async ({ current }) => {
+  events.onResourceEvent('Order', 'create', async ({ current }) => {
     if (!mailer) return;
     await mailer.sendEmail({
       to: current.customerEmail,
@@ -113,7 +154,7 @@ export function registerNotificationListeners() {
     });
   });
 
-  events.onResourceEvent<User>('User', 'delete', ({ current }) => {
+  events.onResourceEvent('User', 'delete', ({ current }) => {
     logger.info(`User ${current.id} was deleted — cleaning up sessions`);
     cleanupSessions(current.id);
   });

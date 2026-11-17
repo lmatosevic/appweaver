@@ -4,6 +4,7 @@ import {
   Events,
   Mailer,
   Memory,
+  PubSub,
   Queue,
   Scheduler,
   SecurityStore,
@@ -20,6 +21,7 @@ import { healthConfig } from '../health/health-config';
 import { localeConfig } from '../locale/locale-config';
 import { mailerConfig } from '../mailer/mailer-config';
 import { memoryConfig } from '../memory/memory-config';
+import { pubsubConfig } from '../pubsub/pubsub-config';
 import { queueConfig } from '../queue/queue-config';
 import { schedulerConfig } from '../scheduler/scheduler-config';
 import { securityStoreConfig } from '../security/security-store-config';
@@ -35,6 +37,7 @@ export default defineModule({
     memoryConfig,
     cacheConfig,
     eventsConfig,
+    pubsubConfig,
     storageConfig,
     securityStoreConfig,
     queueConfig,
@@ -55,6 +58,7 @@ export default defineModule({
     'health',
     'locale',
     'mailer',
+    'pubsub',
     'queue',
     'sms',
     'storage',
@@ -64,6 +68,7 @@ export default defineModule({
     { contract: Memory, provider: () => memoryConfig.PROVIDER },
     { contract: Cache, provider: () => cacheConfig.PROVIDER },
     { contract: Events, provider: () => eventsConfig.PROVIDER },
+    { contract: PubSub, provider: () => pubsubConfig.PROVIDER },
     { contract: Storage, provider: () => storageConfig.PROVIDER },
     { contract: SecurityStore, provider: () => securityStoreConfig.PROVIDER },
     { contract: Queue, provider: () => queueConfig.PROVIDER },
@@ -90,6 +95,12 @@ export default defineModule({
       contract: Events,
       name: 'node',
       load: () => import('../events/node-events'),
+      auto: 'fallback'
+    },
+    {
+      contract: PubSub,
+      name: 'memory',
+      load: () => import('../pubsub/memory-pubsub'),
       auto: 'fallback'
     },
     {

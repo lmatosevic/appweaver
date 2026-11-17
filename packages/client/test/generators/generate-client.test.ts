@@ -7,6 +7,7 @@ import * as angularLibrary from '../../angular';
 import { ClientError } from '../../errors';
 import { generateClient } from '../../generators/generate-client';
 import { createOpenApiSchema } from '../fixtures/openapi-schema';
+import { createRealtimeOpenApiSchema } from '../fixtures/realtime-spec';
 
 describe('generate-client', () => {
   describe('generateClient', () => {
@@ -484,6 +485,47 @@ describe('generate-client', () => {
 
     test('exports the ClientError type', () => {
       expect(client).toContain('export { ClientError };');
+    });
+  });
+
+  describe('realtime client', () => {
+    test('adds the realtime client of an API with realtime routes', async () => {
+      const generated = await generateClient(createRealtimeOpenApiSchema());
+
+      expect(generated).toContain(
+        "public realtime = this.realtimeClient<RealtimeModuleType>('/api/realtime', ['sse', 'websocket']);"
+      );
+      expect(generated).not.toContain("'/api/realtime/ticket'");
+      expect(generated).not.toContain("'/api/realtime/actions/{name}'");
+    });
+
+    test('adds the realtime client without types', async () => {
+      const generated = await generateClient(
+        createRealtimeOpenApiSchema(),
+        undefined,
+        'fetch',
+        './types',
+        true
+      );
+
+      expect(generated).toContain(
+        "public realtime = this.realtimeClient('/api/realtime', ['sse', 'websocket']);"
+      );
+    });
+
+    test('passes no transports of an extension listing none', async () => {
+      const schema = createRealtimeOpenApiSchema() as any;
+      schema['x-appweaver-realtime'].transports = ['carrier-pigeon'];
+
+      expect(await generateClient(schema)).toContain(
+        "this.realtimeClient<RealtimeModuleType>('/api/realtime');"
+      );
+    });
+
+    test('adds no realtime client to an API without realtime routes', async () => {
+      expect(await generateClient(createOpenApiSchema())).not.toContain(
+        'realtimeClient'
+      );
     });
   });
 });

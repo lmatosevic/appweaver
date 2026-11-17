@@ -243,6 +243,15 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     ],
     disabledConfig: []
   },
+  realtime: {
+    name: 'realtime',
+    description:
+      'Realtime channels, resource events and actions over WebSocket and Server-Sent Events, on the Redis pub/sub with the redis module, otherwise none',
+    packages: ['@appweaver/realtime'],
+    requires: ['web'],
+    enabledConfig: () => [],
+    disabledConfig: []
+  },
   docker: {
     name: 'docker',
     description:

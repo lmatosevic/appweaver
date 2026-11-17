@@ -555,7 +555,7 @@ export class AuthService {
    * @return {Promise<void>} A promise that resolves once the users are evicted.
    */
   public async evictCachedUsers(
-    ...authUsers: (AuthUser | undefined)[]
+    ...authUsers: (Pick<AuthUser, 'id' | 'email'> | undefined)[]
   ): Promise<void> {
     const keys = new Set<string>();
     for (const authUser of authUsers) {

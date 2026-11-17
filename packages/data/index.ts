@@ -7,6 +7,7 @@ export * from './factory/create-service';
 export * from './resource/model-schema';
 export * from './resource/resource-loader';
 export * from './resource/resource-service';
+export { matchesWhere, queryFilterWhere } from './resource/utils/where-util';
 export * from './resource/schemas';
 export * from './security/create-auth-resources';
 export * from './security/helper';

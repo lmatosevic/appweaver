@@ -12,6 +12,7 @@ export const moduleNames = [
   'locales',
   'timeseries',
   'telemetry',
+  'realtime',
   'docker'
 ] as const;
 
