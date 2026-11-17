@@ -4,6 +4,7 @@ import { context } from '@appweaver/core/internal';
 import { resetContext } from '@appweaver/testing';
 import { createRealtimeAction } from '../../action';
 import { createChannel } from '../../channel';
+import { createStream } from '../../stream/create-stream';
 import { realtimeSpec } from '../../web/realtime-spec';
 
 describe('realtime-spec', () => {
@@ -18,6 +19,82 @@ describe('realtime-spec', () => {
   });
 
   describe('realtimeSpec', () => {
+    test('describes the streams and the streaming actions', () => {
+      createStream({
+        name: 'room.answer',
+        description: 'The answer in a room',
+        params: Type.Object({ roomId: Type.Integer() }),
+        roles: ['member']
+      });
+      createStream({
+        name: 'radio',
+        codec: 'binary',
+        mimeType: 'audio/mpeg',
+        public: true
+      });
+      createStream({
+        name: 'ticks',
+        codec: 'json',
+        chunk: Type.Object({ price: Type.Number() })
+      });
+      createRealtimeAction({
+        name: 'assistant.prompt',
+        payload: Type.Object({ prompt: Type.String() }),
+        stream: { codec: 'text', coalesce: 16 },
+        async *handler() {
+          yield 'a';
+        }
+      });
+
+      const spec = realtimeSpec();
+
+      expect(spec.streams).toEqual([
+        {
+          name: 'room.answer',
+          channel: 'stream:room.answer',
+          description: 'The answer in a room',
+          public: false,
+          roles: ['member'],
+          codec: 'text',
+          params: {
+            type: 'object',
+            properties: { roomId: { type: 'integer' } },
+            required: ['roomId']
+          }
+        },
+        {
+          name: 'radio',
+          channel: 'stream:radio',
+          public: true,
+          codec: 'binary',
+          mimeType: 'audio/mpeg'
+        },
+        {
+          name: 'ticks',
+          channel: 'stream:ticks',
+          public: false,
+          codec: 'json',
+          chunk: {
+            type: 'object',
+            properties: { price: { type: 'number' } },
+            required: ['price']
+          }
+        }
+      ]);
+      expect(spec.actions).toEqual([
+        {
+          name: 'assistant.prompt',
+          public: false,
+          payload: {
+            type: 'object',
+            properties: { prompt: { type: 'string' } },
+            required: ['prompt']
+          },
+          stream: { codec: 'text' }
+        }
+      ]);
+    });
+
     test('describes the channels, the resources and the actions', () => {
       createChannel({
         name: 'order.shipped',
@@ -120,7 +197,8 @@ describe('realtime-spec', () => {
             public: false,
             payload: { type: 'object', properties: {} }
           }
-        ]
+        ],
+        streams: []
       });
     });
 

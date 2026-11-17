@@ -1,4 +1,5 @@
 import type { WebSocket } from 'ws';
+import { StreamFrameLike } from '../stream/types';
 import { RealtimeCloseCode, RealtimeServerMessage } from '../types';
 import { ConnectionAuth, RealtimeConnection } from '../gateway/connection';
 
@@ -22,6 +23,12 @@ export class WsConnection extends RealtimeConnection {
   public send(message: RealtimeServerMessage): void {
     if (!this.closed && this._socket.readyState === this._socket.OPEN) {
       this._socket.send(JSON.stringify(message));
+    }
+  }
+
+  public sendFrame(frame: StreamFrameLike): void {
+    if (!this.closed && this._socket.readyState === this._socket.OPEN) {
+      this._socket.send(frame.json);
     }
   }
 

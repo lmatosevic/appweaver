@@ -15,8 +15,17 @@ export type RealtimeSpec = {
     channel: string;
     actions: (string | { action: string })[];
   }[];
-  actions: { name: string; payload: JsonSchema; response?: JsonSchema }[];
+  actions: {
+    name: string;
+    payload: JsonSchema;
+    response?: JsonSchema;
+    stream?: SpecStream;
+  }[];
+  streams?: (SpecStream & { name: string; params?: JsonSchema })[];
 };
+
+/** The chunks of a stream of the extension. */
+type SpecStream = { codec: string; mimeType?: string; chunk?: JsonSchema };
 
 /**
  * Reads the `x-appweaver-realtime` extension of an OpenAPI document.
@@ -33,7 +42,8 @@ export function realtimeSpec(schema: OpenAPI3): RealtimeSpec | undefined {
 
 /**
  * Builds the `RealtimeModuleType` typing the `RealtimeClient` of the generated client: the payloads and parameters
- * of the channels, the actions and records of the resource events, and the payloads and results of the actions.
+ * of the channels, the actions and records of the resource events, the payloads, results and chunks of the actions,
+ * and the chunks and parameters of the streams.
  *
  * @param {RealtimeSpec} spec - The extension of the OpenAPI document.
  * @param {string} typeContent - The generated types, naming the read type of a model (`<Model>Single`).
@@ -64,12 +74,30 @@ export function realtimeModuleType(
     (action) =>
       `${propertyKey(action.name)}: { payload: ${schemaToType(action.payload)}; response: ${
         action.response ? schemaToType(action.response) : 'unknown'
+      }${action.stream ? `; chunk: ${chunkType(action.stream)}` : ''} }`
+  );
+  const streams = (spec.streams ?? []).map(
+    (stream) =>
+      `${propertyKey(stream.name)}: { chunk: ${chunkType(stream)}; params: ${
+        stream.params ? schemaToType(stream.params) : 'undefined'
       } }`
   );
 
   return `export type ${REALTIME_MODULE_TYPE} = { channels: { ${channels.join('; ')} }; resources: { ${resources.join(
     '; '
-  )} }; actions: { ${actions.join('; ')} } };`;
+  )} }; actions: { ${actions.join('; ')} }; streams: { ${streams.join('; ')} } };`;
+}
+
+/** The type of the chunks of a stream: a string, the bytes of a `binary` stream, or the value of a `json` one. */
+function chunkType(stream: SpecStream): string {
+  switch (stream.codec) {
+    case 'binary':
+      return 'Uint8Array';
+    case 'json':
+      return schemaToType(stream.chunk);
+    default:
+      return 'string';
+  }
 }
 
 /**

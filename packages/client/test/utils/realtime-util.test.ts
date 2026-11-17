@@ -80,7 +80,7 @@ describe('realtime-util', () => {
   });
 
   describe('realtimeModuleType', () => {
-    test('types the channels, the resources and the actions', () => {
+    test('types the channels, the resources, the actions and the streams', () => {
       const spec = realtimeSpec(createRealtimeOpenApiSchema())!;
 
       const type = realtimeModuleType(spec, 'export type PostSingle = {};');
@@ -88,13 +88,14 @@ describe('realtime-util', () => {
       expect(type).toBe(
         'export type RealtimeModuleType = { channels: { "order.shipped": { payload: { orderId: number; carrier: string | null }; params: { orderId?: number } }; ping: { payload: unknown; params: undefined } }; ' +
           'resources: { Post: { actions: "create" | "update"; record: PostSingle }; Missing: { actions: "delete"; record: Record<string, unknown> } }; ' +
-          'actions: { "chat.typing": { payload: { roomId: number; tags?: string[] }; response: { seen: boolean } }; cursor: { payload: Record<string, never>; response: unknown } } };'
+          'actions: { "chat.typing": { payload: { roomId: number; tags?: string[] }; response: { seen: boolean } }; cursor: { payload: Record<string, never>; response: unknown }; assistant: { payload: { prompt: string }; response: unknown; chunk: string } }; ' +
+          'streams: { "room.answer": { chunk: string; params: { roomId: number } }; radio: { chunk: Uint8Array; params: undefined }; ticks: { chunk: { price: number }; params: undefined } } };'
       );
     });
 
     test('types a spec without any part', () => {
       expect(realtimeModuleType({ routePrefix: '/rt' } as never, '')).toBe(
-        'export type RealtimeModuleType = { channels: {  }; resources: {  }; actions: {  } };'
+        'export type RealtimeModuleType = { channels: {  }; resources: {  }; actions: {  }; streams: {  } };'
       );
     });
   });

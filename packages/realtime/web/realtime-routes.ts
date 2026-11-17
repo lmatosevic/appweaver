@@ -26,11 +26,13 @@ import {
   toProblem
 } from '@appweaver/web';
 import { apiKeyConfig } from '@appweaver/data/config';
+import { findRealtimeAction } from '../action';
 import { realtimeConfig } from '../config';
 import { ConnectionAuth, RealtimeConnection } from '../gateway/connection';
 import { RealtimeGateway } from '../gateway/realtime-gateway';
 import { TicketService } from '../gateway/ticket-service';
 import { SseConnection } from '../transport/sse-connection';
+import { ResponseSink } from '../transport/response-sink';
 import { WsConnection } from '../transport/ws-connection';
 import { RealtimeCloseCode, SubscriptionRequest } from '../types';
 import { realtimeSpec } from './realtime-spec';
@@ -39,6 +41,15 @@ const logger = createLogger('realtime');
 
 /** The messages a WebSocket client may send before its ticket is redeemed. */
 const EARLY_MESSAGES_LIMIT = 50;
+
+/** The headers of a response of Server-Sent Events. */
+const EVENT_STREAM_HEADERS = {
+  'content-type': 'text/event-stream; charset=utf-8',
+  'cache-control': 'no-cache, no-transform',
+  connection: 'keep-alive',
+  // Keeps nginx from buffering the stream
+  'x-accel-buffering': 'no'
+};
 
 const TicketResponse = Type.Object({
   ticket: Type.String({ description: 'The ticket, used once' }),
@@ -134,13 +145,23 @@ export function registerRealtimeRoutes(): void {
             summary: 'Call a realtime action',
             description:
               'Calls an action of the realtime connections with the payload of the body, answering with its ' +
-              'result, or with 202 at once for `ack=false`. The credentials are optional: a call without them ' +
-              'is anonymous, allowed for a public action with `realtime.anonymousEnabled`.',
+              'result, or with 202 at once for `ack=false`. A streaming action answers a request accepting ' +
+              '`text/event-stream` with the Server-Sent Events of its stream, ending with its result. The ' +
+              'credentials are optional: a call without them is anonymous, allowed for a public action with ' +
+              '`realtime.anonymousEnabled`.',
             params: Type.Object({ name: Type.String() }),
             querystring: ActionQuery,
             body: Type.Unknown(),
             response: {
-              200: Type.Object({ result: Type.Unknown() }),
+              200: {
+                description: 'The result, or the stream of a streaming action',
+                content: {
+                  'application/json': {
+                    schema: Type.Object({ result: Type.Unknown() })
+                  },
+                  'text/event-stream': { schema: Type.String() }
+                }
+              },
               202: Type.Null()
             }
           },
@@ -152,7 +173,9 @@ export function registerRealtimeRoutes(): void {
               ...authErrorCodes(),
               ErrorCode.RealtimeActionUnknown,
               ErrorCode.RealtimeActionDenied,
-              ErrorCode.RealtimePayloadInvalid
+              ErrorCode.RealtimePayloadInvalid,
+              ErrorCode.RealtimeMessageInvalid,
+              ErrorCode.RealtimeStreamAccept
             ]
           }
         },
@@ -293,6 +316,9 @@ async function callAction(
 ): Promise<unknown> {
   const gateway = inject(RealtimeGateway);
   const ack = request.query.ack !== false;
+  if (findRealtimeAction(request.params.name)?.config.stream) {
+    return streamAction(request, reply, ack);
+  }
   const call = gateway.callAction(request.params.name, request.body, {
     user: currentAuthUser() ?? null,
     transport: 'http',
@@ -310,6 +336,45 @@ async function callAction(
     )
   );
   return reply.status(202).send(null);
+}
+
+/** Calls a streaming action, answering with the Server-Sent Events of its stream, cancelled once the client leaves. */
+async function streamAction(
+  request: FastifyRequest<{ Params: { name: string } }>,
+  reply: FastifyReply,
+  ack: boolean
+): Promise<void> {
+  const name = request.params.name;
+  if (!ack) {
+    throw new RealtimeError(
+      ErrorCode.RealtimeMessageInvalid,
+      `Realtime action '${name}' streams its result, never called with ack=false`
+    );
+  }
+  if (!String(request.headers.accept ?? '').includes('text/event-stream')) {
+    throw new RealtimeError(
+      ErrorCode.RealtimeStreamAccept,
+      `Realtime action '${name}' streams its result, accept text/event-stream`,
+      { action: name }
+    );
+  }
+
+  const headers = {
+    ...reply.getHeaders(),
+    ...EVENT_STREAM_HEADERS
+  };
+  const sink = new ResponseSink(reply.raw, name, () => {
+    reply.hijack();
+    reply.raw.writeHead(200, headers as never);
+  });
+
+  const instance = inject(RealtimeGateway).openActionStream(
+    name,
+    request.body,
+    { user: currentAuthUser() ?? null, transport: 'http', ack: true },
+    sink
+  );
+  reply.raw.on('close', () => instance.cancel());
 }
 
 async function openEventStream(
@@ -341,11 +406,7 @@ async function openEventStream(
 
   const headers = {
     ...reply.getHeaders(),
-    'content-type': 'text/event-stream; charset=utf-8',
-    'cache-control': 'no-cache, no-transform',
-    connection: 'keep-alive',
-    // Keeps nginx from buffering the stream
-    'x-accel-buffering': 'no'
+    ...EVENT_STREAM_HEADERS
   };
   connection = new SseConnection(auth, reply.raw, () => {
     reply.hijack();

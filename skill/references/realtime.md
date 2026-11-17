@@ -5,6 +5,10 @@ WebSocket or Server-Sent Events (SSE), and lets them call custom actions. A clie
 `createChannel` and to the **resource events** (`create`, `update`, `delete`) of the models exposing them. Nothing is
 exposed unless declared, and every event is checked against the access of the subscribed user before it is sent.
 
+The **streams** carry chunks rather than events: the tokens of an LLM answer, the bytes of a radio station, the frames of
+a video. A subscriber is checked once when it subscribes, never per chunk, so they cost no access check and, on this
+instance, no pub/sub round trip per chunk. See [Streams](#streams).
+
 Every message goes through the `PubSub` contract of core: `memory` in the process, or `redis` (`@appweaver/redis`,
 selected by `auto`) to the connections of every instance. The `Events` stay in the process, so the server-side
 listeners still run once. The messages are JSON: the callbacks and the clients receive the dates as ISO strings.
@@ -120,6 +124,131 @@ createRealtimeAction({
 A call with an `id` waits for its `result` or `error`; one without is fire-and-forget, its errors only logged at
 `debug`, for data whose loss is harmless (a cursor, a typing indicator). Over HTTP, `?ack=false` answers 202 at once.
 
+## Streams
+
+A stream is an ordered flow of chunks from one producer to one or many connections: `text` (strings), `json` (JSON
+values) or `binary` (bytes, sent as base64 in the JSON frames). Where a channel checks `deliver` and publishes to the
+pub/sub for every payload, a stream:
+
+- checks a subscriber once, when it subscribes (`public`, `roles`, `permissions`, `subscribe`), and again only when the
+  user changes, like a channel;
+- encodes a chunk once, however many subscribers receive it, and writes it to their connections directly;
+- reaches another instance only while one of them has a subscriber of its key, in batches of
+  `realtime.streamRelayFlushInterval` milliseconds (or `streamRelayMaxBatch` bytes) over the `PubSub`, so a stream
+  without remote subscribers never touches Redis;
+- keeps its last chunks (`replay`) for the late subscribers and the ones resuming after a reconnection.
+
+### Streaming actions
+
+The answer of an LLM to the user asking for it: an action with `stream`, whose handler is an async generator. Its
+chunks reach the caller only, as they come, and the stream ends with the value it returns:
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic();
+
+createRealtimeAction({
+  name: 'assistant.prompt',
+  payload: Type.Object({ prompt: Type.String() }),
+  response: Type.Object({ stopReason: Type.String() }),
+  stream: { codec: 'text', coalesce: 16 }, // merges the tokens of 16 ms into one chunk
+  async *handler({ prompt }, { user, signal }) {
+    const stream = anthropic.messages.stream(
+      { model: process.env.ANTHROPIC_MODEL!, max_tokens: 4096, messages: [{ role: 'user', content: prompt }] },
+      { signal }
+    );
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+        yield event.delta.text;
+      }
+    }
+    return { stopReason: (await stream.finalMessage()).stop_reason ?? 'end_turn' };
+  }
+});
+```
+
+- The handler runs as the user, like any action. A handler returning a value instead of an async iterable ends the
+  stream with it, and an error ends it with its problem details.
+- The generator is pulled only while the caller reads fast enough (`realtime.streamHighWaterMark`), so a slow client
+  pauses the producer instead of buffering the whole answer.
+- `signal` aborts once the client cancels the call, once it disconnects and does not resume within
+  `realtime.streamLinger` milliseconds, or once the instance shuts down: pass it to the LLM SDK so the generation stops.
+- Over the WebSocket the call needs an `id` (a fire-and-forget call is refused) and is answered by the stream instead of
+  a `result`. Over HTTP, `POST <api>/realtime/actions/:name` with `Accept: text/event-stream` answers with the
+  Server-Sent Events of the stream (`406 REALTIME_STREAM_ACCEPT` without it, `400` with `ack=false`), cancelled when
+  the client leaves.
+- A client losing its WebSocket resumes the call on its next connection, on the same instance, from the last chunk it
+  received (`{ type: 'resume', id, streamId, seq }`), while the stream lingers. Another user is refused with
+  `REALTIME_STREAM_NOT_FOUND`.
+
+### Streams of a key
+
+A stream of many subscribers, i.e. the answer shown to a whole chat room, or a radio station: `createStream`, opened
+for a key by its producer, anywhere in the application (a route, an action, a queue job of an instance with the module):
+
+```ts
+// src/realtime/index.ts
+export const roomAnswer = createStream({
+  name: 'room.answer',
+  params: Type.Object({ roomId: Type.Integer() }),
+  subscribe: (user, { roomId }, key) => key === String(roomId) && isMember(user, roomId) // once per subscription
+});
+
+export const radio = createStream({
+  name: 'radio.live',
+  codec: 'binary',
+  mimeType: 'audio/mpeg',
+  public: true,
+  replay: { from: 'sync', maxBytes: '512KB' }, // a new listener starts at the last frame boundary
+  onSlow: 'skip-to-sync' // a slow listener skips to the next frame boundary instead of being closed
+});
+
+const writer = roomAnswer.open(String(roomId));
+for await (const token of tokens) {
+  writer.write(token);
+  await writer.ready; // waits while a subscriber of this instance reads too slowly
+}
+writer.end({ messageId });
+
+radio.open('jazz').write(frame, { sync: true }); // a chunk a listener can start from
+```
+
+| Option                           | Description                                                                                                   |
+|----------------------------------|---------------------------------------------------------------------------------------------------------------|
+| `name`                           | `[a-zA-Z0-9][\w.:-]*`, unique, subscribed to as the channel `stream:<name>`                                   |
+| `codec`                          | `text` (default), `json` or `binary`                                                                          |
+| `mimeType`                       | The media type of a `binary` stream, told to the clients                                                      |
+| `chunk`                          | The TypeBox schema of the chunks of a `json` stream, checked outside of `prod`                                |
+| `params`                         | The TypeBox schema of the subscription parameters                                                             |
+| `public`, `roles`, `permissions` | Who may subscribe, see [Access](#access)                                                                      |
+| `subscribe`                      | `(user, params, key)`, false denies the subscription; it runs as the user                                     |
+| `replay`                         | `{ from, maxBytes }`: `all` the chunks kept (default), from the last `sync` one, or `none`; the bytes kept     |
+| `onSlow`                         | A subscriber over `realtime.sendBufferLimit`: `close` (default), `drop` its chunks, or `skip-to-sync`          |
+| `coalesce`                       | Milliseconds the `text` or `binary` chunks are merged for, `0` (default) for none                             |
+| `description`                    | Description in the OpenAPI document                                                                           |
+
+The streaming actions take the same `codec`, `mimeType`, `chunk`, `replay`, `onSlow` and `coalesce` in their `stream`.
+
+The writer of `open(key)` has `write(chunk, { sync? })`, `end(result?)`, `error(error)`, `ready`, `signal` (aborted
+once ended or on shutdown), `ended`, `streamId` and `subscribers` (the subscribers of this instance and the instances
+relaying it). A subscription to a key receives every stream opened for it, several at once each with an ID of its own,
+and stays until it is removed. A missed chunk (a slow subscriber, a reconnection beyond the replay) is announced with a
+`stream.gap` before the next one. A relayed stream whose owner instance goes silent for three
+`realtime.streamRelayHeartbeat` ends with `REALTIME_STREAM_LOST`, and so do the streams of an instance shutting down.
+
+### Costs
+
+| Per chunk                    | Streams                                                                    |
+|------------------------------|----------------------------------------------------------------------------|
+| Access checks                | None (once per subscription)                                               |
+| Encoding                     | One `JSON.stringify`, shared by every subscriber                           |
+| Pub/sub, Redis               | None locally; one publish per batch only while another instance subscribes |
+| Validation                   | The type of the codec; the `chunk` schema of `json` outside of `prod`      |
+
+The cost that remains is one message per subscriber per chunk on its socket: `coalesce` lowers it for the token
+streams, whose tokens arrive faster than a user reads them.
+
 ## Access
 
 Every part is private by default: a subscription or a call needs a user. `public`, `roles` and `permissions` on a
@@ -156,7 +285,7 @@ deleted, disabled or logged out since.
 | `POST <api>/realtime/ticket`                       | `{ ticket, expiresIn }`, any authentication                                          |
 | `GET <api>/realtime/ws?ticket=`                    | The WebSocket, described by the `x-appweaver-realtime` extension                     |
 | `GET <api>/realtime/events?ticket=&subscriptions=` | The SSE stream of the subscriptions of the query, a JSON array; a change reopens it  |
-| `POST <api>/realtime/actions/:name?ack=`           | Calls an action, answers `{ result }`, or 202 with `ack=false`                       |
+| `POST <api>/realtime/actions/:name?ack=`           | Calls an action, answers `{ result }`, or 202 with `ack=false`; a streaming action answers with its SSE stream |
 
 A connection without a ticket is anonymous, or refused (`REALTIME_TICKET_INVALID`). It closes with a `reauth` message
 and the code `4401` when the token of its ticket expires or after `realtime.connectionMaxAge`, and the client
@@ -178,15 +307,25 @@ Every message is a JSON object: a WebSocket text frame, or the `data` of an SSE 
 | Client → server (WebSocket)                            | Answer                           |
 |--------------------------------------------------------|----------------------------------|
 | `{ type: 'subscribe', id, channel, params?, filter? }` | `{ type: 'subscribed', id }`     |
+| `{ type: 'subscribe', id, channel: 'stream:<name>', key?, params?, resume? }` | `{ type: 'subscribed', id }`, then the streams |
 | `{ type: 'unsubscribe', id }`                          | `{ type: 'unsubscribed', id }`   |
-| `{ type: 'action', id, action, payload }`              | `{ type: 'result', id, result }` |
+| `{ type: 'action', id, action, payload }`              | `{ type: 'result', id, result }`, the stream of a streaming action |
 | `{ type: 'action', action, payload }`                  | nothing (fire-and-forget)        |
+| `{ type: 'cancel', id }`                               | `stream.end` with `cancelled`    |
+| `{ type: 'resume', id, streamId, seq }`                | The stream of a call, from `seq` |
 | `{ type: 'ping', id? }`                                | `{ type: 'pong', id? }`          |
 
 The server sends `{ type: 'welcome', connectionId, expiresAt, heartbeat }` once open, `{ type: 'event', id, channel,
 eventId, data }` for the subscription `id` (chosen by the client, `[\w.:-]{1,64}`), `{ type: 'error', id?, error }` with
 the problem details of a failed message, and `{ type: 'reauth' }` before `4401`. The subscriptions change in the order
 of the messages; the actions run at once.
+
+A stream starts with `{ type: 'stream.start', id, sid, streamId, stream, key, codec, mimeType?, seq }` for the
+subscription or the call `id`. Its frames name it by `sid`, the ID of the stream on the connection, so every subscriber
+receives the same encoded frame: `{ type: 'chunk', sid, seq, data, sync? }` (`data` in base64 for `binary`),
+`{ type: 'stream.gap', sid, from, to }`, then `{ type: 'stream.end', sid, seq, result?, cancelled? }` or
+`{ type: 'stream.error', sid, seq, error }`. A subscription resumes a stream of its key with
+`resume: { streamId, seq }`, from the chunks kept.
 
 | Close code | Meaning                                          |
 |------------|--------------------------------------------------|
@@ -213,6 +352,16 @@ client.realtime.on('Product', ({ action, current }) => refresh(current), { actio
 await client.realtime.send('chat.typing', { roomId: 1 });
 client.realtime.emit('cursor.move', { x: 10, y: 20 });
 
+const call = client.realtime.call('assistant.prompt', { prompt }); // a streaming action
+for await (const token of call) output += token;
+const { stopReason } = await call.result;
+
+client.realtime.stream('room.answer', {
+  onStart: ({ streamId }) => startMessage(streamId),
+  onChunk: (token, { streamId }) => append(streamId, token),
+  onEnd: (result, { streamId }) => finishMessage(streamId)
+}, { key: '42', params: { roomId: 42 } });
+
 await login();
 await client.realtime.reconnect(); // the connection of the user, with the subscriptions
 ```
@@ -224,8 +373,10 @@ See [client.md](./client.md#realtime-client) for the methods and the options.
 - Config: `realtime.*` (`REALTIME_*`) and `pubsub.*` (`PUBSUB_*`), see
   [configuration.md](./configuration.md#realtime-realtime_).
 - Errors: the `REALTIME_*` codes of [errors.md](./errors.md#error-codes).
-- Telemetry (`telemetry.instrumentations.realtime`): the span `realtime action <name>`, the metrics
-  `appweaver.realtime.connections`, `appweaver.realtime.events` (`delivered`, `denied`, `dropped`) and
-  `appweaver.realtime.messages`.
+- Telemetry (`telemetry.instrumentations.realtime`): the span `realtime action <name>` (until the end of the stream of
+  a streaming action), the span `realtime stream <name>` of a stream opened on the instance, the metrics
+  `appweaver.realtime.connections`, `appweaver.realtime.events` (`delivered`, `denied`, `dropped`, a dropped chunk
+  counted as `stream:<name>`), `appweaver.realtime.messages`, `appweaver.realtime.streams`,
+  `appweaver.realtime.stream.chunks` and `appweaver.realtime.stream.bytes`.
 - Testing: connect with the global `WebSocket` and `fetch` of Node after a `POST <api>/realtime/ticket`, define
   `MemoryPubSub` of `@appweaver/core/drivers` in a unit test, and test a `PubSub` driver with `testPubSubContract`.

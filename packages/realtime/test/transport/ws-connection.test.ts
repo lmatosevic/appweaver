@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import { StreamFrame } from '../../stream/stream-frame';
 import { WsConnection } from '../../transport/ws-connection';
 import { RealtimeCloseCode } from '../../types';
 
@@ -28,6 +29,18 @@ class FakeSocket extends EventEmitter {
 }
 
 describe('WsConnection', () => {
+  test('sends a frame of a stream as it was encoded while open', () => {
+    const socket = new FakeSocket();
+    const connection = new WsConnection(auth, socket as never);
+    const frame = new StreamFrame({ type: 'chunk', sid: 1, seq: 0, data: 'a' });
+
+    connection.sendFrame(frame);
+    socket.readyState = 3;
+    connection.sendFrame(frame);
+
+    expect(socket.sent).toEqual([frame.json]);
+  });
+
   test('sends the messages as JSON while open', () => {
     const socket = new FakeSocket();
     const connection = new WsConnection(auth, socket as never);

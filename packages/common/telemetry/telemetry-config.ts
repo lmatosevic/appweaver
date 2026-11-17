@@ -28,7 +28,8 @@ export const telemetryInstrumentationsConfig = defineConfig(
     CACHE: Type.Boolean({ default: true }),
     /** Trace the tasks of `weaver run`. Default: `true`. */
     TASK: Type.Boolean({ default: true }),
-    /** Trace the realtime actions and publishes, and measure the realtime connections and events. Default: `true`. */
+    /** Trace the realtime actions and streams, and measure the realtime connections, events and streams. Default:
+     * `true`. */
     REALTIME: Type.Boolean({ default: true })
   }
 );

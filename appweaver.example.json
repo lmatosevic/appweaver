@@ -391,7 +391,13 @@
       "maxSubscriptions": 50,
       "maxMessageSize": "64KB",
       "sendBufferLimit": "1MB",
-      "messageRateLimit": 20
+      "messageRateLimit": 20,
+      "streamReplayLimit": "256KB",
+      "streamHighWaterMark": "64KB",
+      "streamLinger": 10000,
+      "streamRelayFlushInterval": 20,
+      "streamRelayMaxBatch": "64KB",
+      "streamRelayHeartbeat": 5000
     },
     "mailer": {
       "senderName": "John Doe",

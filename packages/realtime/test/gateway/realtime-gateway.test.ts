@@ -38,6 +38,8 @@ import {
 import { createRealtimeAction } from '../../action';
 import { createChannel } from '../../channel';
 import { RealtimeGateway } from '../../gateway/realtime-gateway';
+import { createStream } from '../../stream/create-stream';
+import { StreamHub } from '../../stream/stream-hub';
 import { RealtimeCloseCode } from '../../types';
 import { FakeConnection } from '../fixtures/fake-connection';
 
@@ -615,6 +617,570 @@ describe('RealtimeGateway', () => {
         'subscribed',
         'unsubscribed'
       ]);
+    });
+  });
+
+  describe('streams', () => {
+    let hub: StreamHub;
+
+    const send = (connection: FakeConnection, message: object) =>
+      gateway.handleMessage(connection, JSON.stringify(message));
+
+    const types = (connection: FakeConnection) =>
+      connection.messages.slice(1).map((message) => message.type);
+
+    beforeEach(async () => {
+      hub = new StreamHub();
+      define(hub, StreamHub);
+      await hub.onReady();
+    });
+
+    afterEach(async () => {
+      await hub.onDestroy();
+    });
+
+    describe('subscriptions', () => {
+      test('sends the streams of a key to its subscribers', async () => {
+        const answer = createStream({
+          name: 'answer',
+          params: Type.Object({ roomId: Type.Integer() }),
+          subscribe: (_, { roomId }, key) => key === `room-${roomId}`
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, {
+          type: 'subscribe',
+          id: 's',
+          channel: 'stream:answer',
+          key: 'room-1',
+          params: { roomId: 1 }
+        });
+        const writer = answer.open('room-1');
+        writer.write('Hi');
+        writer.end();
+
+        expect(connection.messages.slice(1)).toEqual([
+          { type: 'subscribed', id: 's' },
+          {
+            type: 'stream.start',
+            id: 's',
+            sid: expect.any(Number),
+            streamId: writer.streamId,
+            stream: 'answer',
+            key: 'room-1',
+            codec: 'text',
+            seq: 0
+          },
+          { type: 'chunk', sid: expect.any(Number), seq: 0, data: 'Hi' },
+          { type: 'stream.end', sid: expect.any(Number), seq: 1 }
+        ]);
+        // The subscription waits for the next streams of the key
+        expect(connection.subscriptions.has('s')).toBe(true);
+
+        await send(connection, { type: 'unsubscribe', id: 's' });
+        answer.open('room-1').write('ignored');
+        expect(types(connection).at(-1)).toBe('unsubscribed');
+      });
+
+      test('resumes a stream of a key', async () => {
+        const answer = createStream({ name: 'answer' });
+        const writer = answer.open('');
+        writer.write('a');
+        writer.write('b');
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await gateway.subscribe(connection, {
+          id: 's',
+          channel: 'stream:answer',
+          resume: { streamId: writer.streamId, seq: 1 }
+        });
+
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'chunk',
+          data: 'b'
+        });
+        expect(
+          connection.messages.filter((message) => message.type === 'chunk')
+        ).toHaveLength(1);
+      });
+
+      test.each([
+        [
+          'an unknown stream',
+          { channel: 'stream:missing' },
+          'REALTIME_CHANNEL_UNKNOWN'
+        ],
+        [
+          'a key too long',
+          { key: 'k'.repeat(257) },
+          'REALTIME_MESSAGE_INVALID'
+        ],
+        ['a key of another type', { key: 1 }, 'REALTIME_MESSAGE_INVALID'],
+        [
+          'an invalid resume',
+          { resume: { streamId: 's', seq: -1 } },
+          'REALTIME_MESSAGE_INVALID'
+        ],
+        [
+          'a resume of another type',
+          { resume: 'x' },
+          'REALTIME_MESSAGE_INVALID'
+        ],
+        [
+          'invalid params',
+          { params: { roomId: 'x' } },
+          'REALTIME_PAYLOAD_INVALID'
+        ],
+        [
+          'a denied subscription',
+          { params: { roomId: 2 } },
+          'REALTIME_SUBSCRIPTION_DENIED'
+        ]
+      ])('refuses %s', async (_, request, code) => {
+        createStream({
+          name: 'answer',
+          params: Type.Object({ roomId: Type.Integer() }),
+          subscribe: (_, { roomId }) => roomId === 1
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, {
+          type: 'subscribe',
+          id: 's',
+          channel: 'stream:answer',
+          params: { roomId: 1 },
+          ...request
+        });
+
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'error',
+          id: 's',
+          error: { code }
+        });
+      });
+
+      test('refuses a subscription without the roles of the stream', async () => {
+        createStream({ name: 'admins', roles: ['admin'] });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await expect(
+          gateway.subscribe(connection, { id: 's', channel: 'stream:admins' })
+        ).rejects.toMatchObject({ code: ErrorCode.RealtimeSubscriptionDenied });
+      });
+
+      test('closes a connection reading a stream too slowly', async () => {
+        const answer = createStream({ name: 'answer' });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+        await gateway.subscribe(connection, {
+          id: 's',
+          channel: 'stream:answer'
+        });
+
+        connection.buffered = 2 * 1024 * 1024;
+        answer.open('').write('a');
+        await wait(10);
+
+        expect(connection.closedWith?.[0]).toBe(RealtimeCloseCode.TooSlow);
+        expect(gateway.connections.size).toBe(0);
+      });
+
+      test('checks the stream subscriptions again when the user changes', async () => {
+        mockAuthModel = 'User';
+        mockUsers.clear();
+        await gateway.onReady();
+        createStream({ name: 'admins', roles: ['admin'] });
+        createStream({ name: 'news' });
+        const admin = {
+          id: 1,
+          email: 'u@test.com',
+          enabled: true,
+          roles: [{ id: 2, name: 'admin', permissions: [] }]
+        };
+        const connection = new FakeConnection(admin);
+        gateway.open(connection);
+        await gateway.subscribe(connection, {
+          id: 'a',
+          channel: 'stream:admins'
+        });
+        await gateway.subscribe(connection, {
+          id: 'n',
+          channel: 'stream:news'
+        });
+        mockUsers.set(1, { ...admin, roles: [] });
+
+        await gateway.refresh(1);
+        await wait(20);
+        mockAuthModel = undefined;
+
+        expect([...connection.subscriptions.keys()]).toEqual(['n']);
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'error',
+          id: 'a',
+          error: { code: 'REALTIME_SUBSCRIPTION_DENIED' }
+        });
+      });
+    });
+
+    describe('streaming actions', () => {
+      const createAssistant = (
+        handler: (payload: { prompt: string }, context: any) => any
+      ) =>
+        createRealtimeAction({
+          name: 'assistant',
+          payload: Type.Object({ prompt: Type.String() }),
+          stream: { codec: 'text' },
+          handler
+        });
+
+      test('streams the chunks of the handler to its caller, ending with its result', async () => {
+        createAssistant(async function* ({ prompt }) {
+          yield `${prompt}:`;
+          yield 'a';
+          return { tokens: 2 };
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, {
+          type: 'action',
+          id: 'c1',
+          action: 'assistant',
+          payload: { prompt: 'p' }
+        });
+        expect(connection.subscriptions.get('c1')?.kind).toBe('action-stream');
+        await wait(10);
+
+        expect(connection.messages.slice(1)).toEqual([
+          expect.objectContaining({
+            type: 'stream.start',
+            id: 'c1',
+            stream: 'assistant',
+            codec: 'text'
+          }),
+          expect.objectContaining({ type: 'chunk', seq: 0, data: 'p:' }),
+          expect.objectContaining({ type: 'chunk', seq: 1, data: 'a' }),
+          expect.objectContaining({
+            type: 'stream.end',
+            seq: 2,
+            result: { tokens: 2 }
+          })
+        ]);
+        expect(connection.subscriptions.has('c1')).toBe(false);
+      });
+
+      test('runs the handler as the user, with the signal of the stream', async () => {
+        let received: any;
+        createAssistant(async function* (_, context) {
+          received = context;
+          yield 'a';
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, {
+          type: 'action',
+          id: 'c1',
+          action: 'assistant',
+          payload: { prompt: 'p' }
+        });
+        await wait(10);
+
+        expect(received).toMatchObject({
+          user: connection.user,
+          transport: 'websocket',
+          connectionId: connection.id,
+          ack: true
+        });
+        expect(received.signal.aborted).toBe(true);
+      });
+
+      test('ends with the value of a handler returning no chunks', async () => {
+        createAssistant(async () => 'done');
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, {
+          type: 'action',
+          id: 'c1',
+          action: 'assistant',
+          payload: { prompt: 'p' }
+        });
+        await wait(10);
+
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'stream.end',
+          seq: 0,
+          result: 'done'
+        });
+      });
+
+      test.each([
+        [
+          'the generator',
+          async function* () {
+            yield 'a';
+            throw new Error('failed');
+          }
+        ],
+        [
+          'the handler',
+          () => {
+            throw new Error('failed');
+          }
+        ]
+      ])('ends with the error of %s', async (_, handler) => {
+        createAssistant(handler as never);
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, {
+          type: 'action',
+          id: 'c1',
+          action: 'assistant',
+          payload: { prompt: 'p' }
+        });
+        await wait(10);
+
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'stream.error',
+          error: { status: 500 }
+        });
+      });
+
+      test('cancels a stream, stopping the generator', async () => {
+        let finished = false;
+        createAssistant(async function* (_, { signal }) {
+          try {
+            for (;;) {
+              yield 'a';
+              await new Promise((resolve) => setTimeout(resolve, 5));
+            }
+          } finally {
+            finished = signal.aborted;
+          }
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, {
+          type: 'action',
+          id: 'c1',
+          action: 'assistant',
+          payload: { prompt: 'p' }
+        });
+        await wait(12);
+        await send(connection, { type: 'cancel', id: 'c1' });
+        await send(connection, { type: 'cancel', id: 'missing' });
+        await wait(20);
+
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'stream.end',
+          cancelled: true
+        });
+        expect(finished).toBe(true);
+        expect(connection.subscriptions.size).toBe(0);
+      });
+
+      test('cancels a stream unsubscribed from', async () => {
+        createAssistant(async function* () {
+          yield 'a';
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          yield 'b';
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, {
+          type: 'action',
+          id: 'c1',
+          action: 'assistant',
+          payload: { prompt: 'p' }
+        });
+        await wait(5);
+        await send(connection, { type: 'unsubscribe', id: 'c1' });
+
+        expect(types(connection).slice(-2)).toEqual([
+          'stream.end',
+          'unsubscribed'
+        ]);
+      });
+
+      test('resumes the stream of a disconnected caller on a new connection', async () => {
+        let release!: () => void;
+        const gate = new Promise<void>((resolve) => (release = resolve));
+        createAssistant(async function* () {
+          yield 'a';
+          yield 'b';
+          await gate;
+          yield 'c';
+        });
+        const first = new FakeConnection();
+        gateway.open(first);
+        await send(first, {
+          type: 'action',
+          id: 'c1',
+          action: 'assistant',
+          payload: { prompt: 'p' }
+        });
+        await wait(5);
+        const start = first.messages.find(
+          (message) => message.type === 'stream.start'
+        ) as { streamId: string };
+        first.close(RealtimeCloseCode.GoingAway, 'Gone');
+        await gateway.release(first);
+
+        const second = new FakeConnection();
+        gateway.open(second);
+        await send(second, {
+          type: 'resume',
+          id: 'r1',
+          streamId: start.streamId,
+          seq: 1
+        });
+        release();
+        await wait(10);
+
+        expect(
+          second.messages
+            .filter((message) => message.type === 'chunk')
+            .map((message) => (message as { data: string }).data)
+        ).toEqual(['b', 'c']);
+        expect(second.messages.at(-1)).toMatchObject({ type: 'stream.end' });
+        expect(second.subscriptions.size).toBe(0);
+      });
+
+      test('resumes an ended stream without a subscription', async () => {
+        createAssistant(async function* () {
+          yield 'a';
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+        await send(connection, {
+          type: 'action',
+          id: 'c1',
+          action: 'assistant',
+          payload: { prompt: 'p' }
+        });
+        await wait(10);
+        const start = connection.messages.find(
+          (message) => message.type === 'stream.start'
+        ) as { streamId: string };
+
+        await send(connection, {
+          type: 'resume',
+          id: 'r1',
+          streamId: start.streamId,
+          seq: 0
+        });
+
+        expect(types(connection).slice(-3)).toEqual([
+          'stream.start',
+          'chunk',
+          'stream.end'
+        ]);
+        expect(connection.subscriptions.size).toBe(0);
+      });
+
+      test.each([
+        [
+          'an unknown stream',
+          { streamId: 'x', seq: 0 },
+          'REALTIME_STREAM_NOT_FOUND'
+        ],
+        [
+          'an invalid resume',
+          { streamId: 'x', seq: 'x' },
+          'REALTIME_MESSAGE_INVALID'
+        ]
+      ])('refuses to resume %s', async (_, resume, code) => {
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, { type: 'resume', id: 'r1', ...resume });
+
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'error',
+          id: 'r1',
+          error: { code }
+        });
+      });
+
+      test('refuses a streaming action called without an ID', async () => {
+        const handler = jest.fn();
+        createAssistant(handler);
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, {
+          type: 'action',
+          action: 'assistant',
+          payload: { prompt: 'p' }
+        });
+
+        expect(handler).not.toHaveBeenCalled();
+        expect(connection.messages).toHaveLength(1);
+        await expect(
+          gateway.callAction(
+            'assistant',
+            { prompt: 'p' },
+            {
+              user: connection.user,
+              transport: 'http',
+              ack: true
+            }
+          )
+        ).rejects.toMatchObject({ code: ErrorCode.RealtimeMessageInvalid });
+      });
+
+      test('refuses to stream an action without a stream', () => {
+        createRealtimeAction({
+          name: 'plain',
+          payload: Type.Object({}),
+          public: true,
+          handler: () => 1
+        });
+
+        expect(() =>
+          gateway.openActionStream(
+            'plain',
+            {},
+            { user: null, transport: 'http', ack: true },
+            {} as never
+          )
+        ).toThrow(
+          expect.objectContaining({ code: ErrorCode.RealtimeMessageInvalid })
+        );
+      });
+
+      test('traces a streaming action until its stream ends', async () => {
+        const telemetry = recordTelemetry();
+        createAssistant(async function* () {
+          yield 'a';
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, {
+          type: 'action',
+          id: 'c1',
+          action: 'assistant',
+          payload: { prompt: 'p' }
+        });
+        await wait(10);
+
+        expect(
+          telemetry.span('realtime action assistant').attributes
+        ).toMatchObject({
+          'appweaver.realtime.action': 'assistant',
+          'appweaver.realtime.transport': 'websocket'
+        });
+        await telemetry.stop();
+      });
     });
   });
 });

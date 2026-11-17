@@ -379,10 +379,10 @@ exporters and the API version the SDK peers on, the same in the root, `common`, 
 
 The realtime module (`@appweaver/realtime`), requiring `@appweaver/web`, with `@fastify/websocket` (and `ws`) as
 dependencies. A client subscribes over a WebSocket or Server-Sent Events to the channels of `createChannel` and to the
-resource events of the models whose `createRoutes` sets `events`, and calls the actions of `createRealtimeAction`
-(with a result, or fire-and-forget without an `id`). Nothing is exposed unless declared. Every message goes through
-the `PubSub` contract of core (`memory`, or `redis` of `@appweaver/redis` to reach every instance), while the `Events`
-stay in the process.
+resource events of the models whose `createRoutes` sets `events`, calls the actions of `createRealtimeAction`
+(with a result, or fire-and-forget without an `id`), and receives the streams of chunks of the streaming actions and of
+`createStream`. Nothing is exposed unless declared. Every message of a channel goes through the `PubSub` contract of
+core (`memory`, or `redis` of `@appweaver/redis` to reach every instance), while the `Events` stay in the process.
 
 | File                          | Purpose                                                                                                     |
 |-------------------------------|-------------------------------------------------------------------------------------------------------------|
@@ -394,6 +394,10 @@ stay in the process.
 | `web/realtime-routes.ts`      | The web part: the WebSocket plugin and the ticket, events, ws and actions routes                            |
 | `web/realtime-spec.ts`        | The `x-appweaver-realtime` extension of the OpenAPI document (`registerSpecExtension` of web)               |
 | `utils/project-record.ts`     | Projects the record of a resource event onto the `find` response schema of its model                        |
+| `stream/create-stream.ts`     | `createStream`, the streams of a key, defined in the context under their symbol                             |
+| `stream/stream-instance.ts`   | `StreamInstance`: the sequence, the frames encoded once, the replay, the coalescing, the slow subscribers   |
+| `stream/stream-hub.ts`        | `StreamHub`: the streams of the instance, the streaming actions, and the relay between the instances        |
+| `gateway/connection-sink.ts`  | `ConnectionSink`, a subscriber of a stream writing to a connection; `transport/response-sink.ts` over HTTP  |
 
 A change of a user of the auth model reaches their connections on every instance through the pub/sub: a logout, a
 disabling or a deletion closes them (`revoke`), any other change loads the user again and removes the subscriptions it
@@ -403,6 +407,15 @@ the policy, or the `checkAccess` of a `find` and the `readRestrictions` matched 
 `data/resource/utils/where-util.ts`), with a `count` of the database for a relation filter: one query per event and
 distinct subscribed user, a known cost left to the `events` callback of a busy model. The protocol, the close codes and
 the client are documented in `skill/references/realtime.md`.
+
+A stream checks a subscriber once, when it subscribes (and on a `refresh`), never per chunk: a chunk is encoded once
+(`StreamFrame`) and written to the connections of the instance directly, a subscriber being a `StreamSink`. It reaches
+another instance only while one of them announces a subscriber of its key on the control channel
+(`realtime:_streams`), in batches of `streamRelayFlushInterval` on the channel of the key, the binary chunks as base64.
+`stream/` depends on `@appweaver/common`, `@appweaver/core`, the config and the utils of the package only, never on
+the gateway, the transports, the web part, the channels or `@appweaver/web` and `@appweaver/data` (the
+`no-restricted-imports` rule of `eslint.config.mjs`), so it can move to a package without a server; the gateway sets
+how its errors are formatted (`setStreamProblemFormat`).
 
 ### `packages/testing`
 

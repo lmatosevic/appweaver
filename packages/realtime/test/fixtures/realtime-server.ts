@@ -21,6 +21,7 @@ import { InMemory, MemoryPubSub, NodeEvents } from '@appweaver/core/drivers';
 import { errorHandler, Server, stashErrorResponses } from '@appweaver/web';
 import { RealtimeGateway } from '../../gateway/realtime-gateway';
 import { TicketService } from '../../gateway/ticket-service';
+import { StreamHub } from '../../stream/stream-hub';
 import { registerRealtimeRoutes } from '../../web/realtime-routes';
 
 /** A realtime server listening on a random port, authenticating the `x-user` header as a JWT user. A request of an
@@ -42,6 +43,7 @@ export async function startRealtimeServer(): Promise<RealtimeServer> {
   define(new MemoryPubSub(), PubSub);
   define(new NodeEvents(), Events);
   define(TicketService);
+  define(new StreamHub(), StreamHub);
   define(RealtimeGateway);
 
   registerRealtimeRoutes();
@@ -82,7 +84,9 @@ export async function startRealtimeServer(): Promise<RealtimeServer> {
   }
 
   const address = await server.listen({ port: 0, host: '127.0.0.1' });
-  const gateway = (await import('@appweaver/core')).inject(RealtimeGateway);
+  const { inject } = await import('@appweaver/core');
+  const gateway = inject(RealtimeGateway);
+  const hub = inject(StreamHub);
 
   return {
     server,
@@ -91,6 +95,7 @@ export async function startRealtimeServer(): Promise<RealtimeServer> {
     gateway,
     close: async () => {
       await gateway.onDestroy();
+      await hub.onDestroy();
       await server.close();
     }
   };

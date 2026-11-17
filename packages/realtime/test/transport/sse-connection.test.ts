@@ -1,5 +1,6 @@
 import { PassThrough } from 'node:stream';
 import { ServerResponse } from 'node:http';
+import { StreamFrame } from '../../stream/stream-frame';
 import { SseConnection } from '../../transport/sse-connection';
 import { RealtimeCloseCode } from '../../types';
 
@@ -13,6 +14,16 @@ function response() {
 }
 
 describe('SseConnection', () => {
+  test('writes a frame of a stream as its encoded event', () => {
+    const { response: res, chunks } = response();
+    const connection = new SseConnection(auth, res, jest.fn());
+    const frame = new StreamFrame({ type: 'chunk', sid: 1, seq: 0, data: 'a' });
+
+    connection.sendFrame(frame);
+
+    expect(chunks).toEqual([frame.sse]);
+  });
+
   test('starts the stream before the first message', () => {
     const { response: res, chunks } = response();
     const start = jest.fn();

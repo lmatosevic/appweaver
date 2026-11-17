@@ -132,6 +132,10 @@ export interface ErrorDetailsMap {
   [ErrorCode.RealtimeConnectionLimit]: { limit: number };
   [ErrorCode.RealtimeRateLimited]: { retryAfter: number };
   [ErrorCode.RealtimeTransportDisabled]: { transport: string };
+  [ErrorCode.RealtimeStreamNotFound]: { streamId: string };
+  [ErrorCode.RealtimeStreamEnded]: { stream: string };
+  [ErrorCode.RealtimeStreamLost]: { stream: string };
+  [ErrorCode.RealtimeStreamAccept]: { action: string };
 
   [ErrorCode.TimeSeriesNotEnabled]: ModelDetails;
   [ErrorCode.TimeSeriesInvalidField]: ModelDetails & { field: string };

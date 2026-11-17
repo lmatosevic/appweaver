@@ -873,6 +873,12 @@ The realtime connections of `@appweaver/realtime` ([realtime.md](./realtime.md))
 | `REALTIME_MAX_MESSAGE_SIZE`         | string  | `'64KB'`      | Maximum size of a WebSocket message of a client.                                                                                                    |
 | `REALTIME_SEND_BUFFER_LIMIT`        | string  | `'1MB'`       | Bytes a connection may have waiting to be sent before it is closed as too slow.                                                                    |
 | `REALTIME_MESSAGE_RATE_LIMIT`       | integer | `20`          | Maximum number of WebSocket messages a client sends per second, `0` for no limit.                                                                  |
+| `REALTIME_STREAM_REPLAY_LIMIT`      | string  | `'256KB'`     | Bytes of the last chunks a stream keeps for the subscribers joining late or resuming, unless the stream sets its own `replay.maxBytes`.            |
+| `REALTIME_STREAM_HIGH_WATER_MARK`   | string  | `'64KB'`      | Bytes a subscriber of a stream may have waiting to be sent before `ready` of the writer waits, pausing the producer (a streaming action).          |
+| `REALTIME_STREAM_LINGER`            | integer | `10000`       | Milliseconds an ended stream, or a streaming action whose client disconnected, stays resumable.                                                    |
+| `REALTIME_STREAM_RELAY_FLUSH_INTERVAL` | integer | `20`       | Milliseconds the chunks of a stream are batched for before they are relayed to the other instances.                                               |
+| `REALTIME_STREAM_RELAY_MAX_BATCH`   | string  | `'64KB'`      | Bytes of chunks relayed to the other instances in one message at most, sent before the flush interval once reached.                                |
+| `REALTIME_STREAM_RELAY_HEARTBEAT`   | integer | `5000`        | Milliseconds between the messages keeping the relay of the streams alive, a relayed stream silent for three of them being lost.                    |
 
 ### Mailer (MAILER\_\*)
 
@@ -919,7 +925,7 @@ The OpenTelemetry instrumentation of the framework, and the SDK of `@appweaver/o
 | `TELEMETRY_INSTRUMENTATIONS_SMS`       | boolean  | `true`  | Trace the text messages the SMS sender sends.                                                                     |
 | `TELEMETRY_INSTRUMENTATIONS_CACHE`     | boolean  | `true`  | Count the cache hits and misses.                                                                                  |
 | `TELEMETRY_INSTRUMENTATIONS_TASK`      | boolean  | `true`  | Trace the tasks of `weaver run`.                                                                                  |
-| `TELEMETRY_INSTRUMENTATIONS_REALTIME`  | boolean  | `true`  | Trace the realtime actions and measure the realtime connections and events. (realtime)                            |
+| `TELEMETRY_INSTRUMENTATIONS_REALTIME`  | boolean  | `true`  | Trace the realtime actions and streams, and measure the realtime connections, events and streams. (realtime)      |
 | `TELEMETRY_HTTP_IGNORE_PATHS`          | string[] | `[]`    | URL paths left out of the traces and the metrics: an exact path, or a prefix ending with `*` (`/public/*`). (web) |
 | `TELEMETRY_HTTP_HEALTH_CHECK`          | boolean  | `false` | Trace and measure the requests of the health check routes. (web)                                                  |
 

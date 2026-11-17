@@ -103,7 +103,7 @@ their prefix:
 | `LockError`          | `@appweaver/common` | `LOCK_`          | A lock that could not be acquired                                                        |
 | `TimeSeriesError`    | `@appweaver/common` | `TIMESERIES_`    | The time series service and stores: invalid points and queries                           |
 | `SpatialError`       | `@appweaver/common` | `SPATIAL_`       | The geo fields: invalid geometries and spatial filters                                   |
-| `RealtimeError`      | `@appweaver/common` | `REALTIME_`      | The realtime connections: tickets, subscriptions, actions and limits                     |
+| `RealtimeError`      | `@appweaver/common` | `REALTIME_`      | The realtime connections: tickets, subscriptions, actions, streams and limits            |
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
@@ -256,6 +256,10 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `REALTIME_CONNECTION_LIMIT`          | 429    | Too many realtime connections         |
 | `REALTIME_RATE_LIMITED`              | 429    | Realtime messages rate limited        |
 | `REALTIME_TRANSPORT_DISABLED`        | 404    | Realtime transport disabled           |
+| `REALTIME_STREAM_NOT_FOUND`          | 404    | Realtime stream not found             |
+| `REALTIME_STREAM_ENDED`              | 409    | Realtime stream ended                 |
+| `REALTIME_STREAM_LOST`               | 503    | Realtime stream lost                  |
+| `REALTIME_STREAM_ACCEPT`             | 406    | Realtime stream not accepted          |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 

@@ -17,8 +17,11 @@ export const PUBSUB_CHANNEL_PREFIX = 'realtime:';
 /** A message of a channel, as it is published to the pub/sub. */
 export type ChannelMessage = { eventId: string; payload: unknown };
 
-const channels = createRegistry<Channel>(REALTIME_CHANNEL, 'channel', (name) =>
-  name.startsWith(RESOURCE_CHANNEL_PREFIX)
+const channels = createRegistry<Channel>(
+  REALTIME_CHANNEL,
+  'channel',
+  (name) =>
+    name.startsWith(RESOURCE_CHANNEL_PREFIX) || name.startsWith('stream:')
 );
 
 /**

@@ -97,7 +97,7 @@ with `data` and `web`:
 | `locales`        | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates    |
 | `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)        |
 | `telemetry`      | `@appweaver/opentelemetry`, the OTLP endpoint, telemetry off in the `test` environment                          | no telemetry exported                       |
-| `realtime`       | `@appweaver/realtime` (requires `web`): channels, resource events and actions over WebSocket and SSE            | no realtime connections                     |
+| `realtime`       | `@appweaver/realtime` (requires `web`): channels, resource events, actions and streams over WebSocket and SSE    | no realtime connections                     |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                             |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
@@ -923,8 +923,28 @@ createRealtimeAction({
 });
 ```
 
-The generated client calls `client.realtime.subscribe`, `on`, `send` and `emit`. See
-[realtime.md](references/realtime.md).
+To stream chunks rather than events (the tokens of an LLM answer, bytes), use a **streaming action** for the caller
+alone, or `createStream` for the subscribers of a key. A subscriber is checked once, never per chunk, and a chunk
+reaches another instance only while one of them has a subscriber:
+
+```ts
+createRealtimeAction({
+  name: 'assistant.prompt',
+  payload: Type.Object({ prompt: Type.String() }),
+  stream: { codec: 'text', coalesce: 16 },
+  async *handler({ prompt }, { signal }) {
+    for await (const token of llm.stream(prompt, { signal })) yield token; // signal: cancelled or client gone
+  }
+});
+
+export const roomAnswer = createStream({ name: 'room.answer', subscribe: (user, _, key) => isMember(user, key) });
+const writer = roomAnswer.open(roomId);
+writer.write('Hello');
+writer.end();
+```
+
+The generated client calls `client.realtime.subscribe`, `on`, `send`, `emit`, `call` (a streaming action, an async
+iterable of its chunks) and `stream`. See [realtime.md](references/realtime.md).
 
 ### Registering a custom model
 
@@ -1252,7 +1272,7 @@ npm run lint  # eslint "./**/*.ts"
 - Storage & File management: [storage.md](references/storage.md)
 - Database & Migrations: [database.md](references/database.md)
 - Events & Hooks: [events.md](references/events.md)
-- Realtime channels, resource events & actions (WebSocket, SSE): [realtime.md](references/realtime.md)
+- Realtime channels, resource events, actions & streams (WebSocket, SSE): [realtime.md](references/realtime.md)
 - Cache management: [cache.md](references/cache.md)
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)

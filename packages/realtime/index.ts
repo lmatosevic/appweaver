@@ -5,5 +5,8 @@ export * from './gateway/connection';
 export * from './gateway/realtime-gateway';
 export * from './gateway/subscription';
 export * from './gateway/ticket-service';
+export * from './stream/create-stream';
+export * from './stream/stream-hub';
+export * from './stream/types';
 export * from './types';
 export * from './web/realtime-spec';
