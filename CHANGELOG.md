@@ -1,3 +1,9 @@
+## [2.6.1](https://github.com/lmatosevic/appweaver/compare/v2.6.0...v2.6.1) (2026-11-17)
+
+### Bug Fixes
+
+* register the TypeBox string formats before validating realtime payloads ([c34db11](https://github.com/lmatosevic/appweaver/commit/c34db111be964fbf49dbf3adf0b9c7beea1adb54))
+
 ## [2.6.0](https://github.com/lmatosevic/appweaver/compare/v2.5.0...v2.6.0) (2026-11-17)
 
 ### Features
