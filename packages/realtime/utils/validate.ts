@@ -1,11 +1,15 @@
 import { Static, TSchema } from '@sinclair/typebox';
 import { TypeCompiler, TypeCheck } from '@sinclair/typebox/compiler';
-import { ErrorCode, RealtimeError } from '@appweaver/common';
+import {
+  ErrorCode,
+  RealtimeError,
+  registerSchemaFormats
+} from '@appweaver/common';
 
 const compiled = new WeakMap<TSchema, TypeCheck<TSchema>>();
 
 /**
- * Checks a value against a schema, compiled once per schema.
+ * Checks a value against a schema, compiled once per schema, with the string formats of `registerSchemaFormats`.
  *
  * @param {TSchema} schema - The schema.
  * @param {unknown} value - The value to check.
@@ -18,6 +22,7 @@ export function validatePayload<T extends TSchema>(
 ): Static<T> {
   let check = compiled.get(schema);
   if (!check) {
+    registerSchemaFormats();
     check = TypeCompiler.Compile(schema);
     compiled.set(schema, check);
   }
