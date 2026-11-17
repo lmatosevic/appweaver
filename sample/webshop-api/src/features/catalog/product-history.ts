@@ -6,14 +6,12 @@ type StockChange = { productId: number; stock: number; sold?: number };
 
 // The price and the stock of a product are recorded whenever an admin sets
 // them, and the units sold with every checkout (see the checkout feature)
-inject(Events).onResourceEvent<Product>('Product', 'create', ({ current }) =>
+inject(Events).onResourceEvent('Product', 'create', ({ current }) =>
   recordProduct(current)
 );
 
-inject(Events).onResourceEvent<Product>(
-  'Product',
-  'update',
-  ({ current, previous }) => recordProduct(current, previous)
+inject(Events).onResourceEvent('Product', 'update', ({ current, previous }) =>
+  recordProduct(current, previous)
 );
 
 /**

@@ -7,28 +7,24 @@ import { Role } from '@/features/access/roles';
 const logger = createLogger('assignment');
 
 // Every new ticket without an assignee goes to an agent, however it came in
-inject(Events).onResourceEvent<Ticket & { teamId?: number | null }>(
-  'Ticket',
-  'create',
-  async ({ current }) => {
-    if (current.assignee) {
-      return;
-    }
-
-    try {
-      const agentId = await leastLoadedAgent(current.teamId ?? null);
-      if (agentId) {
-        await db.ticket.update({
-          where: { id: current.id },
-          data: { assigneeId: agentId }
-        });
-        await inject(CacheService).invalidateCache('Ticket', 'update');
-      }
-    } catch (e) {
-      logger.error(e, `Ticket ${current.id} was not assigned`);
-    }
+inject(Events).onResourceEvent('Ticket', 'create', async ({ current }) => {
+  if (current.assignee) {
+    return;
   }
-);
+
+  try {
+    const agentId = await leastLoadedAgent(current.teamId ?? null);
+    if (agentId) {
+      await db.ticket.update({
+        where: { id: current.id },
+        data: { assigneeId: agentId }
+      });
+      await inject(CacheService).invalidateCache('Ticket', 'update');
+    }
+  } catch (e) {
+    logger.error(e, `Ticket ${current.id} was not assigned`);
+  }
+});
 
 /**
  * The available agent of the team holding the fewest open tickets, or of any

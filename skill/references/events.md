@@ -15,7 +15,7 @@ const events = inject(Events);
 
 ---
 
-#### `events.onResourceEvent<T>(resourceName, event, listener)`
+#### `events.onResourceEvent(resourceName, event, listener)`
 
 Registers a listener for a specific resource and action. Returns a listener ID that can be used to unsubscribe.
 
@@ -24,6 +24,11 @@ Registers a listener for a specific resource and action. Returns a listener ID t
 | `resourceName` | `string`           | The name of the resource model (e.g. `'Product'`)       |
 | `event`        | `ActionType`       | `'create'`, `'update'`, `'delete'`, `'find'`, `'query'` |
 | `listener`     | `EventListener<T>` | Callback receiving `EventData<T>`                       |
+
+Once the types are generated (`weaver generate`), the records are typed by the model name, like `injectService`:
+`current` and `previous` are `ResourceRecord<'Product'>`, the model type with its foreign keys and relation counts,
+and `current` is an array of them for a `query`. Give the type yourself for a model name known only at runtime,
+`events.onResourceEvent<AuthUser>(modelName, 'update', listener)`.
 
 `EventData<T>` shape:
 
@@ -40,7 +45,7 @@ instead of `_count`), and their soft deleted relations hidden. They still hold t
 which only the response serialization leaves out. Read them, never change them: a change would reach the response.
 
 ```ts
-const listenerId = events.onResourceEvent<Product>('Product', 'create', ({ current }) => {
+const listenerId = events.onResourceEvent('Product', 'create', ({ current }) => {
   logger.info('New product created:', current.name);
 });
 ```
@@ -48,7 +53,7 @@ const listenerId = events.onResourceEvent<Product>('Product', 'create', ({ curre
 **Listening to updates** (access both previous and current state):
 
 ```ts
-events.onResourceEvent<User>('User', 'update', ({ previous, current }) => {
+events.onResourceEvent('User', 'update', ({ previous, current }) => {
   if (previous?.email !== current.email) {
     sendEmailChangeNotification(current);
   }
@@ -117,7 +122,7 @@ export function registerNotificationListeners() {
   const events = inject(Events);
   const mailer = inject(Mailer, false);
 
-  events.onResourceEvent<Order>('Order', 'create', async ({ current }) => {
+  events.onResourceEvent('Order', 'create', async ({ current }) => {
     if (!mailer) return;
     await mailer.sendEmail({
       to: current.customerEmail,
@@ -126,7 +131,7 @@ export function registerNotificationListeners() {
     });
   });
 
-  events.onResourceEvent<User>('User', 'delete', ({ current }) => {
+  events.onResourceEvent('User', 'delete', ({ current }) => {
     logger.info(`User ${current.id} was deleted — cleaning up sessions`);
     cleanupSessions(current.id);
   });
