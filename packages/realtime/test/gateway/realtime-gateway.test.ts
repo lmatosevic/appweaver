@@ -27,7 +27,7 @@ jest.mock('@appweaver/data', () => {
 
 import { Type } from '@sinclair/typebox';
 import { configOverrides, ErrorCode, Events, PubSub } from '@appweaver/common';
-import { define, inject } from '@appweaver/core';
+import { currentAuthUser, define, inject } from '@appweaver/core';
 import { MemoryPubSub, NodeEvents } from '@appweaver/core/drivers';
 import { context } from '@appweaver/core/internal';
 import {
@@ -42,6 +42,7 @@ import { createStream } from '../../stream/create-stream';
 import { StreamHub } from '../../stream/stream-hub';
 import { RealtimeCloseCode } from '../../types';
 import { FakeConnection } from '../fixtures/fake-connection';
+import { FakeSink } from '../fixtures/fake-sink';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -852,7 +853,7 @@ describe('RealtimeGateway', () => {
           action: 'assistant',
           payload: { prompt: 'p' }
         });
-        expect(connection.subscriptions.get('c1')?.kind).toBe('action-stream');
+        expect(connection.subscriptions.get('c1')?.kind).toBe('action-call');
         await wait(10);
 
         expect(connection.messages.slice(1)).toEqual([
@@ -1146,11 +1147,10 @@ describe('RealtimeGateway', () => {
         });
 
         expect(() =>
-          gateway.openActionStream(
+          gateway.openActionCall(
             'plain',
             {},
-            { user: null, transport: 'http', ack: true },
-            {} as never
+            { user: null, transport: 'http', ack: true }
           )
         ).toThrow(
           expect.objectContaining({ code: ErrorCode.RealtimeMessageInvalid })
@@ -1180,6 +1180,458 @@ describe('RealtimeGateway', () => {
           'appweaver.realtime.transport': 'websocket'
         });
         await telemetry.stop();
+      });
+    });
+
+    describe('calls with an input', () => {
+      const createVoice = (
+        handler: (payload: object, context: any) => any,
+        input: object = { codec: 'text' },
+        stream?: object
+      ) =>
+        createRealtimeAction({
+          name: 'voice',
+          payload: Type.Object({}),
+          input,
+          ...(stream ? { stream } : {}),
+          handler
+        });
+
+      const call = (connection: FakeConnection, id = 'c1') =>
+        send(connection, { type: 'action', id, action: 'voice', payload: {} });
+
+      test('reads the input of the client, answering with the result', async () => {
+        configOverrides.REALTIME_STREAM_INPUT_WINDOW = '100B';
+        createVoice(async (_, { input }) => {
+          const chunks: string[] = [];
+          for await (const chunk of input) {
+            chunks.push(chunk);
+          }
+          return chunks.join('');
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await call(connection);
+        await send(connection, {
+          type: 'input',
+          id: 'c1',
+          data: 'a'.repeat(20)
+        });
+        await send(connection, {
+          type: 'input',
+          id: 'c1',
+          data: 'b'.repeat(20)
+        });
+        await send(connection, { type: 'input.end', id: 'c1' });
+        await wait(10);
+
+        const messages = connection.messages.slice(1);
+        expect(messages[0]).toEqual({
+          type: 'input.credit',
+          id: 'c1',
+          bytes: 100
+        });
+        // The bytes read are given back once half the window
+        expect(
+          messages.filter((message) => message.type === 'input.credit')
+        ).toHaveLength(3);
+        expect(messages.at(-1)).toEqual({
+          type: 'result',
+          id: 'c1',
+          result: 'a'.repeat(20) + 'b'.repeat(20)
+        });
+        expect(connection.subscriptions.size).toBe(0);
+        expect(gateway.calls.size).toBe(0);
+      });
+
+      test('reads the binary messages of a binary input, and streams its answer', async () => {
+        createVoice(
+          async function* (_, { input }) {
+            for await (const chunk of input) {
+              yield chunk.length;
+            }
+          },
+          { codec: 'binary' },
+          { codec: 'json' }
+        );
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await call(connection);
+        const frame = (bytes: number[]) =>
+          new Uint8Array([1, 2, ...Buffer.from('c1'), ...bytes]);
+        expect(gateway.handleBinary(connection, frame([1, 2, 3]))).toBe(true);
+        await send(connection, { type: 'input', id: 'c1', data: 'AQ==' });
+        await send(connection, { type: 'input.end', id: 'c1' });
+        await wait(10);
+
+        expect(
+          connection.messages
+            .filter((message) => message.type === 'chunk')
+            .map((message) => (message as { data: unknown }).data)
+        ).toEqual([3, 1]);
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'stream.end'
+        });
+      });
+
+      test.each([
+        ['another first byte', [2, 1, 99]],
+        ['an ID longer than the message', [1, 9, 99]],
+        ['an empty ID', [1, 0, 99]]
+      ])('refuses a binary message of %s', (_, bytes) => {
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        expect(gateway.handleBinary(connection, new Uint8Array(bytes))).toBe(
+          false
+        );
+      });
+
+      test('fails a call whose client sends beyond its window', async () => {
+        configOverrides.REALTIME_STREAM_INPUT_WINDOW = '30B';
+        createVoice(async (_, { signal }) => {
+          await new Promise((resolve) =>
+            signal.addEventListener('abort', resolve)
+          );
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await call(connection);
+        await send(connection, {
+          type: 'input',
+          id: 'c1',
+          data: 'a'.repeat(40)
+        });
+        await wait(10);
+
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'error',
+          id: 'c1',
+          error: { code: 'REALTIME_MESSAGE_INVALID' }
+        });
+        expect(connection.subscriptions.size).toBe(0);
+      });
+
+      test('fails a call whose input passes its limit', async () => {
+        createVoice(
+          async (_, { input }) => {
+            for await (const _chunk of input) {
+              // Reads every chunk
+            }
+          },
+          { codec: 'text', maxBytes: '100B' }
+        );
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await call(connection);
+        await send(connection, {
+          type: 'input',
+          id: 'c1',
+          data: 'a'.repeat(20)
+        });
+        await wait(5);
+        await send(connection, {
+          type: 'input',
+          id: 'c1',
+          data: 'a'.repeat(20)
+        });
+        await wait(10);
+
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'error',
+          id: 'c1',
+          error: { code: 'REALTIME_INPUT_LIMIT', status: 413 }
+        });
+      });
+
+      test('answers the input of no call receiving one', async () => {
+        createAssistantLike();
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await send(connection, { type: 'input', id: 'missing', data: 'a' });
+        await send(connection, {
+          type: 'action',
+          id: 'a1',
+          action: 'assistant',
+          payload: {}
+        });
+        await send(connection, { type: 'input', id: 'a1', data: 'a' });
+
+        expect(
+          connection.messages.filter((message) => message.type === 'error')
+        ).toEqual([
+          expect.objectContaining({
+            id: 'missing',
+            error: expect.objectContaining({ code: 'REALTIME_MESSAGE_INVALID' })
+          }),
+          expect.objectContaining({ id: 'a1' })
+        ]);
+      });
+
+      test('cancels a call with an input, by the client or once it disconnects', async () => {
+        const signals: AbortSignal[] = [];
+        createVoice(async (_, { input, signal }) => {
+          signals.push(signal);
+          for await (const _chunk of input) {
+            // Waits for the input
+          }
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await call(connection, 'c1');
+        await call(connection, 'c2');
+        await send(connection, { type: 'cancel', id: 'c1' });
+        expect(connection.subscriptions.has('c1')).toBe(false);
+        connection.close(RealtimeCloseCode.GoingAway, 'Gone');
+        await gateway.release(connection);
+        await wait(10);
+
+        expect(signals.map((signal) => signal.aborted)).toEqual([true, true]);
+        expect(gateway.calls.size).toBe(0);
+        expect(
+          connection.messages.filter((message) => message.type === 'result')
+        ).toEqual([]);
+      });
+
+      test('refuses a call with an input over HTTP', () => {
+        createVoice(() => undefined);
+
+        expect(() =>
+          gateway.openActionCall(
+            'voice',
+            {},
+            { user: { id: 1 } as never, transport: 'http', ack: true }
+          )
+        ).toThrow(
+          expect.objectContaining({ code: ErrorCode.RealtimeMessageInvalid })
+        );
+      });
+
+      /** An action streaming its result, without an input. */
+      function createAssistantLike() {
+        createRealtimeAction({
+          name: 'assistant',
+          payload: Type.Object({}),
+          stream: {},
+          async *handler() {
+            yield 'a';
+            await wait(50);
+          }
+        });
+      }
+    });
+
+    describe('access changes', () => {
+      const member = (roles: string[] = ['member']) => ({
+        id: 1,
+        email: 'u@test.com',
+        enabled: true,
+        logoutAt: null as Date | null,
+        roles: roles.map((name, i) => ({ id: i, name, permissions: [] }))
+      });
+
+      beforeEach(async () => {
+        mockAuthModel = 'User';
+        mockUsers.clear();
+        await gateway.onReady();
+        createRealtimeAction({
+          name: 'assistant',
+          payload: Type.Object({}),
+          roles: ['member'],
+          stream: {},
+          async *handler(_, { signal }) {
+            yield 'a';
+            await new Promise((resolve) =>
+              signal!.addEventListener('abort', resolve)
+            );
+          }
+        });
+      });
+
+      afterEach(() => {
+        mockAuthModel = undefined;
+      });
+
+      test('ends the calls of a user logging out at once, over HTTP too', async () => {
+        const connection = new FakeConnection(member());
+        gateway.open(connection);
+        await send(connection, {
+          type: 'action',
+          id: 'c1',
+          action: 'assistant',
+          payload: {}
+        });
+        const sink = new FakeSink();
+        const http = gateway.openActionCall(
+          'assistant',
+          {},
+          { user: member() as never, transport: 'http', ack: true },
+          { sink }
+        );
+        await wait(10);
+
+        inject(Events).emitResourceEvent('User', 'update', {
+          previous: member(),
+          current: { ...member(), logoutAt: new Date() }
+        });
+        await wait(20);
+
+        expect(http.ended).toBe(true);
+        expect(sink.messages.at(-1)).toMatchObject({
+          type: 'stream.error',
+          error: { code: 'REALTIME_ACTION_DENIED' }
+        });
+        expect(connection.messages).toContainEqual(
+          expect.objectContaining({
+            type: 'stream.error',
+            error: expect.objectContaining({ code: 'REALTIME_ACTION_DENIED' })
+          })
+        );
+        expect(connection.closedWith?.[0]).toBe(
+          RealtimeCloseCode.Reauthenticate
+        );
+        expect(gateway.calls.size).toBe(0);
+      });
+
+      test('ends the calls of a user losing the access of their action', async () => {
+        const sink = new FakeSink();
+        const http = gateway.openActionCall(
+          'assistant',
+          {},
+          { user: member() as never, transport: 'http', ack: true },
+          { sink }
+        );
+        const kept = gateway.openActionCall(
+          'assistant',
+          {},
+          {
+            user: { ...member(), id: 2 } as never,
+            transport: 'http',
+            ack: true
+          },
+          { sink: new FakeSink() }
+        );
+        mockUsers.set(1, member(['guest']));
+
+        await gateway.refresh(1);
+        await wait(20);
+
+        expect(http.ended).toBe(true);
+        expect(http.error).toMatchObject({
+          code: ErrorCode.RealtimeActionDenied
+        });
+        expect(kept.ended).toBe(false);
+        kept.cancel();
+      });
+
+      test('keeps the calls of a user keeping the access', async () => {
+        const http = gateway.openActionCall(
+          'assistant',
+          {},
+          { user: member() as never, transport: 'http', ack: true },
+          { sink: new FakeSink() }
+        );
+        mockUsers.set(1, member(['member', 'admin']));
+
+        await gateway.refresh(1);
+        await wait(20);
+
+        expect(http.ended).toBe(false);
+        expect(http.user).toEqual(member(['member', 'admin']));
+        http.cancel();
+      });
+
+      test('ends the calls of a user disabled since', async () => {
+        const http = gateway.openActionCall(
+          'assistant',
+          {},
+          { user: member() as never, transport: 'http', ack: true },
+          { sink: new FakeSink() }
+        );
+        mockUsers.set(1, { ...member(), enabled: false });
+
+        await gateway.refresh(1);
+        await wait(20);
+
+        expect(http.error).toMatchObject({
+          code: ErrorCode.RealtimeActionDenied
+        });
+      });
+    });
+
+    describe('streams bound to a record', () => {
+      const asUser: unknown[] = [];
+
+      beforeEach(() => {
+        asUser.length = 0;
+        context.resource.services.set('ChatRoom', {
+          find: async (id: unknown) => {
+            asUser.push([id, currentAuthUser()?.id]);
+            if (id !== 1 && id !== 'general') {
+              throw new Error('Not found');
+            }
+            return { id };
+          }
+        } as never);
+      });
+
+      test('lets subscribe the users finding the record of a key', async () => {
+        createStream({ name: 'room', resource: { model: 'ChatRoom' } });
+        createStream({
+          name: 'named',
+          params: Type.Object({ name: Type.String() }),
+          resource: { model: 'ChatRoom', id: (_, { name }) => name }
+        });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await gateway.subscribe(connection, {
+          id: 'a',
+          channel: 'stream:room',
+          key: '1'
+        });
+        await gateway.subscribe(connection, {
+          id: 'b',
+          channel: 'stream:named',
+          params: { name: 'general' }
+        });
+        await expect(
+          gateway.subscribe(connection, {
+            id: 'c',
+            channel: 'stream:room',
+            key: '2'
+          })
+        ).rejects.toMatchObject({
+          code: ErrorCode.RealtimeSubscriptionDenied
+        });
+
+        expect(asUser).toEqual([
+          [1, 1],
+          ['general', 1],
+          [2, 1]
+        ]);
+      });
+
+      test('denies a stream bound to a model without a service', async () => {
+        createStream({ name: 'lost', resource: { model: 'Missing' } });
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        await expect(
+          gateway.subscribe(connection, {
+            id: 'a',
+            channel: 'stream:lost',
+            key: 'x'
+          })
+        ).rejects.toMatchObject({
+          code: ErrorCode.RealtimeSubscriptionDenied
+        });
       });
     });
   });

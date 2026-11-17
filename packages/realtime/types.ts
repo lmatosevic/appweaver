@@ -9,6 +9,7 @@ import {
   StreamChunk,
   StreamCodec,
   StreamFrameMessage,
+  StreamInputOptions,
   StreamOptions
 } from './stream/types';
 
@@ -59,7 +60,7 @@ export type Channel<
 };
 
 /** What the handler of an action receives besides its payload. */
-export type RealtimeActionContext = {
+export type RealtimeActionContext<I = unknown> = {
   /** The user of the connection or the request, null when anonymous */
   user: AuthUser | null;
   /** The transport the action was called on */
@@ -68,8 +69,11 @@ export type RealtimeActionContext = {
   connectionId?: string;
   /** Whether the client waits for the result, false for a fire-and-forget message */
   ack: boolean;
-  /** Aborted once the stream of a streaming action is cancelled, its client gone, or the instance shuts down */
+  /** Aborted once a call with a stream or an input is cancelled, its client gone, its user losing the access of the
+   * action, or the instance shutting down */
   signal?: AbortSignal;
+  /** The chunks the client streams to an action with `input`, ending when the client ends them */
+  input?: AsyncIterable<I>;
 };
 
 /** The config of an action of {@link createRealtimeAction}. */
@@ -77,7 +81,9 @@ export type RealtimeActionConfig<
   P extends TSchema = TSchema,
   R extends TSchema = TSchema,
   C extends StreamCodec = StreamCodec,
-  J extends TSchema = TSchema
+  J extends TSchema = TSchema,
+  IC extends StreamCodec = StreamCodec,
+  IJ extends TSchema = TSchema
 > = RealtimeAccess & {
   /** The name of the action, i.e. `chat.typing` */
   name: string;
@@ -90,7 +96,7 @@ export type RealtimeActionConfig<
    */
   handler(
     payload: Static<P>,
-    context: RealtimeActionContext
+    context: RealtimeActionContext<StreamChunk<IC, IJ>>
   ):
     | Static<R>
     | void
@@ -101,6 +107,8 @@ export type RealtimeActionConfig<
   response?: R;
   /** Streams the chunks of the handler to the caller only, ended with the result: the settings of the stream */
   stream?: StreamOptions<C, J>;
+  /** Receives the chunks the client streams, as `context.input`, over the WebSocket only: the settings of the input */
+  input?: StreamInputOptions<IC, IJ>;
   /** The description of the action in the OpenAPI document */
   description?: string;
 };
@@ -110,12 +118,14 @@ export type RealtimeAction<
   P extends TSchema = TSchema,
   R extends TSchema = TSchema,
   C extends StreamCodec = StreamCodec,
-  J extends TSchema = TSchema
+  J extends TSchema = TSchema,
+  IC extends StreamCodec = StreamCodec,
+  IJ extends TSchema = TSchema
 > = {
   /** The name of the action */
   readonly name: string;
   /** The config of the action */
-  readonly config: RealtimeActionConfig<P, R, C, J>;
+  readonly config: RealtimeActionConfig<P, R, C, J, IC, IJ>;
 };
 
 /** A subscription a client asks for, in a `subscribe` message or the `subscriptions` of an event stream. */
@@ -140,6 +150,8 @@ export type RealtimeClientMessage =
   | { type: 'unsubscribe'; id: string }
   | { type: 'action'; action: string; id?: string; payload?: unknown }
   | { type: 'cancel'; id: string }
+  | { type: 'input'; id: string; data: unknown }
+  | { type: 'input.end'; id: string }
   | { type: 'resume'; id: string; streamId: string; seq: number }
   | { type: 'ping'; id?: string };
 
@@ -163,6 +175,7 @@ export type RealtimeServerMessage =
   | { type: 'result'; id: string; result: unknown }
   | { type: 'error'; id?: string; error: ProblemDetails }
   | { type: 'pong'; id?: string }
+  | { type: 'input.credit'; id: string; bytes: number }
   | { type: 'reauth' }
   | {
       type: 'stream.start';

@@ -20,6 +20,7 @@ export type RealtimeSpec = {
     payload: JsonSchema;
     response?: JsonSchema;
     stream?: SpecStream;
+    input?: SpecStream;
   }[];
   streams?: (SpecStream & { name: string; params?: JsonSchema })[];
 };
@@ -74,7 +75,9 @@ export function realtimeModuleType(
     (action) =>
       `${propertyKey(action.name)}: { payload: ${schemaToType(action.payload)}; response: ${
         action.response ? schemaToType(action.response) : 'unknown'
-      }${action.stream ? `; chunk: ${chunkType(action.stream)}` : ''} }`
+      }${action.stream ? `; chunk: ${chunkType(action.stream)}` : ''}${
+        action.input ? `; input: ${chunkType(action.input)}` : ''
+      } }`
   );
   const streams = (spec.streams ?? []).map(
     (stream) =>

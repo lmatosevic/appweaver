@@ -87,6 +87,12 @@ export function createRealtimeOpenApiSchema(): OpenAPI3 {
           required: ['prompt']
         },
         stream: { codec: 'text' }
+      },
+      {
+        name: 'voice',
+        public: false,
+        payload: { type: 'object', properties: {} },
+        input: { codec: 'binary', mimeType: 'audio/webm' }
       }
     ],
     streams: [

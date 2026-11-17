@@ -136,6 +136,7 @@ export interface ErrorDetailsMap {
   [ErrorCode.RealtimeStreamEnded]: { stream: string };
   [ErrorCode.RealtimeStreamLost]: { stream: string };
   [ErrorCode.RealtimeStreamAccept]: { action: string };
+  [ErrorCode.RealtimeInputLimit]: { limit: number };
 
   [ErrorCode.TimeSeriesNotEnabled]: ModelDetails;
   [ErrorCode.TimeSeriesInvalidField]: ModelDetails & { field: string };

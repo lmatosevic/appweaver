@@ -17,6 +17,9 @@ const actions = createRegistry<RealtimeAction>(REALTIME_ACTION, 'action');
  * An action with `stream` streams the chunks its handler yields to the caller only, as they come, and ends with the
  * value it returns: the answer of an LLM, token by token.
  *
+ * An action with `input` receives the chunks the client streams over the WebSocket as `context.input`, i.e. the
+ * audio of a microphone, read as fast as the handler reads them.
+ *
  * @example
  * createRealtimeAction({
  *   name: 'chat.typing',
@@ -33,6 +36,16 @@ const actions = createRegistry<RealtimeAction>(REALTIME_ACTION, 'action');
  *   }
  * });
  *
+ * createRealtimeAction({
+ *   name: 'voice.transcribe',
+ *   payload: Type.Object({ language: Type.String() }),
+ *   input: { codec: 'binary', mimeType: 'audio/webm' },
+ *   stream: { codec: 'text' },
+ *   async *handler({ language }, { input, signal }) {
+ *     yield* stt.transcribe(input!, { language, signal });
+ *   }
+ * });
+ *
  * @param {RealtimeActionConfig} config - The name, the schemas, the access and the handler of the action.
  * @return {RealtimeAction} The action, defined in the application context.
  * @throws {ConfigurationError} `CONFIGURATION_INVALID` for an invalid name, or one already taken.
@@ -41,8 +54,12 @@ export function createRealtimeAction<
   P extends TSchema,
   R extends TSchema = TSchema,
   C extends StreamCodec = 'text',
-  J extends TSchema = TSchema
->(config: RealtimeActionConfig<P, R, C, J>): RealtimeAction<P, R, C, J> {
+  J extends TSchema = TSchema,
+  IC extends StreamCodec = 'text',
+  IJ extends TSchema = TSchema
+>(
+  config: RealtimeActionConfig<P, R, C, J, IC, IJ>
+): RealtimeAction<P, R, C, J, IC, IJ> {
   return actions.add({
     name: config.name,
     config: config

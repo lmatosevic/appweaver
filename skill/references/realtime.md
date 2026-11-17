@@ -222,6 +222,7 @@ radio.open('jazz').write(frame, { sync: true }); // a chunk a listener can start
 | `chunk`                          | The TypeBox schema of the chunks of a `json` stream, checked outside of `prod`                                |
 | `params`                         | The TypeBox schema of the subscription parameters                                                             |
 | `public`, `roles`, `permissions` | Who may subscribe, see [Access](#access)                                                                      |
+| `resource`                       | `{ model, id? }`: the record of a key, a subscriber must be able to `find` it, see [Access](#access-of-the-streams) |
 | `subscribe`                      | `(user, params, key)`, false denies the subscription; it runs as the user                                     |
 | `replay`                         | `{ from, maxBytes }`: `all` the chunks kept (default), from the last `sync` one, or `none`; the bytes kept     |
 | `onSlow`                         | A subscriber over `realtime.sendBufferLimit`: `close` (default), `drop` its chunks, or `skip-to-sync`          |
@@ -236,6 +237,63 @@ relaying it). A subscription to a key receives every stream opened for it, sever
 and stays until it is removed. A missed chunk (a slow subscriber, a reconnection beyond the replay) is announced with a
 `stream.gap` before the next one. A relayed stream whose owner instance goes silent for three
 `realtime.streamRelayHeartbeat` ends with `REALTIME_STREAM_LOST`, and so do the streams of an instance shutting down.
+
+### Inputs
+
+The other direction: the chunks a client streams to an action, i.e. the audio of a microphone for a speech to text
+model, read by the handler as `context.input`, an async iterable ending when the client ends it. An action with an
+`input` and a `stream` is duplex (audio in, text out); one with an `input` alone answers with the value it returns:
+
+```ts
+createRealtimeAction({
+  name: 'voice.transcribe',
+  payload: Type.Object({ language: Type.String() }),
+  input: { codec: 'binary', mimeType: 'audio/webm', maxBytes: '50MB' },
+  stream: { codec: 'text' },
+  async *handler({ language }, { input, signal }) {
+    yield* stt.transcribe(input!, { language, signal });
+  }
+});
+
+// The input of one user passed on to the subscribers of a stream (a user broadcasting)
+createRealtimeAction({
+  name: 'radio.broadcast',
+  payload: Type.Object({ station: Type.String() }),
+  roles: ['host'],
+  input: { codec: 'binary', mimeType: 'audio/mpeg', maxBytes: '1GB' },
+  async handler({ station }, { input }) {
+    const writer = radio.open(station);
+    try {
+      for await (const frame of input!) {
+        writer.write(frame);
+        await writer.ready;
+      }
+      writer.end();
+    } catch (e) {
+      writer.error(e); // the call was cancelled, the host disconnected or lost the access
+    }
+  }
+});
+```
+
+| Option     | Description                                                                                       |
+|------------|---------------------------------------------------------------------------------------------------|
+| `codec`    | `text` (default), `json` or `binary` (`Uint8Array` chunks)                                        |
+| `mimeType` | The media type of a `binary` input, told to the clients                                           |
+| `chunk`    | The TypeBox schema of the chunks of a `json` input, checked outside of `prod`                     |
+| `maxBytes` | The bytes the client may send in all, `realtime.streamInputMaxBytes` by default (`413 REALTIME_INPUT_LIMIT`) |
+
+- An input is sent over the WebSocket only: over HTTP the call fails with `REALTIME_MESSAGE_INVALID`.
+- The access of the action is checked once when the call starts. The chunks pass no rate limit and no access check;
+  they are paced by credits instead: the client sends at most `realtime.streamInputWindow` bytes ahead of the handler
+  reading them, given back by `input.credit` messages as it reads, so a slow handler slows the client down instead of
+  filling the memory of the server. A client sending beyond its window fails the call (`REALTIME_MESSAGE_INVALID`).
+- A binary chunk is a binary WebSocket message, not base64: the byte `1`, the length of the ID of the call, the ID,
+  then the bytes. Any other binary message closes the connection with `1008`.
+- The connection lost while the input is open cancels the call: an input never resumes, the client calls again. Once
+  the client ended its input, the stream of a duplex call resumes like any streaming action.
+- `signal` aborts once the call is cancelled, its connection lost, its user losing the access, or the instance shutting
+  down, and the iteration of `input` throws (an `AbortError`, or the error of the call).
 
 ### Costs
 
@@ -272,6 +330,43 @@ export const stockPrice = createChannel({
 
 A public channel without `deliver` sends every payload to everyone. The HTTP actions route authenticates a request
 carrying credentials (an invalid one fails with `401`), and runs one without as anonymous.
+
+### Access of the streams
+
+Every check of a stream runs once, when a client subscribes, and again when its user changes, never per chunk:
+
+1. the module: `realtime.anonymousEnabled` for the clients without a ticket;
+2. the declaration: `public`, `roles` and `permissions` (the `hasRoles` and `hasPermissions` of the auth model);
+3. the policy of a resource: with `resource`, the subscriber must be able to `find` the record of the key, as
+   themselves, so the `checkAccess` and the `readRestrictions` of the `createPolicy` of its model decide, the same
+   rules as the routes of the model. The ID is the key (a number for a key of digits), or `id(key, params)`;
+4. the `subscribe` callback of the stream, for any other rule.
+
+```ts
+createPolicy({ modelName: 'chatRoom', readRestrictions: (user) => ({ members: { some: { userId: user?.id } } }) });
+
+export const roomAnswer = createStream({ name: 'room.answer', resource: { model: 'ChatRoom' } });
+// subscribe to 'stream:room.answer' with key '42': allowed while the user can read the room 42
+```
+
+The access of the producer is the one of the code opening the stream: an action (its `public`, `roles` and
+`permissions`, the policies of the resources it uses as the user), a route, a job. A change the policy depends on but
+the user does not (a member removed from a room) applies at the next subscription, or at once with
+`inject(RealtimeGateway).refresh(userId)`, which checks the subscriptions of the user again.
+
+### Logout, disabling and role changes
+
+A change of a user reaches their connections and their calls on every instance, over the WebSocket and HTTP alike:
+
+| Change                                 | Subscriptions to streams                              | Calls (streaming actions, inputs)                                     |
+|----------------------------------------|-------------------------------------------------------|-----------------------------------------------------------------------|
+| Logout (`logoutAt`, a password change) | Their connections closed (`4401`), no reconnection    | Ended at once with `REALTIME_ACTION_DENIED`, never left to linger     |
+| Disabling, deletion                    | The same                                              | The same                                                              |
+| Other roles or permissions             | Checked again, the lost ones removed with an error    | Ended with `REALTIME_ACTION_DENIED` when the action is no longer allowed |
+| `revoke(userId)`, `refresh(userId)`    | The same as a logout, or as other roles               | The same                                                              |
+
+Ending a call aborts its `signal` and fails its `input`, so the generation of an LLM or the reading of an input stops;
+`inject(RealtimeGateway).calls` lists the calls running on the instance.
 
 ## Connections
 
@@ -312,6 +407,8 @@ Every message is a JSON object: a WebSocket text frame, or the `data` of an SSE 
 | `{ type: 'action', id, action, payload }`              | `{ type: 'result', id, result }`, the stream of a streaming action |
 | `{ type: 'action', action, payload }`                  | nothing (fire-and-forget)        |
 | `{ type: 'cancel', id }`                               | `stream.end` with `cancelled`    |
+| `{ type: 'input', id, data }`, or a binary message     | `{ type: 'input.credit', id, bytes }` as the handler reads |
+| `{ type: 'input.end', id }`                            | The result, or the end of the stream |
 | `{ type: 'resume', id, streamId, seq }`                | The stream of a call, from `seq` |
 | `{ type: 'ping', id? }`                                | `{ type: 'pong', id? }`          |
 
@@ -356,6 +453,9 @@ const call = client.realtime.call('assistant.prompt', { prompt }); // a streamin
 for await (const token of call) output += token;
 const { stopReason } = await call.result;
 
+const voice = client.realtime.call('voice.transcribe', { language: 'en' }, { input: microphoneChunks }); // an input
+for await (const text of voice) showCaption(text);
+
 client.realtime.stream('room.answer', {
   onStart: ({ streamId }) => startMessage(streamId),
   onChunk: (token, { streamId }) => append(streamId, token),
@@ -377,6 +477,6 @@ See [client.md](./client.md#realtime-client) for the methods and the options.
   a streaming action), the span `realtime stream <name>` of a stream opened on the instance, the metrics
   `appweaver.realtime.connections`, `appweaver.realtime.events` (`delivered`, `denied`, `dropped`, a dropped chunk
   counted as `stream:<name>`), `appweaver.realtime.messages`, `appweaver.realtime.streams`,
-  `appweaver.realtime.stream.chunks` and `appweaver.realtime.stream.bytes`.
+  `appweaver.realtime.stream.chunks`, `appweaver.realtime.stream.bytes` and `appweaver.realtime.input.bytes`.
 - Testing: connect with the global `WebSocket` and `fetch` of Node after a `POST <api>/realtime/ticket`, define
   `MemoryPubSub` of `@appweaver/core/drivers` in a unit test, and test a `PubSub` driver with `testPubSubContract`.

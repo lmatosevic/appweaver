@@ -554,7 +554,7 @@ connection or a failed attempt, with a backoff, and at once on an expired token 
 | `on(model, handler, { action?, filter? })` | Resource events, `handler({ model, action, current, previous? })`                              |
 | `observe(channel, params?)`                | An observable of the payloads, for `from(...)` of RxJS                                         |
 | `send(action, payload)` / `emit(...)`      | Calls an action, resolving to its result / fire-and-forget                                     |
-| `call(action, payload)`                    | Calls a streaming action: an async iterable of its chunks, with `result`, `stream`, `onChunk(listener)` and `cancel()` |
+| `call(action, payload, { input? })`        | Calls a streaming action: an async iterable of its chunks, with `result`, `stream`, `onChunk(listener)`, `cancel()` and `input` (`write(chunk)`, `end()`) |
 | `stream(name, handlers, { key?, params? })` | Subscribes to the streams of a key, `handlers`: `onStart(info)`, `onChunk(chunk, { streamId, seq, gap, sync })`, `onEnd(result, info)`, `onError(error, info)` |
 | `connect()`, `disconnect()`, `reconnect()` | Opens, closes (keeping the subscriptions), or reopens with a new ticket, i.e. after a login    |
 | `onStateChange(listener)`, `onError(...)`  | `idle`, `connecting`, `open`, `reconnecting`; the errors answering no subscription or action   |
@@ -566,6 +566,21 @@ The chunks of a `binary` stream are `Uint8Array`s. Over the WebSocket, a call an
 reconnection from the last chunk received, without duplicates; over SSE, a call is the response of an HTTP request,
 failing with the connection. `call.result` rejects with the error of the stream, or once cancelled (`cancel()`, or
 leaving a `for await` early), which ends the iteration instead of throwing in it.
+
+An action with an input receives the chunks of `call.input.write(chunk)` (resolving once sent, waiting for the
+credits of the server) and `call.input.end()`, or of an `AsyncIterable` or a `ReadableStream` given as
+`{ input }`, ended with it and cancelling the call when it fails. A `Uint8Array` is sent as a binary message, any other
+chunk as JSON; keep a chunk under the `realtime.maxMessageSize` of the server. An input needs the WebSocket, fails the
+call over SSE, and fails it when the connection is lost before the input ended.
+
+```ts
+const recorder = new MediaRecorder(await navigator.mediaDevices.getUserMedia({ audio: true }));
+const call = client.realtime.call('voice.transcribe', { language: 'en' });
+recorder.ondataavailable = async (event) => call.input.write(new Uint8Array(await event.data.arrayBuffer()));
+recorder.onstop = () => call.input.end();
+recorder.start(250);
+for await (const text of call) showCaption(text);
+```
 
 ```ts
 const call = client.realtime.call('assistant.prompt', { prompt: 'Hello' });

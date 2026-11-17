@@ -24,7 +24,9 @@ subscribe to:
 and call the custom **actions** of `createRealtimeAction` over the WebSocket, waiting for the result or
 fire-and-forget. The **streams** carry chunks rather than events, i.e. the tokens of an LLM answer: a streaming action
 streams its chunks to its caller, and `createStream` to the subscribers of a key, each subscriber checked once and never
-per chunk. Nothing is exposed unless declared, and every event is checked against the access of the subscribed
+per chunk. An action with an `input` receives the chunks a client streams over the WebSocket, i.e. the
+audio of a microphone. A stream bound to a `resource` lets subscribe the users the policy of its model lets read the
+record, and a logout, a disabling or a lost role ends the calls of a user at once. Nothing is exposed unless declared, and every event is checked against the access of the subscribed
 user: the callbacks of the channel, or the `events` callback of the resource policy, else its `checkAccess` and
 `readRestrictions`. With `@appweaver/redis` the events reach the connections of every instance through the Redis
 pub/sub.

@@ -49,6 +49,8 @@ export type RealtimeSpec = {
     response?: TSchema;
     /** The stream of a streaming action */
     stream?: SpecStream;
+    /** The input the client streams to the action */
+    input?: SpecStream;
   })[];
 };
 
@@ -112,7 +114,8 @@ export function realtimeSpec(): RealtimeSpec {
       ...access(config),
       payload: plain(config.payload),
       ...(config.response ? { response: plain(config.response) } : {}),
-      ...(config.stream ? { stream: specStream(config.stream) } : {})
+      ...(config.stream ? { stream: specStream(config.stream) } : {}),
+      ...(config.input ? { input: specStream(config.input) } : {})
     }))
   };
 }

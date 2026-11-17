@@ -879,6 +879,8 @@ The realtime connections of `@appweaver/realtime` ([realtime.md](./realtime.md))
 | `REALTIME_STREAM_RELAY_FLUSH_INTERVAL` | integer | `20`       | Milliseconds the chunks of a stream are batched for before they are relayed to the other instances.                                               |
 | `REALTIME_STREAM_RELAY_MAX_BATCH`   | string  | `'64KB'`      | Bytes of chunks relayed to the other instances in one message at most, sent before the flush interval once reached.                                |
 | `REALTIME_STREAM_RELAY_HEARTBEAT`   | integer | `5000`        | Milliseconds between the messages keeping the relay of the streams alive, a relayed stream silent for three of them being lost.                    |
+| `REALTIME_STREAM_INPUT_WINDOW`      | string  | `'256KB'`     | Bytes a client may stream to an action ahead of its handler reading them, given back as the handler reads.                                        |
+| `REALTIME_STREAM_INPUT_MAX_BYTES`   | string  | `'10MB'`      | Bytes a client may stream to an action in all, unless the action sets its own `input.maxBytes`.                                                   |
 
 ### Mailer (MAILER\_\*)
 

@@ -316,7 +316,8 @@ async function callAction(
 ): Promise<unknown> {
   const gateway = inject(RealtimeGateway);
   const ack = request.query.ack !== false;
-  if (findRealtimeAction(request.params.name)?.config.stream) {
+  const config = findRealtimeAction(request.params.name)?.config;
+  if (config?.stream || config?.input) {
     return streamAction(request, reply, ack);
   }
   const call = gateway.callAction(request.params.name, request.body, {
@@ -368,13 +369,13 @@ async function streamAction(
     reply.raw.writeHead(200, headers as never);
   });
 
-  const instance = inject(RealtimeGateway).openActionStream(
+  const call = inject(RealtimeGateway).openActionCall(
     name,
     request.body,
     { user: currentAuthUser() ?? null, transport: 'http', ack: true },
-    sink
+    { sink }
   );
-  reply.raw.on('close', () => instance.cancel());
+  reply.raw.on('close', () => call.cancel());
 }
 
 async function openEventStream(
@@ -439,7 +440,13 @@ async function openWebSocket(
 
   socket.on('message', (data, isBinary) => {
     if (isBinary) {
-      socket.close(RealtimeCloseCode.PolicyViolation, 'Binary message');
+      // A chunk of an input, never sent before the connection opened
+      if (
+        !connection ||
+        !gateway.handleBinary(connection, messageBytes(data))
+      ) {
+        socket.close(RealtimeCloseCode.PolicyViolation, 'Binary message');
+      }
     } else if (connection) {
       void gateway.handleMessage(connection, messageText(data));
     } else if (early.length < EARLY_MESSAGES_LIMIT) {
@@ -484,10 +491,15 @@ async function openWebSocket(
 
 /** The text of a WebSocket message, received as one buffer or as fragments. */
 function messageText(data: RawData): string {
+  return messageBytes(data).toString();
+}
+
+/** The bytes of a WebSocket message, received as one buffer or as fragments. */
+function messageBytes(data: RawData): Buffer {
   if (Array.isArray(data)) {
-    return Buffer.concat(data).toString();
+    return Buffer.concat(data);
   }
-  return Buffer.from(data as ArrayBuffer).toString();
+  return Buffer.isBuffer(data) ? data : Buffer.from(data);
 }
 
 /** The authentication of a ticket, or of an anonymous connection when they are allowed and there is no ticket. */

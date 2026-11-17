@@ -31,6 +31,8 @@ type Realtime = {
       response: { tokens: number };
       chunk: string;
     };
+    echo: { payload: { slow?: boolean }; response: string[]; input: string };
+    bytes: { payload: object; response: number; input: Uint8Array };
   };
   streams: {
     room: { chunk: string; params: undefined };
@@ -377,6 +379,145 @@ describe('RealtimeClient', () => {
           [new Uint8Array([1, 2]), true],
           ['end', 'done']
         ]);
+      });
+    });
+
+    describe('inputs', () => {
+      beforeEach(() => {
+        createRealtimeAction({
+          name: 'echo',
+          payload: Type.Object({ slow: Type.Optional(Type.Boolean()) }),
+          input: { codec: 'text' },
+          async handler({ slow }, { input }) {
+            const chunks: string[] = [];
+            for await (const chunk of input!) {
+              chunks.push(chunk);
+              if (slow) {
+                await new Promise((resolve) => setTimeout(resolve, 5));
+              }
+            }
+            return chunks;
+          }
+        });
+        createRealtimeAction({
+          name: 'bytes',
+          payload: Type.Object({}),
+          input: { codec: 'binary' },
+          async handler(_, { input }) {
+            let total = 0;
+            for await (const chunk of input!) {
+              total += chunk.length;
+            }
+            return total;
+          }
+        });
+      });
+
+      test('streams an input written by the client, paced by the server', async () => {
+        configOverrides.REALTIME_STREAM_INPUT_WINDOW = '200B';
+        client = createClient();
+        const call = client.realtime.call('echo', { slow: true });
+
+        const chunks = Array.from({ length: 8 }, (_, i) =>
+          String(i).repeat(40)
+        );
+        await Promise.all(chunks.map((chunk) => call.input.write(chunk)));
+        call.input.end();
+
+        await expect(call.result).resolves.toEqual(chunks);
+        await expect(call.input.write('late')).rejects.toMatchObject({
+          code: 'REQUEST_FAILED'
+        });
+        delete configOverrides.REALTIME_STREAM_INPUT_WINDOW;
+      });
+
+      test('pipes an iterable of bytes as the input', async () => {
+        client = createClient();
+        async function* microphone() {
+          yield new Uint8Array([1, 2]);
+          yield new Uint8Array([3]);
+        }
+
+        const call = client.realtime.call('bytes', {}, { input: microphone() });
+
+        await expect(call.result).resolves.toBe(3);
+      });
+
+      test('pipes a readable stream as the input', async () => {
+        client = createClient();
+        const source = new ReadableStream<string>({
+          start(controller) {
+            controller.enqueue('a');
+            controller.enqueue('b');
+            controller.close();
+          }
+        });
+
+        const call = client.realtime.call('echo', {}, { input: source });
+
+        await expect(call.result).resolves.toEqual(['a', 'b']);
+      });
+
+      test('cancels the call of a failing source', async () => {
+        client = createClient();
+        // eslint-disable-next-line require-yield
+        async function* failing(): AsyncGenerator<string> {
+          throw new Error('Microphone lost');
+        }
+
+        const call = client.realtime.call('echo', {}, { input: failing() });
+
+        await expect(call.result).rejects.toMatchObject({
+          code: 'REQUEST_FAILED'
+        });
+      });
+
+      test('refuses a chunk larger than the window', async () => {
+        configOverrides.REALTIME_STREAM_INPUT_WINDOW = '100B';
+        client = createClient();
+        const call = client.realtime.call('echo', {});
+
+        await expect(call.input.write('x'.repeat(200))).rejects.toMatchObject({
+          code: 'REQUEST_FAILED'
+        });
+        call.cancel();
+        delete configOverrides.REALTIME_STREAM_INPUT_WINDOW;
+      });
+
+      test('fails a call whose input is streaming when the connection is lost', async () => {
+        client = createClient();
+        const call = client.realtime.call('echo', {});
+        await call.input.write('a');
+        const first = client.realtime.connectionId;
+
+        app.gateway.closeAll(RealtimeCloseCode.Reauthenticate, 'Expired');
+
+        await expect(call.result).rejects.toMatchObject({
+          code: 'REQUEST_FAILED'
+        });
+        await waitFor(
+          () =>
+            client.realtime.state === 'idle' ||
+            client.realtime.connectionId !== first
+        );
+      });
+
+      test('refuses an input over SSE', async () => {
+        client = createClient({ transport: 'sse' });
+        async function* source() {
+          yield 'a';
+        }
+
+        const piped = client.realtime.call('echo', {}, { input: source() });
+        const written = client.realtime.call('assistant', { prompt: 'p' });
+
+        await expect(piped.result).rejects.toMatchObject({
+          code: 'REQUEST_FAILED'
+        });
+        await expect(written.input.write('a')).rejects.toMatchObject({
+          code: 'REQUEST_FAILED'
+        });
+        await written.result;
       });
     });
 
