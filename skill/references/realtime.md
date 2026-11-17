@@ -37,6 +37,15 @@ await orderShipped.publish({ orderId: 7, customerId: 1, carrier: 'DHL' }); // va
 | `subscribe`, `deliver`           | Return false to deny the subscription, or to keep a payload from it. They run as the user   |
 | `description`                    | Description in the OpenAPI document                                                         |
 
+The payloads and parameters of the channels and the payloads of the actions are validated with TypeBox, failing with
+`REALTIME_PAYLOAD_INVALID`. The string formats work as on the HTTP routes (`date-time`, `date`, `time`, `email`, `uri`,
+`uuid`, `ipv4`, `ipv6`, `hostname`), registered by `registerSchemaFormats` of `@appweaver/common` unless the
+application registered its own in the `FormatRegistry` of TypeBox:
+
+```ts
+payload: Type.Object({ text: Type.String(), sentAt: Type.String({ format: 'date-time' }) })
+```
+
 ## Resource events
 
 ```ts

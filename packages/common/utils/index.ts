@@ -1,5 +1,6 @@
 export * from './crypto-util';
 export * from './array-util';
+export * from './format-util';
 export * from './module-util';
 export * from './object-util';
 export * from './path-util';

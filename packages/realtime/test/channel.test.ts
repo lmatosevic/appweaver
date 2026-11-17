@@ -59,5 +59,32 @@ describe('channel', () => {
         channel.publish({ title: 1 } as never)
       ).rejects.toMatchObject({ code: ErrorCode.RealtimePayloadInvalid });
     });
+
+    test('publishes a payload with a date-time field', async () => {
+      const pubsub = new MemoryPubSub();
+      define(pubsub, PubSub);
+      const publish = jest.spyOn(pubsub, 'publish');
+      const channel = createChannel({
+        name: 'movie.chat',
+        payload: Type.Object({
+          text: Type.String(),
+          sentAt: Type.String({ format: 'date-time' })
+        })
+      });
+      const payload = { text: 'Hi', sentAt: '2026-11-17T10:30:00.000Z' };
+
+      await channel.publish(payload);
+
+      expect(publish).toHaveBeenCalledWith('realtime:movie.chat', {
+        eventId: expect.any(String),
+        payload
+      });
+      await expect(
+        channel.publish({ text: 'Hi', sentAt: 'yesterday' })
+      ).rejects.toMatchObject({
+        code: ErrorCode.RealtimePayloadInvalid,
+        details: { errors: [expect.objectContaining({ path: '/sentAt' })] }
+      });
+    });
   });
 });
