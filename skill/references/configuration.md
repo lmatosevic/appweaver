@@ -883,6 +883,24 @@ The realtime connections of `@appweaver/realtime` ([realtime.md](./realtime.md))
 | `REALTIME_STREAM_INPUT_MAX_BYTES`   | string  | `'10MB'`      | Bytes a client may stream to an action in all, unless the action sets its own `input.maxBytes`.                                                   |
 | `REALTIME_SHUTDOWN_GRACE_PERIOD`    | integer | `30000`       | Milliseconds a shutting down instance waits for its calls to end after moving its clients to the other instances (`1012`), `0` to end them at once. |
 
+### MCP (MCP\_\*)
+
+The MCP server of `@appweaver/mcp` ([mcp.md](./mcp.md)).
+
+| Property                  | Type     | Default              | Description                                                                                          |
+|---------------------------|----------|----------------------|------------------------------------------------------------------------------------------------------|
+| `MCP_ENABLED`             | boolean  | `true`               | Enable the MCP endpoint.                                                                             |
+| `MCP_ROUTE_PATH`          | string   | `'/mcp'`             | Path of the MCP endpoint, under the API prefix.                                                      |
+| `MCP_AUTH`                | string[] | `['jwt', 'apiKey']`  | The authentication strategies of the endpoint.                                                       |
+| `MCP_ANONYMOUS_ENABLED`   | boolean  | `false`              | Allow the anonymous clients, which see only the `public` tools.                                     |
+| `MCP_DESTRUCTIVE_ENABLED` | boolean  | `false`              | Expose the destructive tools: the `update` and `delete` resource actions and the `destructive` tools. |
+| `MCP_SERVER_NAME`         | string?  | `app.name`           | The name of the server shown to the agents.                                                          |
+| `MCP_INSTRUCTIONS`        | string?  | -                    | Instructions for the agents, i.e. what the application is for.                                       |
+| `MCP_MAX_LIMIT`           | integer  | `50`                 | The maximum records a query tool returns, unless its resource sets `maxLimit`.                      |
+| `MCP_MAX_RESULT_SIZE`     | string   | `'256KB'`            | The maximum size of a tool result.                                                                   |
+| `MCP_ALLOWED_ORIGINS`     | string[] | `[]`                 | Browser origins allowed to call the endpoint (`*` for any); requests without `Origin` always pass.   |
+| `MCP_LOG_CALLS`           | boolean  | `true`               | Log every tool call at the info level.                                                               |
+
 ### AI (AI\_\*)
 
 The AI models of `@appweaver/ai` ([ai.md](./ai.md)): the endpoints by their names, the default models and the aliases
@@ -953,6 +971,7 @@ The OpenTelemetry instrumentation of the framework, and the SDK of `@appweaver/o
 | `TELEMETRY_INSTRUMENTATIONS_TASK`      | boolean  | `true`  | Trace the tasks of `weaver run`.                                                                                  |
 | `TELEMETRY_INSTRUMENTATIONS_REALTIME`  | boolean  | `true`  | Trace the realtime actions and streams, and measure the realtime connections, events and streams. (realtime)      |
 | `TELEMETRY_INSTRUMENTATIONS_AI`        | boolean  | `true`  | Trace and measure the calls of the AI models, their tokens and the tool calls. (ai)                               |
+| `TELEMETRY_INSTRUMENTATIONS_MCP`       | boolean  | `true`  | Trace and measure the calls of the MCP server. (mcp)                                                              |
 | `TELEMETRY_HTTP_IGNORE_PATHS`          | string[] | `[]`    | URL paths left out of the traces and the metrics: an exact path, or a prefix ending with `*` (`/public/*`). (web) |
 | `TELEMETRY_HTTP_HEALTH_CHECK`          | boolean  | `false` | Trace and measure the requests of the health check routes. (web)                                                  |
 

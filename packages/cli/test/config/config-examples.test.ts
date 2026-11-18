@@ -11,6 +11,7 @@ import {
   splitRecordEntry
 } from '@appweaver/common';
 import ai from '@appweaver/ai/module';
+import mcp from '@appweaver/mcp/module';
 import bullmq from '@appweaver/bullmq/module';
 import core from '@appweaver/core/modules/core';
 import cron from '@appweaver/cron/module';
@@ -34,6 +35,7 @@ const referencePath = path.join(root, 'skill/references/configuration.md');
 const modules = [
   core,
   ai,
+  mcp,
   data,
   web,
   redis,

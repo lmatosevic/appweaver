@@ -105,6 +105,7 @@ their prefix:
 | `SpatialError`       | `@appweaver/common` | `SPATIAL_`       | The geo fields: invalid geometries and spatial filters                                   |
 | `RealtimeError`      | `@appweaver/common` | `REALTIME_`      | The realtime connections: tickets, subscriptions, actions, streams and limits            |
 | `AiError`            | `@appweaver/common` | `AI_`            | The AI models: unknown models, missing capabilities, provider failures, invalid objects  |
+| `McpError`           | `@appweaver/common` | `MCP_`           | The MCP server: denied origins, invalid tool inputs, results too large                   |
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
@@ -271,6 +272,9 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `AI_PROVIDER_UNAVAILABLE`            | 503    | AI provider unavailable               |
 | `AI_CONTEXT_LENGTH_EXCEEDED`         | 422    | AI context length exceeded            |
 | `AI_OUTPUT_INVALID`                  | 502    | Invalid AI model output               |
+| `MCP_ORIGIN_DENIED`                  | 403    | MCP origin denied                     |
+| `MCP_INPUT_INVALID`                  | 400    | Invalid MCP tool input                |
+| `MCP_RESULT_TOO_LARGE`               | 413    | MCP tool result too large             |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 

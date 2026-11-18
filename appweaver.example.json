@@ -402,6 +402,19 @@
       "streamInputMaxBytes": "10MB",
       "shutdownGracePeriod": 30000
     },
+    "mcp": {
+      "enabled": true,
+      "routePath": "/mcp",
+      "auth": ["jwt", "apiKey"],
+      "anonymousEnabled": false,
+      "destructiveEnabled": false,
+      "serverName": "My API",
+      "instructions": "Manages the posts and the comments of the blog.",
+      "maxLimit": 50,
+      "maxResultSize": "256KB",
+      "allowedOrigins": [],
+      "logCalls": true
+    },
     "ai": {
       "endpoints": {
         "local": {
@@ -497,6 +510,7 @@
         "task": true,
         "realtime": true,
         "ai": true,
+        "mcp": true,
         "fetch": true
       }
     },

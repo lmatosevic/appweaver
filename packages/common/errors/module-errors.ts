@@ -80,6 +80,13 @@ export class AiError<
   public readonly module = 'ai';
 }
 
+/** An error of the MCP server, i.e. a tool called with invalid arguments. */
+export class McpError<
+  C extends ModuleErrorCode<'MCP'> = ModuleErrorCode<'MCP'>
+> extends AppweaverError<C> {
+  public readonly module = 'mcp';
+}
+
 /** An error of a realtime connection, i.e. a subscription to an unknown channel or a denied action. */
 export class RealtimeError<
   C extends ModuleErrorCode<'REALTIME'> = ModuleErrorCode<'REALTIME'>

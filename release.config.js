@@ -17,6 +17,7 @@ const packages = [
   'twilio',
   'opentelemetry',
   'realtime',
+  'mcp',
   'testing',
   'create',
   'cli',

@@ -145,6 +145,35 @@ export type ResourceEventsConfig = RealtimeAccess & {
   actions: (ResourceEventAction | ResourceEventActionConfig)[];
 };
 
+/** A resource action exposed as a tool of the MCP server of `@appweaver/mcp`. */
+export type ResourceMcpAction =
+  | 'find'
+  | 'query'
+  | 'aggregate'
+  | 'create'
+  | 'update'
+  | 'delete';
+
+/** An exposed MCP action with an access and a description of its own. */
+export type ResourceMcpActionConfig = RealtimeAccess & {
+  action: ResourceMcpAction;
+  /** The description of the tool, read by the agents. Default: generated */
+  description?: string;
+};
+
+/** The actions of a model exposed as the tools of the MCP server of `@appweaver/mcp`. */
+export type ResourceMcpConfig = RealtimeAccess & {
+  /** The exposed actions, each with the access of the `mcp` config, or an object with its own. `update` and
+   * `delete` are destructive, exposed only with `mcp.destructiveEnabled` */
+  actions: (ResourceMcpAction | ResourceMcpActionConfig)[];
+  /** What the resource is, added to the descriptions of its tools */
+  description?: string;
+  /** Fields left out of the records the tools return */
+  exclude?: string[];
+  /** The maximum records a query returns. Default: `mcp.maxLimit` */
+  maxLimit?: number;
+};
+
 export type ResourceRoutesConfig = {
   /** Resource model name */
   modelName: ModelName;
@@ -199,6 +228,8 @@ export type ResourceRoutesConfig = {
   bulkDelete?: BulkRouteConfig;
   /** The resource events exposed to the realtime connections of `@appweaver/realtime`, none unless set */
   events?: ResourceEventsConfig;
+  /** The actions exposed as tools of the MCP server of `@appweaver/mcp`, none unless set */
+  mcp?: ResourceMcpConfig;
 };
 
 export type ResourceSchemaConfig = {

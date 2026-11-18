@@ -35,6 +35,9 @@
       "path": "./nodemailer/tsconfig.build.json"
     },
     {
+      "path": "./mcp/tsconfig.build.json"
+    },
+    {
       "path": "./openai/tsconfig.build.json"
     },
     {

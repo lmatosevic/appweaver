@@ -37,7 +37,8 @@ export type TelemetryInstrumentation =
   | 'cache'
   | 'task'
   | 'realtime'
-  | 'ai';
+  | 'ai'
+  | 'mcp';
 
 /** The trace context of a span as text, i.e. its `traceparent`, carried in a queue job or the headers of a request. */
 export type TraceCarrier = Record<string, string>;

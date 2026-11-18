@@ -159,6 +159,10 @@ export interface ErrorDetailsMap {
   [ErrorCode.AiContextLengthExceeded]: AiProviderDetails;
   [ErrorCode.AiOutputInvalid]: { model: string; errors: string[] };
 
+  [ErrorCode.McpOriginDenied]: { origin: string };
+  [ErrorCode.McpInputInvalid]: { tool: string; errors: string[] };
+  [ErrorCode.McpResultTooLarge]: { tool: string; size: number; limit: number };
+
   [ErrorCode.TimeSeriesNotEnabled]: ModelDetails;
   [ErrorCode.TimeSeriesInvalidField]: ModelDetails & { field: string };
   [ErrorCode.TimeSeriesInvalidValue]: ModelDetails & {

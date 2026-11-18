@@ -1497,6 +1497,7 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 | `bulkReplace` | BulkRouteConfig  | `PUT /bulk` - Replace many (enabled along with `bulkUpdate`).          |
 | `bulkDelete`  | BulkRouteConfig  | `DELETE /bulk` - Delete many (disabled by default).                    |
 | `events`      | ResourceEventsConfig | The `create`, `update` and `delete` events exposed to the realtime connections (`{ actions, public?, roles?, permissions? }`, an action as an object `{ action, public?, roles?, permissions? }` with its own access), none unless set ([realtime.md](./realtime.md#resource-events)). |
+| `mcp`         | ResourceMcpConfig    | The actions exposed as tools of the MCP server of `@appweaver/mcp` (`{ actions, description?, exclude?, maxLimit?, public?, roles?, permissions? }`, `update` and `delete` only with `mcp.destructiveEnabled`), none unless set ([mcp.md](./mcp.md)). |
 
 ### Route defaults
 
