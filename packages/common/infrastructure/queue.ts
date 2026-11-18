@@ -257,4 +257,15 @@ export abstract class QueueProcessor<
    * @return {Promise<void>} A promise that resolves when queue is closed.
    */
   abstract close(): Promise<void>;
+
+  /**
+   * Tells whether a failed job is attempted again, for a driver emitting the failure of every attempt to the
+   * {@link onFailed} handlers. The default is `false`, for a driver emitting only the last failure.
+   *
+   * @param {Object | undefined} job - The failed job.
+   * @return {boolean} `true` when the job is retried.
+   */
+  public willRetry(job: Job | undefined): boolean {
+    return false;
+  }
 }

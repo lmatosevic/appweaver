@@ -223,8 +223,10 @@ const sent = await emailService.sendEmailAndWait({
 ---
 
 A failed send fails the job with `MAILER_SEND_FAILED`: a `MailerError` of the driver is kept, any other error is
-wrapped in one naming the selected provider (`details.provider`, i.e. `smtp`) and the subject. A queue returning a
-job without an id fails `sendEmailAndWait` with `MAILER_JOB_NOT_FOUND`, though the email may still be sent.
+wrapped in one naming the selected provider (`details.provider`, i.e. `smtp`) and the subject. `sendEmailAndWait`
+sends the job with an ID of its own and receives its result through the `PubSub` (`queue:email:results`), so it
+resolves on whichever instance the worker sending the email runs, once the email is sent or its last retry failed,
+rejecting with the `MailerError` of the job.
 
 ---
 

@@ -57,8 +57,9 @@ const results = await smsService.sendSmsBulkAndWait(
 
 The worker sends the queued message with the `SmsSender`, so an error of the driver fails the job with
 `SMS_SEND_FAILED`: an `SmsError` of the driver is kept, and any other error is wrapped in one naming the selected
-provider (`details.provider`, i.e. `twilio`). A queue returning a job without an id fails `sendSmsAndWait` with
-`SMS_JOB_NOT_FOUND`, though the message may still be sent.
+provider (`details.provider`, i.e. `twilio`). `sendSmsAndWait` sends the job with an ID of its own and receives its
+result through the `PubSub` (`queue:sms:results`), so it resolves on whichever instance the worker sending the message
+runs, once the message is sent or its last retry failed, rejecting with the `SmsError` of the job.
 
 ### Templates
 

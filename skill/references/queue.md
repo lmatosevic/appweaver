@@ -136,7 +136,7 @@ Each listener registration method returns a listener ID. Pass it to `removeListe
 | Method                 | Trigger                                |
 |------------------------|----------------------------------------|
 | `onCompleted(handler)` | Job finished successfully              |
-| `onFailed(handler)`    | Job failed (after all retries)         |
+| `onFailed(handler)`    | Job failed (BullMQ: every attempt)     |
 | `onError(handler)`     | Worker or queue error                  |
 | `onProgress(handler)`  | Job reported progress                  |
 | `onActive(handler)`    | Job moved from waiting to active       |
@@ -159,6 +159,21 @@ emailQueue.onFailed((job, err) => {
 
 // Unsubscribe later
 emailQueue.removeListener(listenerId);
+```
+
+The memory queue calls the `onFailed` handlers once a job failed its last attempt, BullMQ after every attempt:
+`processor.willRetry(job)` tells a failure that is retried apart.
+
+### Waiting for a job on any instance
+
+`JobResults` of `@appweaver/core` sends a job and waits for its result on whichever instance its worker runs, the way
+`sendEmailAndWait`, `sendSmsAndWait` and `AiService.generateQueued` do. The waited job gets an ID of its own, and its
+result (or the error of its last attempt) goes through the `PubSub` on the channel `queue:<name>:results`, straight to
+the caller without a `PubSub`. Only the results of the waited jobs are published:
+
+```ts
+const results = new JobResults(reportQueue, 'reports', { toError: (error) => new Error(error.message) });
+const report = await results.wait((jobId) => reportQueue.sendJob(params, 'build', { jobId }));
 ```
 
 ---

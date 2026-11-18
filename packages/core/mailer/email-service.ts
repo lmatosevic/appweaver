@@ -19,6 +19,7 @@ import {
 } from '@appweaver/common';
 import { selectedProvider } from '../app/load-providers';
 import { inject } from '../context';
+import { JobErrorData, JobResults } from '../queue/job-results';
 import { mailerConfig } from './mailer-config';
 import { formatSender } from './utils/email-util';
 import { htmlToText } from './utils/html-util';
@@ -35,10 +36,9 @@ export class EmailService implements OnInit {
   /** @internal */
   private readonly _templateEngine = inject(TemplateEngine, false);
   /** @internal */
-  private readonly _waitedJobs = new Map<
-    string,
-    { resolve: (success: boolean) => void; reject: (error: Error) => void }
-  >();
+  private readonly _results = new JobResults(this._mailQueue, 'email', {
+    toError: mailerError
+  });
 
   constructor() {
     this._mailQueue.addWorker(this.processEmail.bind(this));
@@ -134,34 +134,23 @@ export class EmailService implements OnInit {
   }
 
   /**
-   * Sends an email and waits for the sending process to finish. A template email is rendered first, see
-   * {@link renderTemplateEmail}.
+   * Sends an email and waits until it is sent, or failed after the retries of the queue, on whichever instance the
+   * worker sending it runs. A template email is rendered first, see {@link renderTemplateEmail}.
    *
    * @param {Email | TemplateEmail} email - The email to send, or the template email to render and send.
    * @return A promise that resolves with `true` when the email is sent successfully, or rejects if sending fails.
    * @throws {TemplateError} See {@link renderTemplateEmail}.
-   * @throws {MailerError} `MAILER_SENDER_MISSING` if neither the email nor the config has a sender address.
+   * @throws {MailerError} `MAILER_SENDER_MISSING` if neither the email nor the config has a sender address,
+   * `MAILER_SEND_FAILED` if the provider rejects the email.
    */
   public async sendEmailAndWait(
     email: Email | TemplateEmail
   ): Promise<boolean> {
-    const job = await this._mailQueue.sendJob(await this.toEmail(email));
-
-    return new Promise<boolean>((resolve, reject) => {
-      if (!job.id) {
-        return reject(
-          new MailerError(
-            ErrorCode.MailerJobNotFound,
-            'Email Job not found. Email could still be sent.'
-          )
-        );
-      }
-      this._waitedJobs.set(job.id, { resolve, reject });
-    }).finally(() => {
-      if (job.id) {
-        this._waitedJobs.delete(job.id);
-      }
-    });
+    const data = await this.toEmail(email);
+    await this._results.wait((jobId) =>
+      this._mailQueue.sendJob(data, undefined, { jobId })
+    );
+    return true;
   }
 
   /**
@@ -264,11 +253,6 @@ export class EmailService implements OnInit {
 
   /** @internal */
   private onEmailSent(job: QueueJob<Email, boolean>): void {
-    if (job.id) {
-      const resolver = this._waitedJobs.get(job.id);
-      resolver?.resolve(true);
-    }
-
     logger.debug(
       { jobId: job.id, subject: job.data.subject },
       'E-mail sent successfully'
@@ -280,11 +264,20 @@ export class EmailService implements OnInit {
     job: QueueJob<Email, boolean> | undefined,
     error: Error
   ): void {
-    if (job?.id) {
-      const resolver = this._waitedJobs.get(job.id);
-      resolver?.reject(error);
-    }
-
     logger.error(error, `E-mail '${job?.data.subject}' sending failed`);
   }
+}
+
+/** Creates the error of a failed email job, published by the instance that ran it. */
+function mailerError(data: JobErrorData): MailerError {
+  const code = data.code?.startsWith('MAILER_')
+    ? data.code
+    : ErrorCode.MailerSendFailed;
+  return new MailerError(
+    code as ErrorCode.MailerSendFailed,
+    data.message,
+    (data.details ?? {
+      provider: ''
+    }) as MailerError<ErrorCode.MailerSendFailed>['details']
+  );
 }

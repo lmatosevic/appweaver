@@ -370,6 +370,11 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     }
   }
 
+  /** BullMQ emits the failure of every attempt, the job is retried while it has attempts left. */
+  public willRetry(job: Job<Data, Response> | undefined): boolean {
+    return !!job && job.attemptsMade < (job.opts.attempts ?? 1);
+  }
+
   /**
    * Fails fast while Redis is down, the queue would otherwise wait for the
    * reconnection. Waits only for a connection that is still being established.
