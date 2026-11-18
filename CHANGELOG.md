@@ -1,3 +1,9 @@
+## [2.7.1](https://github.com/lmatosevic/appweaver/compare/v2.7.0...v2.7.1) (2026-11-18)
+
+### Bug Fixes
+
+* **realtime:** input error handling and validation ([5f51a2d](https://github.com/lmatosevic/appweaver/commit/5f51a2dc661ab90f848210884659b5ce8afae911))
+
 ## [2.7.0](https://github.com/lmatosevic/appweaver/compare/v2.6.1...v2.7.0) (2026-11-18)
 
 ### Features
