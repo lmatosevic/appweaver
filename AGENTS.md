@@ -1282,7 +1282,7 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   database operations need the
   PostgreSQL, MySQL and SQL Server containers running, and `run generate` runs the built `node_modules/@appweaver`, so
   run `npm run build` first or it generates the models of the last build. The samples run one after another, stopping at
-  the first failure, or with `--parallel` (anywhere in the arguments) all at once, every output line prefixed with its
+  the first failure, or with `-p, --parallel` (anywhere before `--`) all at once, every output line prefixed with its
   sample and every failure reported at the end. A new operation is an entry of its `operations`, with the names of its
   `params`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.

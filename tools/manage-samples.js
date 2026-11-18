@@ -12,7 +12,7 @@ const { spawn, spawnSync } = require('child_process');
 //   node tools/manage-samples.js run seed webshop-api
 //   node tools/manage-samples.js run e2e --parallel
 //   node tools/manage-samples.js exec "docker compose up -d" cms-api hr-api
-//   node tools/manage-samples.js exec --parallel -- docker compose down -v
+//   node tools/manage-samples.js exec -p -- docker compose down -v
 //
 // The words after `--` are the last parameter, so they may hold options of
 // their own, and the arguments before it are the samples.
@@ -44,7 +44,7 @@ const operations = {
   }
 };
 
-const flags = ['--parallel'];
+const flags = ['-p', '--parallel'];
 const argv = process.argv.slice(2);
 const separator = argv.indexOf('--');
 const args = separator === -1 ? argv : argv.slice(0, separator);
@@ -65,7 +65,7 @@ if (unknownFlags.length) {
   printUsage();
   process.exit(1);
 }
-const parallel = args.includes('--parallel');
+const parallel = args.includes('-p') || args.includes('--parallel');
 
 const [operationName, ...cliArgs] = args.filter((arg) => !flags.includes(arg));
 const operation = operations[operationName];
@@ -204,7 +204,7 @@ function printDone() {
 
 function printUsage() {
   console.log(
-    'Usage: node tools/manage-samples.js <operation> [params...] [samples...] [--parallel] [-- <last-param...>]\n'
+    'Usage: node tools/manage-samples.js <operation> [params...] [samples...] [-p|--parallel] [-- <last-param...>]\n'
   );
   console.log('Operations:');
   for (const [name, { params, description }] of Object.entries(operations)) {
@@ -213,7 +213,7 @@ function printUsage() {
   }
   console.log('\nOptions:');
   console.log(
-    '  --parallel        Runs the operation in the samples at once, reporting every failure at the end.'
+    '  -p, --parallel    Runs the operation in the samples at once, reporting every failure at the end.'
   );
   console.log(
     '  -- <words...>     The last parameter, the samples coming before it (exec -- docker compose down -v).'
