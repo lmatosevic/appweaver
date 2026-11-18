@@ -50,8 +50,16 @@ export function registerMcpRoutes(): void {
           return response ? response : reply.code(202).send();
         }) as never
       );
-      router.get(path, { schema: { hide: true } }, notAllowed as never);
-      router.delete(path, { schema: { hide: true } }, notAllowed as never);
+      router.get(
+        path,
+        { schema: { hide: true } } as never,
+        notAllowed as never
+      );
+      router.delete(
+        path,
+        { schema: { hide: true } } as never,
+        notAllowed as never
+      );
     },
     { public: true }
   );
