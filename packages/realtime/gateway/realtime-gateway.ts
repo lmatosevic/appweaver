@@ -639,11 +639,16 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       return false;
     }
     const id = Buffer.from(data.subarray(2, 2 + length)).toString();
-    this.receiveInput(
-      connection,
-      { type: 'input', id, data: data.subarray(2 + length) },
-      data.length
-    );
+    try {
+      this.receiveInput(
+        connection,
+        { type: 'input', id, data: data.subarray(2 + length) },
+        data.length
+      );
+    } catch (e) {
+      // Thrown in the listener of the socket, it would be uncaught
+      connection.send({ type: 'error', id, error: toProblem(e) });
+    }
     return true;
   }
 
@@ -860,6 +865,8 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     const call =
       subscription?.kind === 'action-call' ? subscription.call : undefined;
     if (!call?.input) {
+      // Only the inputs of a call are paced by its credits
+      this.checkRate(connection);
       throw invalidMessage('Realtime input of no call receiving one');
     }
 

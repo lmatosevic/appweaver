@@ -47,7 +47,7 @@ export type StreamInputOptions<
   codec?: C;
   /** The media type of the bytes of a `binary` input, i.e. `audio/webm` */
   mimeType?: string;
-  /** The schema of the chunks of a `json` input, checked outside of `prod` */
+  /** The schema of the chunks of a `json` input, checked in every environment */
   chunk?: J;
   /** The bytes the client may send in all. Default: `realtime.streamInputMaxBytes` */
   maxBytes?: string;

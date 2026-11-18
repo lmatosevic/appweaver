@@ -81,7 +81,7 @@ describe('input-stream', () => {
       ]);
     });
 
-    test('checks the chunks of a json input outside of prod', () => {
+    test('checks the chunks of a json input in every environment', () => {
       const input = new InputStream(
         inputSettings({
           codec: 'json',
@@ -94,7 +94,9 @@ describe('input-stream', () => {
         expect.objectContaining({ code: ErrorCode.RealtimePayloadInvalid })
       );
       configOverrides.APP_ENV = 'prod';
-      expect(() => input.push({ x: 'a' }, 5)).not.toThrow();
+      expect(() => input.push({ x: 'a' }, 5)).toThrow(
+        expect.objectContaining({ code: ErrorCode.RealtimePayloadInvalid })
+      );
     });
 
     test.each([

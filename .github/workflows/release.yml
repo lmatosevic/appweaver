@@ -46,10 +46,10 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      # lock-samples.js locks the Bun sample with bun install
+      # lock-samples.js locks the Bun sample with bun install, at the version of its Docker image
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.4.2
 
       # publish-package.js runs npm publish, which expands the token from the environment
       - name: Authenticate to npm

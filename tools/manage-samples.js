@@ -222,13 +222,14 @@ function printUsage() {
 
 // Quotes a word after `--` the shell would split or expand, the way cmd.exe or sh reads it
 function quote(word) {
-  if (/^[\w@%+=:,./\\-]+$/.test(word)) {
+  const windows = process.platform === 'win32';
+  // A backslash is a path separator for cmd.exe, an escape for sh
+  if ((windows ? /^[\w@%+=:,./\\-]+$/ : /^[\w@%+=:,./-]+$/).test(word)) {
     return word;
   }
-  const escaped =
-    process.platform === 'win32'
-      ? word.replace(/"/g, '\\"')
-      : word.replace(/["\\$`]/g, '\\$&');
+  const escaped = windows
+    ? word.replace(/"/g, '\\"')
+    : word.replace(/["\\$`]/g, '\\$&');
   return `"${escaped}"`;
 }
 

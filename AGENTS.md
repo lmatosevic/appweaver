@@ -89,8 +89,10 @@ describe('Feature Verification', () => {
 - **Continuous integration**: the `CI` workflow (`.github/workflows/ci.yml`) runs on every pull request to `main`
   and every push to it, in `node:24` containers set up by `.github/actions/setup` (npm 12, `npm ci`):
   `npm run format:check`, `npm run lint` (after `npm run build`, since the samples import the built packages) and
-  `npm run check:circular`, then `npm test`. A push to `main` writes the line coverage (`tools/coverage-badge.js`) to
-  the `badges` branch, which the coverage badge of the READMEs reads.
+  `npm run check:circular`, then `npm test`. The test job uploads the coverage to Codecov (the `CODECOV_TOKEN` secret),
+  which the coverage badge of the READMEs reads and which reports the coverage diff of every pull request.
+- **Branch names**: a new branch is named after the work it holds, in kebab-case (`fix/realtime-input-errors`), never
+  a random or generated name.
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run
   `npm run build` after making changes to shared packages if they are used by other packages or the sample application.
 - **Dependency versions**: a version bumped in the root `package.json` is bumped in the same commit in
