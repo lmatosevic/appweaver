@@ -1,3 +1,5 @@
+import childProcess, { type ChildProcess } from 'node:child_process';
+import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -137,6 +139,13 @@ describe('create', () => {
       jest.spyOn(console, 'error').mockImplementation((...parts: any[]) => {
         reject(new Error(parts.join(' ')));
       });
+      // A --bun run checks that Bun is installed, which it may not be (CI)
+      const spawn = childProcess.spawn;
+      jest
+        .spyOn(childProcess, 'spawn')
+        .mockImplementation((command: string, options: object) =>
+          command === 'bun --version' ? bunVersion() : spawn(command, options)
+        );
 
       process.argv = ['node', 'create', ...args];
       jest.isolateModules(() => {
@@ -145,6 +154,13 @@ describe('create', () => {
         require('../create');
       });
     });
+
+  /** A `bun --version` process exiting successfully. */
+  const bunVersion = (): ChildProcess => {
+    const child = new EventEmitter();
+    process.nextTick(() => child.emit('close', 0));
+    return child as ChildProcess;
+  };
 
   const readJson = (...segments: string[]) =>
     JSON.parse(fs.readFileSync(path.join(root, ...segments), 'utf8'));
