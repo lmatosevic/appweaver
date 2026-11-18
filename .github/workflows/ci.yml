@@ -67,36 +67,9 @@ jobs:
           path: reports/
           retention-days: 14
 
-  # A job of its own, so the pull requests never run the tests with a token writing to the repository
-  coverage-badge:
-    name: Coverage badge
-    needs: test
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    container: node:24
-    permissions:
-      # Pushes the coverage badge to the badges branch
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
+      # The coverage of main for the badge of the READMEs, and its diff on the pull requests
+      - name: Upload the coverage to Codecov
+        uses: codecov/codecov-action@v5
         with:
-          sparse-checkout: tools
-      - uses: actions/download-artifact@v4
-        with:
-          name: test-reports
-          path: reports
-
-      - name: Publish the coverage badge
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir badges
-          node tools/coverage-badge.js reports/coverage-summary.json badges/coverage.json
-          cd badges
-          git init --quiet --initial-branch badges
-          git add coverage.json
-          git -c user.name='github-actions[bot]' \
-            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit --quiet --message "chore: coverage of ${GITHUB_SHA::8}"
-          git push --force --quiet \
-            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" badges
+          files: reports/cobertura-coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}

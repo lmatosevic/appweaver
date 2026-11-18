@@ -11,7 +11,7 @@
 <a href="https://github.com/lmatosevic/appweaver/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/@appweaver/realtime.svg" alt="Package License" /></a>
 <a href="https://www.npmjs.com/package/@appweaver/realtime" target="_blank"><img src="https://img.shields.io/npm/dw/@appweaver/realtime.svg" alt="NPM Downloads" /></a>
 <a href="https://github.com/lmatosevic/appweaver/actions/workflows/ci.yml?query=branch%3Amain" target="_blank"><img src="https://img.shields.io/github/actions/workflow/status/lmatosevic/appweaver/ci.yml?branch=main&label=CI" alt="CI Status" /></a>
-<a href="https://github.com/lmatosevic/appweaver/actions/workflows/ci.yml?query=branch%3Amain" target="_blank"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flmatosevic%2Fappweaver%2Fbadges%2Fcoverage.json" alt="Test Coverage" /></a>
+<a href="https://codecov.io/gh/lmatosevic/appweaver" target="_blank"><img src="https://codecov.io/gh/lmatosevic/appweaver/graph/badge.svg" alt="Test Coverage" /></a>
 <a href="https://nodejs.org" target="_blank"><img src="https://img.shields.io/node/v/@appweaver/realtime.svg" alt="Node Version" /></a>
 </p>
 
