@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  # The merged commits too, for the status and the coverage badges of the README
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # A new commit of a pull request supersedes the run of the previous one
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    container: node:24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: npm run format:check
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    container: node:24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      # The samples import the built packages copied to node_modules/@appweaver
+      - run: npm run build
+      - run: npm run lint
+
+  circular:
+    name: Circular dependencies
+    runs-on: ubuntu-latest
+    container: node:24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: npm run check:circular
+
+  test:
+    name: Unit tests
+    needs: [format, lint, circular]
+    runs-on: ubuntu-latest
+    container: node:24
+    permissions:
+      # Pushes the coverage badge to the badges branch
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: npm test
+
+      - name: Upload the reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: reports/
+          retention-days: 14
+
+      - name: Publish the coverage badge
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir badges
+          node tools/coverage-badge.js reports/coverage-summary.json badges/coverage.json
+          cd badges
+          git init --quiet --initial-branch badges
+          git add coverage.json
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit --quiet --message "chore: coverage of ${GITHUB_SHA::8}"
+          git push --force --quiet \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" badges

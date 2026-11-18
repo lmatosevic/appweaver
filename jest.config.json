@@ -22,6 +22,7 @@
           },
           "target": "ES2024"
         },
+        "inputSourceMap": false,
         "module": {
           "type": "commonjs"
         },
@@ -39,7 +40,7 @@
       }
     ]
   ],
-  "coverageReporters": ["cobertura", "text"],
+  "coverageReporters": ["cobertura", "json-summary", "text"],
   "collectCoverageFrom": [
     "packages/*/**/*.ts",
     "!**/test/**",

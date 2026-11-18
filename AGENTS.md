@@ -86,6 +86,11 @@ describe('Feature Verification', () => {
     - **Type member order**: in an interface or type, required properties come first, optional ones after them.
     - **`@internal`**: only on class members, the private ones, or rarely a public one a class adds beside the
       interface from `packages/common` it implements. Never on plain functions, constants or types.
+- **Continuous integration**: the `CI` workflow (`.github/workflows/ci.yml`) runs on every pull request to `main`
+  and every push to it, in `node:24` containers set up by `.github/actions/setup` (npm 12, `npm ci`):
+  `npm run format:check`, `npm run lint` (after `npm run build`, since the samples import the built packages) and
+  `npm run check:circular`, then `npm test`. A push to `main` writes the line coverage (`tools/coverage-badge.js`) to
+  the `badges` branch, which the coverage badge of the READMEs reads.
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run
   `npm run build` after making changes to shared packages if they are used by other packages or the sample application.
 - **Dependency versions**: a version bumped in the root `package.json` is bumped in the same commit in
@@ -1300,6 +1305,10 @@ The project uses **semantic-release** with conventional commits to automate vers
 publishing.
 
 ### Release workflow
+
+The `Release` workflow (`.github/workflows/release.yml`) runs it by hand from the Actions page of GitHub, on `main`
+only, with the `NPM_TOKEN` secret of the repository (a granular token bypassing 2FA) and the `GITHUB_TOKEN` of the
+workflow; its `dry-run` input prints the next version without releasing it. Locally:
 
 ```bash
 # From the repository root:

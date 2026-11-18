@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Print the next version and its notes, without versioning or publishing anything.
+        type: boolean
+        default: false
+
+# One release at a time, never cancelled halfway
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  # Pushes the release commit, the tag and the sample lockfiles, and creates the GitHub release
+  contents: write
+  # Comments on the issues and the pull requests of the release
+  issues: write
+  pull-requests: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    name: Release
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    container: node:24
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # The author of the release commit of semantic-release and the commit of lock-samples.js
+      GIT_AUTHOR_NAME: github-actions[bot]
+      GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+      GIT_COMMITTER_NAME: github-actions[bot]
+      GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # semantic-release reads every commit since the last tag
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      # lock-samples.js locks the Bun sample with bun install
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # publish-package.js runs npm publish, which expands the token from the environment
+      - name: Authenticate to npm
+        run: echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> ~/.npmrc
+
+      - name: Release
+        run: npm run release -- ${{ inputs.dry-run && '--dry-run' || '' }}
