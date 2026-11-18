@@ -45,6 +45,12 @@ describe('realtime-spec', () => {
           yield 'a';
         }
       });
+      createRealtimeAction({
+        name: 'voice',
+        payload: Type.Object({}),
+        input: { codec: 'binary', mimeType: 'audio/webm', maxBytes: '1MB' },
+        handler: () => undefined
+      });
 
       const spec = realtimeSpec();
 
@@ -91,6 +97,12 @@ describe('realtime-spec', () => {
             required: ['prompt']
           },
           stream: { codec: 'text' }
+        },
+        {
+          name: 'voice',
+          public: false,
+          payload: { type: 'object', properties: {} },
+          input: { codec: 'binary', mimeType: 'audio/webm' }
         }
       ]);
     });

@@ -12,7 +12,7 @@ export type RealtimeType = {
   /** The actions by their names, with their payloads and results, and the chunks of a streaming action */
   actions: Record<
     string,
-    { payload: unknown; response: unknown; chunk?: unknown }
+    { payload: unknown; response: unknown; chunk?: unknown; input?: unknown }
   >;
   /** The streams by their names, with their chunks and subscription parameters */
   streams?: Record<string, { chunk: unknown; params: unknown }>;
@@ -20,6 +20,12 @@ export type RealtimeType = {
 
 /** The streams of a {@link RealtimeType}. */
 type StreamsOf<R extends RealtimeType> = NonNullable<R['streams']>;
+
+/** The chunk the client streams to an action with an input. */
+type InputOf<
+  R extends RealtimeType,
+  A extends keyof R['actions']
+> = R['actions'][A] extends { input: infer I } ? I : unknown;
 
 /** The chunk of a streaming action. */
 type ChunkOf<
@@ -64,11 +70,13 @@ export type RealtimeStreamHandlers<T> = {
 };
 
 /** The call of a streaming action: its chunks as they come, read as an async iterable, and its result. */
-export interface RealtimeCall<T, Result> extends AsyncIterable<T> {
+export interface RealtimeCall<T, Result, I = unknown> extends AsyncIterable<T> {
   /** Resolves with the result the stream ends with, rejects with its error or once cancelled */
   readonly result: Promise<Result>;
   /** The stream, once started */
   readonly stream: RealtimeStreamInfo | undefined;
+  /** The input of an action receiving one: the chunks the client streams to it, over the WebSocket only */
+  readonly input: RealtimeCallInput<I>;
   /**
    * Listens to the chunks, besides the iteration.
    *
@@ -78,6 +86,21 @@ export interface RealtimeCall<T, Result> extends AsyncIterable<T> {
   onChunk(listener: (chunk: T, meta: RealtimeChunkMeta) => void): () => void;
   /** Cancels the call, stopping the action on the server. */
   cancel(): void;
+}
+
+/** The input a client streams to an action, sent as fast as the server reads it. */
+export interface RealtimeCallInput<I> {
+  /**
+   * Sends a chunk: a string, a JSON value, or bytes sent as a binary message. Keep a chunk under the
+   * `realtime.maxMessageSize` of the server.
+   *
+   * @param {Object} chunk - The chunk.
+   * @return {Promise<void>} Resolves once sent, waiting while the server has not read the chunks before it.
+   * @throws {ClientError} `REQUEST_FAILED` once the call ended, or over SSE.
+   */
+  write(chunk: I): Promise<void>;
+  /** Ends the input once the chunks written are sent. */
+  end(): void;
 }
 
 /** A transport of the realtime connections. */
@@ -130,7 +153,9 @@ export type RealtimeClientOptions = {
   anonymous?: boolean | 'auto';
   /** Reconnect after a lost connection, with the subscriptions. Default: `true` */
   reconnect?: boolean;
-  /** Milliseconds before the first reconnection, doubled up to `maxReconnectDelay`. Default: `500` */
+  /** Milliseconds before the first reconnection, doubled up to `maxReconnectDelay`, each delay randomized from its
+   * half to itself so the clients of a server do not reconnect at once. A server restarting (`1012`) is left within
+   * the first delay. Default: `500` */
   reconnectDelay?: number;
   /** Milliseconds between the reconnections at most. Default: `30000` */
   maxReconnectDelay?: number;
@@ -160,6 +185,7 @@ type ServerMessage =
   | { type: 'error'; id?: string; error: ClientProblem }
   | { type: 'pong'; id?: string }
   | { type: 'reauth' }
+  | { type: 'input.credit'; id: string; bytes: number }
   | {
       type: 'stream.start';
       id: string;
@@ -218,10 +244,14 @@ type Pending = {
 type Transport = {
   close(): void;
   send?(message: unknown): void;
+  sendRaw?(data: string | Uint8Array): void;
 };
 
 /** The close codes of the server after which the client reconnects at once, with a new ticket. */
 const REAUTHENTICATE = 4401;
+
+/** The close code of a server restarting, i.e. on a rolling update: the client reconnects at once to another one. */
+const SERVICE_RESTART = 1012;
 
 /**
  * The realtime connection of a client, over a WebSocket or a stream of Server-Sent Events. It connects on the first
@@ -490,23 +520,34 @@ export class RealtimeClient<
    */
   public call<A extends keyof R['actions'] & string>(
     action: A,
-    payload: R['actions'][A]['payload']
-  ): RealtimeCall<ChunkOf<R, A>, R['actions'][A]['response']> {
+    payload: R['actions'][A]['payload'],
+    options: {
+      input?: AsyncIterable<InputOf<R, A>> | ReadableStream<InputOf<R, A>>;
+    } = {}
+  ): RealtimeCall<ChunkOf<R, A>, R['actions'][A]['response'], InputOf<R, A>> {
     const id = this.nextId('c');
 
     if (this.transport === 'sse') {
       const controller = new AbortController();
       const call = new CallStream(id, () => controller.abort());
+      if (options.input) {
+        call.fail(requestFailed('A realtime input needs the WebSocket'));
+        return call as never;
+      }
       void this.callOverHttp(call, action, payload, controller.signal);
       return call as never;
     }
 
-    const call: CallStream = new CallStream(id, () => {
-      this._calls.delete(id);
-      if (this._state === 'open') {
-        this._transport?.send?.({ type: 'cancel', id });
-      }
-    });
+    const call: CallStream = new CallStream(
+      id,
+      () => {
+        this._calls.delete(id);
+        if (this._state === 'open') {
+          this._transport?.send?.({ type: 'cancel', id });
+        }
+      },
+      (data) => this._transport?.sendRaw?.(data)
+    );
     this._calls.set(id, call);
     this.connect()
       .then(() =>
@@ -516,6 +557,9 @@ export class RealtimeClient<
         this._calls.delete(id);
         call.fail(e);
       });
+    if (options.input) {
+      void call.pipe(options.input);
+    }
     return call as never;
   }
 
@@ -672,9 +716,10 @@ export class RealtimeClient<
     );
     const transport: Transport = {
       close: () => socket.close(1000),
-      send: (message) => {
+      send: (message) => transport.sendRaw!(JSON.stringify(message)),
+      sendRaw: (data) => {
         if (socket.readyState === socket.OPEN) {
-          socket.send(JSON.stringify(message));
+          socket.send(data);
         }
       }
     };
@@ -742,17 +787,28 @@ export class RealtimeClient<
 
     return new Promise((resolve, reject) => {
       let welcomed = false;
+      let closeCode = 1006;
 
       const read = async (): Promise<void> => {
         try {
-          await readEvents(body, (message) => {
-            if (message.type === 'welcome') {
-              welcomed = true;
-              this.opened(message.connectionId);
-              resolve();
+          await readEvents(
+            body,
+            (message) => {
+              if (message.type === 'welcome') {
+                welcomed = true;
+                this.opened(message.connectionId);
+                resolve();
+              }
+              this.handle(message);
+            },
+            // An event stream tells its close code in a comment
+            (comment) => {
+              const match = /^close (\d+)/.exec(comment);
+              if (match) {
+                closeCode = Number(match[1]);
+              }
             }
-            this.handle(message);
-          });
+          );
         } catch {
           // Aborted, or the connection is lost
         }
@@ -761,7 +817,7 @@ export class RealtimeClient<
           if (!welcomed) {
             reject(requestFailed('Realtime connection refused'));
           }
-          this.lost(1006);
+          this.lost(closeCode);
         }
       };
 
@@ -786,7 +842,16 @@ export class RealtimeClient<
       case 'subscribed':
         this._entries.get(message.id)?.settle?.resolve();
         return;
+      case 'input.credit':
+        this._calls.get(message.id)?.credit(message.bytes);
+        return;
       case 'result': {
+        const call = this._calls.get(message.id);
+        if (call) {
+          this._calls.delete(message.id);
+          call.finish(message.result);
+          return;
+        }
         const pending = this._pending.get(message.id);
         if (pending) {
           clearTimeout(pending.timer);
@@ -844,10 +909,10 @@ export class RealtimeClient<
     this._connectionId = undefined;
     this.rejectPending(requestFailed('Realtime connection lost'));
 
-    // A started call resumes on the next connection
+    // A started call resumes on the next connection, never its input
     const reconnect = this._options.reconnect !== false;
     for (const [id, call] of this._calls) {
-      if (!reconnect || !call.state) {
+      if (!reconnect || !call.state || call.streaming) {
         this._calls.delete(id);
         call.fail(requestFailed('Realtime connection lost'));
       }
@@ -859,13 +924,17 @@ export class RealtimeClient<
     }
 
     this.setState('reconnecting');
+    const backoff = Math.min(
+      (this._options.reconnectDelay ?? 500) * 2 ** this._attempts,
+      this._options.maxReconnectDelay ?? 30000
+    );
+    // Randomized, so the clients of a restarting server spread over the others
     const delay =
       code === REAUTHENTICATE
         ? 0
-        : Math.min(
-            (this._options.reconnectDelay ?? 500) * 2 ** this._attempts,
-            this._options.maxReconnectDelay ?? 30000
-          );
+        : code === SERVICE_RESTART
+          ? Math.random() * backoff
+          : backoff * (0.5 + Math.random() * 0.5);
     this._attempts++;
     clearTimeout(this._reconnectTimer);
     this._reconnectTimer = setTimeout(() => {
@@ -1155,7 +1224,7 @@ export class RealtimeClient<
 }
 
 /** The call of a streaming action, an async iterable of its chunks. */
-class CallStream implements RealtimeCall<unknown, unknown> {
+class CallStream implements RealtimeCall<unknown, unknown, unknown> {
   public readonly result: Promise<unknown>;
   /** The stream received, and its last chunk */
   public state?: StreamState;
@@ -1181,15 +1250,84 @@ class CallStream implements RealtimeCall<unknown, unknown> {
     reject: (e: unknown) => void;
   };
 
+  /** @internal */
+  private readonly _outbox: {
+    data: string | Uint8Array;
+    size: number;
+    resolve: () => void;
+    reject: (e: Error) => void;
+  }[] = [];
+  /** @internal */
+  private _credit: number = 0;
+  /** @internal */
+  private _window?: number;
+  /** @internal */
+  private _inputState: 'idle' | 'open' | 'ending' | 'ended' = 'idle';
+
   constructor(
     public readonly id: string,
-    private readonly _cancel: () => void
+    private readonly _cancel: () => void,
+    private readonly _send?: (data: string | Uint8Array) => void
   ) {
     this.result = new Promise((resolve, reject) => {
       this._settle = { resolve, reject };
     });
     // A failed call is reported by its `result`, which may be ignored
     this.result.catch(() => undefined);
+  }
+
+  /** Whether the client is streaming an input not ended, which cannot resume after a lost connection. */
+  public get streaming(): boolean {
+    return this._inputState === 'open' || this._inputState === 'ending';
+  }
+
+  public get input(): RealtimeCallInput<unknown> {
+    return {
+      write: (chunk) => this.write(chunk),
+      end: () => this.endInput()
+    };
+  }
+
+  /**
+   * Streams the chunks of an iterable or a readable stream as the input, then ends it, cancelling the call when the
+   * source fails.
+   *
+   * @param {AsyncIterable | ReadableStream} source - The chunks.
+   * @return {Promise<void>} Resolves once the input is sent.
+   */
+  public async pipe(
+    source: AsyncIterable<unknown> | ReadableStream<unknown>
+  ): Promise<void> {
+    try {
+      if ('getReader' in source) {
+        const reader = source.getReader();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+          await this.write(value);
+        }
+      } else {
+        for await (const chunk of source) {
+          await this.write(chunk);
+        }
+      }
+      this.endInput();
+    } catch {
+      this.cancel();
+    }
+  }
+
+  /**
+   * Receives the bytes the server read, sending the chunks waiting for them.
+   *
+   * @param {number} bytes - The bytes.
+   */
+  public credit(bytes: number): void {
+    this._window ??= bytes;
+    this._credit += bytes;
+    this.flush();
   }
 
   public get stream(): RealtimeStreamInfo | undefined {
@@ -1253,6 +1391,7 @@ class CallStream implements RealtimeCall<unknown, unknown> {
       return;
     }
     this._done = true;
+    this.dropInput();
     this._waiters
       .splice(0)
       .forEach((waiter) => waiter.resolve({ done: true, value: undefined }));
@@ -1270,6 +1409,7 @@ class CallStream implements RealtimeCall<unknown, unknown> {
       return;
     }
     this._done = true;
+    this.dropInput();
     if (thrown) {
       this._error = error;
     }
@@ -1282,6 +1422,91 @@ class CallStream implements RealtimeCall<unknown, unknown> {
       );
     this._settle.reject(error);
   }
+
+  /** @internal */
+  private write(chunk: unknown): Promise<void> {
+    if (this._done || !this._send) {
+      return Promise.reject(
+        requestFailed(
+          this._send
+            ? 'Realtime call ended'
+            : 'A realtime input needs the WebSocket'
+        )
+      );
+    }
+    if (this._inputState !== 'idle' && this._inputState !== 'open') {
+      return Promise.reject(requestFailed('Realtime input ended'));
+    }
+    this._inputState = 'open';
+
+    const data =
+      chunk instanceof Uint8Array
+        ? inputFrame(this.id, chunk)
+        : JSON.stringify({ type: 'input', id: this.id, data: chunk });
+    const size = typeof data === 'string' ? data.length : data.byteLength;
+    return new Promise((resolve, reject) => {
+      this._outbox.push({ data, size, resolve, reject });
+      this.flush();
+    });
+  }
+
+  /** @internal */
+  private endInput(): void {
+    if (this._inputState === 'idle' || this._inputState === 'open') {
+      this._inputState = 'ending';
+      this.flush();
+    }
+  }
+
+  /** @internal */
+  private flush(): void {
+    while (this._outbox.length > 0 && !this._done) {
+      const next = this._outbox[0];
+      if (this._window !== undefined && next.size > this._window) {
+        this._outbox.shift();
+        next.reject(
+          requestFailed('Realtime input chunk larger than its window')
+        );
+        continue;
+      }
+      if (next.size > this._credit) {
+        return;
+      }
+      this._outbox.shift();
+      this._credit -= next.size;
+      this._send?.(next.data);
+      next.resolve();
+    }
+    // The end waits for the call to reach the server, told by its credit
+    if (
+      this._inputState === 'ending' &&
+      this._outbox.length === 0 &&
+      !this._done &&
+      this._window !== undefined
+    ) {
+      this._inputState = 'ended';
+      this._send?.(JSON.stringify({ type: 'input.end', id: this.id }));
+    }
+  }
+
+  /** @internal */
+  private dropInput(): void {
+    this._inputState = 'ended';
+    for (const item of this._outbox.splice(0)) {
+      item.reject(requestFailed('Realtime call ended'));
+    }
+  }
+}
+
+/** A binary message of a chunk of an input: the byte `1`, the length of the ID of the call, the ID, the bytes. */
+function inputFrame(id: string, chunk: Uint8Array): Uint8Array {
+  const idBytes = new TextEncoder().encode(id);
+  const frame = new Uint8Array(2 + idBytes.length + chunk.byteLength);
+  frame[0] = 1;
+  frame[1] = idBytes.length;
+  frame.set(idBytes, 2);
+  frame.set(chunk, 2 + idBytes.length);
+  return frame;
 }
 
 /** The subscription message of an entry, resuming the last stream it received. */
@@ -1319,7 +1544,8 @@ function decodeChunk(
 /** Reads the messages of a body of Server-Sent Events until it ends. */
 async function readEvents(
   body: ReadableStream<Uint8Array>,
-  onMessage: (message: ServerMessage) => void
+  onMessage: (message: ServerMessage) => void,
+  onComment?: (comment: string) => void
 ): Promise<void> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
@@ -1335,8 +1561,13 @@ async function readEvents(
     while ((index = buffer.indexOf('\n\n')) >= 0) {
       const block = buffer.slice(0, index);
       buffer = buffer.slice(index + 2);
-      const data = block
-        .split('\n')
+      const lines = block.split('\n');
+      for (const line of lines) {
+        if (line.startsWith(':')) {
+          onComment?.(line.slice(1).trim());
+        }
+      }
+      const data = lines
         .filter((line) => line.startsWith('data: '))
         .map((line) => line.slice(6))
         .join('\n');

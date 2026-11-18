@@ -34,11 +34,12 @@ import {
 } from '../channel';
 import { realtimeConfig } from '../config';
 import { findStream, STREAM_CHANNEL_PREFIX } from '../stream/create-stream';
+import { InputStream, inputSettings } from '../stream/input-stream';
 import { pumpStream } from '../stream/pump';
 import { StreamHub } from '../stream/stream-hub';
 import { StreamInstance, streamSettings } from '../stream/stream-instance';
 import { setStreamProblemFormat } from '../stream/stream-problem';
-import { Stream, StreamSink } from '../stream/types';
+import { Stream, StreamResource, StreamSink } from '../stream/types';
 import {
   Channel,
   RealtimeAction,
@@ -54,6 +55,7 @@ import { projectRecord } from '../utils/project-record';
 import { resourceEventActions } from '../utils/resource-events';
 import { validatePayload } from '../utils/validate';
 import { realtimeMetrics } from '../utils/telemetry';
+import { ActionCall } from './action-call';
 import { RealtimeConnection } from './connection';
 import { ConnectionSink } from './connection-sink';
 import { ActiveSubscription } from './subscription';
@@ -65,6 +67,12 @@ setStreamProblemFormat(toProblem);
 
 /** The longest key of a stream a client subscribes to. */
 const MAX_STREAM_KEY_LENGTH = 256;
+
+/** The first byte of a binary WebSocket message carrying a chunk of an input. */
+const INPUT_FRAME = 1;
+
+/** Milliseconds between the checks of the calls of a draining instance. */
+const DRAIN_POLL_INTERVAL = 100;
 
 /** A resource event, as the bridge of the resource events publishes it to the pub/sub. */
 type ResourceChannelMessage = ChannelMessage & {
@@ -119,10 +127,19 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   private _heartbeat?: NodeJS.Timeout;
   /** @internal */
   private _usersSubscription?: Promise<string>;
+  /** @internal */
+  private readonly _calls = new Map<string, ActionCall>();
+  /** @internal */
+  private _draining: boolean = false;
 
   /** The open connections of the instance. */
   public get connections(): ReadonlyMap<string, RealtimeConnection> {
     return this._connections;
+  }
+
+  /** The calls of the actions with a stream or an input running on the instance, over the WebSocket or HTTP. */
+  public get calls(): ReadonlyMap<string, ActionCall> {
+    return this._calls;
   }
 
   public async onReady(): Promise<void> {
@@ -131,6 +148,9 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   }
 
   public async onDestroy(): Promise<void> {
+    for (const call of [...this._calls.values()]) {
+      call.cancel();
+    }
     this.closeAll(RealtimeCloseCode.GoingAway, 'Server shutting down');
     const events = inject(Events, false);
     for (const listenerId of this._listeners.splice(0)) {
@@ -167,13 +187,61 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     await this.publishUser({ userId: String(userId), change: 'refresh' });
   }
 
+  /** Whether the instance is shutting down, refusing the new connections and calls. */
+  public get draining(): boolean {
+    return this._draining;
+  }
+
+  /**
+   * Shuts the realtime connections of the instance down without losing the calls running on it, i.e. on a rolling
+   * update: the new connections and calls are refused, the clients are told to reconnect to another instance (`1012`),
+   * where they resume the streams of their calls relayed from this one, the ones streaming an input kept until it
+   * ends, then it waits for the calls to end, at most `realtime.shutdownGracePeriod` milliseconds, and closes the rest.
+   *
+   * @return {Promise<void>} Resolves once every connection is closed.
+   */
+  public async drain(): Promise<void> {
+    this._draining = true;
+    const deadline = Date.now() + realtimeConfig.SHUTDOWN_GRACE_PERIOD;
+
+    for (;;) {
+      for (const connection of [...this._connections.values()]) {
+        if (!streamsInput(connection)) {
+          connection.close(
+            RealtimeCloseCode.ServiceRestart,
+            'Server restarting'
+          );
+          void this.release(connection);
+        }
+      }
+      if (this._calls.size === 0 || Date.now() >= deadline) {
+        break;
+      }
+      await new Promise((resolve) =>
+        setTimeout(
+          resolve,
+          Math.min(DRAIN_POLL_INTERVAL, deadline - Date.now())
+        )
+      );
+    }
+
+    for (const call of [...this._calls.values()]) {
+      call.fail(shuttingDown());
+    }
+    this.closeAll(RealtimeCloseCode.GoingAway, 'Server shutting down');
+  }
+
   /**
    * Opens a connection, sending it the `welcome` message, once the connection limits allow it.
    *
    * @param {RealtimeConnection} connection - The connection.
-   * @throws {RealtimeError} `REALTIME_CONNECTION_LIMIT` when the instance or the user has too many connections.
+   * @throws {RealtimeError} `REALTIME_CONNECTION_LIMIT` when the instance or the user has too many connections,
+   * `REALTIME_SHUTTING_DOWN` while the instance shuts down.
    */
   public open(connection: RealtimeConnection): void {
+    if (this._draining) {
+      throw shuttingDown();
+    }
     const limits: [count: number, limit: number][] = [
       [this._connections.size, realtimeConfig.MAX_CONNECTIONS],
       [
@@ -326,8 +394,12 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       return false;
     }
     connection.subscriptions.delete(id);
-    if (subscription.kind === 'action-stream') {
-      subscription.instance.cancel();
+    if (subscription.kind === 'action-call') {
+      subscription.call.cancel();
+      return true;
+    }
+    if (subscription.kind === 'remote-call') {
+      await this.cancelRemoteCall(connection, subscription);
       return true;
     }
     await this.releaseChannel(subscription);
@@ -350,9 +422,9 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     actionContext: RealtimeActionContext
   ): Promise<unknown> {
     const action = this.allowedAction(name, actionContext.user);
-    if (action.config.stream) {
+    if (action.config.stream || action.config.input) {
       throw invalidMessage(
-        `Realtime action '${name}' streams its result, called with an ID`
+        `Realtime action '${name}' streams, called with an ID`
       );
     }
 
@@ -381,64 +453,109 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   }
 
   /**
-   * Calls a streaming action as a user, its chunks written to a subscriber as they come, the stream ending with its
-   * result. The handler runs once the stream is returned, so the caller registers the subscriber first.
+   * Calls an action with a stream or an input as a user: the chunks of its handler written to a subscriber as they
+   * come, the stream ending with its result, and the chunks the client streams read by the handler. The handler runs
+   * once the call is returned, so the caller registers the subscriber first. The call ends at once when the user logs
+   * out, is disabled or loses the access of the action.
    *
    * @param {string} name - The name of the action.
    * @param {unknown} payload - The payload of the call.
    * @param {RealtimeActionContext} actionContext - The user and the transport of the call.
-   * @param {StreamSink} sink - The subscriber, the caller.
-   * @return {StreamInstance} The stream of the call.
+   * @param {Object} [options] - The subscriber of the stream, and the receiver of the bytes the client may send again.
+   * @return {ActionCall} The call, its `done` settling with the result of an action without a stream.
    * @throws {RealtimeError} `REALTIME_ACTION_UNKNOWN`, `REALTIME_ACTION_DENIED`, `REALTIME_PAYLOAD_INVALID`, or
-   * `REALTIME_MESSAGE_INVALID` for an action without `stream`.
+   * `REALTIME_MESSAGE_INVALID` for an action without a stream or an input, or with an input over HTTP.
    */
-  public openActionStream(
+  public openActionCall(
     name: string,
     payload: unknown,
     actionContext: RealtimeActionContext,
-    sink: StreamSink
-  ): StreamInstance {
+    options: { sink?: StreamSink; onCredit?: (bytes: number) => void } = {}
+  ): ActionCall & { done: Promise<unknown> } {
     const action = this.allowedAction(name, actionContext.user);
-    if (!action.config.stream) {
+    const config = action.config;
+    if (this._draining) {
+      throw shuttingDown();
+    }
+    if (!config.stream && !config.input) {
       throw invalidMessage(`Realtime action '${name}' does not stream`);
     }
+    if (config.input && actionContext.transport !== 'websocket') {
+      throw invalidMessage(
+        `Realtime action '${name}' receives an input over the WebSocket only`
+      );
+    }
 
-    const data = validatePayload(action.config.payload, payload);
+    const data = validatePayload(config.payload, payload);
     const user = actionContext.user;
-    const instance = inject(StreamHub).openAction(
-      name,
-      streamSettings(action.config.stream),
-      user ? String(user.id) : null
-    );
-    instance.attach(sink);
+    const output = config.stream
+      ? inject(StreamHub).openAction(
+          name,
+          streamSettings(config.stream),
+          user ? String(user.id) : null
+        )
+      : undefined;
+    const input = config.input
+      ? new InputStream(inputSettings(config.input), options.onCredit)
+      : undefined;
+    const call = new ActionCall(action, user, output, input);
+    call.connectionId = actionContext.connectionId;
 
-    const handlerContext = { ...actionContext, signal: instance.signal };
+    this._calls.set(call.id, call);
+    call.signal.addEventListener(
+      'abort',
+      () => {
+        if (this._calls.get(call.id) === call) {
+          this._calls.delete(call.id);
+        }
+      },
+      { once: true }
+    );
+    if (output && options.sink) {
+      output.attach(options.sink);
+    }
+
+    const handlerContext: RealtimeActionContext = {
+      ...actionContext,
+      signal: call.signal,
+      ...(input ? { input } : {})
+    };
     const run = () =>
       runAs(user, () =>
-        runActionStream(action, data, handlerContext, instance)
+        output
+          ? runActionStream(action, data, handlerContext, output)
+          : action.config.handler(data as never, handlerContext as never)
       );
 
-    queueMicrotask(() => {
-      if (!telemetryEnabled('realtime')) {
-        void run();
-        return;
-      }
-      void withSpan(
-        `realtime action ${name}`,
-        {
-          kind: SpanKind.SERVER,
-          attributes: {
-            'appweaver.realtime.action': name,
-            'appweaver.realtime.transport': actionContext.transport,
-            'appweaver.realtime.ack': true,
-            'appweaver.realtime.stream.id': instance.streamId
-          }
-        },
-        run
-      );
-    });
+    const done = new Promise<void>((resolve) => queueMicrotask(resolve)).then(
+      () =>
+        !telemetryEnabled('realtime')
+          ? run()
+          : withSpan(
+              `realtime action ${name}`,
+              {
+                kind: SpanKind.SERVER,
+                attributes: {
+                  'appweaver.realtime.action': name,
+                  'appweaver.realtime.transport': actionContext.transport,
+                  'appweaver.realtime.ack': true,
+                  ...(output
+                    ? { 'appweaver.realtime.stream.id': output.streamId }
+                    : {})
+                }
+              },
+              run
+            )
+    );
+    // A call without a stream ends with its handler
+    done
+      .then(
+        () => !output && call.finish(),
+        () => !output && call.finish()
+      )
+      .catch(() => undefined);
 
-    return instance;
+    return Object.assign(call, { done });
   }
 
   /**
@@ -465,9 +582,15 @@ export class RealtimeGateway implements OnReady, OnDestroy {
         throw invalidMessage('Realtime message is not an object');
       }
 
+      const current = message;
+      if (current.type === 'input' || current.type === 'input.end') {
+        // The inputs are paced by their credits, not by the rate limit
+        this.receiveInput(connection, current, data.length);
+        return;
+      }
+
       this.checkRate(connection);
 
-      const current = message;
       if (current.type === 'subscribe' || current.type === 'unsubscribe') {
         // The subscriptions of a connection change in the order of its
         // messages, while its actions run at once
@@ -497,6 +620,31 @@ export class RealtimeGateway implements OnReady, OnDestroy {
         error: toProblem(e)
       });
     }
+  }
+
+  /**
+   * Handles a binary message of a WebSocket client, a chunk of an input: the byte `1`, the length of the ID of the
+   * call, the ID, then the bytes of the chunk.
+   *
+   * @param {RealtimeConnection} connection - The connection.
+   * @param {Uint8Array} data - The message.
+   * @return {boolean} `false` for a message breaking the protocol, closing the connection.
+   */
+  public handleBinary(
+    connection: RealtimeConnection,
+    data: Uint8Array
+  ): boolean {
+    const length = data[1] ?? 0;
+    if (data[0] !== INPUT_FRAME || data.length < 2 + length || length === 0) {
+      return false;
+    }
+    const id = Buffer.from(data.subarray(2, 2 + length)).toString();
+    this.receiveInput(
+      connection,
+      { type: 'input', id, data: data.subarray(2 + length) },
+      data.length
+    );
+    return true;
   }
 
   /**
@@ -536,8 +684,9 @@ export class RealtimeGateway implements OnReady, OnDestroy {
         if (typeof message.action !== 'string') {
           throw invalidMessage('Realtime action without a name');
         }
-        if (findRealtimeAction(message.action)?.config.stream) {
-          this.startActionStream(connection, message);
+        const config = findRealtimeAction(message.action)?.config;
+        if (config?.stream || config?.input) {
+          this.startActionCall(connection, message);
           realtimeMetrics.messages('action', true);
           return;
         }
@@ -560,13 +709,20 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       }
       case 'cancel': {
         const subscription = connection.subscriptions.get(message.id);
-        if (subscription?.kind === 'action-stream') {
-          subscription.instance.cancel();
+        if (subscription?.kind === 'action-call') {
+          subscription.call.cancel();
+          // A call without a stream has nothing more to answer
+          if (!subscription.call.output) {
+            connection.subscriptions.delete(message.id);
+          }
+        } else if (subscription?.kind === 'remote-call') {
+          connection.subscriptions.delete(message.id);
+          await this.cancelRemoteCall(connection, subscription);
         }
         return;
       }
       case 'resume':
-        this.resumeActionStream(connection, message);
+        await this.resumeActionCall(connection, message);
         return;
       default:
         throw invalidMessage(
@@ -586,11 +742,7 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       );
     }
     if (!hasAccess(user, action.config)) {
-      throw new RealtimeError(
-        ErrorCode.RealtimeActionDenied,
-        `Realtime action '${name}' denied`,
-        { action: name }
-      );
+      throw deniedAction(name);
     }
     return action;
   }
@@ -616,19 +768,21 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   }
 
   /** @internal */
-  private startActionStream(
+  private startActionCall(
     connection: RealtimeConnection,
     message: { id?: string; action: string; payload?: unknown }
   ): void {
-    if (typeof message.id !== 'string') {
+    const id = message.id;
+    if (typeof id !== 'string') {
       throw invalidMessage(
-        `Realtime action '${message.action}' streams its result, called with an ID`
+        `Realtime action '${message.action}' streams, called with an ID`
       );
     }
-    this.checkSubscriptionId(connection, message.id);
+    this.checkSubscriptionId(connection, id);
 
-    const sink = this.connectionSink(connection, message.id, true);
-    const instance = this.openActionStream(
+    const sink = this.connectionSink(connection, id, true);
+    let credit = 0;
+    const call = this.openActionCall(
       message.action,
       message.payload,
       {
@@ -637,23 +791,95 @@ export class RealtimeGateway implements OnReady, OnDestroy {
         connectionId: connection.id,
         ack: true
       },
-      sink
+      {
+        sink,
+        // The bytes read are given back in halves of the window
+        onCredit: (bytes) => {
+          credit += bytes;
+          if (credit * 2 >= (call.input?.settings.window ?? 0)) {
+            connection.send({ type: 'input.credit', id, bytes: credit });
+            credit = 0;
+          }
+        }
+      }
     );
-    connection.subscriptions.set(message.id, {
-      kind: 'action-stream',
-      id: message.id,
+    const subscription: ActiveSubscription = {
+      kind: 'action-call',
+      id,
       channel: `action:${message.action}`,
       params: {},
-      instance,
-      sink
+      call,
+      ...(call.output ? { sink } : {})
+    };
+    connection.subscriptions.set(id, subscription);
+
+    if (call.input) {
+      connection.send({
+        type: 'input.credit',
+        id,
+        bytes: call.input.settings.window
+      });
+    }
+    if (call.output) {
+      return;
+    }
+
+    // An action without a stream answers with its result, or its error
+    const answer = (error: unknown, result?: unknown) => {
+      if (connection.subscriptions.get(id) !== subscription) {
+        return;
+      }
+      connection.subscriptions.delete(id);
+      connection.send(
+        error === undefined
+          ? { type: 'result', id, result: result ?? null }
+          : { type: 'error', id, error: toProblem(error) }
+      );
+    };
+    call.signal.addEventListener('abort', () => {
+      if (call.error !== undefined) {
+        answer(call.error);
+      }
     });
+    call.done.then(
+      (result) => answer(call.error, result),
+      (e) => answer(call.error ?? e)
+    );
   }
 
   /** @internal */
-  private resumeActionStream(
+  private receiveInput(
+    connection: RealtimeConnection,
+    message: { type: 'input' | 'input.end'; id?: unknown; data?: unknown },
+    size: number
+  ): void {
+    const subscription =
+      typeof message.id === 'string'
+        ? connection.subscriptions.get(message.id)
+        : undefined;
+    const call =
+      subscription?.kind === 'action-call' ? subscription.call : undefined;
+    if (!call?.input) {
+      throw invalidMessage('Realtime input of no call receiving one');
+    }
+
+    try {
+      if (message.type === 'input.end') {
+        call.input.end();
+      } else {
+        call.input.push(message.data, size);
+        realtimeMetrics.inputBytes(call.action.name, size);
+      }
+    } catch (e) {
+      call.fail(e);
+    }
+  }
+
+  /** @internal */
+  private async resumeActionCall(
     connection: RealtimeConnection,
     message: { id: string; streamId: unknown; seq: unknown }
-  ): void {
+  ): Promise<void> {
     if (
       typeof message.streamId !== 'string' ||
       !Number.isInteger(message.seq) ||
@@ -665,22 +891,69 @@ export class RealtimeGateway implements OnReady, OnDestroy {
 
     const sink = this.connectionSink(connection, message.id, true);
     const user = connection.user;
-    const instance = inject(StreamHub).resumeAction(
-      message.streamId,
-      user ? String(user.id) : null,
-      sink,
-      message.seq as number
-    );
-    if (!instance.ended) {
+    // Reserved while the stream of another instance is awaited
+    const placeholder: ActiveSubscription = {
+      kind: 'remote-call',
+      id: message.id,
+      channel: 'action:',
+      params: {},
+      streamId: message.streamId,
+      sink
+    };
+    connection.subscriptions.set(message.id, placeholder);
+    let resumed: Awaited<ReturnType<StreamHub['resumeAction']>>;
+    try {
+      resumed = await inject(StreamHub).resumeAction(
+        message.streamId,
+        user ? String(user.id) : null,
+        sink,
+        message.seq as number
+      );
+    } finally {
+      if (connection.subscriptions.get(message.id) === placeholder) {
+        connection.subscriptions.delete(message.id);
+      }
+    }
+
+    const { instance, remote } = resumed;
+    if (remote) {
+      if (!instance.ended && !connection.closed) {
+        connection.subscriptions.set(message.id, {
+          ...placeholder,
+          channel: `action:${instance.name}`
+        });
+      } else if (connection.closed) {
+        await inject(StreamHub).unsubscribe('$action', instance.streamId, sink);
+      }
+      return;
+    }
+
+    const call = this._calls.get(instance.streamId);
+    if (!instance.ended && call) {
+      call.connectionId = connection.id;
       connection.subscriptions.set(message.id, {
-        kind: 'action-stream',
+        kind: 'action-call',
         id: message.id,
         channel: `action:${instance.name}`,
         params: {},
-        instance,
+        call,
         sink
       });
     }
+  }
+
+  /** @internal */
+  private async cancelRemoteCall(
+    connection: RealtimeConnection,
+    subscription: Extract<ActiveSubscription, { kind: 'remote-call' }>
+  ): Promise<void> {
+    const hub = inject(StreamHub);
+    const user = connection.user;
+    await hub.cancelAction(
+      subscription.streamId,
+      user ? String(user.id) : null
+    );
+    await hub.unsubscribe('$action', subscription.streamId, subscription.sink);
   }
 
   /** @internal */
@@ -705,7 +978,8 @@ export class RealtimeGateway implements OnReady, OnDestroy {
         ? () => {
             const subscription = connection.subscriptions.get(id);
             if (
-              subscription?.kind === 'action-stream' &&
+              (subscription?.kind === 'action-call' ||
+                subscription?.kind === 'remote-call') &&
               subscription.sink === sink
             ) {
               connection.subscriptions.delete(id);
@@ -777,11 +1051,54 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     const config = definition.config;
     return (
       hasAccess(user, config) &&
+      (!config.resource ||
+        (await this.recordAccess(user, config.resource, params, key))) &&
       (!config.subscribe ||
         (await runAs(user, () =>
           config.subscribe!(user, params as never, key)
         )))
     );
+  }
+
+  /**
+   * Checks whether a user may read the record a key of a stream belongs to: its `find` as the user passes, with the
+   * policy of its model (`checkAccess`, `readRestrictions`).
+   *
+   * @internal
+   */
+  private async recordAccess(
+    user: AuthUser | null,
+    resource: StreamResource,
+    params: unknown,
+    key: string
+  ): Promise<boolean> {
+    const service = injectService(resource.model as never, false) as
+      | IResourceService
+      | undefined;
+    if (!service) {
+      logger.warn(
+        { model: resource.model },
+        'Realtime stream bound to an unknown model'
+      );
+      return false;
+    }
+
+    const id = resource.id
+      ? resource.id(key, params)
+      : /^\d+$/.test(key)
+        ? Number(key)
+        : key;
+    try {
+      await runAs(user, () => service.find(id));
+      return true;
+    } catch (e) {
+      // Not found, forbidden or an ID of another type all deny
+      logger.debug(
+        { err: e, model: resource.model, key },
+        'Realtime stream record denied'
+      );
+      return false;
+    }
   }
 
   /** @internal */
@@ -904,7 +1221,10 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       );
       return;
     }
-    if (subscription.kind === 'action-stream') {
+    if (
+      subscription.kind === 'action-call' ||
+      subscription.kind === 'remote-call'
+    ) {
       return;
     }
 
@@ -945,9 +1265,24 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       );
       return;
     }
-    if (subscription.kind === 'action-stream') {
-      // The stream lingers for a resume of its caller
-      subscription.instance.detach(subscription.sink);
+    if (subscription.kind === 'remote-call') {
+      // Its owner lingers it for a resume of its caller
+      await inject(StreamHub).unsubscribe(
+        '$action',
+        subscription.streamId,
+        subscription.sink
+      );
+      return;
+    }
+    if (subscription.kind === 'action-call') {
+      const { call, sink } = subscription;
+      if (call.input && !call.input.ended) {
+        // An input cannot resume, the client has to call again
+        call.cancel();
+      } else if (call.output && sink) {
+        // The stream lingers for a resume of its caller
+        call.output.detach(sink);
+      }
       return;
     }
 
@@ -1207,20 +1542,31 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     const connections = [...this._connections.values()].filter(
       (c) => c.user && String(c.user.id) === userId
     );
-    if (connections.length === 0) {
+    const calls = [...this._calls.values()].filter(
+      (call) => call.userId === userId
+    );
+    if (connections.length === 0 && calls.length === 0) {
       return;
     }
 
-    const user =
-      change === 'refresh' ? await loadAuthUser(connections[0].user!.id) : null;
+    const known = connections[0]?.user ?? calls[0].user!;
+    const user = change === 'refresh' ? await loadAuthUser(known.id) : null;
     if (user === undefined) {
       return;
     }
     if (!user || user.enabled === false) {
+      // Ended at once, never left to linger for a resume
+      calls.forEach((call) => call.fail(deniedAction(call.action.name)));
       connections.forEach((connection) => this.expire(connection));
       return;
     }
 
+    for (const call of calls) {
+      call.user = user;
+      if (!hasAccess(user, call.action.config)) {
+        call.fail(deniedAction(call.action.name));
+      }
+    }
     for (const connection of connections) {
       connection.auth.user = user;
       await this.recheckSubscriptions(connection);
@@ -1255,7 +1601,11 @@ export class RealtimeGateway implements OnReady, OnDestroy {
             subscription.params,
             subscription.key
           );
-        } else if (subscription.kind === 'action-stream') {
+        } else if (
+          subscription.kind === 'action-call' ||
+          subscription.kind === 'remote-call'
+        ) {
+          // Checked with the calls of the user by the instance running them
           allowed = true;
         } else {
           allowed = await this.channelAccess(
@@ -1407,5 +1757,34 @@ function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> {
     !!value &&
     typeof (value as AsyncIterable<unknown>)[Symbol.asyncIterator] ===
       'function'
+  );
+}
+
+function deniedAction(action: string): RealtimeError {
+  return new RealtimeError(
+    ErrorCode.RealtimeActionDenied,
+    `Realtime action '${action}' denied`,
+    { action }
+  );
+}
+
+/** Whether a connection streams the input of a call, which cannot move to another instance. */
+function streamsInput(connection: RealtimeConnection): boolean {
+  for (const subscription of connection.subscriptions.values()) {
+    if (
+      subscription.kind === 'action-call' &&
+      subscription.call.input &&
+      !subscription.call.input.ended
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function shuttingDown(): RealtimeError {
+  return new RealtimeError(
+    ErrorCode.RealtimeShuttingDown,
+    'Realtime server shutting down'
   );
 }

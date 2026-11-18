@@ -370,6 +370,14 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     status: 406,
     title: 'Realtime stream not accepted'
   },
+  [ErrorCode.RealtimeInputLimit]: {
+    status: 413,
+    title: 'Realtime input too large'
+  },
+  [ErrorCode.RealtimeShuttingDown]: {
+    status: 503,
+    title: 'Realtime server shutting down'
+  },
 
   [ErrorCode.TimeSeriesNotEnabled]: {
     status: 404,

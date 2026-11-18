@@ -88,7 +88,7 @@ describe('realtime-util', () => {
       expect(type).toBe(
         'export type RealtimeModuleType = { channels: { "order.shipped": { payload: { orderId: number; carrier: string | null }; params: { orderId?: number } }; ping: { payload: unknown; params: undefined } }; ' +
           'resources: { Post: { actions: "create" | "update"; record: PostSingle }; Missing: { actions: "delete"; record: Record<string, unknown> } }; ' +
-          'actions: { "chat.typing": { payload: { roomId: number; tags?: string[] }; response: { seen: boolean } }; cursor: { payload: Record<string, never>; response: unknown }; assistant: { payload: { prompt: string }; response: unknown; chunk: string } }; ' +
+          'actions: { "chat.typing": { payload: { roomId: number; tags?: string[] }; response: { seen: boolean } }; cursor: { payload: Record<string, never>; response: unknown }; assistant: { payload: { prompt: string }; response: unknown; chunk: string }; voice: { payload: Record<string, never>; response: unknown; input: Uint8Array } }; ' +
           'streams: { "room.answer": { chunk: string; params: { roomId: number } }; radio: { chunk: Uint8Array; params: undefined }; ticks: { chunk: { price: number }; params: undefined } } };'
       );
     });

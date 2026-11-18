@@ -1,10 +1,11 @@
 import { Stream, StreamSink } from '../stream/types';
-import { StreamInstance } from '../stream/stream-instance';
 import { Channel } from '../types';
+import { ActionCall } from './action-call';
 
-/** A subscription of a connection: to a channel, to the events of a resource, to a stream, or of a streaming action. */
+/** A subscription of a connection: to a channel, to the events of a resource, to a stream, or of a call of an action
+ * with a stream or an input. */
 export type ActiveSubscription = {
-  /** The ID the client chose, the ID of the call of a streaming action */
+  /** The ID the client chose, the ID of the call of an action */
   id: string;
   /** The channel the client subscribed to, i.e. `resource:Order.update`, `stream:radio.live` */
   channel: string;
@@ -43,10 +44,17 @@ export type ActiveSubscription = {
       resume?: { streamId: string; seq: number };
     }
   | {
-      kind: 'action-stream';
-      /** The stream of the call of the action */
-      instance: StreamInstance;
+      kind: 'remote-call';
+      /** The ID of the stream of a call of another instance, resumed here */
+      streamId: string;
       /** The subscriber of the stream, writing to the connection */
       sink: StreamSink;
+    }
+  | {
+      kind: 'action-call';
+      /** The call of an action with a stream or an input */
+      call: ActionCall;
+      /** The subscriber of the stream of the call, writing to the connection */
+      sink?: StreamSink;
     }
 );

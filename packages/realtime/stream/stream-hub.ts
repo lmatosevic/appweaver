@@ -36,6 +36,12 @@ const CONTROL_CHANNEL = `${PUBSUB_CHANNEL_PREFIX}_streams`;
 /** The heartbeats a relayed stream may stay silent for before it is lost, and an interest forgotten. */
 const MISSED_HEARTBEATS = 3;
 
+/** The name of the topics of the streaming actions, keyed by their stream IDs, never the name of a stream. */
+const ACTION_TOPIC = '$action';
+
+/** The milliseconds a resume waits at most for the owner of a streaming action on another instance. */
+const MAX_REMOTE_RESUME_WAIT = 2000;
+
 /** The end of a stream, as it is relayed. */
 type RelayEnd = Extract<
   StreamFrameMessage,
@@ -53,19 +59,27 @@ export type RelayMessage = {
   /** The ID of the stream */
   streamId: string;
   /** The start of the stream, sent to an instance becoming interested, creating its mirror */
-  start?: { codec: StreamSettings['codec']; mimeType?: string; seq: number };
+  start?: {
+    codec: StreamSettings['codec'];
+    mimeType?: string;
+    seq: number;
+    /** The ID of the user calling a streaming action, the only one who may resume it */
+    owner?: string | null;
+  };
   /** The chunks, as `[seq, data, sync]` */
   chunks: [number, unknown, true?][];
   /** The end of the stream, without its `sid` */
   end?: DistributiveOmit<RelayEnd, 'sid'>;
 };
 
-/** A message of the control channel: the instances with a subscriber of the keys of streams, or an instance starting
- * asking for them. */
+/** A message of the control channel: the instances with a subscriber of the keys of streams, an instance starting
+ * asking for them, or the cancellation of a streaming action resumed on another instance. */
 export type ControlMessage = {
-  op: 'interest' | 'interest-end' | 'query';
+  op: 'interest' | 'interest-end' | 'query' | 'cancel';
   from: string;
   topics: [name: string, key: string][];
+  /** The user cancelling a streaming action */
+  owner?: string | null;
 };
 
 /** The subscription of a sink to the key of a stream, resuming one of its streams. */
@@ -80,6 +94,10 @@ type Topic = {
   sinks: Map<StreamSink, SinkResume | undefined>;
   instances: Map<string, { instance: StreamInstance; owned: boolean }>;
   relay?: Promise<string>;
+  /** The owner of the mirror of a streaming action */
+  owner?: string | null;
+  /** Called once a mirror arrives, by the resumes waiting for it */
+  waiters?: Set<() => void>;
 };
 
 /** The relay of a stream to the other instances. */
@@ -121,6 +139,8 @@ export class StreamHub implements OnReady, OnDestroy {
   private readonly _actions = new Map<string, ActionStream>();
   /** @internal */
   private readonly _spans = new Map<StreamInstance, Span>();
+  /** @internal */
+  private readonly _traced = new Set<StreamInstance>();
   /** @internal */
   private readonly _timers = new Set<NodeJS.Timeout>();
   /** @internal */
@@ -215,7 +235,8 @@ export class StreamHub implements OnReady, OnDestroy {
   }
 
   /**
-   * Opens the stream of a streaming action, reaching only the subscribers the gateway attaches, never relayed.
+   * Opens the stream of a streaming action, reaching only the subscribers the gateway attaches: its caller, and its
+   * caller resuming it on another instance, i.e. one the client moved to while this one shuts down.
    *
    * @param {string} name - The name of the action.
    * @param {StreamSettings} settings - The settings of the stream.
@@ -228,6 +249,7 @@ export class StreamHub implements OnReady, OnDestroy {
     owner: string | null
   ): StreamInstance {
     const streamId = uuid();
+    const topic = this.topicFor(ACTION_TOPIC, streamId, settings);
     const instance = new StreamInstance(
       ++this._sid,
       streamId,
@@ -235,47 +257,112 @@ export class StreamHub implements OnReady, OnDestroy {
       streamId,
       settings,
       {
+        onChunk: (owned, entry) => this.relayChunk(topic, owned, entry),
         onEmpty: (empty) => this.lingerAction(empty),
-        onEnd: (ended) => {
+        onEnd: (ended, entry) => {
           const action = this._actions.get(ended.streamId);
           clearTimeout(action?.linger);
+          this.ended(topic, ended, entry);
           this.later(() => this._actions.delete(ended.streamId));
         }
       }
     );
+    topic.instances.set(streamId, { instance, owned: true });
     this._actions.set(streamId, { instance, owner });
+    this.startHeartbeat();
+    void this.listen();
     return instance;
   }
 
   /**
    * Attaches a subscriber to the stream of a streaming action again, i.e. after a reconnection, resuming from a
-   * sequence number.
+   * sequence number. A stream of another instance, i.e. one shutting down whose clients moved here, is relayed from
+   * its owner once it answers.
    *
    * @param {string} streamId - The ID of the stream.
    * @param {string | null} owner - The ID of the user, the one who called the action.
    * @param {StreamSink} sink - The subscriber.
    * @param {number} seq - The sequence number to resume from.
-   * @return {StreamInstance} The stream.
+   * @return {Promise<Object>} The stream, and whether it is relayed from another instance.
    * @throws {RealtimeError} `REALTIME_STREAM_NOT_FOUND` for a stream gone, or of another user.
    */
-  public resumeAction(
+  public async resumeAction(
     streamId: string,
     owner: string | null,
     sink: StreamSink,
     seq: number
-  ): StreamInstance {
+  ): Promise<{ instance: StreamInstance; remote: boolean }> {
     const action = this._actions.get(streamId);
-    if (!action || action.owner !== owner) {
-      throw new RealtimeError(
-        ErrorCode.RealtimeStreamNotFound,
-        `Realtime stream '${streamId}' not found`,
-        { streamId }
-      );
+    if (action) {
+      if (action.owner !== owner) {
+        throw streamNotFound(streamId);
+      }
+      clearTimeout(action.linger);
+      action.linger = undefined;
+      action.instance.attach(sink, seq);
+      return { instance: action.instance, remote: false };
     }
-    clearTimeout(action.linger);
-    action.linger = undefined;
-    action.instance.attach(sink, seq);
-    return action.instance;
+
+    const topic = this.topicFor(ACTION_TOPIC, streamId, streamSettings());
+    let mirror = topic.instances.get(streamId)?.instance;
+    if (!mirror) {
+      let timer: NodeJS.Timeout | undefined;
+      let waiter: (() => void) | undefined;
+      const arrived = new Promise<void>((resolve) => {
+        waiter = resolve;
+        timer = setTimeout(
+          resolve,
+          Math.min(
+            realtimeConfig.STREAM_RELAY_HEARTBEAT,
+            MAX_REMOTE_RESUME_WAIT
+          )
+        );
+      });
+      (topic.waiters ??= new Set()).add(waiter!);
+      try {
+        await this.watch(topic);
+        await arrived;
+      } finally {
+        clearTimeout(timer);
+        topic.waiters.delete(waiter!);
+      }
+      mirror = topic.instances.get(streamId)?.instance;
+    }
+
+    if (!mirror || topic.owner !== owner) {
+      if (topic.sinks.size === 0) {
+        await this.release(topic);
+      }
+      throw streamNotFound(streamId);
+    }
+    topic.sinks.set(sink, { streamId, seq });
+    mirror.attach(sink, seq);
+    return { instance: mirror, remote: true };
+  }
+
+  /**
+   * Cancels a streaming action of a user, on this instance or on the one owning it.
+   *
+   * @param {string} streamId - The ID of the stream.
+   * @param {string | null} owner - The ID of the user, the one who called the action.
+   * @return {Promise<void>} Resolves once cancelled, or the cancellation published.
+   */
+  public async cancelAction(
+    streamId: string,
+    owner: string | null
+  ): Promise<void> {
+    const action = this._actions.get(streamId);
+    if (action) {
+      if (action.owner === owner) {
+        action.instance.cancel();
+      }
+      return;
+    }
+    await this.publishControl(
+      'cancel',
+      [{ name: ACTION_TOPIC, key: streamId }],
+      owner
+    );
   }
 
   /**
@@ -303,17 +390,8 @@ export class StreamHub implements OnReady, OnDestroy {
       }
     }
 
-    if (!topic.relay) {
-      topic.relay = this._pubsub.subscribe<RelayMessage>(
-        topic.channel,
-        (message) => this.receive(topic, message)
-      );
-      this.startHeartbeat();
-      void this.publishControl('interest', [topic]);
-    }
-
     try {
-      await topic.relay;
+      await this.watch(topic);
     } catch (e) {
       await this.unsubscribe(stream.name, key, sink);
       throw e;
@@ -344,17 +422,7 @@ export class StreamHub implements OnReady, OnDestroy {
       return;
     }
 
-    // The mirrors serve only the subscribers of this instance
-    for (const [streamId, { owned }] of topic.instances) {
-      if (!owned) {
-        topic.instances.delete(streamId);
-      }
-    }
-    if (topic.relay) {
-      await this.closeRelay(topic);
-      await this.publishControl('interest-end', [topic]);
-    }
-    this.dropTopic(topic);
+    await this.release(topic);
   }
 
   /**
@@ -387,8 +455,16 @@ export class StreamHub implements OnReady, OnDestroy {
 
     for (const [name, key] of message.topics) {
       const id = topicKey(name, key);
+      if (message.op === 'cancel') {
+        const action = name === ACTION_TOPIC ? this._actions.get(key) : null;
+        if (action && action.owner === (message.owner ?? null)) {
+          action.instance.cancel();
+        }
+        continue;
+      }
       if (message.op === 'interest-end') {
         this._interest.get(id)?.delete(message.from);
+        this.relingerAction(name, key);
         continue;
       }
 
@@ -400,10 +476,11 @@ export class StreamHub implements OnReady, OnDestroy {
       const known = instances.has(message.from);
       instances.set(message.from, Date.now());
 
+      // An ended streaming action is still sent, with its end, for a resume
       const topic = this._topics.get(id);
       if (!known && topic) {
         for (const { instance, owned } of topic.instances.values()) {
-          if (owned && !instance.ended) {
+          if (owned && (!instance.ended || name === ACTION_TOPIC)) {
             this.sendSnapshot(topic, instance);
           }
         }
@@ -455,6 +532,8 @@ export class StreamHub implements OnReady, OnDestroy {
       }
       if (instances.size === 0) {
         this._interest.delete(id);
+        const [name, key] = splitTopicKey(id);
+        this.relingerAction(name, key);
       }
     }
   }
@@ -507,20 +586,61 @@ export class StreamHub implements OnReady, OnDestroy {
 
   /** @internal */
   private topic(stream: Stream, key: string): Topic {
-    const id = topicKey(stream.name, key);
+    return this.topicFor(stream.name, key, streamSettings(stream.config));
+  }
+
+  /** @internal */
+  private topicFor(name: string, key: string, settings: StreamSettings): Topic {
+    const id = topicKey(name, key);
     let topic = this._topics.get(id);
     if (!topic) {
       topic = {
-        name: stream.name,
+        name,
         key,
-        settings: streamSettings(stream.config),
-        channel: `${PUBSUB_CHANNEL_PREFIX}stream:${stream.name}#${key}`,
+        settings,
+        channel: `${PUBSUB_CHANNEL_PREFIX}stream:${name}#${key}`,
         sinks: new Map(),
         instances: new Map()
       };
       this._topics.set(id, topic);
     }
     return topic;
+  }
+
+  /**
+   * Subscribes to the relay of a topic and announces the interest of this instance in it.
+   *
+   * @internal
+   */
+  private async watch(topic: Topic): Promise<void> {
+    if (!topic.relay) {
+      topic.relay = this._pubsub.subscribe<RelayMessage>(
+        topic.channel,
+        (message) => this.receive(topic, message)
+      );
+      this.startHeartbeat();
+      void this.publishControl('interest', [topic]);
+    }
+    await topic.relay;
+  }
+
+  /**
+   * Drops the mirrors of a topic without a subscriber, ending its relay and the interest of this instance in it.
+   *
+   * @internal
+   */
+  private async release(topic: Topic): Promise<void> {
+    // The mirrors serve only the subscribers of this instance
+    for (const [streamId, { owned }] of topic.instances) {
+      if (!owned) {
+        topic.instances.delete(streamId);
+      }
+    }
+    if (topic.relay) {
+      await this.closeRelay(topic);
+      await this.publishControl('interest-end', [topic]);
+    }
+    this.dropTopic(topic);
   }
 
   /** @internal */
@@ -551,7 +671,10 @@ export class StreamHub implements OnReady, OnDestroy {
 
   /** @internal */
   private receive(topic: Topic, message: RelayMessage): void {
-    if (message.from === this.instanceId || topic.sinks.size === 0) {
+    if (
+      message.from === this.instanceId ||
+      (topic.sinks.size === 0 && !topic.waiters?.size)
+    ) {
       return;
     }
 
@@ -580,12 +703,20 @@ export class StreamHub implements OnReady, OnDestroy {
         instance: mirror,
         owned: false
       });
+      if (message.start.owner !== undefined) {
+        topic.owner = message.start.owner;
+      }
       for (const [seq, data, sync] of message.chunks ?? []) {
         mirror.ingest(seq, data, sync);
       }
       for (const [sink, resume] of topic.sinks) {
         mirror.attach(sink, resumeSeq(resume, mirror));
       }
+      if (message.end) {
+        mirror.finishMirror(message.end);
+      }
+      topic.waiters?.forEach((waiter) => waiter());
+      return;
     } else {
       mirror.lastSeen = Date.now();
       for (const [seq, data, sync] of message.chunks ?? []) {
@@ -667,14 +798,21 @@ export class StreamHub implements OnReady, OnDestroy {
         entry.sync ? [entry.seq, entry.data, true] : [entry.seq, entry.data]
       )
     );
+    const action = this._actions.get(instance.streamId);
+    const end = instance.endEntry?.frame.message as RelayEnd | undefined;
     this.flushRelay(topic, instance, {
       start: {
         codec: instance.settings.codec,
         ...(instance.settings.mimeType
           ? { mimeType: instance.settings.mimeType }
           : {}),
-        seq: instance.ring[0]?.seq ?? instance.nextSeq
-      }
+        seq:
+          instance.ring[0]?.seq ?? instance.endEntry?.seq ?? instance.nextSeq,
+        ...(action && topic.name === ACTION_TOPIC
+          ? { owner: action.owner }
+          : {})
+      },
+      ...(end ? { end: withoutSid(end) } : {})
     });
   }
 
@@ -697,8 +835,9 @@ export class StreamHub implements OnReady, OnDestroy {
     const owned = entry !== undefined;
     if (owned) {
       if (this.remoteInterest(topic) > 0) {
-        const { sid, ...end } = entry.frame.message as RelayEnd;
-        this.flushRelay(topic, instance, { end });
+        this.flushRelay(topic, instance, {
+          end: withoutSid(entry.frame.message as RelayEnd)
+        });
       }
       const relay = this._relays.get(instance);
       clearTimeout(relay?.timer);
@@ -724,12 +863,28 @@ export class StreamHub implements OnReady, OnDestroy {
     clearTimeout(action.linger);
     action.linger = setTimeout(() => {
       this._timers.delete(action.linger!);
-      if (instance.sinks.size === 0) {
+      // Its caller may read it from another instance
+      if (
+        instance.sinks.size === 0 &&
+        this.remoteInterest(topicKey(ACTION_TOPIC, instance.streamId)) === 0
+      ) {
         instance.cancel();
       }
     }, realtimeConfig.STREAM_LINGER);
     action.linger.unref();
     this._timers.add(action.linger);
+  }
+
+  /**
+   * Lingers a streaming action no other instance relays any more, unless a subscriber of this one reads it.
+   *
+   * @internal
+   */
+  private relingerAction(name: string, key: string): void {
+    const action = name === ACTION_TOPIC ? this._actions.get(key) : undefined;
+    if (action && action.instance.sinks.size === 0) {
+      this.lingerAction(action.instance);
+    }
   }
 
   /** @internal */
@@ -764,12 +919,14 @@ export class StreamHub implements OnReady, OnDestroy {
   /** @internal */
   private async publishControl(
     op: ControlMessage['op'],
-    topics: Topic[]
+    topics: Pick<Topic, 'name' | 'key'>[],
+    owner?: string | null
   ): Promise<void> {
     const message: ControlMessage = {
       op,
       from: this.instanceId,
-      topics: topics.map((topic) => [topic.name, topic.key])
+      topics: topics.map((topic) => [topic.name, topic.key]),
+      ...(owner !== undefined ? { owner } : {})
     };
     try {
       await this._pubsub.publish(CONTROL_CHANNEL, message);
@@ -792,6 +949,7 @@ export class StreamHub implements OnReady, OnDestroy {
 
   /** @internal */
   private trace(instance: StreamInstance): void {
+    this._traced.add(instance);
     realtimeMetrics.streams(instance.name, 1);
     if (!telemetryEnabled('realtime')) {
       return;
@@ -808,6 +966,10 @@ export class StreamHub implements OnReady, OnDestroy {
 
   /** @internal */
   private endTrace(instance: StreamInstance, entry: RingEntry): void {
+    // The streams of the actions are traced by the spans of their calls
+    if (!this._traced.delete(instance)) {
+      return;
+    }
     realtimeMetrics.streams(instance.name, -1);
     const span = this._spans.get(instance);
     if (!span) {
@@ -827,6 +989,25 @@ export class StreamHub implements OnReady, OnDestroy {
 /** The key of the subscribers of a key of a stream. */
 function topicKey(name: string, key: string): string {
   return `${name}#${key}`;
+}
+
+/** The name and the key of a key of a topic, the name never holding a `#`. */
+function splitTopicKey(id: string): [name: string, key: string] {
+  const index = id.indexOf('#');
+  return [id.slice(0, index), id.slice(index + 1)];
+}
+
+function withoutSid(end: RelayEnd): DistributiveOmit<RelayEnd, 'sid'> {
+  const { sid, ...rest } = end;
+  return rest;
+}
+
+function streamNotFound(streamId: string): RealtimeError {
+  return new RealtimeError(
+    ErrorCode.RealtimeStreamNotFound,
+    `Realtime stream '${streamId}' not found`,
+    { streamId }
+  );
 }
 
 /** The sequence number a sink resumes a stream from, when it resumes this one. */

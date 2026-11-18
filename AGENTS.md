@@ -398,6 +398,8 @@ core (`memory`, or `redis` of `@appweaver/redis` to reach every instance), while
 | `stream/stream-instance.ts`   | `StreamInstance`: the sequence, the frames encoded once, the replay, the coalescing, the slow subscribers   |
 | `stream/stream-hub.ts`        | `StreamHub`: the streams of the instance, the streaming actions, and the relay between the instances        |
 | `gateway/connection-sink.ts`  | `ConnectionSink`, a subscriber of a stream writing to a connection; `transport/response-sink.ts` over HTTP  |
+| `gateway/action-call.ts`      | `ActionCall`: a call with a stream or an input, kept by the gateway until it ends, ended on a user change   |
+| `stream/input-stream.ts`      | `InputStream`: the chunks a client streams to an action, read as an async iterable, paced by credits        |
 
 A change of a user of the auth model reaches their connections on every instance through the pub/sub: a logout, a
 disabling or a deletion closes them (`revoke`), any other change loads the user again and removes the subscriptions it
@@ -415,6 +417,20 @@ another instance only while one of them announces a subscriber of its key on the
 `stream/` never imports the gateway, the transports, the web part, the channels, `@appweaver/web` or
 `@appweaver/data`, so it can move to a package without a server; the gateway sets how its errors are formatted
 (`setStreamProblemFormat`).
+
+A call of an action with a stream or an input is an `ActionCall` of `RealtimeGateway.calls`, over the WebSocket and
+HTTP alike: a `revoke` (logout, disabling, deletion) ends the calls of the user at once with `REALTIME_ACTION_DENIED`,
+and a `refresh` ends the ones whose action the user can no longer call. An input (`input` of an action) is sent over
+the WebSocket only, as `input` messages or binary messages (`1`, the length of the ID, the ID, the bytes), paced by the
+`input.credit` messages of the server instead of the rate limit. A stream with `resource: { model, id? }` lets subscribe
+the users the `find` of the record passes for, as themselves, so the policy of the model decides.
+
+On shutdown the `preClose` hook of the server runs `RealtimeGateway.drain()`: new connections and calls are refused
+(`REALTIME_SHUTTING_DOWN`), the connections close with `1012` except the ones streaming an input, and the calls get
+up to `realtime.shutdownGracePeriod` to end. A streaming action is relayed like a stream of a key, under the
+`$action` topic of its stream ID with its owner in the snapshot, so a client resuming it on another instance reads it
+from the draining one (`StreamHub.resumeAction`), a cancellation travels back as a `cancel` control message, and its
+owner lingers it only once no instance relays it.
 
 ### `packages/testing`
 

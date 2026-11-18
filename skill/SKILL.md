@@ -943,8 +943,17 @@ writer.write('Hello');
 writer.end();
 ```
 
+An action with `input` receives the chunks a client streams over the WebSocket (`context.input`, paced by credits),
+i.e. the audio of a microphone. A stream with `resource: { model }` lets subscribe only the users able to `find` the
+record of the key, so the policy of the model decides. A logout, a disabling or a lost role ends the calls of a user at
+once (their `signal` aborts), over HTTP too.
+
+On a rolling update an instance drains: it moves its clients to the other instances (`1012`), relays the streaming
+actions they resume there until they end, and waits for its calls at most `realtime.shutdownGracePeriod`.
+
 The generated client calls `client.realtime.subscribe`, `on`, `send`, `emit`, `call` (a streaming action, an async
-iterable of its chunks) and `stream`. See [realtime.md](references/realtime.md).
+iterable of its chunks, with `call.input` or `{ input }` for an input) and `stream`. See
+[realtime.md](references/realtime.md).
 
 ### Registering a custom model
 

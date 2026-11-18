@@ -38,6 +38,29 @@ export type StreamOptions<
   coalesce?: number;
 };
 
+/** The input a client streams to an action, read by its handler as `context.input`. */
+export type StreamInputOptions<
+  C extends StreamCodec = StreamCodec,
+  J extends TSchema = TSchema
+> = {
+  /** The codec of the chunks. Default: `text` */
+  codec?: C;
+  /** The media type of the bytes of a `binary` input, i.e. `audio/webm` */
+  mimeType?: string;
+  /** The schema of the chunks of a `json` input, checked outside of `prod` */
+  chunk?: J;
+  /** The bytes the client may send in all. Default: `realtime.streamInputMaxBytes` */
+  maxBytes?: string;
+};
+
+/** The record of a model a stream belongs to, whose `find` policy decides who may subscribe to it. */
+export type StreamResource<Q extends TSchema = TSchema> = {
+  /** The name of the model, i.e. `ChatRoom` */
+  model: string;
+  /** The ID of the record of a key, the key by default (a number for a key of digits) */
+  id?(key: string, params: Static<Q>): string | number;
+};
+
 /** The config of a stream of {@link createStream}. */
 export type StreamConfig<
   C extends StreamCodec = StreamCodec,
@@ -51,6 +74,8 @@ export type StreamConfig<
     description?: string;
     /** The schema of the parameters of a subscription, validated when subscribing */
     params?: Q;
+    /** The record a key belongs to: a subscriber must be able to `find` it, the policy of its model applied */
+    resource?: StreamResource<Q>;
     /** Returns false to deny a subscription, called once when the client subscribes to a key */
     subscribe?(
       user: AuthUser | null,

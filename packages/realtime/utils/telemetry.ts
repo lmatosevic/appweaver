@@ -30,6 +30,11 @@ const streamBytes = telemetryCounter('appweaver.realtime.stream.bytes', {
   unit: 'By'
 });
 
+const inputBytes = telemetryCounter('appweaver.realtime.input.bytes', {
+  description: 'The bytes the clients stream to the actions with an input',
+  unit: 'By'
+});
+
 const clientMessages = telemetryCounter('appweaver.realtime.messages', {
   description: 'The messages of the realtime clients',
   unit: '{message}'
@@ -66,6 +71,12 @@ export const realtimeMetrics = {
       const attributes = { 'appweaver.realtime.stream': name };
       streamChunks().add(1, attributes);
       streamBytes().add(bytes, attributes);
+    }
+  },
+  /** Counts the bytes of a chunk a client streams to an action. */
+  inputBytes(action: string, bytes: number): void {
+    if (telemetryEnabled('realtime')) {
+      inputBytes().add(bytes, { 'appweaver.realtime.action': action });
     }
   },
   /** Counts a message of a client. */

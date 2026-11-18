@@ -99,13 +99,10 @@ export function registerRealtimeRoutes(): void {
   const prefix = realtimeConfig.ROUTE_PREFIX.replace(/\/$/, '');
 
   registerPlugin('appweaver-realtime', (server) => {
-    // The open connections would keep the server from closing
-    server.addHook('preClose', (done) => {
-      inject(RealtimeGateway).closeAll(
-        RealtimeCloseCode.GoingAway,
-        'Server shutting down'
-      );
-      done();
+    // Moves the clients to the other instances and lets the calls end, since
+    // the open connections would keep the server from closing
+    server.addHook('preClose', async () => {
+      await inject(RealtimeGateway).drain();
     });
 
     if (realtimeConfig.WEBSOCKET_ENABLED) {
@@ -175,7 +172,8 @@ export function registerRealtimeRoutes(): void {
               ErrorCode.RealtimeActionDenied,
               ErrorCode.RealtimePayloadInvalid,
               ErrorCode.RealtimeMessageInvalid,
-              ErrorCode.RealtimeStreamAccept
+              ErrorCode.RealtimeStreamAccept,
+              ErrorCode.RealtimeShuttingDown
             ]
           }
         },
@@ -210,7 +208,8 @@ export function registerRealtimeRoutes(): void {
               errorCodes: [
                 ErrorCode.RealtimeTicketInvalid,
                 ErrorCode.RealtimeConnectionLimit,
-                ErrorCode.RealtimeMessageInvalid
+                ErrorCode.RealtimeMessageInvalid,
+                ErrorCode.RealtimeShuttingDown
               ],
               rateLimit: false
             } as never
@@ -316,7 +315,8 @@ async function callAction(
 ): Promise<unknown> {
   const gateway = inject(RealtimeGateway);
   const ack = request.query.ack !== false;
-  if (findRealtimeAction(request.params.name)?.config.stream) {
+  const config = findRealtimeAction(request.params.name)?.config;
+  if (config?.stream || config?.input) {
     return streamAction(request, reply, ack);
   }
   const call = gateway.callAction(request.params.name, request.body, {
@@ -368,13 +368,13 @@ async function streamAction(
     reply.raw.writeHead(200, headers as never);
   });
 
-  const instance = inject(RealtimeGateway).openActionStream(
+  const call = inject(RealtimeGateway).openActionCall(
     name,
     request.body,
     { user: currentAuthUser() ?? null, transport: 'http', ack: true },
-    sink
+    { sink }
   );
-  reply.raw.on('close', () => instance.cancel());
+  reply.raw.on('close', () => call.cancel());
 }
 
 async function openEventStream(
@@ -439,7 +439,13 @@ async function openWebSocket(
 
   socket.on('message', (data, isBinary) => {
     if (isBinary) {
-      socket.close(RealtimeCloseCode.PolicyViolation, 'Binary message');
+      // A chunk of an input, never sent before the connection opened
+      if (
+        !connection ||
+        !gateway.handleBinary(connection, messageBytes(data))
+      ) {
+        socket.close(RealtimeCloseCode.PolicyViolation, 'Binary message');
+      }
     } else if (connection) {
       void gateway.handleMessage(connection, messageText(data));
     } else if (early.length < EARLY_MESSAGES_LIMIT) {
@@ -467,13 +473,7 @@ async function openWebSocket(
     connection = opened;
   } catch (e) {
     socket.send(JSON.stringify({ type: 'error', error: toProblem(e) }));
-    socket.close(
-      isAppweaverError(e) &&
-        (e.code as ErrorCode) === ErrorCode.RealtimeConnectionLimit
-        ? RealtimeCloseCode.TooManyConnections
-        : RealtimeCloseCode.Unauthorized,
-      'Connection refused'
-    );
+    socket.close(closeCode(e), 'Connection refused');
     return;
   }
 
@@ -482,12 +482,30 @@ async function openWebSocket(
   }
 }
 
+/** The close code of a refused WebSocket connection. */
+function closeCode(error: unknown): RealtimeCloseCode {
+  const code = isAppweaverError(error) ? (error.code as ErrorCode) : undefined;
+  switch (code) {
+    case ErrorCode.RealtimeConnectionLimit:
+      return RealtimeCloseCode.TooManyConnections;
+    case ErrorCode.RealtimeShuttingDown:
+      return RealtimeCloseCode.ServiceRestart;
+    default:
+      return RealtimeCloseCode.Unauthorized;
+  }
+}
+
 /** The text of a WebSocket message, received as one buffer or as fragments. */
 function messageText(data: RawData): string {
+  return messageBytes(data).toString();
+}
+
+/** The bytes of a WebSocket message, received as one buffer or as fragments. */
+function messageBytes(data: RawData): Buffer {
   if (Array.isArray(data)) {
-    return Buffer.concat(data).toString();
+    return Buffer.concat(data);
   }
-  return Buffer.from(data as ArrayBuffer).toString();
+  return Buffer.isBuffer(data) ? data : Buffer.from(data);
 }
 
 /** The authentication of a ticket, or of an anonymous connection when they are allowed and there is no ticket. */

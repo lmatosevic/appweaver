@@ -412,7 +412,8 @@ describe('realtime routes', () => {
       await app.server.close();
       await socket.next(() => false).catch(() => undefined);
 
-      expect(socket.closeCode).toBe(1001);
+      // The client reconnects at once to another instance
+      expect(socket.closeCode).toBe(1012);
       expect(app.gateway.connections.size).toBe(0);
     });
   });
@@ -950,6 +951,51 @@ describe('realtime routes', () => {
 
       expect(response.status).toBe(403);
       expect((await response.json()).code).toBe('REALTIME_ACTION_DENIED');
+    });
+
+    test('reads an input streamed over the WebSocket, as binary and JSON messages', async () => {
+      app = await startRealtimeServer();
+      createRealtimeAction({
+        name: 'voice',
+        payload: Type.Object({}),
+        input: { codec: 'binary' },
+        async handler(_, { input }) {
+          let bytes = 0;
+          for await (const chunk of input!) {
+            bytes += chunk.length;
+          }
+          return { bytes };
+        }
+      });
+      const socket = await connect();
+
+      socket.send({ type: 'action', id: 'c1', action: 'voice', payload: {} });
+      await socket.next((m) => m.type === 'input.credit');
+      socket.socket.send(new Uint8Array([1, 2, 99, 49, 1, 2, 3]));
+      socket.send({ type: 'input', id: 'c1', data: 'AQI=' });
+      socket.send({ type: 'input.end', id: 'c1' });
+      const result = await socket.next((m) => m.type === 'result');
+
+      expect(result).toEqual({
+        type: 'result',
+        id: 'c1',
+        result: { bytes: 5 }
+      });
+    });
+
+    test('refuses an action with an input over HTTP', async () => {
+      app = await startRealtimeServer();
+      createRealtimeAction({
+        name: 'voice',
+        payload: Type.Object({ prompt: Type.String() }),
+        input: {},
+        handler: () => undefined
+      });
+
+      const response = await streamCall('voice');
+
+      expect(response.status).toBe(400);
+      expect((await response.json()).code).toBe('REALTIME_MESSAGE_INVALID');
     });
 
     test('sends a stream to its subscribers over SSE and the WebSocket', async () => {

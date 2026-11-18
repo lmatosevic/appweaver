@@ -52,5 +52,14 @@ export const realtimeConfig = defineConfig('realtime', {
   STREAM_RELAY_MAX_BATCH: Type.String({ default: '64KB' }),
   /** Milliseconds between the messages keeping the relay of the streams between the instances alive, a relayed
    * stream silent for three of them being lost. Default: `5000` (5 sec). */
-  STREAM_RELAY_HEARTBEAT: Type.Integer({ default: 5000, minimum: 100 })
+  STREAM_RELAY_HEARTBEAT: Type.Integer({ default: 5000, minimum: 100 }),
+  /** Bytes a client may stream to an action ahead of its handler reading them, given back as the handler reads.
+   * Default: `256KB`. */
+  STREAM_INPUT_WINDOW: Type.String({ default: '256KB' }),
+  /** Bytes a client may stream to an action in all, unless the action sets its own `input.maxBytes`. Default:
+   * `10MB`. */
+  STREAM_INPUT_MAX_BYTES: Type.String({ default: '10MB' }),
+  /** Milliseconds a shutting down instance waits for its calls to end, i.e. the answers of an LLM, after moving its
+   * clients to the other instances (close code `1012`), `0` to end them at once. Default: `30000` (30 sec). */
+  SHUTDOWN_GRACE_PERIOD: Type.Integer({ default: 30000, minimum: 0 })
 });

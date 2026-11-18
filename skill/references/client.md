@@ -546,7 +546,9 @@ const fileData = await file.base64(); // or use file.stream to pipe output to fi
 `RealtimeModuleType` of the `x-appweaver-realtime` extension. It connects on the first subscription or action with a
 ticket of the client's `auth`, over a WebSocket, or SSE where the runtime or the server has none (SSE reopens its stream
 on a change of the subscriptions, and sends the actions over HTTP). It reconnects with its subscriptions after a lost
-connection or a failed attempt, with a backoff, and at once on an expired token (`4401`).
+connection or a failed attempt, with a backoff randomized from its half to itself, at once on an expired token (`4401`),
+and within a random part of `reconnectDelay` on a server restarting (`1012`, a rolling update), resuming the streams
+of its calls on the new instance.
 
 | Method                                     | Description                                                                                    |
 |--------------------------------------------|------------------------------------------------------------------------------------------------|
@@ -554,7 +556,7 @@ connection or a failed attempt, with a backoff, and at once on an expired token 
 | `on(model, handler, { action?, filter? })` | Resource events, `handler({ model, action, current, previous? })`                              |
 | `observe(channel, params?)`                | An observable of the payloads, for `from(...)` of RxJS                                         |
 | `send(action, payload)` / `emit(...)`      | Calls an action, resolving to its result / fire-and-forget                                     |
-| `call(action, payload)`                    | Calls a streaming action: an async iterable of its chunks, with `result`, `stream`, `onChunk(listener)` and `cancel()` |
+| `call(action, payload, { input? })`        | Calls a streaming action: an async iterable of its chunks, with `result`, `stream`, `onChunk(listener)`, `cancel()` and `input` (`write(chunk)`, `end()`) |
 | `stream(name, handlers, { key?, params? })` | Subscribes to the streams of a key, `handlers`: `onStart(info)`, `onChunk(chunk, { streamId, seq, gap, sync })`, `onEnd(result, info)`, `onError(error, info)` |
 | `connect()`, `disconnect()`, `reconnect()` | Opens, closes (keeping the subscriptions), or reopens with a new ticket, i.e. after a login    |
 | `onStateChange(listener)`, `onError(...)`  | `idle`, `connecting`, `open`, `reconnecting`; the errors answering no subscription or action   |
@@ -566,6 +568,21 @@ The chunks of a `binary` stream are `Uint8Array`s. Over the WebSocket, a call an
 reconnection from the last chunk received, without duplicates; over SSE, a call is the response of an HTTP request,
 failing with the connection. `call.result` rejects with the error of the stream, or once cancelled (`cancel()`, or
 leaving a `for await` early), which ends the iteration instead of throwing in it.
+
+An action with an input receives the chunks of `call.input.write(chunk)` (resolving once sent, waiting for the
+credits of the server) and `call.input.end()`, or of an `AsyncIterable` or a `ReadableStream` given as
+`{ input }`, ended with it and cancelling the call when it fails. A `Uint8Array` is sent as a binary message, any other
+chunk as JSON; keep a chunk under the `realtime.maxMessageSize` of the server. An input needs the WebSocket, fails the
+call over SSE, and fails it when the connection is lost before the input ended.
+
+```ts
+const recorder = new MediaRecorder(await navigator.mediaDevices.getUserMedia({ audio: true }));
+const call = client.realtime.call('voice.transcribe', { language: 'en' });
+recorder.ondataavailable = async (event) => call.input.write(new Uint8Array(await event.data.arrayBuffer()));
+recorder.onstop = () => call.input.end();
+recorder.start(250);
+for await (const text of call) showCaption(text);
+```
 
 ```ts
 const call = client.realtime.call('assistant.prompt', { prompt: 'Hello' });
@@ -582,7 +599,7 @@ type RealtimeClientOptions = {
   transport?: 'auto' | 'websocket' | 'sse'; // default: auto
   anonymous?: boolean | 'auto'; // true: no ticket; 'auto': anonymous when the ticket is refused (401). Default: false
   reconnect?: boolean;          // default: true
-  reconnectDelay?: number;      // ms, doubled each attempt (default: 500)
+  reconnectDelay?: number;      // ms, doubled each attempt, randomized (default: 500)
   maxReconnectDelay?: number;   // default: 30000
   actionTimeout?: number;       // default: 30000
   WebSocket?: typeof WebSocket; // default: the global one
