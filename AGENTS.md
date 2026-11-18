@@ -90,7 +90,8 @@ describe('Feature Verification', () => {
   and every push to it, in `node:24` containers set up by `.github/actions/setup` (npm 12, `npm ci`):
   `npm run format:check`, `npm run lint` (after `npm run build`, since the samples import the built packages) and
   `npm run check:circular`, then `npm test`. The test job uploads the coverage to Codecov (the `CODECOV_TOKEN` secret),
-  which the coverage badge of the READMEs reads and which reports the coverage diff of every pull request.
+  which the coverage badge of the READMEs reads and which reports the coverage diff of every pull request in its
+  status checks, without a comment (`comment: false` of `codecov.yml`).
 - **Branch names**: a new branch is named after the work it holds, in kebab-case (`fix/realtime-input-errors`), never
   a random or generated name.
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run
@@ -1355,7 +1356,8 @@ This runs the following steps automatically:
     cd packages/client/dist     && npm publish
     ```
 8. **Git commit** (`@semantic-release/git`) — commits the updated `package.json` files and `CHANGELOG.md` with a chore
-   commit, then tags the release, and `@semantic-release/github` creates the GitHub release.
+   commit, then tags the release, and `@semantic-release/github` creates the GitHub release,
+   without commenting on the released pull requests and issues (`successComment: false`).
 9. **Sample lockfiles** (`@semantic-release/exec`) — once the packages are published, runs
    `node ./tools/lock-samples.js <version> --commit`, which raises the `@appweaver/*` ranges of the samples to
    `^<version>`, pins their lockfile entries to the built `dist` manifests and their `npm pack` integrity (the exact

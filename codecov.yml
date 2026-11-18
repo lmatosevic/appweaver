@@ -1,0 +1,2 @@
+# The coverage is reported by the status checks and the Codecov dashboard, never as a pull request comment
+comment: false
