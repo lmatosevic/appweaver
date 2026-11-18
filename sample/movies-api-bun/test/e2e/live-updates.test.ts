@@ -4,7 +4,7 @@ import {
   createClient,
   MoviesClient
 } from '../../client/generated/movies-client';
-import { testApp } from './support/app';
+import { testApp, testAppUrl } from './support/app';
 import {
   account,
   createRoles,
@@ -16,8 +16,7 @@ import {
 /**
  * The realtime connections of the generated client: the live chat of a movie
  * page, the public feed of the new reviews, and the private watchlist events.
- * The test configuration does not listen, so this file opens the server on a
- * random port for the WebSocket and the event streams.
+ * The clients connect to the shared application listening on a random port.
  */
 describe('Live updates', () => {
   let app: Application;
@@ -47,9 +46,7 @@ describe('Live updates', () => {
   beforeAll(async () => {
     app = await testApp();
     await createRoles();
-    await app.server.listen({ host: '127.0.0.1', port: 0 });
-    const { port } = app.server.server.address() as { port: number };
-    baseUrl = `http://127.0.0.1:${port}`;
+    baseUrl = await testAppUrl();
 
     users = { ana: await account('Lena'), ben: await account('Leo') };
     as = {

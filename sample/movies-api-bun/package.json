@@ -19,7 +19,8 @@
     "openapi": "weaver openapi --output-path ./client/openapi.json",
     "client:generate": "weaver-client generate ./client/openapi.json --output-path ./client/generated/movies-client.ts --client-name MoviesClient",
     "client:example": "bun run ./client/example.ts",
-    "client:realtime": "bun run ./client/realtime-example.ts"
+    "client:realtime": "bun run ./client/realtime-example.ts",
+    "client:commentary": "bun run ./client/commentary-example.ts"
   },
   "dependencies": {
     "@appweaver/cli": "^2.6.1",

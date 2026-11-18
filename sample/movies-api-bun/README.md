@@ -6,7 +6,7 @@ A public movie catalogue in the spirit of IMDb or TMDB, running on the [Bun](htt
 their cast and crew, filmographies, member reviews keeping the movie ratings up to date, private watchlists, and a
 nightly trending score. It also shows how a frontend consumes the API through a generated, fully typed client, and how
 a movie page stays live: a chat of the viewers, the new reviews and the watchlist of a member pushed over a WebSocket or
-Server-Sent Events.
+Server-Sent Events, and the live commentary of a curator streamed to every viewer.
 
 ## What it showcases
 
@@ -33,6 +33,9 @@ Server-Sent Events.
 | Public resource events with a subscription filter (the new reviews)               | [`resources/review/routes.ts`](src/resources/review/routes.ts)                             |
 | Private resource events delivered by the policy (the watchlist of a member)       | [`resources/watchlist-entry/routes.ts`](src/resources/watchlist-entry/routes.ts)           |
 | Realtime client: an anonymous visitor over SSE, a member over a WebSocket         | [`client/realtime-example.ts`](client/realtime-example.ts)                                 |
+| A stream of a key sent to every viewer, checked by the policy of the movie        | [`features/live-commentary/`](src/features/live-commentary/commentary-stream.ts)           |
+| An input streamed by a client to an action, passed on to the stream               | [`features/live-commentary/`](src/features/live-commentary/commentary-actions.ts)          |
+| Streams in the client: a curator streaming, viewers joining live or late          | [`client/commentary-example.ts`](client/commentary-example.ts)                             |
 | Redis-free setup with no queue and no mailer                                      | [`appweaver.json`](appweaver.json)                                                         |
 
 ## Getting started
@@ -150,6 +153,44 @@ curl -s localhost:5005/api/realtime/actions/chat.send -H "authorization: Bearer 
 # A ticket for a connection of the member, valid 30 seconds and used once
 curl -s -X POST localhost:5005/api/realtime/ticket -H "authorization: Bearer $TOKEN" | jq -r .ticket
 ```
+
+## Live commentary
+
+A curator comments a movie live, like the commentary track of a disc, and every viewer of its page follows along. The
+notes travel both ways as streams, sent as they are written, and never stored:
+
+| What                   | Kind                                         | Who                                              |
+|------------------------|----------------------------------------------|--------------------------------------------------|
+| `commentary.broadcast` | Action with a `json` input, over a WebSocket | Curators and admins, streaming their notes       |
+| `movie.commentary`     | Stream, by the ID of the movie as its key    | Anyone able to read the movie, by its policy     |
+
+The action reads the notes of the curator as they come (`context.input`) and writes each one once to the stream of the
+movie, whatever the number of viewers: a viewer is checked when they subscribe, never per note. The curator sends no
+faster than the slowest viewer of the instance reads (`writer.ready`), a viewer opening the page late reads the notes
+already given (`replay`), and the call answers with the number of notes once the curator ends the input. A cancelled
+call, or a curator disconnecting, ends the stream of the viewers with an error.
+
+The seeder adds the curator `curator@movies.example.com`, with the password of the members. With the API running:
+
+```bash
+bun run client:commentary
+```
+
+```text
+[member] The commentary starts
+[visitor] The commentary starts
+[member] 0:01:35 Watch the shell hovering over the meadow, a single take
+[visitor] 0:01:35 Watch the shell hovering over the meadow, a single take
+[member] 0:23:40 The heptapod writing has no direction, nor tense
+[visitor] 0:23:40 The heptapod writing has no direction, nor tense
+[late visitor] The commentary starts
+[late visitor] 0:01:35 Watch the shell hovering over the meadow, a single take
+[late visitor] 0:23:40 The heptapod writing has no direction, nor tense
+...
+[curator] Commentary of Arrival ended, 4 notes
+```
+
+An input needs the WebSocket, so the curator never connects over SSE, while the viewers use either.
 
 ## Tests
 

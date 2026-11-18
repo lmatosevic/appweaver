@@ -3101,7 +3101,7 @@ export type paths = {
     put?: never;
     /**
      * Call a realtime action
-     * @description Calls an action of the realtime connections with the payload of the body, answering with its result, or with 202 at once for `ack=false`. The credentials are optional: a call without them is anonymous, allowed for a public action with `realtime.anonymousEnabled`.
+     * @description Calls an action of the realtime connections with the payload of the body, answering with its result, or with 202 at once for `ack=false`. A streaming action answers a request accepting `text/event-stream` with the Server-Sent Events of its stream, ending with its result. The credentials are optional: a call without them is anonymous, allowed for a public action with `realtime.anonymousEnabled`.
      */
     post: {
       parameters: {
@@ -3121,7 +3121,7 @@ export type paths = {
         };
       };
       responses: {
-        /** @description Default Response */
+        /** @description The result, or the stream of a streaming action */
         200: {
           headers: {
             [name: string]: unknown;
@@ -3130,6 +3130,7 @@ export type paths = {
             'application/json': {
               result: unknown;
             };
+            'text/event-stream': string;
           };
         };
         /** @description Default Response */
@@ -4195,6 +4196,12 @@ export const ErrorCode = {
   RealtimeConnectionLimit: 'REALTIME_CONNECTION_LIMIT',
   RealtimeRateLimited: 'REALTIME_RATE_LIMITED',
   RealtimeTransportDisabled: 'REALTIME_TRANSPORT_DISABLED',
+  RealtimeStreamNotFound: 'REALTIME_STREAM_NOT_FOUND',
+  RealtimeStreamEnded: 'REALTIME_STREAM_ENDED',
+  RealtimeStreamLost: 'REALTIME_STREAM_LOST',
+  RealtimeStreamAccept: 'REALTIME_STREAM_ACCEPT',
+  RealtimeInputLimit: 'REALTIME_INPUT_LIMIT',
+  RealtimeShuttingDown: 'REALTIME_SHUTTING_DOWN',
   AlreadyReviewed: 'ALREADY_REVIEWED',
   AlreadyOnWatchlist: 'ALREADY_ON_WATCHLIST'
 } as const;
@@ -7391,5 +7398,16 @@ export type RealtimeModuleType = {
       response: { messageId: string; sentAt: string };
     };
     'chat.typing': { payload: { movieId: string }; response: unknown };
+    'commentary.broadcast': {
+      payload: { movieId: string };
+      response: { notes: number };
+      input: { at: number; text: string };
+    };
+  };
+  streams: {
+    'movie.commentary': {
+      chunk: { at: number; text: string };
+      params: undefined;
+    };
   };
 };
