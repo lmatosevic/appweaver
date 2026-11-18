@@ -76,25 +76,6 @@ export async function* toServerSentEvents(
 }
 
 /**
- * Encodes the parts of a model stream as newline-delimited JSON, a part per line, and an `error` part for a failure.
- *
- * @param {AiStream | AsyncIterable<AiStreamPart>} stream - The stream, or its parts.
- * @return {AsyncGenerator<string>} The lines.
- */
-export async function* toNdjson(
-  stream: AiStream | AsyncIterable<AiStreamPart>
-): AsyncGenerator<string> {
-  const parts = stream instanceof AiStream ? stream.parts() : stream;
-  try {
-    for await (const part of parts) {
-      yield `${JSON.stringify(part)}\n`;
-    }
-  } catch (error) {
-    yield `${JSON.stringify({ type: 'error', ...streamError(error) })}\n`;
-  }
-}
-
-/**
  * Creates the body of an HTTP response streaming a model as Server-Sent Events, sent by a route with the
  * `text/event-stream` content type. The model call is aborted when the client disconnects.
  *

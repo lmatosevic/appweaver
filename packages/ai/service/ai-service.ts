@@ -33,7 +33,6 @@ import {
   AiModelResponse,
   AiResponseFormat,
   AiStreamPart,
-  AiToolCall,
   AiToolResultPart,
   AiUsage
 } from '../types';
@@ -73,6 +72,13 @@ type AiJob = {
 /** A message of a queued stream: parts, then the result. */
 type AiStreamMessage = { parts?: AiStreamPart[]; result?: AiResult };
 
+/** Changes the prepared prompt for the driver of a model, i.e. its response format. */
+type Decorate = (
+  prepared: PreparedPrompt,
+  driver: AiDriver,
+  model: string
+) => PreparedPrompt;
+
 /** A prompt with its templates rendered and its tools found. */
 type PreparedPrompt = {
   messages: AiMessage[];
@@ -106,11 +112,6 @@ export class AiService implements OnInit, IHealthCheck {
   private readonly _results = this._queue
     ? new JobResults(this._queue, 'ai', { toError: aiError })
     : undefined;
-  /** @internal */
-  private readonly _localStreams = new Map<
-    string,
-    (message: unknown) => void
-  >();
 
   constructor() {
     this._queue?.addWorker(this.processJob.bind(this), {
@@ -140,15 +141,10 @@ export class AiService implements OnInit, IHealthCheck {
    *
    * @param {AiPrompt} prompt - The model, the messages and the parameters.
    * @return {Promise<AiResult>} The response, its steps and the conversation.
-   * @throws {AiError} `AI_MODEL_UNKNOWN`, `AI_CAPABILITY_UNSUPPORTED` for a request the model cannot serve, or the
-   * error of the driver.
-   * @throws {TemplateError} `TEMPLATE_NOT_FOUND` for a missing prompt template.
+   * @throws {AiError} The error of the request or of the driver.
    */
   public async generate(prompt: AiPrompt): Promise<AiResult> {
-    const prepared = await this.prepare(prompt);
-    return this.callModels(prompt.model, (model, driver) =>
-      this.runSteps(model, driver, prepared)
-    );
+    return drain(this.run(prompt, false));
   }
 
   /**
@@ -156,97 +152,86 @@ export class AiService implements OnInit, IHealthCheck {
    * called in turn while one fails before streaming anything.
    *
    * @param {AiPrompt} prompt - The model, the messages and the parameters.
-   * @return {AiStream} The stream of the text deltas, with the result once it ends.
+   * @return {AiStream} The text deltas, with the result once it ends.
    */
   public stream(prompt: AiPrompt): AiStream {
     return new AiStream(
-      (signal) => this.streamModels(prompt, signal),
+      (signal) => this.run({ ...prompt, signal }, true),
       prompt.signal
     );
   }
 
   /**
-   * Calls a model for an object matching a schema: in the JSON schema mode of an endpoint supporting it, otherwise in
-   * its JSON mode or by the instructions of the prompt. An object not matching the schema is sent back with its errors
-   * for the model to repair, up to `repairAttempts` times.
+   * Calls a model for an object matching a schema, in the JSON schema mode of the endpoint when it has one. An object
+   * not matching the schema is sent back with its errors for the model to repair, up to `repairAttempts` times.
    *
    * @param {AiObjectPrompt} prompt - The model, the messages, the parameters and the schema.
    * @return {Promise<AiObjectResult>} The object and the response.
-   * @throws {AiError} `AI_OUTPUT_INVALID` when the object still does not match the schema, or see {@link generate}.
+   * @throws {AiError} `AI_OUTPUT_INVALID` when the object still does not match the schema.
    */
   public async generateObject<T extends TSchema>(
     prompt: AiObjectPrompt<T>
   ): Promise<AiObjectResult<T>> {
-    const prepared = await this.prepare(prompt);
     const attempts = prompt.repairAttempts ?? aiConfig.REPAIR_ATTEMPTS;
-    return this.callModels(prompt.model, async (model, driver) => {
-      const objectPrompt = this.objectPrompt(prepared, prompt, model, driver);
-      let result = await this.runSteps(model, driver, objectPrompt);
-      for (let attempt = 0; ; attempt++) {
-        const checked = checkObject(prompt.schema, result.text);
-        if (checked.valid) {
-          return { ...result, object: checked.value as Static<T> };
-        }
-        if (attempt >= attempts) {
-          throw new AiError(
-            ErrorCode.AiOutputInvalid,
-            `The output of the AI model '${model.reference}' does not match the schema`,
-            { model: model.reference, errors: checked.errors }
-          );
-        }
-        logger.debug(
-          { model: model.reference, errors: checked.errors },
-          'Repairing the AI object'
-        );
-        const repaired = await this.runSteps(model, driver, {
-          ...objectPrompt,
-          messages: [
-            ...result.messages,
-            {
-              role: 'user',
-              content: `The JSON does not match the schema: ${checked.errors.join('; ')}. Respond with the corrected JSON only.`
-            }
-          ]
-        });
-        result = mergeResults(result, repaired);
+    let result = await drain(this.run(prompt, false, objectFormat(prompt)));
+    for (let attempt = 0; ; attempt++) {
+      const checked = checkObject(prompt.schema, result.text);
+      if (checked.valid) {
+        return { ...result, object: checked.value as Static<T> };
       }
-    });
+      if (attempt >= attempts) {
+        throw outputInvalid(result.model, checked.errors);
+      }
+      logger.debug(
+        { model: result.model, errors: checked.errors },
+        'Repairing the AI object'
+      );
+      const repaired = await drain(
+        this.run(
+          {
+            ...prompt,
+            model: result.model,
+            system: undefined,
+            prompt: undefined,
+            messages: [
+              ...result.messages,
+              {
+                role: 'user',
+                content: `The JSON does not match the schema: ${checked.errors.join('; ')}. Respond with the corrected JSON only.`
+              }
+            ]
+          },
+          false,
+          objectFormat(prompt)
+        )
+      );
+      const steps = [...result.steps, ...repaired.steps];
+      result = { ...repaired, steps, usage: sumUsage(steps) };
+    }
   }
 
   /**
    * Calls a model for an object matching a schema, streaming the object while it is generated. The object is checked
-   * against the schema once it ends, without a repair.
+   * once it ends, without a repair.
    *
    * @param {AiObjectPrompt} prompt - The model, the messages, the parameters and the schema.
-   * @return {AiObjectStream} The stream of the partial objects, with the object once it ends.
+   * @return {AiObjectStream} The partial objects, with the object once it ends.
    */
   public streamObject<T extends TSchema>(
     prompt: AiObjectPrompt<T>
   ): AiObjectStream<T> {
-    const stream = new AiStream<AiObjectResult<T>>(
-      async function* (this: AiService, signal) {
-        let resolved: ResolvedModel | undefined;
-        const result: AiResult = yield* this.streamModels(
-          prompt,
-          signal,
-          (prepared, model, driver) => {
-            resolved = model;
-            return this.objectPrompt(prepared, prompt, model, driver);
-          }
-        );
+    const run = (signal: AbortSignal) =>
+      this.run({ ...prompt, signal }, true, objectFormat(prompt));
+    return new AiObjectStream(
+      new AiStream<AiObjectResult<T>>(async function* (signal) {
+        const result = yield* run(signal);
         const checked = checkObject(prompt.schema, result.text);
         if (!checked.valid) {
-          throw new AiError(
-            ErrorCode.AiOutputInvalid,
-            `The output of the AI model '${resolved?.reference}' does not match the schema`,
-            { model: resolved?.reference ?? '', errors: checked.errors }
-          );
+          throw outputInvalid(result.model, checked.errors);
         }
         return { ...result, object: checked.value as Static<T> };
-      }.bind(this),
-      prompt.signal
+      }, prompt.signal)
     );
-    return new AiObjectStream(stream);
   }
 
   /**
@@ -254,9 +239,9 @@ export class AiService implements OnInit, IHealthCheck {
    *
    * @param {string} input - The text to classify.
    * @param {string[]} labels - The labels, at least two.
-   * @param {Omit<AiPrompt, 'prompt'>} [prompt] - The model, the instructions in `system`, and the parameters.
+   * @param {AiPrompt} [prompt] - The model, the instructions in `system`, and the parameters.
    * @return {Promise<string>} The label.
-   * @throws {AiError} `AI_REQUEST_INVALID` for fewer than two labels, or see {@link generateObject}.
+   * @throws {AiError} `AI_REQUEST_INVALID` for fewer than two labels.
    */
   public async classify<L extends string>(
     input: string,
@@ -270,18 +255,13 @@ export class AiService implements OnInit, IHealthCheck {
         { errors: ['labels: expected at least two'] }
       );
     }
-    const system =
-      typeof prompt.system === 'string' || !prompt.system
-        ? [
-            prompt.system,
-            `Classify the input into exactly one of the labels: ${labels.join(', ')}.`
-          ]
-            .filter(Boolean)
-            .join('\n\n')
-        : prompt.system;
+    const instruction = `Classify the input into exactly one of the labels: ${labels.join(', ')}.`;
     const { object } = await this.generateObject({
       ...prompt,
-      system,
+      system:
+        typeof prompt.system === 'object'
+          ? prompt.system
+          : [prompt.system, instruction].filter(Boolean).join('\n\n'),
       prompt: input,
       schema: Type.Object({
         label: Type.Union(labels.map((label) => Type.Literal(label)))
@@ -291,50 +271,54 @@ export class AiService implements OnInit, IHealthCheck {
   }
 
   /**
-   * Embeds texts into vectors.
+   * Embeds texts into vectors, with `ai.defaultEmbeddingModel` when no model is given.
    *
    * @param {string | string[]} input - A text or the texts.
    * @param {AiEmbedOptions} [options] - The model, the dimensions and the parameters.
    * @return {Promise<AiEmbedResult>} A vector per text.
-   * @throws {AiError} `AI_MODEL_UNKNOWN` without a model, `AI_CAPABILITY_UNSUPPORTED` for an endpoint without
-   * embeddings, or the error of the driver.
+   * @throws {AiError} `AI_CAPABILITY_UNSUPPORTED` for an endpoint without embeddings.
    */
   public async embed(
     input: string | string[],
     options: AiEmbedOptions = {}
   ): Promise<AiEmbedResult> {
-    const texts = Array.isArray(input) ? input : [input];
     const models = this._registry.resolve(
       options.model,
       aiConfig.DEFAULT_EMBEDDING_MODEL
     );
-    return this.withFallbacks(models, async (model, driver) => {
-      requireCapability(driver, model, 'embeddings');
-      const request = {
-        model: model.model,
-        input: texts,
-        dimensions: options.dimensions,
-        providerOptions: options.providerOptions
-      };
-      const trace = traceAiCall('embeddings', driver.endpoint, request);
+    for (let i = 0; ; i++) {
+      const model = models[i];
       try {
-        const response = await trace.run(() =>
-          driver.embed(request, {
-            signal: options.signal,
-            timeout: options.timeout
-          })
-        );
-        trace.end({
-          model: response.model,
-          finishReason: 'stop',
-          usage: { inputTokens: response.usage?.inputTokens }
-        });
-        return { ...response, model: model.reference };
+        const driver = await this._registry.driver(model.endpoint);
+        requireCapability(driver, model, 'embeddings');
+        const request = {
+          model: model.model,
+          input: Array.isArray(input) ? input : [input],
+          dimensions: options.dimensions,
+          providerOptions: options.providerOptions
+        };
+        const trace = traceAiCall('embeddings', driver.endpoint, request);
+        try {
+          const response = await trace.run(() =>
+            driver.embed(request, {
+              signal: options.signal,
+              timeout: options.timeout
+            })
+          );
+          trace.end({
+            model: response.model,
+            finishReason: 'stop',
+            usage: { inputTokens: response.usage?.inputTokens }
+          });
+          return { ...response, model: model.reference };
+        } catch (error) {
+          trace.fail(error);
+          throw error;
+        }
       } catch (error) {
-        trace.fail(error);
-        throw error;
+        nextModel(models, i, error);
       }
-    });
+    }
   }
 
   /**
@@ -354,11 +338,10 @@ export class AiService implements OnInit, IHealthCheck {
   }
 
   /**
-   * Adds a call to the `ai` queue, run by a worker of any instance with the retries of the queue, i.e. a call whose
-   * result is stored by a tool or an event listener.
+   * Adds a call to the `ai` queue, run by a worker of any instance with the retries of the queue.
    *
    * @param {AiQueuedPrompt} prompt - The prompt, a JSON value naming its tools.
-   * @param {QueueJobOptions} [options] - The delay, the attempts and the priority of the job.
+   * @param {QueueJobOptions} [options] - The options of the job.
    * @return {Promise<string | undefined>} The ID of the job.
    * @throws {ConfigurationError} `CONFIGURATION_INVALID` without a queue.
    */
@@ -375,11 +358,10 @@ export class AiService implements OnInit, IHealthCheck {
   }
 
   /**
-   * Runs a call through the `ai` queue and waits for its result, on whichever instance its worker runs, i.e. to
-   * limit the calls running at once with `ai.queueConcurrency`.
+   * Runs a call through the `ai` queue and waits for its result, on whichever instance its worker runs.
    *
    * @param {AiQueuedPrompt} prompt - The prompt, a JSON value naming its tools.
-   * @param {QueueJobOptions} [options] - The delay, the attempts and the priority of the job.
+   * @param {QueueJobOptions} [options] - The options of the job.
    * @return {Promise<AiResult>} The result.
    * @throws {AiError} The error of the last attempt.
    */
@@ -395,29 +377,30 @@ export class AiService implements OnInit, IHealthCheck {
   }
 
   /**
-   * Runs a call through the `ai` queue and streams its response from whichever instance its worker runs, the parts
-   * relayed through the `PubSub` in batches of `ai.streamFlushInterval`. The job is attempted once, since a stream
-   * cannot restart, and aborting the stream aborts the call of the worker.
+   * Runs a call through the `ai` queue and streams it from the worker, the parts relayed through the `PubSub` in
+   * batches of `ai.streamFlushInterval`. The job is attempted once, and aborting the stream aborts the worker's call.
    *
    * @param {AiQueuedPrompt} prompt - The prompt, a JSON value naming its tools.
-   * @param {QueueJobOptions & { signal?: AbortSignal }} [options] - The delay and the priority of the job, and the
-   * signal aborting the stream.
+   * @param {QueueJobOptions} [options] - The options of the job, and the signal aborting the stream.
    * @return {AiStream} The stream.
+   * @throws {ConfigurationError} `CONFIGURATION_INVALID` without a queue or a pub/sub.
    */
   public streamQueued(
     prompt: AiQueuedPrompt,
     options: Omit<QueueJobOptions, 'attempts'> & { signal?: AbortSignal } = {}
   ): AiStream {
     const { signal: abortSignal, ...jobOptions } = options;
+    const data = { prompt: queuedPrompt(prompt), stream: uuid() };
+    const channel = `ai:stream:${data.stream}`;
     return new AiStream(
       async function* (this: AiService, signal) {
         const queue = this.queue();
-        const streamId = uuid();
+        const pubsub = this.pubsub();
         const parts = new AsyncQueue<AiStreamPart>();
         let result: AiResult | undefined;
-        const unsubscribe = await this.subscribeStream(
-          `ai:stream:${streamId}`,
-          (message: AiStreamMessage) => {
+        const id = await pubsub.subscribe<AiStreamMessage>(
+          channel,
+          (message) => {
             message.parts?.forEach((part) => parts.push(part));
             if (message.result) {
               result = message.result;
@@ -425,16 +408,11 @@ export class AiService implements OnInit, IHealthCheck {
             }
           }
         );
-        const onAbort = () =>
-          void this.publishStream(`ai:stream:${streamId}:cancel`, {});
-        signal.addEventListener('abort', onAbort, { once: true });
+        const cancel = () => void pubsub.publish(`${channel}:cancel`, {});
+        signal.addEventListener('abort', cancel, { once: true });
         try {
           this._results!.wait((jobId) =>
-            queue.sendJob(
-              { prompt: queuedPrompt(prompt), stream: streamId },
-              'stream',
-              { ...jobOptions, attempts: 1, jobId }
-            )
+            queue.sendJob(data, 'stream', { ...jobOptions, attempts: 1, jobId })
           ).then(
             (completed) => {
               result ??= completed;
@@ -449,8 +427,8 @@ export class AiService implements OnInit, IHealthCheck {
           signal.throwIfAborted();
           return result!;
         } finally {
-          signal.removeEventListener('abort', onAbort);
-          await unsubscribe();
+          signal.removeEventListener('abort', cancel);
+          await pubsub.unsubscribe(id);
         }
       }.bind(this),
       abortSignal
@@ -476,6 +454,207 @@ export class AiService implements OnInit, IHealthCheck {
 
   public checkHealthConfig(): HealthCheckConfig {
     return { name: 'ai' };
+  }
+
+  /**
+   * Calls the models of a prompt in turn, while one fails with a retriable error before it streamed anything.
+   *
+   * @internal
+   */
+  private async *run(
+    prompt: AiPrompt,
+    stream: boolean,
+    decorate?: Decorate
+  ): AsyncGenerator<AiStreamPart, AiResult> {
+    const prepared = await this.prepare(prompt);
+    const models = this._registry.resolve(prompt.model);
+    for (let i = 0; ; i++) {
+      const model = models[i];
+      let streamed = false;
+      try {
+        const driver = await this._registry.driver(model.endpoint);
+        const steps = this.steps(
+          model,
+          driver,
+          decorate ? decorate(prepared, driver, model.model) : prepared,
+          stream
+        );
+        while (true) {
+          const next = await steps.next();
+          if (next.done) {
+            return next.value;
+          }
+          streamed = true;
+          yield next.value;
+        }
+      } catch (error) {
+        nextModel(models, i, error, streamed);
+      }
+    }
+  }
+
+  /**
+   * Calls a model, then again with the results of the tools it calls, until it answers or the steps run out.
+   *
+   * @internal
+   */
+  private async *steps(
+    model: ResolvedModel,
+    driver: AiDriver,
+    prepared: PreparedPrompt,
+    stream: boolean
+  ): AsyncGenerator<AiStreamPart, AiResult> {
+    const messages = [...prepared.messages];
+    const steps: AiStep[] = [];
+    for (let step = 1; ; step++) {
+      const request: AiModelRequest = {
+        ...prepared.request,
+        model: model.model,
+        messages: [...messages]
+      };
+      checkCapabilities(driver, model, request);
+      if (aiConfig.LOG_PROMPTS) {
+        logger.debug({ model: model.reference, messages }, 'AI request');
+      }
+      const trace = traceAiCall('chat', driver.endpoint, request);
+      let response: AiModelResponse;
+      try {
+        response = stream
+          ? yield* streamResponse(driver.stream(request, prepared.options))
+          : await trace.run(() => driver.generate(request, prepared.options));
+        trace.end(response);
+      } catch (error) {
+        trace.fail(error);
+        throw error;
+      }
+      messages.push(assistantMessage(response));
+      const toolResults = await this.runTools(
+        response,
+        prepared,
+        messages,
+        step
+      );
+      steps.push({ response, toolResults: toolResults ?? [] });
+      if (stream) {
+        for (const part of toolResults ?? []) {
+          const toolCall = response.toolCalls.find(
+            (call) => call.id === part.id
+          )!;
+          yield {
+            type: 'tool-result',
+            toolCall,
+            result: part.result,
+            isError: part.isError
+          };
+        }
+      }
+      if (!toolResults) {
+        const result: AiResult = {
+          ...response,
+          model: model.reference,
+          steps,
+          messages,
+          usage: sumUsage(steps)
+        };
+        logger.debug(
+          {
+            model: model.reference,
+            steps: steps.length,
+            finishReason: result.finishReason,
+            usage: result.usage,
+            ...(aiConfig.LOG_PROMPTS ? { text: result.text } : {})
+          },
+          'AI call completed'
+        );
+        if (stream) {
+          const { finishReason, usage, id } = result;
+          yield {
+            type: 'finish',
+            finishReason,
+            usage,
+            id,
+            model: response.model
+          };
+        }
+        return result;
+      }
+      messages.push({ role: 'tool', content: toolResults });
+    }
+  }
+
+  /**
+   * Runs the tool calls of a step, `undefined` when the call ends: without tool calls, with a call of a tool without
+   * `execute`, or on the last step.
+   *
+   * @internal
+   */
+  private async runTools(
+    response: AiModelResponse,
+    prepared: PreparedPrompt,
+    messages: AiMessage[],
+    step: number
+  ): Promise<AiToolResultPart[] | undefined> {
+    const tools = new Map(prepared.tools.map((tool) => [tool.name, tool]));
+    const calls = response.toolCalls;
+    if (
+      !calls.length ||
+      step >= prepared.maxSteps ||
+      calls.some(
+        (call) => tools.has(call.name) && !tools.get(call.name)!.execute
+      )
+    ) {
+      return undefined;
+    }
+    const signal = prepared.options.signal;
+    return Promise.all(
+      calls.map(async (toolCall): Promise<AiToolResultPart> => {
+        const tool = tools.get(toolCall.name);
+        const part = {
+          type: 'tool-result' as const,
+          id: toolCall.id,
+          name: toolCall.name
+        };
+        if (!tool) {
+          return {
+            ...part,
+            result: `Unknown tool '${toolCall.name}'`,
+            isError: true
+          };
+        }
+        const args = Value.Convert(
+          tool.parameters,
+          Value.Default(
+            tool.parameters,
+            structuredClone(toolCall.arguments ?? {})
+          )
+        );
+        const errors = schemaErrors(tool.parameters, args);
+        if (errors.length) {
+          return {
+            ...part,
+            result: `Invalid arguments: ${errors.join('; ')}`,
+            isError: true
+          };
+        }
+        try {
+          const result = await traceToolCall(toolCall, async () =>
+            tool.execute!(args, { toolCall, messages, signal })
+          );
+          return { ...part, result: result ?? null };
+        } catch (error) {
+          signal?.throwIfAborted();
+          logger.warn(
+            { tool: toolCall.name, error: (error as Error).message },
+            'AI tool failed'
+          );
+          return {
+            ...part,
+            result: `The tool failed: ${(error as Error).message}`,
+            isError: true
+          };
+        }
+      })
+    );
   }
 
   /** @internal */
@@ -507,11 +686,10 @@ export class AiService implements OnInit, IHealthCheck {
     const tools = (prompt.tools ?? []).map((tool) => {
       const found = typeof tool === 'string' ? findAiTool(tool) : tool;
       if (!found) {
-        const name = typeof tool === 'string' ? tool : tool.name;
         throw new AiError(
           ErrorCode.AiRequestInvalid,
-          `Unknown AI tool '${name}', create it with createAiTool`,
-          { errors: [`tools: unknown tool '${name}'`] }
+          `Unknown AI tool '${tool as string}', create it with createAiTool`,
+          { errors: [`tools: unknown tool '${tool as string}'`] }
         );
       }
       validateToolName(found.name);
@@ -574,356 +752,6 @@ export class AiService implements OnInit, IHealthCheck {
   }
 
   /** @internal */
-  private objectPrompt<T extends TSchema>(
-    prepared: PreparedPrompt,
-    prompt: AiObjectPrompt<T>,
-    model: ResolvedModel,
-    driver: AiDriver
-  ): PreparedPrompt {
-    let responseFormat: AiResponseFormat | undefined;
-    let messages = prepared.messages;
-    if (driver.supports('json-schema', model.model)) {
-      responseFormat = {
-        type: 'json-schema',
-        schema: prompt.schema,
-        name: prompt.schemaName ?? 'response'
-      };
-    } else {
-      if (driver.supports('json', model.model)) {
-        responseFormat = { type: 'json' };
-      }
-      messages = [
-        {
-          role: 'system',
-          content: `Respond with only a JSON value matching this JSON Schema:\n${JSON.stringify(prompt.schema)}`
-        },
-        ...messages
-      ];
-    }
-    return {
-      ...prepared,
-      messages,
-      request: { ...prepared.request, responseFormat }
-    };
-  }
-
-  /** @internal */
-  private callModels<T>(
-    model: string | undefined,
-    call: (model: ResolvedModel, driver: AiDriver) => Promise<T>
-  ): Promise<T> {
-    return this.withFallbacks(this._registry.resolve(model), call);
-  }
-
-  /** @internal */
-  private async withFallbacks<T>(
-    models: ResolvedModel[],
-    call: (model: ResolvedModel, driver: AiDriver) => Promise<T>
-  ): Promise<T> {
-    for (let i = 0; ; i++) {
-      const model = models[i];
-      try {
-        return await call(model, await this._registry.driver(model.endpoint));
-      } catch (error) {
-        if (i === models.length - 1 || !isRetriable(error)) {
-          throw error;
-        }
-        logger.warn(
-          {
-            model: model.reference,
-            next: models[i + 1].reference,
-            error: (error as Error).message
-          },
-          'AI model failed, calling the next model'
-        );
-      }
-    }
-  }
-
-  /** @internal */
-  private async runSteps(
-    model: ResolvedModel,
-    driver: AiDriver,
-    prepared: PreparedPrompt
-  ): Promise<AiResult> {
-    const messages = [...prepared.messages];
-    const steps: AiStep[] = [];
-    for (let step = 1; ; step++) {
-      const request: AiModelRequest = {
-        ...prepared.request,
-        model: model.model,
-        messages: [...messages]
-      };
-      checkCapabilities(driver, model, request);
-      this.logRequest(model, request);
-      const trace = traceAiCall('chat', driver.endpoint, request);
-      let response: AiModelResponse;
-      try {
-        response = await trace.run(() =>
-          driver.generate(request, prepared.options)
-        );
-        trace.end(response);
-      } catch (error) {
-        trace.fail(error);
-        throw error;
-      }
-      messages.push(assistantMessage(response));
-      const toolResults = await this.runTools(
-        response.toolCalls,
-        prepared,
-        messages,
-        step
-      );
-      steps.push({ response, toolResults: toolResults ?? [] });
-      if (!toolResults) {
-        return this.result(model, steps, messages);
-      }
-      messages.push({ role: 'tool', content: toolResults });
-    }
-  }
-
-  /** @internal */
-  private async *streamModels(
-    prompt: AiPrompt,
-    signal: AbortSignal,
-    decorate?: (
-      prepared: PreparedPrompt,
-      model: ResolvedModel,
-      driver: AiDriver
-    ) => PreparedPrompt
-  ): AsyncGenerator<AiStreamPart, AiResult> {
-    const prepared = await this.prepare({ ...prompt, signal });
-    const models = this._registry.resolve(prompt.model);
-    for (let i = 0; ; i++) {
-      const model = models[i];
-      let streamed = false;
-      try {
-        const driver = await this._registry.driver(model.endpoint);
-        const parts = this.streamSteps(
-          model,
-          driver,
-          decorate ? decorate(prepared, model, driver) : prepared
-        );
-        while (true) {
-          const next = await parts.next();
-          if (next.done) {
-            return next.value;
-          }
-          streamed = true;
-          yield next.value;
-        }
-      } catch (error) {
-        if (streamed || i === models.length - 1 || !isRetriable(error)) {
-          throw error;
-        }
-        logger.warn(
-          {
-            model: model.reference,
-            next: models[i + 1].reference,
-            error: (error as Error).message
-          },
-          'AI model failed, streaming the next model'
-        );
-      }
-    }
-  }
-
-  /** @internal */
-  private async *streamSteps(
-    model: ResolvedModel,
-    driver: AiDriver,
-    prepared: PreparedPrompt
-  ): AsyncGenerator<AiStreamPart, AiResult> {
-    const messages = [...prepared.messages];
-    const steps: AiStep[] = [];
-    for (let step = 1; ; step++) {
-      const request: AiModelRequest = {
-        ...prepared.request,
-        model: model.model,
-        messages: [...messages]
-      };
-      checkCapabilities(driver, model, request);
-      this.logRequest(model, request);
-      const trace = traceAiCall('chat', driver.endpoint, request);
-      const response: AiModelResponse = {
-        text: '',
-        toolCalls: [],
-        finishReason: 'stop'
-      };
-      try {
-        for await (const part of driver.stream(request, prepared.options)) {
-          if (part.type === 'text-delta') {
-            response.text += part.text;
-            yield part;
-          } else if (part.type === 'reasoning-delta') {
-            response.reasoning = (response.reasoning ?? '') + part.text;
-            yield part;
-          } else if (part.type === 'tool-call') {
-            response.toolCalls.push(part.toolCall);
-            yield part;
-          } else if (part.type === 'finish') {
-            Object.assign(response, {
-              finishReason: part.finishReason,
-              usage: part.usage,
-              id: part.id,
-              model: part.model
-            });
-          }
-        }
-        trace.end(response);
-      } catch (error) {
-        trace.fail(error);
-        throw error;
-      }
-      messages.push(assistantMessage(response));
-      const toolResults = await this.runTools(
-        response.toolCalls,
-        prepared,
-        messages,
-        step
-      );
-      steps.push({ response, toolResults: toolResults ?? [] });
-      for (const part of toolResults ?? []) {
-        yield {
-          type: 'tool-result',
-          toolCall: response.toolCalls.find((call) => call.id === part.id)!,
-          result: part.result,
-          isError: part.isError
-        };
-      }
-      if (!toolResults) {
-        const result = this.result(model, steps, messages);
-        yield {
-          type: 'finish',
-          finishReason: result.finishReason,
-          usage: result.usage,
-          id: result.id,
-          model: result.model
-        };
-        return result;
-      }
-      messages.push({ role: 'tool', content: toolResults });
-    }
-  }
-
-  /**
-   * Runs the tool calls of a step, `undefined` when the call ends: without tool calls, with a call of a tool without
-   * `execute`, or on the last step.
-   *
-   * @internal
-   */
-  private async runTools(
-    toolCalls: AiToolCall[],
-    prepared: PreparedPrompt,
-    messages: AiMessage[],
-    step: number
-  ): Promise<AiToolResultPart[] | undefined> {
-    if (!toolCalls.length || step >= prepared.maxSteps) {
-      return undefined;
-    }
-    const tools = new Map(prepared.tools.map((tool) => [tool.name, tool]));
-    if (
-      toolCalls.some(
-        (call) => tools.has(call.name) && !tools.get(call.name)!.execute
-      )
-    ) {
-      return undefined;
-    }
-    return Promise.all(
-      toolCalls.map((call) =>
-        this.runTool(
-          call,
-          tools.get(call.name),
-          messages,
-          prepared.options.signal
-        )
-      )
-    );
-  }
-
-  /** @internal */
-  private async runTool(
-    toolCall: AiToolCall,
-    tool: AiTool | undefined,
-    messages: AiMessage[],
-    signal?: AbortSignal
-  ): Promise<AiToolResultPart> {
-    const failed = (message: string): AiToolResultPart => ({
-      type: 'tool-result',
-      id: toolCall.id,
-      name: toolCall.name,
-      result: message,
-      isError: true
-    });
-    if (!tool) {
-      return failed(`Unknown tool '${toolCall.name}'`);
-    }
-    const args = Value.Convert(
-      tool.parameters,
-      Value.Default(tool.parameters, structuredClone(toolCall.arguments ?? {}))
-    );
-    const errors = schemaErrors(tool.parameters, args);
-    if (errors.length) {
-      return failed(`Invalid arguments: ${errors.join('; ')}`);
-    }
-    try {
-      const result = await traceToolCall(toolCall, async () =>
-        tool.execute!(args, { toolCall, messages, signal })
-      );
-      return {
-        type: 'tool-result',
-        id: toolCall.id,
-        name: toolCall.name,
-        result: result ?? null
-      };
-    } catch (error) {
-      signal?.throwIfAborted();
-      logger.warn(
-        { tool: toolCall.name, error: (error as Error).message },
-        'AI tool failed'
-      );
-      return failed(`The tool failed: ${(error as Error).message}`);
-    }
-  }
-
-  /** @internal */
-  private result(
-    model: ResolvedModel,
-    steps: AiStep[],
-    messages: AiMessage[]
-  ): AiResult {
-    const last = steps[steps.length - 1].response;
-    const result: AiResult = {
-      ...last,
-      model: model.reference,
-      steps,
-      messages,
-      usage: sumUsage(steps.map((step) => step.response.usage))
-    };
-    logger.debug(
-      {
-        model: model.reference,
-        steps: steps.length,
-        finishReason: result.finishReason,
-        usage: result.usage,
-        ...(aiConfig.LOG_PROMPTS ? { text: result.text } : {})
-      },
-      'AI call completed'
-    );
-    return result;
-  }
-
-  /** @internal */
-  private logRequest(model: ResolvedModel, request: AiModelRequest): void {
-    if (aiConfig.LOG_PROMPTS) {
-      logger.debug(
-        { model: model.reference, messages: request.messages },
-        'AI request'
-      );
-    }
-  }
-
-  /** @internal */
   private queue() {
     if (!this._queue) {
       throw new ConfigurationError(
@@ -935,25 +763,36 @@ export class AiService implements OnInit, IHealthCheck {
   }
 
   /** @internal */
+  private pubsub(): PubSub {
+    if (!this._pubsub) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        'The queued AI streams require a pub/sub (pubsub.provider)'
+      );
+    }
+    return this._pubsub;
+  }
+
+  /** @internal */
   private async processJob(job: QueueJob<AiJob, AiResult>): Promise<AiResult> {
     const { prompt, stream } = job.data;
     if (!stream) {
       return this.generate(prompt);
     }
 
-    const controller = new AbortController();
-    const unsubscribe = await this.subscribeStream(
-      `ai:stream:${stream}:cancel`,
-      () => controller.abort()
-    );
+    const pubsub = this.pubsub();
     const channel = `ai:stream:${stream}`;
+    const controller = new AbortController();
+    const id = await pubsub.subscribe(`${channel}:cancel`, () =>
+      controller.abort()
+    );
     let buffer: AiStreamPart[] = [];
     let flushed = Promise.resolve();
     const flush = () => {
       if (buffer.length) {
         const parts = buffer;
         buffer = [];
-        flushed = flushed.then(() => this.publishStream(channel, { parts }));
+        flushed = flushed.then(() => pubsub.publish(channel, { parts }));
       }
     };
     const timer = setInterval(flush, aiConfig.STREAM_FLUSH_INTERVAL);
@@ -965,42 +804,110 @@ export class AiService implements OnInit, IHealthCheck {
       const result = await aiStream.result;
       flush();
       await flushed;
-      await this.publishStream(channel, { result });
+      await pubsub.publish(channel, { result });
       return result;
     } finally {
       clearInterval(timer);
-      await unsubscribe();
+      await pubsub.unsubscribe(id);
     }
   }
+}
 
-  /** @internal */
-  private async subscribeStream(
-    channel: string,
-    handler: (message: any) => void
-  ): Promise<() => Promise<void>> {
-    if (this._pubsub) {
-      const id = await this._pubsub.subscribe(channel, handler);
-      return async () => {
-        await this._pubsub!.unsubscribe(id);
+/** Streams the parts of a model response, returning the response they make up. */
+async function* streamResponse(
+  parts: AsyncIterable<AiStreamPart>
+): AsyncGenerator<AiStreamPart, AiModelResponse> {
+  const response: AiModelResponse = {
+    text: '',
+    toolCalls: [],
+    finishReason: 'stop'
+  };
+  for await (const part of parts) {
+    if (part.type === 'finish') {
+      const { finishReason, usage, id, model } = part;
+      Object.assign(response, { finishReason, usage, id, model });
+      continue;
+    }
+    if (part.type === 'text-delta') {
+      response.text += part.text;
+    } else if (part.type === 'reasoning-delta') {
+      response.reasoning = (response.reasoning ?? '') + part.text;
+    } else if (part.type === 'tool-call') {
+      response.toolCalls.push(part.toolCall);
+    }
+    yield part;
+  }
+  return response;
+}
+
+/** Reads a generator to its end, returning its value. */
+async function drain<T>(generator: AsyncGenerator<unknown, T>): Promise<T> {
+  while (true) {
+    const next = await generator.next();
+    if (next.done) {
+      return next.value;
+    }
+  }
+}
+
+/** Throws the error of a model unless the next model of the alias may not have it. */
+function nextModel(
+  models: ResolvedModel[],
+  index: number,
+  error: unknown,
+  streamed = false
+): void {
+  const retriable = isAppweaverError(error) && RETRIABLE.has(error.code);
+  if (streamed || !retriable || index === models.length - 1) {
+    throw error;
+  }
+  logger.warn(
+    {
+      model: models[index].reference,
+      next: models[index + 1].reference,
+      error: (error as Error).message
+    },
+    'AI model failed, calling the next model'
+  );
+}
+
+/** Asks for an object of the schema: the JSON schema mode, else the JSON mode or the instructions of the prompt. */
+function objectFormat(prompt: AiObjectPrompt<TSchema>): Decorate {
+  return (prepared, driver, model) => {
+    if (driver.supports('json-schema', model)) {
+      const name = prompt.schemaName ?? 'response';
+      const responseFormat: AiResponseFormat = {
+        type: 'json-schema',
+        schema: prompt.schema,
+        name
       };
+      return { ...prepared, request: { ...prepared.request, responseFormat } };
     }
-    this._localStreams.set(channel, handler);
-    return async () => {
-      this._localStreams.delete(channel);
+    const instruction = `Respond with only a JSON value matching this JSON Schema:\n${JSON.stringify(prompt.schema)}`;
+    const instructed = prepared.messages.some(
+      (message) => message.content === instruction
+    );
+    return {
+      ...prepared,
+      messages: instructed
+        ? prepared.messages
+        : [{ role: 'system', content: instruction }, ...prepared.messages],
+      request: {
+        ...prepared.request,
+        responseFormat: driver.supports('json', model)
+          ? { type: 'json' }
+          : undefined
+      }
     };
-  }
+  };
+}
 
-  /** @internal */
-  private async publishStream(
-    channel: string,
-    message: unknown
-  ): Promise<void> {
-    if (this._pubsub) {
-      await this._pubsub.publish(channel, message);
-    } else {
-      this._localStreams.get(channel)?.(structuredClone(message));
-    }
-  }
+function outputInvalid(model: string, errors: string[]): AiError {
+  return new AiError(
+    ErrorCode.AiOutputInvalid,
+    `The output of the AI model '${model}' does not match the schema`,
+    { model, errors }
+  );
 }
 
 /** Checks that the model has the capabilities a request needs. */
@@ -1065,7 +972,8 @@ function assistantMessage(response: AiModelResponse): AiMessage {
   };
 }
 
-function sumUsage(usages: (AiUsage | undefined)[]): AiUsage {
+function sumUsage(steps: AiStep[]): AiUsage {
+  const usages = steps.map((step) => step.response.usage);
   const sum = (key: keyof AiUsage) => {
     const values = usages
       .map((usage) => usage?.[key])
@@ -1088,16 +996,6 @@ function sumUsage(usages: (AiUsage | undefined)[]): AiUsage {
   return usage;
 }
 
-/** The result of a repair, with the steps and the tokens of the attempts before it. */
-function mergeResults(previous: AiResult, repaired: AiResult): AiResult {
-  const steps = [...previous.steps, ...repaired.steps];
-  return {
-    ...repaired,
-    steps,
-    usage: sumUsage(steps.map((step) => step.response.usage))
-  };
-}
-
 /** Parses the JSON of an output and checks it against a schema, filling in its defaults. */
 function checkObject(
   schema: TSchema,
@@ -1115,10 +1013,6 @@ function checkObject(
   value = Value.Default(schema, value);
   const errors = schemaErrors(schema, value);
   return errors.length ? { valid: false, errors } : { valid: true, value };
-}
-
-function isRetriable(error: unknown): boolean {
-  return isAppweaverError(error) && RETRIABLE.has(error.code);
 }
 
 /** Checks that a queued prompt names its tools, carrying no functions. */

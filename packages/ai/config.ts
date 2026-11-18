@@ -3,8 +3,7 @@ import { defineConfig } from '@appweaver/common';
 
 /** An endpoint of the `ai.endpoints` config: a server speaking the API of a driver. */
 export const aiEndpointSchema = Type.Object({
-  /** The preset filling in the driver, the base URL, the API key variable and the capabilities, i.e. `ollama` or
-   * `openrouter`. */
+  /** The preset of the driver, the base URL, the API key variable and the capabilities, i.e. `ollama`. */
   preset: Type.Optional(Type.String()),
   /** The driver talking to the endpoint. Default: the driver of the preset, otherwise `openai`. */
   driver: Type.Optional(Type.String()),
@@ -14,8 +13,8 @@ export const aiEndpointSchema = Type.Object({
   apiKey: Type.Optional(Type.String({ secret: true })),
   /** Headers sent with every request, as `Name: value` strings. */
   headers: Type.Optional(Type.Array(Type.String())),
-  /** The capabilities of the models of the endpoint (`tools`, `json`, `json-schema`, `images`, `files`, `reasoning`,
-   * `embeddings`). Default: the ones of the preset. */
+  /** The capabilities of its models (`tools`, `json`, `json-schema`, `images`, `files`, `reasoning`, `embeddings`).
+   * Default: the ones of the preset. */
   capabilities: Type.Optional(Type.Array(Type.String())),
   /** The timeout of a request in milliseconds. Default: `ai.timeout`. */
   timeout: Type.Optional(Type.Integer()),
@@ -24,16 +23,16 @@ export const aiEndpointSchema = Type.Object({
 });
 
 export const aiConfig = defineConfig('ai', {
-  /** The endpoints of the models by their names, the prefixes of the model references (`local:qwen3:8b` calls the
-   * `qwen3:8b` model of the `local` endpoint), i.e. `{ "local": { "preset": "ollama" } }`. Each property is also read
-   * from its own variable, i.e. `AI_ENDPOINTS_OPENROUTER_API_KEY`. The `mock` endpoint is built in. Default: `{}`. */
+  /** The endpoints by name, the prefix of the model references (`local:qwen3:8b`), i.e.
+   * `{ "local": { "preset": "ollama" } }`, each property also a variable (`AI_ENDPOINTS_LOCAL_BASE_URL`). The `mock`
+   * endpoint is built in. Default: `{}`. */
   ENDPOINTS: Type.Record(Type.String(), aiEndpointSchema, { default: {} }),
   /** The model of a call naming none, a model reference (`<endpoint>:<model>`) or an alias, i.e. `local:qwen3:8b`. */
   DEFAULT_MODEL: Type.Optional(Type.String()),
   /** The embedding model of a call naming none, a model reference or an alias, i.e. `local:nomic-embed-text`. */
   DEFAULT_EMBEDDING_MODEL: Type.Optional(Type.String()),
-  /** Names of the models the code calls them by, i.e. `{ "fast": "local:qwen3:8b" }`, each a model reference or a
-   * list of them tried in turn when one fails with a retriable error (comma-separated in a variable). Default: `{}`. */
+  /** Names the code calls the models by, i.e. `{ "fast": "local:qwen3:8b" }`, each a model reference or a list of
+   * them tried in turn on a retriable error (comma-separated in a variable). Default: `{}`. */
   ALIASES: Type.Record(
     Type.String(),
     Type.Union([Type.String(), Type.Array(Type.String())]),
@@ -47,10 +46,9 @@ export const aiConfig = defineConfig('ai', {
   TIMEOUT: Type.Integer({ default: 120000 }),
   /** The retries of a request failing with a rate limit, a timeout or a server error. Default: `2`. */
   MAX_RETRIES: Type.Integer({ default: 2 }),
-  /** The maximum model calls of a call with tools: the model is called again with the results of the tools it called
-   * until it answers, or the steps run out. Default: `5`. */
+  /** The maximum model calls of a call running tools. Default: `5`. */
   MAX_STEPS: Type.Integer({ default: 5 }),
-  /** The calls repairing an object not matching its schema, sent the validation errors. Default: `1`. */
+  /** The calls repairing an object not matching its schema. Default: `1`. */
   REPAIR_ATTEMPTS: Type.Integer({ default: 1 }),
   /** Log the prompts and the responses at the debug level. Default: `false`. */
   LOG_PROMPTS: Type.Boolean({ default: false }),

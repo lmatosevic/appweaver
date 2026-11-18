@@ -735,23 +735,27 @@ describe('ai-service', () => {
       );
     });
 
-    test.each([false, true])(
-      'streams a call run by the worker (pub/sub: %s)',
-      async (pubsub) => {
-        configOverrides.AI_STREAM_FLUSH_INTERVAL = 1;
-        ai = createService({ pubsub });
-        ScriptedDriver.answers.push({ text: 'Streamed from the worker' });
+    test('streams a call run by the worker', async () => {
+      configOverrides.AI_STREAM_FLUSH_INTERVAL = 1;
+      ai = createService({ pubsub: true });
+      ScriptedDriver.answers.push({ text: 'Streamed from the worker' });
 
-        const stream = ai.streamQueued({ prompt: 'Hi' });
+      const stream = ai.streamQueued({ prompt: 'Hi' });
 
-        await expect(stream.text()).resolves.toBe('Streamed from the worker');
-        await expect(stream.result).resolves.toMatchObject({
-          text: 'Streamed from the worker'
-        });
-      }
-    );
+      await expect(stream.text()).resolves.toBe('Streamed from the worker');
+      await expect(stream.result).resolves.toMatchObject({
+        text: 'Streamed from the worker'
+      });
+    });
+
+    test('rejects a queued stream without a pub/sub', async () => {
+      await expect(ai.streamQueued({ prompt: 'Hi' }).text()).rejects.toThrow(
+        ConfigurationError
+      );
+    });
 
     test('fails a queued stream with the error of the job', async () => {
+      ai = createService({ pubsub: true });
       ScriptedDriver.answers.push(new Error('Broken driver'));
 
       await expect(ai.streamQueued({ prompt: 'Hi' }).text()).rejects.toThrow(

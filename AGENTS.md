@@ -452,39 +452,29 @@ owner lingers it only once no instance relays it.
 ### `packages/ai`
 
 The AI module (`@appweaver/ai`), requiring only core. `AiService` calls the models of the endpoints of the `ai` config:
-an endpoint is a server named by the application (`local`, `openrouter`), completed by its preset (`driver/presets.ts`),
-a model reference is `<endpoint>:<model>` split at the first `:`, and the aliases are the names the code calls the
-models by, a list of references tried in turn on `AI_RATE_LIMITED`, `AI_TIMEOUT` and `AI_PROVIDER_UNAVAILABLE`. The
-drivers are the providers of the `AiDriver` contract of the driver modules (`openai` of `@appweaver/openai`), which no
-module declares in its `contracts`, so `loadProviders` selects none of them: `ModelRegistry` loads the driver of an
-endpoint by its name from `context.modules.enabled` on its first call and creates it once per endpoint, so every
-enabled driver is usable at once. The built-in `mock` driver needs no module, and `registerAiDriver` registers a class
-without one (the tests).
+an endpoint is a named server completed by its preset (`driver/presets.ts`), a model reference is `<endpoint>:<model>`
+split at the first `:`, and an alias is a reference or a list of them tried in turn on a retriable error. The drivers
+are `AiDriver` providers of driver modules, a contract no module declares, so `loadProviders` ignores them:
+`ModelRegistry` loads an endpoint's driver by name from `context.modules.enabled` and creates it once per endpoint, so
+every installed driver is usable at once. The `mock` driver is built in, `registerAiDriver` registers one without a
+module.
 
-| File                          | Purpose                                                                                                   |
-|-------------------------------|-----------------------------------------------------------------------------------------------------------|
-| `config.ts`                   | The `ai` section: the endpoints (a record of objects), the default models, the aliases, the limits         |
-| `types.ts`                    | The messages, the requests and responses of the drivers, the stream parts                                  |
-| `driver/ai-driver.ts`         | The `AiDriver` contract and the `AiEndpoint` it is created with                                            |
-| `driver/presets.ts`           | The presets of the endpoints: driver, base URL, API key variable, capabilities, driver options            |
-| `driver/model-registry.ts`    | `ModelRegistry`: the references, the aliases, the endpoints and their drivers; `registerAiDriver`          |
-| `driver/mock-driver.ts`       | `MockAiDriver` (the `mock` endpoint) and `mockAiResponse`                                                  |
-| `service/ai-service.ts`       | `AiService`: generate, stream, objects, classify, embed, the tool steps, the fallbacks, the `ai` queue     |
-| `service/ai-stream.ts`        | `AiStream`, the stream read once, and `AiObjectStream` (`ai-object-stream.ts`)                             |
-| `service/prompt.ts`           | `AiPrompt`, the templates of the prompts, the results                                                      |
-| `tools/create-tool.ts`        | `createAiTool`, the tools registered by name for the queued prompts                                        |
-| `utils/`                      | The partial JSON parser, the SSE, NDJSON and stream writer helpers, the similarity, the `gen_ai` telemetry |
+| File                       | Purpose                                                                                      |
+|----------------------------|----------------------------------------------------------------------------------------------|
+| `config.ts`, `types.ts`    | The `ai` section (endpoints are a record of objects), the messages, requests and stream parts |
+| `driver/`                  | `AiDriver`, the presets, `ModelRegistry` and the `mock` driver                               |
+| `service/ai-service.ts`    | `AiService`: one step loop (`run`, `steps`) serving generate and stream, objects, the queue  |
+| `service/`                 | `AiStream`, `AiObjectStream` and the prompt types                                            |
+| `tools/create-tool.ts`     | `createAiTool`, registered by name for the queued prompts                                    |
+| `utils/`                   | Partial JSON, SSE and stream writer helpers, similarity, the `gen_ai` telemetry               |
 
-A call needing a capability its model lacks (`tools`, `json`, `json-schema`, `images`, `files`, `reasoning`,
-`embeddings`, from the endpoint or its preset) fails before it is sent with `AI_CAPABILITY_UNSUPPORTED`. A queued call
-(`generateQueued`) waits for its result with `JobResults` of core, and a queued stream (`streamQueued`) relays the parts
-of the worker on `ai:stream:<id>` of the `PubSub`, its cancellation on `ai:stream:<id>:cancel`. A new driver of another
-API is a package with an `AiDriver` provider, tested with `testAiDriverContract`, and a preset naming its driver.
+A capability the model lacks fails before the request with `AI_CAPABILITY_UNSUPPORTED`. `generateQueued` waits with
+`JobResults` of core, `streamQueued` relays the worker's parts on `ai:stream:<id>` of the `PubSub`. A driver of another
+API is a package with an `AiDriver` provider, tested with `testAiDriverContract`.
 
-`@appweaver/openai` holds the `openai` driver (`openai-driver.ts`) on the official `openai` SDK and its Chat Completions
-and Embeddings APIs, the options of a preset setting the parameter of the maximum tokens (`maxTokensParam`), the one of
-the reasoning (`reasoningParam`) and the streamed usage (`streamUsage`). It maps the errors of the SDK to the `AI_*`
-codes and never passes an undefined request option, which the SDK rejects.
+`@appweaver/openai` holds the `openai` driver on the official `openai` SDK (Chat Completions, Embeddings), the preset
+options setting `maxTokensParam`, `reasoningParam` and `streamUsage`. The SDK rejects an undefined request option and
+ends an aborted stream without an error, so the driver omits the former and checks the signal after the latter.
 
 ### `packages/testing`
 

@@ -21,25 +21,23 @@ export type AiToolContext = {
   signal?: AbortSignal;
 };
 
-/** A tool the model may call, run by `AiService` when it has an `execute` function. */
+/** A tool the model may call. */
 export type AiTool<P extends TSchema = TSchema, R = unknown> = {
-  /** The name of the tool, letters, digits, `_` and `-`, i.e. `getWeather` */
+  /** Letters, digits, `_` and `-`, i.e. `getWeather` */
   name: string;
-  /** The schema of the arguments, a TypeBox object, validated before `execute` runs */
+  /** The TypeBox schema of the arguments, validated before `execute` runs */
   parameters: P;
-  /** What the tool does, read by the model to decide when to call it */
+  /** Read by the model to decide when to call the tool */
   description?: string;
   /**
-   * Runs the tool with the arguments the model called it with, as the user of the call. The result, a JSON value or a
-   * text, is sent back to the model. A thrown error is sent back as the result of a failed call, for the model to
-   * recover. Without it, a call of the tool ends the call of the model, returning the tool calls.
+   * Runs the tool, as the user of the call. Its result (or the message of its error) is sent back to the model.
+   * Without it, a call of the tool ends the call, returning the tool calls to the caller.
    */
   execute?: (args: Static<P>, context: AiToolContext) => R | Promise<R>;
 };
 
 /**
- * Creates a tool, registered under its name so a prompt names it, i.e. the prompt of a queued call, which carries no
- * functions. A tool given to a prompt directly needs no registration.
+ * Creates a tool, registered under its name so a prompt can name it (a queued prompt must).
  *
  * @example
  * export const getWeather = createAiTool({
@@ -69,21 +67,12 @@ export function createAiTool<P extends TSchema, R = unknown>(
   return tool;
 }
 
-/**
- * Lists the tools of {@link createAiTool}.
- *
- * @return {AiTool[]} The tools.
- */
+/** Lists the tools of {@link createAiTool}. */
 export function aiTools(): AiTool[] {
   return injectAll<{ tool: AiTool }>(AI_TOOL).map((entry) => entry.tool);
 }
 
-/**
- * Finds a tool of {@link createAiTool} by its name.
- *
- * @param {string} name - The name of the tool.
- * @return {AiTool | undefined} The tool, or `undefined` when none has the name.
- */
+/** Finds a tool of {@link createAiTool} by its name. */
 export function findAiTool(name: string): AiTool | undefined {
   return aiTools().find((tool) => tool.name === name);
 }
@@ -91,7 +80,6 @@ export function findAiTool(name: string): AiTool | undefined {
 /**
  * Checks the name of a tool.
  *
- * @param {string} name - The name.
  * @throws {ConfigurationError} `CONFIGURATION_INVALID` for a name the APIs refuse.
  */
 export function validateToolName(name: string): void {

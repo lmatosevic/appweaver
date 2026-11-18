@@ -13,10 +13,10 @@ import { ALL_CAPABILITIES, aiPresets } from './presets';
 
 const logger = createLogger('ai');
 
-/** The name of the contract the drivers are the providers of, matched by name like the other contracts. */
-export const AI_DRIVER_CONTRACT = 'AiDriver';
+// Matched by name, like the other contracts, since a module may load its own copy of the class
+const AI_DRIVER_CONTRACT = 'AiDriver';
 
-/** The package providing the drivers of the presets, named when it is not installed. */
+/** The packages of the preset drivers, named when one is not installed. */
 const DRIVER_PACKAGES: Record<string, string> = {
   openai: '@appweaver/openai'
 };
@@ -36,8 +36,8 @@ export type ResolvedModel = {
 };
 
 /**
- * Registers a driver class under a name, which the endpoints select with their `driver`, without a module providing
- * it, i.e. a driver of the application or a stub in a test. A driver of a module replaces none registered so.
+ * Registers a driver class under a name without a module providing it, i.e. a stub in a test. It takes precedence
+ * over the driver of a module with the same name.
  *
  * @param {string} name - The name of the driver.
  * @param {AiDriverClass | undefined} driver - The driver class, or `undefined` to remove it.
@@ -53,10 +53,7 @@ export function registerAiDriver(
   }
 }
 
-/**
- * Resolves the model references and the aliases of the `ai` config to their endpoints, and creates the driver of an
- * endpoint once, on its first call.
- */
+/** Resolves the model references and the aliases to their endpoints, and creates each endpoint's driver once. */
 export class ModelRegistry {
   /** @internal */
   private readonly _drivers = new Map<string, Promise<AiDriver>>();

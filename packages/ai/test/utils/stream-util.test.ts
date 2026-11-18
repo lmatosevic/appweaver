@@ -6,7 +6,6 @@ import {
   AiStream,
   AiStreamPart,
   pipeAiStream,
-  toNdjson,
   toServerSentEvents
 } from '../../index';
 
@@ -112,23 +111,6 @@ describe('stream-util', () => {
 
       expect(events).toBe(
         'event: error\ndata: {"code":"AI_TIMEOUT","message":"Too slow"}\n\n'
-      );
-    });
-  });
-
-  describe('toNdjson', () => {
-    test('encodes every part as a line, and an error', async () => {
-      async function* failing(): AsyncGenerator<AiStreamPart> {
-        yield parts[0];
-        // A thrown value that is not an error
-        throw Object.assign(Object.create(null), { message: 'broken' });
-      }
-
-      await expect(
-        collect(toNdjson(streamOf(parts.slice(0, 1))))
-      ).resolves.toBe('{"type":"text-delta","text":"Hi "}\n');
-      await expect(collect(toNdjson(failing()))).resolves.toBe(
-        '{"type":"text-delta","text":"Hi "}\n{"type":"error","code":"INTERNAL_ERROR","message":"broken"}\n'
       );
     });
   });

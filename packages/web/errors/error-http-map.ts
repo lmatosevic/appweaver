@@ -275,17 +275,12 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
   [ErrorCode.QueueUnavailable]: { status: 503, title: 'Queue unavailable' },
 
   [ErrorCode.MailerSendFailed]: { status: 502, title: 'Email sending failed' },
-  [ErrorCode.MailerJobNotFound]: {
-    status: 500,
-    title: 'Email job not found'
-  },
   [ErrorCode.MailerSenderMissing]: {
     status: 500,
     title: 'Email sender missing'
   },
 
   [ErrorCode.SmsSendFailed]: { status: 502, title: 'SMS sending failed' },
-  [ErrorCode.SmsJobNotFound]: { status: 500, title: 'SMS job not found' },
 
   [ErrorCode.TemplateNotFound]: { status: 500, title: 'Template not found' },
   [ErrorCode.TemplateRenderFailed]: {
