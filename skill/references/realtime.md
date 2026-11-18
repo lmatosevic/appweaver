@@ -280,7 +280,7 @@ createRealtimeAction({
 |------------|---------------------------------------------------------------------------------------------------|
 | `codec`    | `text` (default), `json` or `binary` (`Uint8Array` chunks)                                        |
 | `mimeType` | The media type of a `binary` input, told to the clients                                           |
-| `chunk`    | The TypeBox schema of the chunks of a `json` input, checked outside of `prod`                     |
+| `chunk`    | The TypeBox schema of the chunks of a `json` input, checked in every environment                  |
 | `maxBytes` | The bytes the client may send in all, `realtime.streamInputMaxBytes` by default (`413 REALTIME_INPUT_LIMIT`) |
 
 - An input is sent over the WebSocket only: over HTTP the call fails with `REALTIME_MESSAGE_INVALID`.
@@ -288,6 +288,8 @@ createRealtimeAction({
   they are paced by credits instead: the client sends at most `realtime.streamInputWindow` bytes ahead of the handler
   reading them, given back by `input.credit` messages as it reads, so a slow handler slows the client down instead of
   filling the memory of the server. A client sending beyond its window fails the call (`REALTIME_MESSAGE_INVALID`).
+  An input of no call receiving one (i.e. a call that just ended) is answered with a `REALTIME_MESSAGE_INVALID` error
+  of its ID, and counts against `realtime.messageRateLimit`.
 - A binary chunk is a binary WebSocket message, not base64: the byte `1`, the length of the ID of the call, the ID,
   then the bytes. Any other binary message closes the connection with `1008`.
 - The connection lost while the input is open cancels the call: an input never resumes, the client calls again. Once
@@ -302,7 +304,7 @@ createRealtimeAction({
 | Access checks                | None (once per subscription)                                               |
 | Encoding                     | One `JSON.stringify`, shared by every subscriber                           |
 | Pub/sub, Redis               | None locally; one publish per batch only while another instance subscribes |
-| Validation                   | The type of the codec; the `chunk` schema of `json` outside of `prod`      |
+| Validation                   | The codec; the `chunk` schema of `json`, of a stream outside of `prod`     |
 
 The cost that remains is one message per subscriber per chunk on its socket: `coalesce` lowers it for the token
 streams, whose tokens arrive faster than a user reads them.

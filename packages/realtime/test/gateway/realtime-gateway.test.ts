@@ -1290,6 +1290,38 @@ describe('RealtimeGateway', () => {
         );
       });
 
+      test('answers a binary message of no call receiving an input with an error', () => {
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        expect(
+          gateway.handleBinary(
+            connection,
+            new Uint8Array([1, 2, ...Buffer.from('c1'), 1, 2])
+          )
+        ).toBe(true);
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'error',
+          id: 'c1',
+          error: { code: 'REALTIME_MESSAGE_INVALID' }
+        });
+      });
+
+      test('rate limits the inputs of no call', async () => {
+        configOverrides.REALTIME_MESSAGE_RATE_LIMIT = 2;
+        const connection = new FakeConnection();
+        gateway.open(connection);
+
+        for (let i = 0; i < 3; i++) {
+          await send(connection, { type: 'input', id: 'c1', data: 'a' });
+        }
+
+        expect(connection.messages.at(-1)).toMatchObject({
+          type: 'error',
+          error: { code: 'REALTIME_RATE_LIMITED' }
+        });
+      });
+
       test('fails a call whose client sends beyond its window', async () => {
         configOverrides.REALTIME_STREAM_INPUT_WINDOW = '30B';
         createVoice(async (_, { signal }) => {

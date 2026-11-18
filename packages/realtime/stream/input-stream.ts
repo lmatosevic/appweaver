@@ -1,10 +1,5 @@
 import { TSchema } from '@sinclair/typebox';
-import {
-  appConfig,
-  ErrorCode,
-  RealtimeError,
-  textToBytes
-} from '@appweaver/common';
+import { ErrorCode, RealtimeError, textToBytes } from '@appweaver/common';
 import { realtimeConfig } from '../config';
 import { validatePayload } from '../utils/validate';
 import { StreamCodec, StreamInputOptions } from './types';
@@ -187,7 +182,8 @@ export class InputStream implements AsyncIterable<unknown> {
       return new Uint8Array(Buffer.from(data, 'base64'));
     }
     if (codec === 'json' && data !== undefined) {
-      if (this.settings.chunk && appConfig.ENV !== 'prod') {
+      // Sent by a client, so checked in every environment
+      if (this.settings.chunk) {
         validatePayload(this.settings.chunk, data);
       }
       return data;
