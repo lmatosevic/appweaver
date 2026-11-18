@@ -39,7 +39,7 @@
       }
     ]
   ],
-  "coverageReporters": ["cobertura", "text"],
+  "coverageReporters": ["cobertura", "json-summary", "text"],
   "collectCoverageFrom": [
     "packages/*/**/*.ts",
     "!**/test/**",

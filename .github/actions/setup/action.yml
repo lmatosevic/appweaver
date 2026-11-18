@@ -1,0 +1,26 @@
+name: Setup
+description: Installs the dependencies of the monorepo in a Node container, with the npm version of development.
+
+runs:
+  using: composite
+  steps:
+    # The workspace is mounted from the host, owned by another user than the container's root
+    - name: Trust the workspace
+      shell: bash
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+    - name: Cache npm
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: npm-${{ runner.os }}-
+
+    # The image bundles the npm of its Node release, the lockfiles and allowScripts are of npm 12
+    - name: Install npm 12
+      shell: bash
+      run: npm install --global npm@12
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci

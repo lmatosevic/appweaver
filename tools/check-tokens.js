@@ -12,10 +12,21 @@ const checks = [
   {
     name: 'GITHUB_TOKEN',
     token: process.env.GITHUB_TOKEN || process.env.GH_TOKEN,
-    url: 'https://api.github.com/user',
-    user: (body) => body.login
+    ...githubCheck()
   }
 ];
+
+/** The token of a workflow belongs to no user, so in Actions it is checked against the repository. */
+function githubCheck() {
+  const repository = process.env.GITHUB_REPOSITORY;
+  if (process.env.GITHUB_ACTIONS === 'true' && repository) {
+    return {
+      url: `https://api.github.com/repos/${repository}`,
+      user: () => `the workflow of ${repository}`
+    };
+  }
+  return { url: 'https://api.github.com/user', user: (body) => body.login };
+}
 
 async function check({ name, token, url, user }) {
   if (!token) {
