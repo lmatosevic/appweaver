@@ -1,3 +1,15 @@
+## [2.7.0](https://github.com/lmatosevic/appweaver/compare/v2.6.1...v2.7.0) (2026-11-18)
+
+### Features
+
+* client input streams, access control, and rolling-update draining ([8f5fdfc](https://github.com/lmatosevic/appweaver/commit/8f5fdfce9e6476af349866c64b76726dd0f9799c))
+* streams of chunks to one or many connections ([9eb6f37](https://github.com/lmatosevic/appweaver/commit/9eb6f37908eb7d8b1866e41c97e4495b9c567fb3))
+
+### Bug Fixes
+
+* enable unit tests to run in parallel ([deb65e3](https://github.com/lmatosevic/appweaver/commit/deb65e3188e380002ae6212d158a0bc3e434fd87))
+* security updates ([5a37f2a](https://github.com/lmatosevic/appweaver/commit/5a37f2a98edf793e6660ee25850e28303b62cf88))
+
 ## [2.6.1](https://github.com/lmatosevic/appweaver/compare/v2.6.0...v2.6.1) (2026-11-17)
 
 ### Bug Fixes

@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/opentelemetry",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "description": "Appweaver - the backend framework for AI-first development (@opentelemetry)",
   "author": "Luka Matosevic",
   "license": "MIT",
