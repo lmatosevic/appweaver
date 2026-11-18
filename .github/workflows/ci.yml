@@ -54,9 +54,6 @@ jobs:
     needs: [format, lint, circular]
     runs-on: ubuntu-latest
     container: node:24
-    permissions:
-      # Pushes the coverage badge to the badges branch
-      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
@@ -70,8 +67,26 @@ jobs:
           path: reports/
           retention-days: 14
 
+  # A job of its own, so the pull requests never run the tests with a token writing to the repository
+  coverage-badge:
+    name: Coverage badge
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    container: node:24
+    permissions:
+      # Pushes the coverage badge to the badges branch
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-reports
+          path: reports
+
       - name: Publish the coverage badge
-        if: github.event_name == 'push'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
