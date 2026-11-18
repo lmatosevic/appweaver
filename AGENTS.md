@@ -1276,7 +1276,10 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 - `npm run samples:manage -- <operation> [params...] [samples...]` (`tools/manage-samples.js`) runs an operation in
   every sample it applies to, or in the named ones: `regenerate:db` replaces the migrations of each sample with a
   database with a single `init` migration and recreates its database, and `run <script>` runs a `package.json` script of
-  every sample having it, with Bun in the Bun sample (`run generate`, `run seed`). The database operations need the
+  every sample having it, with Bun in the Bun sample (`run generate`, `run seed`), and `exec <command>` runs a shell
+  command in every sample (`exec "docker compose up -d"`). The words after `--` are the last parameter, so they may hold
+  options of their own and the samples come before it (`exec hr-api --parallel -- docker compose down -v`). The
+  database operations need the
   PostgreSQL, MySQL and SQL Server containers running, and `run generate` runs the built `node_modules/@appweaver`, so
   run `npm run build` first or it generates the models of the last build. The samples run one after another, stopping at
   the first failure, or with `--parallel` (anywhere in the arguments) all at once, every output line prefixed with its

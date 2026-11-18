@@ -11,6 +11,11 @@ const { spawn, spawnSync } = require('child_process');
 //   node tools/manage-samples.js run generate
 //   node tools/manage-samples.js run seed webshop-api
 //   node tools/manage-samples.js run e2e --parallel
+//   node tools/manage-samples.js exec "docker compose up -d" cms-api hr-api
+//   node tools/manage-samples.js exec --parallel -- docker compose down -v
+//
+// The words after `--` are the last parameter, so they may hold options of
+// their own, and the arguments before it are the samples.
 
 const samplesDir = 'sample';
 
@@ -30,11 +35,28 @@ const operations = {
       'Runs a package.json script of every sample having it, with Bun in a Bun sample.',
     command: (sampleDir, [script]) => `${runner(sampleDir)} run ${script}`,
     appliesTo: (sampleDir, [script]) => Boolean(readScripts(sampleDir)[script])
+  },
+  exec: {
+    params: ['command'],
+    description: 'Executes a shell command in every sample.',
+    command: (sampleDir, [command]) => command,
+    appliesTo: () => true
   }
 };
 
 const flags = ['--parallel'];
-const args = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const separator = argv.indexOf('--');
+const args = separator === -1 ? argv : argv.slice(0, separator);
+const lastParam =
+  separator === -1
+    ? []
+    : [
+        argv
+          .slice(separator + 1)
+          .map(quote)
+          .join(' ')
+      ];
 const unknownFlags = args.filter(
   (arg) => arg.startsWith('-') && !flags.includes(arg)
 );
@@ -55,10 +77,16 @@ if (!operation) {
   process.exit(operationName ? 1 : 0);
 }
 
-const params = cliArgs.slice(0, operation.params.length);
-const sampleNames = cliArgs.slice(operation.params.length);
-if (params.length < operation.params.length) {
-  const missing = operation.params.slice(params.length);
+if (lastParam.length && !operation.params.length) {
+  console.error(`${operationName} takes no parameter after --\n`);
+  printUsage();
+  process.exit(1);
+}
+const positionalParams = operation.params.length - lastParam.length;
+const params = [...cliArgs.slice(0, positionalParams), ...lastParam];
+const sampleNames = cliArgs.slice(positionalParams);
+if (params.length < operation.params.length || !params.every(Boolean)) {
+  const missing = operation.params.filter((_, i) => !params[i]);
   console.error(`Missing ${missing.map((p) => `<${p}>`).join(' ')}\n`);
   printUsage();
   process.exit(1);
@@ -176,7 +204,7 @@ function printDone() {
 
 function printUsage() {
   console.log(
-    'Usage: node tools/manage-samples.js <operation> [params...] [samples...] [--parallel]\n'
+    'Usage: node tools/manage-samples.js <operation> [params...] [samples...] [--parallel] [-- <last-param...>]\n'
   );
   console.log('Operations:');
   for (const [name, { params, description }] of Object.entries(operations)) {
@@ -187,6 +215,21 @@ function printUsage() {
   console.log(
     '  --parallel        Runs the operation in the samples at once, reporting every failure at the end.'
   );
+  console.log(
+    '  -- <words...>     The last parameter, the samples coming before it (exec -- docker compose down -v).'
+  );
+}
+
+// Quotes a word after `--` the shell would split or expand, the way cmd.exe or sh reads it
+function quote(word) {
+  if (/^[\w@%+=:,./\\-]+$/.test(word)) {
+    return word;
+  }
+  const escaped =
+    process.platform === 'win32'
+      ? word.replace(/"/g, '\\"')
+      : word.replace(/["\\$`]/g, '\\$&');
+  return `"${escaped}"`;
 }
 
 function readScripts(sampleDir) {
