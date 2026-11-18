@@ -1,4 +1,6 @@
 import { AsyncResource } from 'node:async_hooks';
+import AjvCompiler from '@fastify/ajv-compiler';
+import { SerializerSelector } from '@fastify/fast-json-stringify-compiler';
 import fastify, { FastifyRequest } from 'fastify';
 import { fastifyRequestContext } from '@fastify/request-context';
 import {
@@ -35,6 +37,32 @@ export type RealtimeServer = {
 };
 
 /**
+ * A compiler factory whose compiled schemas are shared by every server of a test file. A new server compiles the
+ * schemas of all its routes again, which took most of the time of starting one.
+ */
+function sharedCompiler<F extends (...options: any[]) => (route: any) => any>(
+  factory: F
+): F {
+  const compiled = new Map<string, unknown>();
+  return ((...options: unknown[]) => {
+    const compile = factory(...options);
+    const prefix = JSON.stringify(options);
+    return (route: object) => {
+      const key = prefix + JSON.stringify(route);
+      if (!compiled.has(key)) {
+        compiled.set(key, compile(route));
+      }
+      return compiled.get(key);
+    };
+  }) as F;
+}
+
+const compilersFactory = {
+  buildValidator: sharedCompiler(AjvCompiler()),
+  buildSerializer: sharedCompiler(SerializerSelector())
+};
+
+/**
  * Starts a server with the realtime routes, the drivers of core and an authentication reading the user of the
  * `x-user` header, with the `exp` of the `x-exp` header.
  */
@@ -48,7 +76,10 @@ export async function startRealtimeServer(): Promise<RealtimeServer> {
 
   registerRealtimeRoutes();
 
-  const server = fastify({ forceCloseConnections: true }) as unknown as Server;
+  const server = fastify({
+    forceCloseConnections: true,
+    schemaController: { compilersFactory }
+  }) as unknown as Server;
   server.register(fastifyRequestContext, {
     createAsyncResource: () =>
       runInAuthContext(() => new AsyncResource('appweaver-request'))

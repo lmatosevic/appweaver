@@ -6,6 +6,7 @@ import { defaultTranslations } from '../../../core/locale/default-translations';
 import { disableModules, enableModules } from '../../scaffold/apply-modules';
 import { createProject } from '../../scaffold/create-project';
 import { loadProject } from '../../scaffold/load-project';
+import { modules as catalog } from '../../scaffold/modules';
 import { ProjectFiles } from '../../scaffold/project-files';
 import {
   DatabaseType,
@@ -248,14 +249,17 @@ describe('apply-modules', () => {
   const read = (dir: string, file: string) =>
     fs.readFileSync(path.join(dir, file), 'utf8');
 
-  /** Every combination of the modules that includes the modules each one requires. */
+  /**
+   * Every combination of the modules that includes the modules each one requires, since one missing a requirement
+   * leads to the same project as the one with it.
+   */
   const combinations = (): ModuleName[][] =>
     Array.from({ length: 2 ** moduleNames.length }, (_, mask) =>
       moduleNames.filter((_, i) => mask & (1 << i))
-    ).filter(
-      (names) =>
-        (!names.includes('queue') || names.includes('redis')) &&
-        (!names.includes('web') || names.includes('data'))
+    ).filter((names) =>
+      names.every((name) =>
+        catalog[name].requires.every((required) => names.includes(required))
+      )
     );
 
   /**

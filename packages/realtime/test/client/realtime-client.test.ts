@@ -52,7 +52,7 @@ const waitFor = async (check: () => boolean, timeout = 2000) => {
     if (Date.now() > deadline) {
       throw new Error('Condition not met');
     }
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    await new Promise((resolve) => setTimeout(resolve, 5));
   }
 };
 
@@ -156,13 +156,23 @@ describe('RealtimeClient', () => {
       const subscription = client.realtime.subscribe('news', (payload) =>
         received.push(payload)
       );
-      const kept = client.realtime.subscribe('news', () => undefined);
-      await Promise.all([subscription.ready, kept.ready]);
+      const kept: unknown[] = [];
+      const keptSubscription = client.realtime.subscribe('news', (payload) =>
+        kept.push(payload)
+      );
+      await Promise.all([subscription.ready, keptSubscription.ready]);
 
       subscription.unsubscribe();
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // The server drops the subscription, over SSE on a restarted stream
+      await waitFor(
+        () =>
+          client.realtime.state === 'open' &&
+          app.gateway.connections.size === 1 &&
+          [...app.gateway.connections.values()][0].subscriptions.size === 1
+      );
       await news.publish({ title: 'Ignored' });
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Delivered on the same connection, so the removed one had it by now
+      await waitFor(() => kept.length === 1);
 
       expect(received).toEqual([]);
     });
@@ -298,16 +308,20 @@ describe('RealtimeClient', () => {
   });
 
   test('rejects the pending actions when disconnected', async () => {
+    let started = false;
     createRealtimeAction({
       name: 'slow',
       payload: Type.Object({}),
-      handler: () => new Promise((resolve) => setTimeout(resolve, 1000))
+      handler: () => {
+        started = true;
+        return new Promise((resolve) => setTimeout(resolve, 1000));
+      }
     });
     client = createClient();
     await client.realtime.connect();
 
     const pending = client.realtime.send('slow' as 'double', {} as never);
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await waitFor(() => started);
     client.realtime.disconnect();
 
     await expect(pending).rejects.toMatchObject({ code: 'REQUEST_FAILED' });
