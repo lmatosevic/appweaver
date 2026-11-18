@@ -74,6 +74,7 @@ function resourceTool(
   const service = () => injectService(model.name as never) as any;
   const project = (record: unknown) => projectRecord(model, record, config);
   const id = idSchema(model);
+  const visible = fields(model, config.exclude);
   const about = config.description ? ` ${config.description}` : '';
   const tool = (
     summary: string,
@@ -101,8 +102,8 @@ function resourceTool(
       return tool(
         `Queries the ${model.name} records, at most ${limit} per page`,
         Type.Object({
-          filter: Type.Optional(filterSchema(model)),
-          sort: Type.Optional(sortSchema(model)),
+          filter: Type.Optional(filterSchema(visible)),
+          sort: Type.Optional(sortSchema(visible)),
           page: Type.Optional(Type.Integer({ minimum: 1 })),
           size: Type.Optional(Type.Integer({ minimum: 1, maximum: limit })),
           cursor: Type.Optional(
@@ -122,8 +123,8 @@ function resourceTool(
       return tool(
         `Aggregates the ${model.name} records over a date range, optionally in steps`,
         Type.Object({
-          select: aggregateSchema(model),
-          filter: Type.Optional(filterSchema(model)),
+          select: aggregateSchema(visible),
+          filter: Type.Optional(filterSchema(visible)),
           dateField: Type.Optional(
             Type.String({ description: 'The date field of the range' })
           ),
@@ -181,8 +182,11 @@ function idSchema(model: ResourceModel): TSchema {
   return object?.properties?.id ?? Type.Union([Type.Integer(), Type.String()]);
 }
 
-/** The fields a query tool filters and sorts by, with the schema of their values. */
-function fields(model: ResourceModel): [string, TSchema][] {
+/** The fields a query tool filters, sorts and aggregates by, with the schema of their values, without `exclude`. */
+function fields(
+  model: ResourceModel,
+  exclude: string[] = []
+): [string, TSchema][] {
   const audit = {
     updatedAt: true,
     createdAt: true,
@@ -205,7 +209,7 @@ function fields(model: ResourceModel): [string, TSchema][] {
       result.push([name, value]);
     }
   }
-  return result;
+  return result.filter(([name]) => !exclude.includes(name));
 }
 
 function scalarValue(scalar: {
@@ -231,9 +235,9 @@ function scalarValue(scalar: {
 }
 
 /** A filter of the fields of a model: a value, or a condition of the common operators, combined with `_or`. */
-function filterSchema(model: ResourceModel): TObject {
+function filterSchema(fields: [string, TSchema][]): TObject {
   const conditions: Record<string, TSchema> = {};
-  for (const [name, value] of fields(model)) {
+  for (const [name, value] of fields) {
     const operators: Record<string, TSchema> = {};
     for (const operator of VALUE_OPERATORS) {
       operators[operator] = Type.Optional(value);
@@ -266,9 +270,9 @@ function filterSchema(model: ResourceModel): TObject {
   );
 }
 
-function sortSchema(model: ResourceModel): TObject {
+function sortSchema(fields: [string, TSchema][]): TObject {
   const properties: Record<string, TSchema> = {};
-  for (const [name] of fields(model)) {
+  for (const [name] of fields) {
     properties[name] = Type.Optional(StringEnum(['asc', 'desc']));
   }
   return Type.Object(properties, {
@@ -277,9 +281,9 @@ function sortSchema(model: ResourceModel): TObject {
   });
 }
 
-function aggregateSchema(model: ResourceModel): TObject {
+function aggregateSchema(fields: [string, TSchema][]): TObject {
   const properties: Record<string, TSchema> = {};
-  for (const [name, value] of fields(model)) {
+  for (const [name, value] of fields) {
     if (value.type === 'number' || value.type === 'integer') {
       properties[name] = Type.Optional(AggregateNumericSchema);
     } else if (value.format === 'date-time') {

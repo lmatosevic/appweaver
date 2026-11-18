@@ -168,7 +168,7 @@ export type ResourceMcpConfig = RealtimeAccess & {
   actions: (ResourceMcpAction | ResourceMcpActionConfig)[];
   /** What the resource is, added to the descriptions of its tools */
   description?: string;
-  /** Fields left out of the records the tools return */
+  /** Fields left out of the records the tools return and of their filters, sorts and aggregations */
   exclude?: string[];
   /** The maximum records a query returns. Default: `mcp.maxLimit` */
   maxLimit?: number;

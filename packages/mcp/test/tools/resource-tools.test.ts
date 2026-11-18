@@ -80,6 +80,20 @@ describe('resource-tools', () => {
       });
     });
 
+    test('leaves the excluded fields out of the filter, the sort and the aggregations', () => {
+      usePosts({ actions: ['query', 'aggregate'], exclude: ['views'] });
+
+      const query = toJsonSchema(tool('post_query').input) as any;
+      const aggregate = toJsonSchema(tool('post_aggregate').input) as any;
+
+      expect(query.properties.filter.properties).toHaveProperty('title');
+      expect(query.properties.filter.properties).not.toHaveProperty('views');
+      expect(query.properties.sort.properties).not.toHaveProperty('views');
+      expect(aggregate.properties.select.properties).not.toHaveProperty(
+        'views'
+      );
+    });
+
     test('queries the records, at most the limit per page', async () => {
       const service = usePosts({ actions: ['query'], maxLimit: 5 });
       const query = tool('post_query');

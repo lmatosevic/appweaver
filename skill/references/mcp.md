@@ -33,7 +33,7 @@ export default createRoutes({
     description: 'The articles of the blog.',
     roles: ['editor'],                       // default access, also public and permissions
     actions: ['find', 'query', 'aggregate', 'create', { action: 'delete', roles: ['admin'] }],
-    exclude: ['internalNote'],               // fields left out of the results
+    exclude: ['internalNote'],               // fields left out of the results, filters and sorts
     maxLimit: 20                             // default: mcp.maxLimit
   }
 });
@@ -52,7 +52,8 @@ export default createRoutes({
 - The query filter covers the visible scalar fields: a value, or the operators `_eq`, `_ne`, `_gt`, `_gte`, `_lt`,
   `_lte`, `_in`, `_exists` (and `_contains`, `_starts`, `_ends`, `_ilike` on texts), combined with `_or`. The sort is
   `{ field: 'asc' | 'desc' }`.
-- The results are projected onto the response schema of the model (no hidden fields), without `exclude`.
+- The results are projected onto the response schema of the model (no hidden fields), and the `exclude` fields are
+  left out of the results, the filter, the sort and the aggregations.
 - The schemas are published as plain JSON Schema, the model references inlined.
 
 ## Custom tools
