@@ -88,6 +88,10 @@ describe('Feature Verification', () => {
       interface from `packages/common` it implements. Never on plain functions, constants or types.
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run
   `npm run build` after making changes to shared packages if they are used by other packages or the sample application.
+- **Dependency versions**: a version bumped in the root `package.json` is bumped in the same commit in
+  `packages/*/package.json`, `sample/*/package.json` and `scaffoldDependencies` (not the peer ranges), then
+  `npm install` and `npm run samples:lock`, so the published packages, the samples and the scaffolded projects run
+  what the monorepo is tested with. A test of `packages/create` checks it.
 
 **IMPORTANT**: after a new feature is added or change is done in how the library is used, always update the
 [SKILL.md](./skill/SKILL.md) file and any of the referenced files in ./skill/references/*.md.

@@ -26,7 +26,7 @@
     "prebuild": "npm run clean:packages",
     "build": "tsc -b -v packages",
     "postbuild": "npm run resolve:esm && npm run clean:modules && node tools/copy-packages.js",
-    "test": "jest --forceExit --detectOpenHandles --coverage",
+    "test": "jest --coverage",
     "test:typecheck": "tsc -p tsconfig.test.json",
     "format": "prettier --write \"packages/**/*.ts\" \"sample/**/*.ts\"",
     "lint": "node tools/lint.js",

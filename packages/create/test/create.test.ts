@@ -36,6 +36,45 @@ describe('scaffoldDependencies', () => {
 
     expect(shared).toEqual(shared.map(([name]) => [name, rootVersions[name]]));
   });
+
+  test('match the versions of the packages and the samples', () => {
+    const repoRoot = path.join(packageRoot, '..', '..');
+    const rootVersions: Record<string, string> = {
+      ...rootPkg.dependencies,
+      ...rootPkg.devDependencies
+    };
+    const manifests = ['packages', 'sample'].flatMap((dir) =>
+      fs
+        .readdirSync(path.join(repoRoot, dir))
+        .map((name) => path.join(dir, name, 'package.json'))
+        .filter((file) => fs.existsSync(path.join(repoRoot, file)))
+    );
+
+    const mismatches = manifests.flatMap((file) => {
+      const pkg = JSON.parse(
+        fs.readFileSync(path.join(repoRoot, file), 'utf8')
+      );
+      return [
+        'dependencies',
+        'devDependencies',
+        'optionalDependencies'
+      ].flatMap((field) =>
+        Object.entries<string>(pkg[field] ?? {})
+          .filter(
+            ([name, version]) =>
+              !name.startsWith('@appweaver/') &&
+              rootVersions[name] &&
+              version !== rootVersions[name]
+          )
+          .map(
+            ([name, version]) =>
+              `${file} ${field} ${name}@${version}, root ${rootVersions[name]}`
+          )
+      );
+    });
+
+    expect(mismatches).toEqual([]);
+  });
 });
 
 describe('create', () => {

@@ -9,8 +9,8 @@
     "start": "weaver start",
     "dev": "weaver start --watch",
     "generate": "weaver generate --config-schema",
-    "test": "jest --forceExit --detectOpenHandles --coverage",
-    "e2e": "jest --forceExit --detectOpenHandles --config ./test/e2e/jest.e2e-config.json",
+    "test": "jest --coverage",
+    "e2e": "jest --config ./test/e2e/jest.e2e-config.json",
     "format": "prettier --write \"./**/*.ts\"",
     "lint": "eslint \"./**/*.ts\""
   },
