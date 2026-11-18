@@ -50,6 +50,8 @@
       "@appweaver/web/*": ["./packages/web/*"],
       "@appweaver/cli": ["./packages/cli"],
       "@appweaver/cli/*": ["./packages/cli/*"],
+      "@appweaver/client": ["./packages/client"],
+      "@appweaver/client/*": ["./packages/client/*"],
       "@appweaver/create/*": ["./packages/create/*"]
     }
   },
