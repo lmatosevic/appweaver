@@ -4,6 +4,8 @@ require('dotenv/config');
 const packages = [
   'common',
   'core',
+  'ai',
+  'openai',
   'data',
   'web',
   'redis',

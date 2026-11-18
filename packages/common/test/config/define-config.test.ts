@@ -9,7 +9,8 @@ import {
   readConfig,
   readRawConfig,
   sectionPrefix,
-  setRawConfig
+  setRawConfig,
+  splitRecordEntry
 } from '../../config/define-config';
 
 /** Prefixes the flattened keys the way the loader stores them. */
@@ -336,6 +337,77 @@ describe('define-config', () => {
 
         setRawConfig(raw({ [`${prefix}NAME_CACHE`]: 'x' }), {});
         expect(configSource(`${prefix}NAME`)).toBe('default');
+      });
+
+      describe('of objects', () => {
+        const endpoints = Type.Record(
+          Type.String(),
+          Type.Object({
+            preset: Type.Optional(Type.String()),
+            apiKey: Type.Optional(Type.String()),
+            key: Type.Optional(Type.String()),
+            timeout: Type.Optional(Type.Integer()),
+            capabilities: Type.Optional(Type.Array(Type.String())),
+            stream: Type.Optional(Type.Boolean())
+          }),
+          { default: {} }
+        );
+
+        test('reads every property of an entry from its own key', () => {
+          const section = uniqueSection('objects');
+          const prefix = sectionPrefix(section);
+          setRawConfig(
+            raw({
+              [`${prefix}ENDPOINTS_LOCAL_PRESET`]: 'ollama',
+              [`${prefix}ENDPOINTS_OPEN_ROUTER_API_KEY`]: 'secret',
+              [`${prefix}ENDPOINTS_OPEN_ROUTER_CAPABILITIES`]: ['tools']
+            }),
+            raw({
+              [`${prefix}ENDPOINTS_LOCAL_TIMEOUT`]: '5000',
+              [`${prefix}ENDPOINTS_LOCAL_CAPABILITIES`]: 'tools,images',
+              [`${prefix}ENDPOINTS_LOCAL_STREAM`]: 'yes',
+              [`${prefix}ENDPOINTS_UNKNOWN`]: 'ignored',
+              [`${prefix}ENDPOINTS`]: 'local:ignored'
+            })
+          );
+
+          const values = defineConfig(section, { ENDPOINTS: endpoints });
+
+          expect(values.ENDPOINTS).toEqual({
+            local: {
+              preset: 'ollama',
+              timeout: 5000,
+              capabilities: ['tools', 'images'],
+              stream: true
+            },
+            openRouter: { apiKey: 'secret', capabilities: ['tools'] }
+          });
+        });
+      });
+
+      describe('splitRecordEntry', () => {
+        test('names the entry of a record of values', () => {
+          expect(splitRecordEntry(levels, 'RATE_LIMIT')).toEqual({
+            entry: 'rateLimit'
+          });
+        });
+
+        test('takes the longest property ending the name', () => {
+          const record = Type.Record(
+            Type.String(),
+            Type.Object({ key: Type.String(), apiKey: Type.String() })
+          );
+
+          expect(splitRecordEntry(record, 'MAIN_API_KEY')).toEqual({
+            entry: 'main',
+            field: 'apiKey'
+          });
+          expect(splitRecordEntry(record, 'MAIN_KEY')).toEqual({
+            entry: 'main',
+            field: 'key'
+          });
+          expect(splitRecordEntry(record, 'KEY')).toBeUndefined();
+        });
       });
     });
   });

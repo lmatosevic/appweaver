@@ -73,6 +73,13 @@ export class SmsError<
   public readonly module = 'sms';
 }
 
+/** An error of an AI model call, i.e. a rate limited request or an output not matching its schema. */
+export class AiError<
+  C extends ModuleErrorCode<'AI'> = ModuleErrorCode<'AI'>
+> extends AppweaverError<C> {
+  public readonly module = 'ai';
+}
+
 /** An error of a realtime connection, i.e. a subscription to an unknown channel or a denied action. */
 export class RealtimeError<
   C extends ModuleErrorCode<'REALTIME'> = ModuleErrorCode<'REALTIME'>

@@ -7,8 +7,10 @@ import {
   camelToSnakeCase,
   ConfigSectionDefinition,
   configSections,
-  parseArray
+  parseArray,
+  splitRecordEntry
 } from '@appweaver/common';
+import ai from '@appweaver/ai/module';
 import bullmq from '@appweaver/bullmq/module';
 import core from '@appweaver/core/modules/core';
 import cron from '@appweaver/cron/module';
@@ -31,6 +33,7 @@ const referencePath = path.join(root, 'skill/references/configuration.md');
 
 const modules = [
   core,
+  ai,
   data,
   web,
   redis,
@@ -180,8 +183,22 @@ describe('config-examples', () => {
         if (!key) {
           unknown.push(name);
         } else if (isRecord(keys.get(key)!.property)) {
-          const entry = name.slice(key.length + 1).toLowerCase();
-          values.set(key, { ...(values.get(key) as object), [entry]: value });
+          const record = (values.get(key) ?? {}) as Record<string, any>;
+          const split = splitRecordEntry(
+            keys.get(key)!.property,
+            name.slice(key.length + 1)
+          );
+          if (!split) {
+            unknown.push(name);
+          } else if (split.field === undefined) {
+            record[split.entry] = value;
+          } else {
+            record[split.entry] = {
+              ...record[split.entry],
+              [split.field]: value
+            };
+          }
+          values.set(key, record);
         } else {
           values.set(key, value);
         }

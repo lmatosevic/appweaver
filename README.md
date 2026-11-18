@@ -87,7 +87,7 @@ Common options:
 
 | Flag                     | Description                                                                                                                            | Default      |
 |--------------------------|----------------------------------------------------------------------------------------------------------------------------------------|--------------|
-| `--add <modules...>`     | Added to the default ones: `redis`, `queue`, `scheduler`, `mailer`, `sms`, `templates`, `locales`, `timeseries`, `telemetry`, `realtime`, `docker` | `data web`   |
+| `--add <modules...>`     | Added to the default ones: `redis`, `queue`, `scheduler`, `mailer`, `sms`, `templates`, `locales`, `timeseries`, `telemetry`, `realtime`, `ai`, `docker` | `data web`   |
 | `--all`                  | Add every module                                                                                                                       | false        |
 | `--exclude <modules...>` | Modules to leave out of the default ones or of `--all`                                                                                 | none         |
 | `-o, --output-dir <dir>` | Output directory (use ./ for current working directory)                                                                                | project name |
@@ -310,6 +310,8 @@ One package per library or service, each carrying the library as a dependency an
 | `@appweaver/nodemailer`    | The `smtp` mailer                                                        |
 | `@appweaver/twilio`        | The `twilio` SMS sender of the SMS 2FA codes and the phone verification  |
 | `@appweaver/realtime`      | Channels, resource events and actions over WebSocket and SSE             |
+| `@appweaver/ai`            | `AiService`: LLM calls, streams, objects, tools, embeddings, the queue    |
+| `@appweaver/openai`        | The `openai` AI driver of OpenAI and every compatible server (Ollama...)  |
 | `@appweaver/opentelemetry` | The OpenTelemetry SDK exporting the traces, metrics and logs over OTLP   |
 | `@appweaver/handlebars`    | The `handlebars` template engine                                         |
 | `@appweaver/sharp`         | The `sharp` image processor of the uploads                               |

@@ -1,0 +1,59 @@
+{
+  "name": "@appweaver/openai",
+  "version": "2.7.1",
+  "description": "Appweaver - the backend framework for AI-first development (@openai)",
+  "author": "Luka Matosevic",
+  "license": "MIT",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+    "appweaver",
+    "appweaver-module",
+    "ai",
+    "llm",
+    "openai",
+    "ollama",
+    "openrouter"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lmatosevic/appweaver.git",
+    "directory": "packages/openai"
+  },
+  "maintainers": [
+    {
+      "name": "Luka Matosevic",
+      "email": "lukamatosevic5@gmail.com",
+      "web": "https://lukamatosevic.com"
+    }
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">= 24.7"
+  },
+  "appweaver": {
+    "module": "./module.js"
+  },
+  "dependencies": {
+    "openai": "7.47.0"
+  },
+  "peerDependencies": {
+    "@appweaver/ai": "^1.12.2",
+    "@appweaver/common": "^1.12.2",
+    "@appweaver/core": "^1.12.2"
+  },
+  "devDependencies": {
+    "@appweaver/ai": "^1.12.2",
+    "@appweaver/common": "^1.12.2",
+    "@appweaver/core": "^1.12.2"
+  }
+}

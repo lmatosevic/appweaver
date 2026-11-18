@@ -4,6 +4,13 @@ import { FieldError } from './problem-details';
 type ModelDetails = { model: string };
 type FieldsDetails = { fields: string[]; model?: string; constraint?: string };
 type FileDetails = { fileName: string };
+/** The model reference and the endpoint of a failed AI call, with the HTTP status and the error code of the provider. */
+type AiProviderDetails = {
+  model: string;
+  endpoint: string;
+  status?: number;
+  providerCode?: string;
+};
 
 /**
  * The details every error code carries, returned as the `details` of its
@@ -137,6 +144,20 @@ export interface ErrorDetailsMap {
   [ErrorCode.RealtimeStreamLost]: { stream: string };
   [ErrorCode.RealtimeStreamAccept]: { action: string };
   [ErrorCode.RealtimeInputLimit]: { limit: number };
+
+  [ErrorCode.AiModelUnknown]: { model: string };
+  [ErrorCode.AiRequestInvalid]: { errors: string[] };
+  [ErrorCode.AiCapabilityUnsupported]: {
+    model: string;
+    capability: string;
+  };
+  [ErrorCode.AiRequestFailed]: AiProviderDetails;
+  [ErrorCode.AiAuthFailed]: AiProviderDetails;
+  [ErrorCode.AiRateLimited]: AiProviderDetails & { retryAfter?: number };
+  [ErrorCode.AiTimeout]: AiProviderDetails;
+  [ErrorCode.AiProviderUnavailable]: AiProviderDetails;
+  [ErrorCode.AiContextLengthExceeded]: AiProviderDetails;
+  [ErrorCode.AiOutputInvalid]: { model: string; errors: string[] };
 
   [ErrorCode.TimeSeriesNotEnabled]: ModelDetails;
   [ErrorCode.TimeSeriesInvalidField]: ModelDetails & { field: string };

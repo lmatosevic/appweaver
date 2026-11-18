@@ -7,6 +7,7 @@ import {
 import {
   formatConfigRows,
   readConfigReport,
+  redactRecordSecrets,
   redactUrlPassword
 } from '../../config/config-report';
 
@@ -126,6 +127,53 @@ describe('config-report', () => {
     test('keeps the values that are not strings', () => {
       expect(redactUrlPassword(8080)).toBe(8080);
       expect(redactUrlPassword(undefined)).toBeUndefined();
+    });
+  });
+
+  describe('redactRecordSecrets', () => {
+    const endpoints = Type.Record(
+      Type.String(),
+      Type.Object({
+        baseUrl: Type.Optional(Type.String()),
+        apiKey: Type.Optional(Type.String()),
+        token: Type.Optional(Type.String({ secret: true }))
+      })
+    );
+
+    test('hides the secret properties of every entry', () => {
+      expect(
+        redactRecordSecrets(
+          {
+            main: {
+              baseUrl: 'https://user:pass@example.com/v1',
+              apiKey: 'sk-1',
+              token: 't'
+            },
+            local: { baseUrl: 'http://localhost:11434/v1' },
+            broken: null
+          },
+          endpoints
+        )
+      ).toEqual({
+        main: {
+          baseUrl: 'https://user:********@example.com/v1',
+          apiKey: '********',
+          token: '********'
+        },
+        local: { baseUrl: 'http://localhost:11434/v1' },
+        broken: null
+      });
+    });
+
+    test('keeps the values of other keys', () => {
+      expect(
+        redactRecordSecrets(
+          { a: 'b' },
+          Type.Record(Type.String(), Type.String())
+        )
+      ).toEqual({ a: 'b' });
+      expect(redactRecordSecrets('text', Type.String())).toBe('text');
+      expect(redactRecordSecrets(undefined, endpoints)).toBeUndefined();
     });
   });
 });

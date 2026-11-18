@@ -834,8 +834,18 @@ describe('create', () => {
         'server',
         'memory',
         'timeseries',
-        'telemetry'
+        'telemetry',
+        'ai'
       ]);
+      expect(appConfig.config.ai).toEqual({
+        endpoints: {
+          local: {
+            preset: 'ollama',
+            baseUrl: 'http://${OLLAMA_HOST:-localhost}:11434/v1'
+          }
+        },
+        defaultModel: 'local:qwen3:0.6b'
+      });
       expect(appConfig.config.memory).toEqual({
         redis: { url: 'redis://${REDIS_HOST:-localhost}:6379/0' }
       });
@@ -846,7 +856,8 @@ describe('create', () => {
         queue: { provider: 'memory' },
         scheduler: { autoStartJob: false },
         mailer: { provider: 'json', senderAddress: 'no-reply@example.com' },
-        telemetry: { enabled: false }
+        telemetry: { enabled: false },
+        ai: { defaultModel: 'mock:echo' }
       });
       expect(appConfig.config.telemetry).toEqual({
         endpoint: 'http://${OTEL_HOST:-localhost}:4318'

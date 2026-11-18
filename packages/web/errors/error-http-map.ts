@@ -379,6 +379,32 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     title: 'Realtime server shutting down'
   },
 
+  [ErrorCode.AiModelUnknown]: { status: 500, title: 'AI model unknown' },
+  [ErrorCode.AiRequestInvalid]: { status: 400, title: 'Invalid AI request' },
+  [ErrorCode.AiCapabilityUnsupported]: {
+    status: 400,
+    title: 'AI capability not supported by the model'
+  },
+  [ErrorCode.AiRequestFailed]: { status: 502, title: 'AI request failed' },
+  [ErrorCode.AiAuthFailed]: {
+    status: 502,
+    title: 'AI provider authentication failed'
+  },
+  [ErrorCode.AiRateLimited]: { status: 429, title: 'AI provider rate limited' },
+  [ErrorCode.AiTimeout]: { status: 504, title: 'AI request timed out' },
+  [ErrorCode.AiProviderUnavailable]: {
+    status: 503,
+    title: 'AI provider unavailable'
+  },
+  [ErrorCode.AiContextLengthExceeded]: {
+    status: 422,
+    title: 'AI context length exceeded'
+  },
+  [ErrorCode.AiOutputInvalid]: {
+    status: 502,
+    title: 'Invalid AI model output'
+  },
+
   [ErrorCode.TimeSeriesNotEnabled]: {
     status: 404,
     title: 'Time series not enabled'

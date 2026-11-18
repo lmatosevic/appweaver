@@ -2,6 +2,9 @@
   "files": [],
   "references": [
     {
+      "path": "./ai/tsconfig.build.json"
+    },
+    {
       "path": "./bullmq/tsconfig.build.json"
     },
     {
@@ -30,6 +33,9 @@
     },
     {
       "path": "./nodemailer/tsconfig.build.json"
+    },
+    {
+      "path": "./openai/tsconfig.build.json"
     },
     {
       "path": "./opentelemetry/tsconfig.build.json"

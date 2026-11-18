@@ -18,6 +18,8 @@ first-party module does.
 | `@appweaver/nodemailer`    | Installed                    | The `smtp` mailer                                                                                                                                          |
 | `@appweaver/twilio`        | Installed                    | The `twilio` SMS sender (`SmsSender`), with the REST API of Twilio and no SDK                                                                              |
 | `@appweaver/realtime`      | Installed (requires `web`)   | The realtime connections (`RealtimeGateway`) over WebSocket and SSE: channels, resource events and actions, see [realtime](./realtime.md)                   |
+| `@appweaver/ai`            | Installed                    | `AiService` calling the AI models of the endpoints of the `ai` config, the tools, the built-in `mock` driver, see [ai](./ai.md)                          |
+| `@appweaver/openai`        | Installed (requires `ai`)    | The `openai` AI driver (`AiDriver`), for OpenAI and every OpenAI-compatible server (Ollama, OpenRouter, vLLM, ...), with the `openai` SDK                  |
 | `@appweaver/opentelemetry` | Installed                    | The OpenTelemetry SDK (`TelemetryService`) exporting the traces, metrics and logs over OTLP, see [telemetry](./telemetry.md)                               |
 | `@appweaver/handlebars`    | Installed                    | The `handlebars` template engine                                                                                                                           |
 | `@appweaver/sharp`         | Installed                    | The `sharp` image processor                                                                                                                                |
@@ -392,6 +394,7 @@ A driver of an external service runs the suite on an in-memory stand-in of its c
 | `testQueueContract`      | `Queue`      | A job processed by a worker and its result, a failed job, a given job id and an ignored send of one still queued, closing a queue, the health check                                              |
 | `testSchedulerContract`  | `Scheduler`  | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)                                                                                                       |
 | `testMailerContract`     | `Mailer`     | Sending an email with every field of the contract, the health check                                                                                                                              |
+| `testAiDriverContract`   | `AiDriver`   | A text answer, a tool call and a conversation with its result, the JSON mode, a stream and a streamed tool call, the embeddings (unless `embeddings: false`), the capabilities and the health check |
 | `testSmsContract`        | `SmsSender`  | Sending a text message with and without a sender, the name of its health check, the health check                                                                                                 |
 | `testTimeSeriesContract` | `TimeSeries` | Writing and merging points, selecting fields and ranges, ordering and limiting, every aggregate by bucket and over the range, deleting a range (a store with `supportsDelete`), the health check |
 
