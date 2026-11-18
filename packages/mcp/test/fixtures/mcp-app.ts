@@ -47,7 +47,7 @@ export function usePosts(mcp?: ResourceMcpConfig) {
   } as any);
   linkModels();
   context.resource.routes.set('Post', {
-    config: { modelName: 'Post', mcp } as any,
+    config: { modelName: 'Post', mcp },
     basePath: 'posts',
     handler: () => {}
   });

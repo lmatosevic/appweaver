@@ -200,7 +200,7 @@ function fields(model: ResourceModel): [string, TSchema][] {
     result.push(['createdById', Type.Union([Type.Integer(), Type.String()])]);
   }
   for (const [name, scalar] of Object.entries(model.config.scalars ?? {})) {
-    const value = scalarValue(scalar as { type: string; values?: string[] });
+    const value = scalarValue(scalar);
     if (!scalar.hidden && !scalar.array && value) {
       result.push([name, value]);
     }

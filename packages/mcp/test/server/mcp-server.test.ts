@@ -251,7 +251,7 @@ describe('mcp-server', () => {
       usePosts({ actions: ['find'] });
       createMcpTool({ name: 'post_find', handler: () => 'custom' });
 
-      const tools = availableTools(user as never);
+      const tools = availableTools(user);
 
       expect(tools).toHaveLength(1);
       expect(tools[0].call({}, { user: null })).toBe('custom');

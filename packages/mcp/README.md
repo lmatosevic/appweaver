@@ -31,7 +31,10 @@ npm install @appweaver/mcp
 or `weaver module add mcp` in a project created with `@appweaver/create`.
 
 ```ts
-createRoutes({ modelName: 'post', mcp: { actions: ['find', 'query', 'create'] } });
+createRoutes({
+  modelName: 'post',
+  mcp: { actions: ['find', 'query', 'create'] }
+});
 ```
 
 ## Documentation

@@ -27,7 +27,7 @@ describe('resource-tools', () => {
     test('builds the tools of the exposed actions only', () => {
       usePosts({ actions: ['find', 'query', 'aggregate', 'create'] });
       context.resource.routes.set('Hidden', {
-        config: { modelName: 'Hidden' } as never,
+        config: { modelName: 'Hidden' },
         basePath: 'hidden',
         handler: () => {}
       });
