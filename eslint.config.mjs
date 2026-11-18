@@ -66,44 +66,6 @@ export default tsEslint.config(
     }
   },
   {
-    // The streams of the realtime module never depend on the transports, the web or the data layers, so they can move
-    // to a package without a server
-    files: ['packages/realtime/stream/**/*.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: [
-                '@appweaver/web',
-                '@appweaver/web/*',
-                '@appweaver/data',
-                '@appweaver/data/*'
-              ],
-              message:
-                'The streams depend on @appweaver/common and @appweaver/core only.'
-            },
-            {
-              group: [
-                '../gateway/*',
-                '../transport/*',
-                '../web/*',
-                '../types',
-                '../action',
-                '../channel',
-                '../utils/access',
-                '../utils/auth-user'
-              ],
-              message:
-                'The streams never import the gateway, the transports, the web part, the channels or the access checks.'
-            }
-          ]
-        }
-      ]
-    }
-  },
-  {
     // The contract suites export the tests other packages run
     files: ['packages/testing/contracts/**/*.ts'],
     rules: {

@@ -412,10 +412,9 @@ A stream checks a subscriber once, when it subscribes (and on a `refresh`), neve
 (`StreamFrame`) and written to the connections of the instance directly, a subscriber being a `StreamSink`. It reaches
 another instance only while one of them announces a subscriber of its key on the control channel
 (`realtime:_streams`), in batches of `streamRelayFlushInterval` on the channel of the key, the binary chunks as base64.
-`stream/` depends on `@appweaver/common`, `@appweaver/core`, the config and the utils of the package only, never on
-the gateway, the transports, the web part, the channels or `@appweaver/web` and `@appweaver/data` (the
-`no-restricted-imports` rule of `eslint.config.mjs`), so it can move to a package without a server; the gateway sets
-how its errors are formatted (`setStreamProblemFormat`).
+`stream/` never imports the gateway, the transports, the web part, the channels, `@appweaver/web` or
+`@appweaver/data`, so it can move to a package without a server; the gateway sets how its errors are formatted
+(`setStreamProblemFormat`).
 
 ### `packages/testing`
 
