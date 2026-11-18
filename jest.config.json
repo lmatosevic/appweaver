@@ -22,6 +22,7 @@
           },
           "target": "ES2024"
         },
+        "inputSourceMap": false,
         "module": {
           "type": "commonjs"
         },
