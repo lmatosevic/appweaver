@@ -354,6 +354,22 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     status: 404,
     title: 'Realtime transport disabled'
   },
+  [ErrorCode.RealtimeStreamNotFound]: {
+    status: 404,
+    title: 'Realtime stream not found'
+  },
+  [ErrorCode.RealtimeStreamEnded]: {
+    status: 409,
+    title: 'Realtime stream ended'
+  },
+  [ErrorCode.RealtimeStreamLost]: {
+    status: 503,
+    title: 'Realtime stream lost'
+  },
+  [ErrorCode.RealtimeStreamAccept]: {
+    status: 406,
+    title: 'Realtime stream not accepted'
+  },
 
   [ErrorCode.TimeSeriesNotEnabled]: {
     status: 404,

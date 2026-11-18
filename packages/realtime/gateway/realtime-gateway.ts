@@ -33,8 +33,15 @@ import {
   RESOURCE_CHANNEL_PREFIX
 } from '../channel';
 import { realtimeConfig } from '../config';
+import { findStream, STREAM_CHANNEL_PREFIX } from '../stream/create-stream';
+import { pumpStream } from '../stream/pump';
+import { StreamHub } from '../stream/stream-hub';
+import { StreamInstance, streamSettings } from '../stream/stream-instance';
+import { setStreamProblemFormat } from '../stream/stream-problem';
+import { Stream, StreamSink } from '../stream/types';
 import {
   Channel,
+  RealtimeAction,
   RealtimeActionContext,
   RealtimeClientMessage,
   RealtimeCloseCode,
@@ -48,9 +55,16 @@ import { resourceEventActions } from '../utils/resource-events';
 import { validatePayload } from '../utils/validate';
 import { realtimeMetrics } from '../utils/telemetry';
 import { RealtimeConnection } from './connection';
+import { ConnectionSink } from './connection-sink';
 import { ActiveSubscription } from './subscription';
 
 const logger = createLogger('realtime');
+
+// The streams send the errors as the problem details of the API
+setStreamProblemFormat(toProblem);
+
+/** The longest key of a stream a client subscribes to. */
+const MAX_STREAM_KEY_LENGTH = 256;
 
 /** A resource event, as the bridge of the resource events publishes it to the pub/sub. */
 type ResourceChannelMessage = ChannelMessage & {
@@ -271,20 +285,16 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     ) {
       throw invalidMessage('Invalid realtime subscription');
     }
-    if (connection.subscriptions.has(request.id)) {
-      throw invalidMessage(`Subscription '${request.id}' already exists`);
-    }
-    if (connection.subscriptions.size >= realtimeConfig.MAX_SUBSCRIPTIONS) {
-      throw new RealtimeError(
-        ErrorCode.RealtimeSubscriptionLimit,
-        'Too many realtime subscriptions',
-        { limit: realtimeConfig.MAX_SUBSCRIPTIONS }
-      );
-    }
+    this.checkSubscriptionId(connection, request.id);
 
-    const subscription = request.channel.startsWith(RESOURCE_CHANNEL_PREFIX)
-      ? this.resourceSubscription(connection.user, request)
-      : await this.channelSubscription(connection.user, request);
+    let subscription: ActiveSubscription;
+    if (request.channel.startsWith(RESOURCE_CHANNEL_PREFIX)) {
+      subscription = this.resourceSubscription(connection.user, request);
+    } else if (request.channel.startsWith(STREAM_CHANNEL_PREFIX)) {
+      subscription = await this.streamSubscription(connection, request);
+    } else {
+      subscription = await this.channelSubscription(connection.user, request);
+    }
 
     connection.subscriptions.set(request.id, subscription);
     try {
@@ -316,6 +326,10 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       return false;
     }
     connection.subscriptions.delete(id);
+    if (subscription.kind === 'action-stream') {
+      subscription.instance.cancel();
+      return true;
+    }
     await this.releaseChannel(subscription);
     return true;
   }
@@ -335,19 +349,10 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     payload: unknown,
     actionContext: RealtimeActionContext
   ): Promise<unknown> {
-    const action = findRealtimeAction(name);
-    if (!action) {
-      throw new RealtimeError(
-        ErrorCode.RealtimeActionUnknown,
-        `Unknown realtime action '${name}'`,
-        { action: name }
-      );
-    }
-    if (!hasAccess(actionContext.user, action.config)) {
-      throw new RealtimeError(
-        ErrorCode.RealtimeActionDenied,
-        `Realtime action '${name}' denied`,
-        { action: name }
+    const action = this.allowedAction(name, actionContext.user);
+    if (action.config.stream) {
+      throw invalidMessage(
+        `Realtime action '${name}' streams its result, called with an ID`
       );
     }
 
@@ -373,6 +378,67 @@ export class RealtimeGateway implements OnReady, OnDestroy {
       },
       run
     );
+  }
+
+  /**
+   * Calls a streaming action as a user, its chunks written to a subscriber as they come, the stream ending with its
+   * result. The handler runs once the stream is returned, so the caller registers the subscriber first.
+   *
+   * @param {string} name - The name of the action.
+   * @param {unknown} payload - The payload of the call.
+   * @param {RealtimeActionContext} actionContext - The user and the transport of the call.
+   * @param {StreamSink} sink - The subscriber, the caller.
+   * @return {StreamInstance} The stream of the call.
+   * @throws {RealtimeError} `REALTIME_ACTION_UNKNOWN`, `REALTIME_ACTION_DENIED`, `REALTIME_PAYLOAD_INVALID`, or
+   * `REALTIME_MESSAGE_INVALID` for an action without `stream`.
+   */
+  public openActionStream(
+    name: string,
+    payload: unknown,
+    actionContext: RealtimeActionContext,
+    sink: StreamSink
+  ): StreamInstance {
+    const action = this.allowedAction(name, actionContext.user);
+    if (!action.config.stream) {
+      throw invalidMessage(`Realtime action '${name}' does not stream`);
+    }
+
+    const data = validatePayload(action.config.payload, payload);
+    const user = actionContext.user;
+    const instance = inject(StreamHub).openAction(
+      name,
+      streamSettings(action.config.stream),
+      user ? String(user.id) : null
+    );
+    instance.attach(sink);
+
+    const handlerContext = { ...actionContext, signal: instance.signal };
+    const run = () =>
+      runAs(user, () =>
+        runActionStream(action, data, handlerContext, instance)
+      );
+
+    queueMicrotask(() => {
+      if (!telemetryEnabled('realtime')) {
+        void run();
+        return;
+      }
+      void withSpan(
+        `realtime action ${name}`,
+        {
+          kind: SpanKind.SERVER,
+          attributes: {
+            'appweaver.realtime.action': name,
+            'appweaver.realtime.transport': actionContext.transport,
+            'appweaver.realtime.ack': true,
+            'appweaver.realtime.stream.id': instance.streamId
+          }
+        },
+        run
+      );
+    });
+
+    return instance;
   }
 
   /**
@@ -470,6 +536,11 @@ export class RealtimeGateway implements OnReady, OnDestroy {
         if (typeof message.action !== 'string') {
           throw invalidMessage('Realtime action without a name');
         }
+        if (findRealtimeAction(message.action)?.config.stream) {
+          this.startActionStream(connection, message);
+          realtimeMetrics.messages('action', true);
+          return;
+        }
         const ack = typeof message.id === 'string';
         const result = await this.callAction(message.action, message.payload, {
           user: connection.user,
@@ -487,11 +558,230 @@ export class RealtimeGateway implements OnReady, OnDestroy {
         }
         return;
       }
+      case 'cancel': {
+        const subscription = connection.subscriptions.get(message.id);
+        if (subscription?.kind === 'action-stream') {
+          subscription.instance.cancel();
+        }
+        return;
+      }
+      case 'resume':
+        this.resumeActionStream(connection, message);
+        return;
       default:
         throw invalidMessage(
           `Unknown realtime message type '${(message as { type?: unknown }).type}'`
         );
     }
+  }
+
+  /** @internal */
+  private allowedAction(name: string, user: AuthUser | null): RealtimeAction {
+    const action = findRealtimeAction(name);
+    if (!action) {
+      throw new RealtimeError(
+        ErrorCode.RealtimeActionUnknown,
+        `Unknown realtime action '${name}'`,
+        { action: name }
+      );
+    }
+    if (!hasAccess(user, action.config)) {
+      throw new RealtimeError(
+        ErrorCode.RealtimeActionDenied,
+        `Realtime action '${name}' denied`,
+        { action: name }
+      );
+    }
+    return action;
+  }
+
+  /** @internal */
+  private checkSubscriptionId(
+    connection: RealtimeConnection,
+    id: unknown
+  ): void {
+    if (typeof id !== 'string' || !SUBSCRIPTION_ID_PATTERN.test(id)) {
+      throw invalidMessage('Invalid realtime subscription ID');
+    }
+    if (connection.subscriptions.has(id)) {
+      throw invalidMessage(`Subscription '${id}' already exists`);
+    }
+    if (connection.subscriptions.size >= realtimeConfig.MAX_SUBSCRIPTIONS) {
+      throw new RealtimeError(
+        ErrorCode.RealtimeSubscriptionLimit,
+        'Too many realtime subscriptions',
+        { limit: realtimeConfig.MAX_SUBSCRIPTIONS }
+      );
+    }
+  }
+
+  /** @internal */
+  private startActionStream(
+    connection: RealtimeConnection,
+    message: { id?: string; action: string; payload?: unknown }
+  ): void {
+    if (typeof message.id !== 'string') {
+      throw invalidMessage(
+        `Realtime action '${message.action}' streams its result, called with an ID`
+      );
+    }
+    this.checkSubscriptionId(connection, message.id);
+
+    const sink = this.connectionSink(connection, message.id, true);
+    const instance = this.openActionStream(
+      message.action,
+      message.payload,
+      {
+        user: connection.user,
+        transport: 'websocket',
+        connectionId: connection.id,
+        ack: true
+      },
+      sink
+    );
+    connection.subscriptions.set(message.id, {
+      kind: 'action-stream',
+      id: message.id,
+      channel: `action:${message.action}`,
+      params: {},
+      instance,
+      sink
+    });
+  }
+
+  /** @internal */
+  private resumeActionStream(
+    connection: RealtimeConnection,
+    message: { id: string; streamId: unknown; seq: unknown }
+  ): void {
+    if (
+      typeof message.streamId !== 'string' ||
+      !Number.isInteger(message.seq) ||
+      (message.seq as number) < 0
+    ) {
+      throw invalidMessage('Invalid realtime stream resume');
+    }
+    this.checkSubscriptionId(connection, message.id);
+
+    const sink = this.connectionSink(connection, message.id, true);
+    const user = connection.user;
+    const instance = inject(StreamHub).resumeAction(
+      message.streamId,
+      user ? String(user.id) : null,
+      sink,
+      message.seq as number
+    );
+    if (!instance.ended) {
+      connection.subscriptions.set(message.id, {
+        kind: 'action-stream',
+        id: message.id,
+        channel: `action:${instance.name}`,
+        params: {},
+        instance,
+        sink
+      });
+    }
+  }
+
+  /** @internal */
+  private connectionSink(
+    connection: RealtimeConnection,
+    id: string,
+    once: boolean
+  ): ConnectionSink {
+    const sink: ConnectionSink = new ConnectionSink(
+      connection,
+      id,
+      () => {
+        logger.warn(
+          { connectionId: connection.id },
+          'Realtime connection closed as too slow'
+        );
+        connection.close(RealtimeCloseCode.TooSlow, 'Connection too slow');
+        void this.release(connection);
+      },
+      // The subscription of a streaming action ends with its stream
+      once
+        ? () => {
+            const subscription = connection.subscriptions.get(id);
+            if (
+              subscription?.kind === 'action-stream' &&
+              subscription.sink === sink
+            ) {
+              connection.subscriptions.delete(id);
+            }
+          }
+        : undefined
+    );
+    return sink;
+  }
+
+  /** @internal */
+  private async streamSubscription(
+    connection: RealtimeConnection,
+    request: SubscriptionRequest
+  ): Promise<ActiveSubscription> {
+    const user = connection.user;
+    const definition = findStream(
+      request.channel.slice(STREAM_CHANNEL_PREFIX.length)
+    );
+    if (!definition) {
+      throw unknownChannel(request.channel);
+    }
+
+    const key = request.key ?? '';
+    const resume = request.resume;
+    if (
+      typeof key !== 'string' ||
+      key.length > MAX_STREAM_KEY_LENGTH ||
+      (resume !== undefined &&
+        (!isPlainObject(resume) ||
+          typeof resume.streamId !== 'string' ||
+          !Number.isInteger(resume.seq) ||
+          resume.seq < 0))
+    ) {
+      throw invalidMessage('Invalid realtime stream subscription');
+    }
+    if (!hasAccess(user, definition.config)) {
+      throw deniedSubscription(request.channel);
+    }
+
+    const params = definition.config.params
+      ? validatePayload(definition.config.params, request.params ?? {})
+      : {};
+    if (!(await this.streamAccess(user, definition, params, key))) {
+      throw deniedSubscription(request.channel);
+    }
+
+    return {
+      kind: 'stream',
+      id: request.id,
+      channel: request.channel,
+      params: params as Record<string, unknown>,
+      definition,
+      key,
+      sink: this.connectionSink(connection, request.id, false),
+      ...(resume
+        ? { resume: { streamId: resume.streamId, seq: resume.seq } }
+        : {})
+    };
+  }
+
+  /** @internal */
+  private async streamAccess(
+    user: AuthUser | null,
+    definition: Stream,
+    params: unknown,
+    key: string
+  ): Promise<boolean> {
+    const config = definition.config;
+    return (
+      hasAccess(user, config) &&
+      (!config.subscribe ||
+        (await runAs(user, () =>
+          config.subscribe!(user, params as never, key)
+        )))
+    );
   }
 
   /** @internal */
@@ -605,6 +895,19 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     connection: RealtimeConnection,
     subscription: ActiveSubscription
   ): Promise<void> {
+    if (subscription.kind === 'stream') {
+      await inject(StreamHub).subscribe(
+        subscription.definition,
+        subscription.key,
+        subscription.sink,
+        subscription.resume
+      );
+      return;
+    }
+    if (subscription.kind === 'action-stream') {
+      return;
+    }
+
     const name = subscription.pubsubChannel;
     let channel = this._channels.get(name);
 
@@ -634,6 +937,20 @@ export class RealtimeGateway implements OnReady, OnDestroy {
   private async releaseChannel(
     subscription: ActiveSubscription
   ): Promise<void> {
+    if (subscription.kind === 'stream') {
+      await inject(StreamHub).unsubscribe(
+        subscription.definition.name,
+        subscription.key,
+        subscription.sink
+      );
+      return;
+    }
+    if (subscription.kind === 'action-stream') {
+      // The stream lingers for a resume of its caller
+      subscription.instance.detach(subscription.sink);
+      return;
+    }
+
     const name = subscription.pubsubChannel;
     const channel = this._channels.get(name);
     if (
@@ -700,7 +1017,7 @@ export class RealtimeGateway implements OnReady, OnDestroy {
                 : {})
             };
             data = projected;
-          } else {
+          } else if (subscription.kind === 'channel') {
             const deliverFn = subscription.definition.config.deliver;
             if (
               deliverFn &&
@@ -716,6 +1033,8 @@ export class RealtimeGateway implements OnReady, OnDestroy {
               return;
             }
             data = message.payload;
+          } else {
+            return;
           }
         } catch (e) {
           logger.error(
@@ -929,6 +1248,15 @@ export class RealtimeGateway implements OnReady, OnDestroy {
           );
           subscription.actions = new Set(actions);
           allowed = actions.length > 0;
+        } else if (subscription.kind === 'stream') {
+          allowed = await this.streamAccess(
+            connection.user,
+            subscription.definition,
+            subscription.params,
+            subscription.key
+          );
+        } else if (subscription.kind === 'action-stream') {
+          allowed = true;
         } else {
           allowed = await this.channelAccess(
             connection.user,
@@ -1048,5 +1376,36 @@ function deniedSubscription(channel: string): RealtimeError {
     ErrorCode.RealtimeSubscriptionDenied,
     `Realtime subscription to '${channel}' denied`,
     { channel }
+  );
+}
+
+/**
+ * Runs the handler of a streaming action, writing the chunks of the async iterable it returns to its stream, or
+ * ending the stream with the value it returns otherwise.
+ */
+async function runActionStream(
+  action: RealtimeAction,
+  data: unknown,
+  handlerContext: RealtimeActionContext,
+  instance: StreamInstance
+): Promise<void> {
+  let result: unknown;
+  try {
+    result = action.config.handler(data, handlerContext);
+    if (isAsyncIterable(result)) {
+      await pumpStream(instance, result);
+      return;
+    }
+    instance.end((await result) ?? undefined);
+  } catch (e) {
+    instance.error(e);
+  }
+}
+
+function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> {
+  return (
+    !!value &&
+    typeof (value as AsyncIterable<unknown>)[Symbol.asyncIterator] ===
+      'function'
   );
 }

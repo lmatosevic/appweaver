@@ -34,5 +34,23 @@ export const realtimeConfig = defineConfig('realtime', {
   /** Bytes a connection may have waiting to be sent before it is closed as too slow. Default: `1MB`. */
   SEND_BUFFER_LIMIT: Type.String({ default: '1MB' }),
   /** Maximum number of WebSocket messages a client sends per second, `0` for no limit. Default: `20`. */
-  MESSAGE_RATE_LIMIT: Type.Integer({ default: 20, minimum: 0 })
+  MESSAGE_RATE_LIMIT: Type.Integer({ default: 20, minimum: 0 }),
+  /** Bytes of the last chunks a stream keeps for the subscribers joining late or resuming, unless the stream sets its
+   * own `replay.maxBytes`. Default: `256KB`. */
+  STREAM_REPLAY_LIMIT: Type.String({ default: '256KB' }),
+  /** Bytes a subscriber of a stream may have waiting to be sent before `ready` of the writer waits, pausing the
+   * producer, i.e. the generator of a streaming action. Default: `64KB`. */
+  STREAM_HIGH_WATER_MARK: Type.String({ default: '64KB' }),
+  /** Milliseconds an ended stream, or a streaming action whose client disconnected, stays resumable. Default:
+   * `10000` (10 sec). */
+  STREAM_LINGER: Type.Integer({ default: 10000, minimum: 0 }),
+  /** Milliseconds the chunks of a stream are batched for before they are relayed to the other instances. Default:
+   * `20`. */
+  STREAM_RELAY_FLUSH_INTERVAL: Type.Integer({ default: 20, minimum: 0 }),
+  /** Bytes of chunks relayed to the other instances in one message at most, sent before the flush interval once
+   * reached. Default: `64KB`. */
+  STREAM_RELAY_MAX_BATCH: Type.String({ default: '64KB' }),
+  /** Milliseconds between the messages keeping the relay of the streams between the instances alive, a relayed
+   * stream silent for three of them being lost. Default: `5000` (5 sec). */
+  STREAM_RELAY_HEARTBEAT: Type.Integer({ default: 5000, minimum: 100 })
 });

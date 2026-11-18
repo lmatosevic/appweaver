@@ -554,11 +554,28 @@ connection or a failed attempt, with a backoff, and at once on an expired token 
 | `on(model, handler, { action?, filter? })` | Resource events, `handler({ model, action, current, previous? })`                              |
 | `observe(channel, params?)`                | An observable of the payloads, for `from(...)` of RxJS                                         |
 | `send(action, payload)` / `emit(...)`      | Calls an action, resolving to its result / fire-and-forget                                     |
+| `call(action, payload)`                    | Calls a streaming action: an async iterable of its chunks, with `result`, `stream`, `onChunk(listener)` and `cancel()` |
+| `stream(name, handlers, { key?, params? })` | Subscribes to the streams of a key, `handlers`: `onStart(info)`, `onChunk(chunk, { streamId, seq, gap, sync })`, `onEnd(result, info)`, `onError(error, info)` |
 | `connect()`, `disconnect()`, `reconnect()` | Opens, closes (keeping the subscriptions), or reopens with a new ticket, i.e. after a login    |
 | `onStateChange(listener)`, `onError(...)`  | `idle`, `connecting`, `open`, `reconnecting`; the errors answering no subscription or action   |
 | `state`, `connectionId`, `transport`, `authenticated` | The state of the connection, and whether it is of a user                            |
 
 `subscription.ready` rejects with the `ClientError` of a refused subscription, which a reconnection does not renew.
+
+The chunks of a `binary` stream are `Uint8Array`s. Over the WebSocket, a call and a stream subscription resume after a
+reconnection from the last chunk received, without duplicates; over SSE, a call is the response of an HTTP request,
+failing with the connection. `call.result` rejects with the error of the stream, or once cancelled (`cancel()`, or
+leaving a `for await` early), which ends the iteration instead of throwing in it.
+
+```ts
+const call = client.realtime.call('assistant.prompt', { prompt: 'Hello' });
+call.onChunk((token) => render(token));
+try {
+  const { stopReason } = await call.result;
+} catch (e) {
+  // ClientError of the stream, or of the cancellation
+}
+```
 
 ```ts
 type RealtimeClientOptions = {

@@ -5,6 +5,11 @@ import { context } from '@appweaver/core/internal';
 import { realtimeActions } from '../action';
 import { realtimeChannels, RESOURCE_CHANNEL_PREFIX } from '../channel';
 import { realtimeConfig } from '../config';
+import {
+  realtimeStreams,
+  STREAM_CHANNEL_PREFIX
+} from '../stream/create-stream';
+import { StreamCodec, StreamOptions } from '../stream/types';
 import { resourceEventActions } from '../utils/resource-events';
 
 /** The `x-appweaver-realtime` extension of the OpenAPI document, typing the realtime client the client generates. */
@@ -28,13 +33,31 @@ export type RealtimeSpec = {
     channel: string;
     actions: (SpecAccess & { action: string })[];
   }[];
+  /** The streams, subscribed to as the `stream:<name>` channels */
+  streams: (SpecAccess &
+    SpecStream & {
+      name: string;
+      channel: string;
+      description?: string;
+      params?: TSchema;
+    })[];
   /** The actions */
   actions: (SpecAccess & {
     name: string;
     description?: string;
     payload: TSchema;
     response?: TSchema;
+    /** The stream of a streaming action */
+    stream?: SpecStream;
   })[];
+};
+
+/** The chunks of a stream. */
+type SpecStream = {
+  codec: StreamCodec;
+  mimeType?: string;
+  /** The schema of the chunks of a `json` stream */
+  chunk?: TSchema;
 };
 
 type SpecAccess = Required<Pick<RealtimeAccess, 'public'>> &
@@ -75,13 +98,30 @@ export function realtimeSpec(): RealtimeSpec {
           ([action, config]) => ({ action, ...access(config) })
         )
       })),
+    streams: realtimeStreams().map(({ name, config }) => ({
+      name,
+      channel: STREAM_CHANNEL_PREFIX + name,
+      ...(config.description ? { description: config.description } : {}),
+      ...access(config),
+      ...specStream(config),
+      ...(config.params ? { params: plain(config.params) } : {})
+    })),
     actions: realtimeActions().map(({ name, config }) => ({
       name,
       ...(config.description ? { description: config.description } : {}),
       ...access(config),
       payload: plain(config.payload),
-      ...(config.response ? { response: plain(config.response) } : {})
+      ...(config.response ? { response: plain(config.response) } : {}),
+      ...(config.stream ? { stream: specStream(config.stream) } : {})
     }))
+  };
+}
+
+function specStream(options: StreamOptions): SpecStream {
+  return {
+    codec: options.codec ?? 'text',
+    ...(options.mimeType ? { mimeType: options.mimeType } : {}),
+    ...(options.chunk ? { chunk: plain(options.chunk) } : {})
   };
 }
 

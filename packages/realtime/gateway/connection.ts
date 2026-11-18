@@ -1,4 +1,5 @@
 import { AuthSource, AuthType, AuthUser, uuid } from '@appweaver/common';
+import { StreamFrameLike } from '../stream/types';
 import { RealtimeCloseCode, RealtimeServerMessage } from '../types';
 import { ActiveSubscription } from './subscription';
 
@@ -46,6 +47,15 @@ export abstract class RealtimeConnection {
    * @param {RealtimeServerMessage} message - The message.
    */
   public abstract send(message: RealtimeServerMessage): void;
+
+  /**
+   * Sends a frame of a stream, encoded once for every subscriber. A transport sends its encoding as it is.
+   *
+   * @param {StreamFrameLike} frame - The frame.
+   */
+  public sendFrame(frame: StreamFrameLike): void {
+    this.send(frame.message);
+  }
 
   /** Sends a heartbeat, keeping the connection open through the proxies. */
   public abstract heartbeat(): void;

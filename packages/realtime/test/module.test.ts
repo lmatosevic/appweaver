@@ -18,10 +18,11 @@ describe('module', () => {
     );
   });
 
-  test('loads the ticket service and the gateway', async () => {
-    const [tickets, gateway] = manifest.services ?? [];
+  test('loads the ticket service, the stream hub and the gateway', async () => {
+    const [tickets, hub, gateway] = manifest.services ?? [];
 
     expect(await tickets.load()).toHaveProperty('TicketService');
+    expect(await hub.load()).toHaveProperty('StreamHub');
     expect(await gateway.load()).toHaveProperty('RealtimeGateway');
   });
 

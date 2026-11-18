@@ -1,4 +1,5 @@
 import { ServerResponse } from 'node:http';
+import { StreamFrameLike } from '../stream/types';
 import { RealtimeCloseCode, RealtimeServerMessage } from '../types';
 import { ConnectionAuth, RealtimeConnection } from '../gateway/connection';
 
@@ -28,6 +29,10 @@ export class SseConnection extends RealtimeConnection {
   public send(message: RealtimeServerMessage): void {
     const id = message.type === 'event' ? `id: ${message.eventId}\n` : '';
     this.write(`${id}data: ${JSON.stringify(message)}\n\n`);
+  }
+
+  public sendFrame(frame: StreamFrameLike): void {
+    this.write(frame.sse);
   }
 
   public heartbeat(): void {

@@ -14,6 +14,22 @@ const deliveredEvents = telemetryCounter('appweaver.realtime.events', {
   unit: '{event}'
 });
 
+const openStreams = telemetryUpDownCounter('appweaver.realtime.streams', {
+  description: 'The open realtime streams of the producers of the instance',
+  unit: '{stream}'
+});
+
+const streamChunks = telemetryCounter('appweaver.realtime.stream.chunks', {
+  description:
+    'The chunks of the realtime streams, sent once to every subscriber',
+  unit: '{chunk}'
+});
+
+const streamBytes = telemetryCounter('appweaver.realtime.stream.bytes', {
+  description: 'The encoded bytes of the chunks of the realtime streams',
+  unit: 'By'
+});
+
 const clientMessages = telemetryCounter('appweaver.realtime.messages', {
   description: 'The messages of the realtime clients',
   unit: '{message}'
@@ -36,6 +52,20 @@ export const realtimeMetrics = {
         'appweaver.realtime.channel': channel,
         'appweaver.realtime.outcome': outcome
       });
+    }
+  },
+  /** Counts a stream of a producer opened (`1`) or ended (`-1`). */
+  streams(name: string, change: 1 | -1): void {
+    if (telemetryEnabled('realtime')) {
+      openStreams().add(change, { 'appweaver.realtime.stream': name });
+    }
+  },
+  /** Counts a chunk of a stream and its bytes. */
+  streamChunk(name: string, bytes: number): void {
+    if (telemetryEnabled('realtime')) {
+      const attributes = { 'appweaver.realtime.stream': name };
+      streamChunks().add(1, attributes);
+      streamBytes().add(bytes, attributes);
     }
   },
   /** Counts a message of a client. */

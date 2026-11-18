@@ -77,6 +77,47 @@ export function createRealtimeOpenApiSchema(): OpenAPI3 {
         name: 'cursor',
         public: false,
         payload: { type: 'object', properties: {} }
+      },
+      {
+        name: 'assistant',
+        public: false,
+        payload: {
+          type: 'object',
+          properties: { prompt: { type: 'string' } },
+          required: ['prompt']
+        },
+        stream: { codec: 'text' }
+      }
+    ],
+    streams: [
+      {
+        name: 'room.answer',
+        channel: 'stream:room.answer',
+        public: false,
+        codec: 'text',
+        params: {
+          type: 'object',
+          properties: { roomId: { type: 'integer' } },
+          required: ['roomId']
+        }
+      },
+      {
+        name: 'radio',
+        channel: 'stream:radio',
+        public: true,
+        codec: 'binary',
+        mimeType: 'audio/mpeg'
+      },
+      {
+        name: 'ticks',
+        channel: 'stream:ticks',
+        public: false,
+        codec: 'json',
+        chunk: {
+          type: 'object',
+          properties: { price: { type: 'number' } },
+          required: ['price']
+        }
       }
     ]
   };

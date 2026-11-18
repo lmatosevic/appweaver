@@ -2,15 +2,83 @@ import { BaseModule } from './base-module';
 import { BaseClientInterface, ObservableLike } from '../base-client-interface';
 import { ClientError, ClientProblem } from '../../errors';
 
-/** The channels, resources and actions of the realtime connections of an API, typing a {@link RealtimeClient}. */
+/** The channels, resources, actions and streams of the realtime connections of an API, typing a
+ * {@link RealtimeClient}. */
 export type RealtimeType = {
   /** The channels by their names, with their payloads and subscription parameters */
   channels: Record<string, { payload: unknown; params: unknown }>;
   /** The models exposing their resource events, with the actions and the record of an event */
   resources: Record<string, { actions: string; record: unknown }>;
-  /** The actions by their names, with their payloads and results */
-  actions: Record<string, { payload: unknown; response: unknown }>;
+  /** The actions by their names, with their payloads and results, and the chunks of a streaming action */
+  actions: Record<
+    string,
+    { payload: unknown; response: unknown; chunk?: unknown }
+  >;
+  /** The streams by their names, with their chunks and subscription parameters */
+  streams?: Record<string, { chunk: unknown; params: unknown }>;
 };
+
+/** The streams of a {@link RealtimeType}. */
+type StreamsOf<R extends RealtimeType> = NonNullable<R['streams']>;
+
+/** The chunk of a streaming action. */
+type ChunkOf<
+  R extends RealtimeType,
+  A extends keyof R['actions']
+> = R['actions'][A] extends { chunk: infer C } ? C : unknown;
+
+/** A stream a subscription or a streaming action receives. */
+export type RealtimeStreamInfo = {
+  /** The ID of the stream, the same on every connection receiving it */
+  streamId: string;
+  /** The key of the stream, the ID of the stream of an action */
+  key: string;
+  /** The codec of the chunks: strings, JSON values, or bytes */
+  codec: 'text' | 'json' | 'binary';
+  /** The media type of the bytes of a `binary` stream */
+  mimeType?: string;
+};
+
+/** The metadata of a chunk of a stream. */
+export type RealtimeChunkMeta = {
+  /** The ID of the stream */
+  streamId: string;
+  /** The sequence number of the chunk */
+  seq: number;
+  /** Whether chunks before this one were missed, read too slowly or lost in a reconnection */
+  gap: boolean;
+  /** Whether a subscriber can start from the chunk, i.e. a key frame */
+  sync: boolean;
+};
+
+/** The callbacks of a subscription to a stream, receiving every stream of its key. */
+export type RealtimeStreamHandlers<T> = {
+  /** A stream of the key starts */
+  onStart?(stream: RealtimeStreamInfo): void;
+  /** A chunk of a stream, a string, a JSON value, or the bytes of a `binary` stream */
+  onChunk?(chunk: T, meta: RealtimeChunkMeta): void;
+  /** A stream ends, with its result */
+  onEnd?(result: unknown, stream: RealtimeStreamInfo): void;
+  /** A stream ends with an error */
+  onError?(error: ClientError, stream: RealtimeStreamInfo): void;
+};
+
+/** The call of a streaming action: its chunks as they come, read as an async iterable, and its result. */
+export interface RealtimeCall<T, Result> extends AsyncIterable<T> {
+  /** Resolves with the result the stream ends with, rejects with its error or once cancelled */
+  readonly result: Promise<Result>;
+  /** The stream, once started */
+  readonly stream: RealtimeStreamInfo | undefined;
+  /**
+   * Listens to the chunks, besides the iteration.
+   *
+   * @param {Function} listener - Receives every chunk.
+   * @return {Function} Removes the listener.
+   */
+  onChunk(listener: (chunk: T, meta: RealtimeChunkMeta) => void): () => void;
+  /** Cancels the call, stopping the action on the server. */
+  cancel(): void;
+}
 
 /** A transport of the realtime connections. */
 export type RealtimeTransport = 'websocket' | 'sse';
@@ -91,16 +159,55 @@ type ServerMessage =
   | { type: 'result'; id: string; result: unknown }
   | { type: 'error'; id?: string; error: ClientProblem }
   | { type: 'pong'; id?: string }
-  | { type: 'reauth' };
+  | { type: 'reauth' }
+  | {
+      type: 'stream.start';
+      id: string;
+      sid: number;
+      streamId: string;
+      stream: string;
+      key: string;
+      codec: RealtimeStreamInfo['codec'];
+      mimeType?: string;
+      seq: number;
+    }
+  | { type: 'chunk'; sid: number; seq: number; data: unknown; sync?: true }
+  | { type: 'stream.gap'; sid: number; from: number; to: number }
+  | {
+      type: 'stream.end';
+      sid: number;
+      seq: number;
+      result?: unknown;
+      cancelled?: true;
+    }
+  | { type: 'stream.error'; sid: number; seq: number; error: ClientProblem };
+
+/** A stream received, and the last chunk of it. */
+type StreamState = {
+  info: RealtimeStreamInfo;
+  lastSeq: number;
+  gap: boolean;
+};
 
 type Entry = {
   id: string;
   channel: string;
   params?: Record<string, unknown>;
   filter?: Record<string, unknown>;
+  key?: string;
   handler: (data: any, meta: RealtimeEventMeta) => void;
+  stream?: {
+    handlers: RealtimeStreamHandlers<any>;
+    streams: Map<string, StreamState>;
+  };
   settle?: { resolve: () => void; reject: (e: unknown) => void };
 };
+
+/** The streams of a connection, or of the response of a call, by their IDs on the server. */
+type StreamRoutes = Map<
+  number,
+  { state: StreamState; entry?: Entry; call?: CallStream }
+>;
 
 type Pending = {
   resolve: (value: unknown) => void;
@@ -134,6 +241,10 @@ export class RealtimeClient<
   private readonly _entries = new Map<string, Entry>();
   /** @internal */
   private readonly _pending = new Map<string, Pending>();
+  /** @internal */
+  private readonly _calls = new Map<string, CallStream>();
+  /** @internal */
+  private _streams: StreamRoutes = new Map();
   /** @internal */
   private readonly _stateListeners = new Set<(state: RealtimeState) => void>();
   /** @internal */
@@ -341,6 +452,74 @@ export class RealtimeClient<
   }
 
   /**
+   * Subscribes to a stream of a key, i.e. a chat room or a radio station, receiving every stream of the key. A stream
+   * open when the subscription starts is replayed as the server keeps it, and resumed after a reconnection.
+   *
+   * @param {string} name - The name of the stream.
+   * @param {RealtimeStreamHandlers} handlers - Receive the starts, the chunks and the ends of the streams.
+   * @param {Object} [options] - The key and the parameters of the subscription.
+   * @return {RealtimeSubscription} The subscription.
+   */
+  public stream<S extends keyof StreamsOf<R> & string>(
+    name: S,
+    handlers: RealtimeStreamHandlers<StreamsOf<R>[S]['chunk']>,
+    options: { key?: string; params?: StreamsOf<R>[S]['params'] } = {}
+  ): RealtimeSubscription {
+    return this.add({
+      channel: `stream:${name}`,
+      handler: () => undefined,
+      key: options.key ?? '',
+      params: options.params as Record<string, unknown> | undefined,
+      stream: { handlers, streams: new Map() }
+    });
+  }
+
+  /**
+   * Calls a streaming action, receiving its chunks as they come, i.e. the tokens of the answer of an LLM. Over the
+   * WebSocket a call survives a reconnection, resumed where it stopped; over SSE it is the response of an HTTP
+   * request.
+   *
+   * @example
+   * const call = client.realtime.call('assistant.prompt', { prompt });
+   * for await (const token of call) output += token;
+   * const usage = await call.result;
+   *
+   * @param {string} action - The name of the action.
+   * @param {Object} payload - The payload of the action.
+   * @return {RealtimeCall} The call.
+   */
+  public call<A extends keyof R['actions'] & string>(
+    action: A,
+    payload: R['actions'][A]['payload']
+  ): RealtimeCall<ChunkOf<R, A>, R['actions'][A]['response']> {
+    const id = this.nextId('c');
+
+    if (this.transport === 'sse') {
+      const controller = new AbortController();
+      const call = new CallStream(id, () => controller.abort());
+      void this.callOverHttp(call, action, payload, controller.signal);
+      return call as never;
+    }
+
+    const call: CallStream = new CallStream(id, () => {
+      this._calls.delete(id);
+      if (this._state === 'open') {
+        this._transport?.send?.({ type: 'cancel', id });
+      }
+    });
+    this._calls.set(id, call);
+    this.connect()
+      .then(() =>
+        this._transport?.send?.({ type: 'action', id, action, payload })
+      )
+      .catch((e: Error) => {
+        this._calls.delete(id);
+        call.fail(e);
+      });
+    return call as never;
+  }
+
+  /**
    * Opens the connection, done by the first subscription or action.
    *
    * @return {Promise<void>} Resolves once the connection is open.
@@ -377,6 +556,7 @@ export class RealtimeClient<
     this._connectionId = undefined;
     transport?.close();
     this.rejectPending(requestFailed('Realtime connection closed'));
+    this.failCalls(requestFailed('Realtime connection closed'));
     this.setState('idle');
   }
 
@@ -511,6 +691,7 @@ export class RealtimeClient<
           for (const entry of this._entries.values()) {
             this.sendSubscribe(entry);
           }
+          this.resumeCalls();
           resolve();
         }
         if (message) {
@@ -532,8 +713,8 @@ export class RealtimeClient<
 
   /** @internal */
   private async openEventStream(query: URLSearchParams): Promise<void> {
-    const subscriptions = [...this._entries.values()].map(
-      ({ id, channel, params, filter }) => ({ id, channel, params, filter })
+    const subscriptions = [...this._entries.values()].map((entry) =>
+      subscriptionOf(entry)
     );
     if (subscriptions.length > 0) {
       query.set('subscriptions', JSON.stringify(subscriptions));
@@ -557,41 +738,21 @@ export class RealtimeClient<
       });
     }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
+    const body = response.body;
 
     return new Promise((resolve, reject) => {
       let welcomed = false;
-      let buffer = '';
 
       const read = async (): Promise<void> => {
         try {
-          for (;;) {
-            const { done, value } = await reader.read();
-            if (done) {
-              break;
+          await readEvents(body, (message) => {
+            if (message.type === 'welcome') {
+              welcomed = true;
+              this.opened(message.connectionId);
+              resolve();
             }
-            buffer += decoder.decode(value, { stream: true });
-            let index: number;
-            while ((index = buffer.indexOf('\n\n')) >= 0) {
-              const block = buffer.slice(0, index);
-              buffer = buffer.slice(index + 2);
-              const data = block
-                .split('\n')
-                .filter((line) => line.startsWith('data: '))
-                .map((line) => line.slice(6))
-                .join('\n');
-              const message = data ? parse(data) : undefined;
-              if (message?.type === 'welcome') {
-                welcomed = true;
-                this.opened(message.connectionId);
-                resolve();
-              }
-              if (message) {
-                this.handle(message);
-              }
-            }
-          }
+            this.handle(message);
+          });
         } catch {
           // Aborted, or the connection is lost
         }
@@ -634,9 +795,23 @@ export class RealtimeClient<
         }
         return;
       }
+      case 'stream.start':
+      case 'chunk':
+      case 'stream.gap':
+      case 'stream.end':
+      case 'stream.error':
+        this.handleStream(message, this._streams, (id) => ({
+          entry: this._entries.get(id),
+          call: this._calls.get(id)
+        }));
+        return;
       case 'error': {
         const error = problemError(message.error);
-        if (message.id && this._pending.has(message.id)) {
+        if (message.id && this._calls.has(message.id)) {
+          const call = this._calls.get(message.id)!;
+          this._calls.delete(message.id);
+          call.fail(error);
+        } else if (message.id && this._pending.has(message.id)) {
           const pending = this._pending.get(message.id)!;
           clearTimeout(pending.timer);
           this._pending.delete(message.id);
@@ -658,6 +833,8 @@ export class RealtimeClient<
   private opened(connectionId: string): void {
     this._attempts = 0;
     this._connectionId = connectionId;
+    // The IDs of the streams belong to the connection
+    this._streams = new Map();
     this.setState('open');
   }
 
@@ -667,7 +844,16 @@ export class RealtimeClient<
     this._connectionId = undefined;
     this.rejectPending(requestFailed('Realtime connection lost'));
 
-    if (this._options.reconnect === false || this._entries.size === 0) {
+    // A started call resumes on the next connection
+    const reconnect = this._options.reconnect !== false;
+    for (const [id, call] of this._calls) {
+      if (!reconnect || !call.state) {
+        this._calls.delete(id);
+        call.fail(requestFailed('Realtime connection lost'));
+      }
+    }
+
+    if (!reconnect || (this._entries.size === 0 && this._calls.size === 0)) {
       this.setState('idle');
       return;
     }
@@ -711,13 +897,165 @@ export class RealtimeClient<
 
   /** @internal */
   private sendSubscribe(entry: Entry): void {
-    this._transport?.send?.({
-      type: 'subscribe',
-      id: entry.id,
-      channel: entry.channel,
-      ...(entry.params ? { params: entry.params } : {}),
-      ...(entry.filter ? { filter: entry.filter } : {})
-    });
+    this._transport?.send?.({ type: 'subscribe', ...subscriptionOf(entry) });
+  }
+
+  /** @internal */
+  private resumeCalls(): void {
+    for (const call of this._calls.values()) {
+      if (call.state) {
+        this._transport?.send?.({
+          type: 'resume',
+          id: call.id,
+          streamId: call.state.info.streamId,
+          seq: call.state.lastSeq + 1
+        });
+      }
+    }
+  }
+
+  /** @internal */
+  private failCalls(error: ClientError): void {
+    for (const [id, call] of this._calls) {
+      this._calls.delete(id);
+      call.fail(error);
+    }
+  }
+
+  /**
+   * Calls a streaming action over HTTP, reading the Server-Sent Events of its response.
+   *
+   * @internal
+   */
+  private async callOverHttp(
+    call: CallStream,
+    action: string,
+    payload: unknown,
+    signal: AbortSignal
+  ): Promise<void> {
+    const path = `${this.basePath}/actions/${action}`;
+    try {
+      const { error, response } = await this.sendRequestRaw('post', path, {
+        body: payload,
+        parseAs: 'stream',
+        headers: { accept: 'text/event-stream' },
+        signal
+      });
+      if (error) {
+        throw ClientError.fromResponse(error, response, {
+          method: 'post',
+          path
+        });
+      }
+
+      const routes: StreamRoutes = new Map();
+      await readEvents(response.body!, (message) =>
+        this.handleStream(message, routes, () => ({ call }))
+      );
+      call.fail(requestFailed('Realtime stream ended early'));
+    } catch (e) {
+      call.fail(
+        e instanceof ClientError
+          ? e
+          : requestFailed(e instanceof Error ? e.message : String(e))
+      );
+    }
+  }
+
+  /**
+   * Handles a message of a stream: its start, a chunk, a gap, its end.
+   *
+   * @internal
+   */
+  private handleStream(
+    message: ServerMessage,
+    routes: StreamRoutes,
+    target: (id: string) => { entry?: Entry; call?: CallStream }
+  ): void {
+    if (message.type === 'stream.start') {
+      const { entry, call } = target(message.id);
+      const known =
+        entry?.stream?.streams.get(message.streamId) ??
+        (call?.state?.info.streamId === message.streamId
+          ? call.state
+          : undefined);
+      const state: StreamState = known ?? {
+        info: {
+          streamId: message.streamId,
+          key: message.key,
+          codec: message.codec,
+          ...(message.mimeType ? { mimeType: message.mimeType } : {})
+        },
+        lastSeq: message.seq - 1,
+        gap: false
+      };
+
+      if (entry?.stream) {
+        routes.set(message.sid, { state, entry });
+        if (!known) {
+          entry.stream.streams.set(message.streamId, state);
+          entry.stream.handlers.onStart?.(state.info);
+        }
+      } else if (call) {
+        routes.set(message.sid, { state, call });
+        call.state = state;
+      }
+      return;
+    }
+
+    if (!('sid' in message)) {
+      return;
+    }
+    const route = routes.get(message.sid);
+    if (!route) {
+      return;
+    }
+    const { state, entry, call } = route;
+
+    switch (message.type) {
+      case 'stream.gap':
+        state.gap = true;
+        return;
+      case 'chunk': {
+        if (message.seq <= state.lastSeq) {
+          return;
+        }
+        const meta: RealtimeChunkMeta = {
+          streamId: state.info.streamId,
+          seq: message.seq,
+          gap: state.gap || message.seq > state.lastSeq + 1,
+          sync: message.sync === true
+        };
+        state.gap = false;
+        state.lastSeq = message.seq;
+        const chunk = decodeChunk(state.info.codec, message.data);
+        entry?.stream?.handlers.onChunk?.(chunk, meta);
+        call?.push(chunk, meta);
+        return;
+      }
+      case 'stream.end':
+      case 'stream.error': {
+        routes.delete(message.sid);
+        entry?.stream?.streams.delete(state.info.streamId);
+        if (call) {
+          this._calls.delete(call.id);
+        }
+        if (message.type === 'stream.error') {
+          const error = problemError(message.error);
+          entry?.stream?.handlers.onError?.(error, state.info);
+          call?.fail(error);
+        } else if (message.cancelled) {
+          entry?.stream?.handlers.onEnd?.(undefined, state.info);
+          call?.fail(requestFailed('Realtime stream cancelled'));
+        } else {
+          entry?.stream?.handlers.onEnd?.(message.result, state.info);
+          call?.finish(message.result);
+        }
+        return;
+      }
+      default:
+        return;
+    }
   }
 
   /**
@@ -813,6 +1151,200 @@ export class RealtimeClient<
   /** @internal */
   private nextId(prefix: string): string {
     return `${prefix}${++this._sequence}`;
+  }
+}
+
+/** The call of a streaming action, an async iterable of its chunks. */
+class CallStream implements RealtimeCall<unknown, unknown> {
+  public readonly result: Promise<unknown>;
+  /** The stream received, and its last chunk */
+  public state?: StreamState;
+
+  /** @internal */
+  private readonly _chunks: unknown[] = [];
+  /** @internal */
+  private readonly _waiters: {
+    resolve: (result: IteratorResult<unknown>) => void;
+    reject: (e: unknown) => void;
+  }[] = [];
+  /** @internal */
+  private readonly _listeners = new Set<
+    (chunk: unknown, meta: RealtimeChunkMeta) => void
+  >();
+  /** @internal */
+  private _done: boolean = false;
+  /** @internal */
+  private _error?: Error;
+  /** @internal */
+  private _settle!: {
+    resolve: (value: unknown) => void;
+    reject: (e: unknown) => void;
+  };
+
+  constructor(
+    public readonly id: string,
+    private readonly _cancel: () => void
+  ) {
+    this.result = new Promise((resolve, reject) => {
+      this._settle = { resolve, reject };
+    });
+    // A failed call is reported by its `result`, which may be ignored
+    this.result.catch(() => undefined);
+  }
+
+  public get stream(): RealtimeStreamInfo | undefined {
+    return this.state?.info;
+  }
+
+  public onChunk(
+    listener: (chunk: unknown, meta: RealtimeChunkMeta) => void
+  ): () => void {
+    this._listeners.add(listener);
+    return () => this._listeners.delete(listener);
+  }
+
+  public cancel(): void {
+    if (this._done) {
+      return;
+    }
+    this._cancel();
+    this.fail(requestFailed('Realtime stream cancelled'), false);
+  }
+
+  public [Symbol.asyncIterator](): AsyncIterator<unknown> {
+    return {
+      next: () => {
+        if (this._chunks.length > 0) {
+          return Promise.resolve({ done: false, value: this._chunks.shift() });
+        }
+        if (this._done) {
+          return this._error
+            ? Promise.reject(this._error)
+            : Promise.resolve({ done: true, value: undefined });
+        }
+        return new Promise((resolve, reject) =>
+          this._waiters.push({ resolve, reject })
+        );
+      },
+      return: () => {
+        this.cancel();
+        return Promise.resolve({ done: true, value: undefined });
+      }
+    };
+  }
+
+  /** Receives a chunk. */
+  public push(chunk: unknown, meta: RealtimeChunkMeta): void {
+    if (this._done) {
+      return;
+    }
+    this._listeners.forEach((listener) => listener(chunk, meta));
+    const waiter = this._waiters.shift();
+    if (waiter) {
+      waiter.resolve({ done: false, value: chunk });
+    } else {
+      this._chunks.push(chunk);
+    }
+  }
+
+  /** Ends the call with its result. */
+  public finish(result: unknown): void {
+    if (this._done) {
+      return;
+    }
+    this._done = true;
+    this._waiters
+      .splice(0)
+      .forEach((waiter) => waiter.resolve({ done: true, value: undefined }));
+    this._settle.resolve(result);
+  }
+
+  /**
+   * Ends the call with an error, thrown by the iteration unless the call was cancelled.
+   *
+   * @param {unknown} error - The error.
+   * @param {boolean} [thrown=true] - Whether the iteration throws it.
+   */
+  public fail(error: Error, thrown: boolean = true): void {
+    if (this._done) {
+      return;
+    }
+    this._done = true;
+    if (thrown) {
+      this._error = error;
+    }
+    this._waiters
+      .splice(0)
+      .forEach((waiter) =>
+        thrown
+          ? waiter.reject(error)
+          : waiter.resolve({ done: true, value: undefined })
+      );
+    this._settle.reject(error);
+  }
+}
+
+/** The subscription message of an entry, resuming the last stream it received. */
+function subscriptionOf(entry: Entry): Record<string, unknown> {
+  const streams = [...(entry.stream?.streams.values() ?? [])];
+  const last = streams[streams.length - 1];
+  return {
+    id: entry.id,
+    channel: entry.channel,
+    ...(entry.params ? { params: entry.params } : {}),
+    ...(entry.filter ? { filter: entry.filter } : {}),
+    ...(entry.key !== undefined ? { key: entry.key } : {}),
+    ...(last
+      ? { resume: { streamId: last.info.streamId, seq: last.lastSeq + 1 } }
+      : {})
+  };
+}
+
+/** Decodes a chunk of a stream: the base64 of a `binary` stream to its bytes. */
+function decodeChunk(
+  codec: RealtimeStreamInfo['codec'],
+  data: unknown
+): unknown {
+  if (codec !== 'binary' || typeof data !== 'string') {
+    return data;
+  }
+  const binary = atob(data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+/** Reads the messages of a body of Server-Sent Events until it ends. */
+async function readEvents(
+  body: ReadableStream<Uint8Array>,
+  onMessage: (message: ServerMessage) => void
+): Promise<void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) {
+      return;
+    }
+    buffer += decoder.decode(value, { stream: true });
+    let index: number;
+    while ((index = buffer.indexOf('\n\n')) >= 0) {
+      const block = buffer.slice(0, index);
+      buffer = buffer.slice(index + 2);
+      const data = block
+        .split('\n')
+        .filter((line) => line.startsWith('data: '))
+        .map((line) => line.slice(6))
+        .join('\n');
+      const message = data ? parse(data) : undefined;
+      if (message) {
+        onMessage(message);
+      }
+    }
   }
 }
 

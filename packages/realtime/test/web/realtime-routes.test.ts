@@ -7,6 +7,7 @@ import { linkModels, resetContext } from '@appweaver/testing';
 import { createRealtimeAction } from '../../action';
 import { createChannel } from '../../channel';
 import { TicketService } from '../../gateway/ticket-service';
+import { createStream } from '../../stream/create-stream';
 import {
   openEventStream,
   RealtimeServer,
@@ -808,6 +809,183 @@ describe('realtime routes', () => {
           result: { anonymous: false }
         });
       });
+    });
+  });
+
+  describe('streams', () => {
+    const streamCall = (name: string, headers = {}, query = '') =>
+      fetch(`${app.url}/actions/${name}${query}`, {
+        method: 'POST',
+        headers: {
+          authorization: 'Bearer test',
+          'x-user': JSON.stringify(user),
+          'content-type': 'application/json',
+          accept: 'text/event-stream',
+          ...headers
+        },
+        body: JSON.stringify({ prompt: 'p' })
+      });
+
+    const assistant = (
+      handler: (...args: any[]) => any = async function* () {
+        yield 'Hello';
+        yield ' world';
+        return { tokens: 2 };
+      }
+    ) =>
+      createRealtimeAction({
+        name: 'assistant',
+        payload: Type.Object({ prompt: Type.String() }),
+        stream: { codec: 'text' },
+        handler
+      });
+
+    test('streams a streaming action over the WebSocket', async () => {
+      app = await startRealtimeServer();
+      assistant();
+      const socket = await connect();
+
+      socket.send({
+        type: 'action',
+        id: 'c1',
+        action: 'assistant',
+        payload: { prompt: 'p' }
+      });
+      const end = await socket.next((m) => m.type === 'stream.end');
+
+      expect(socket.messages.slice(1).map((m) => m.type)).toEqual([
+        'stream.start',
+        'chunk',
+        'chunk',
+        'stream.end'
+      ]);
+      expect(end).toMatchObject({ seq: 2, result: { tokens: 2 } });
+    });
+
+    test('streams a streaming action as the events of its response', async () => {
+      app = await startRealtimeServer();
+      assistant();
+
+      const response = await streamCall('assistant');
+      const body = await response.text();
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toContain(
+        'text/event-stream'
+      );
+      expect(
+        body
+          .trim()
+          .split('\n\n')
+          .map((event) => JSON.parse(event.slice('data: '.length)))
+      ).toEqual([
+        expect.objectContaining({
+          type: 'stream.start',
+          id: 'assistant',
+          codec: 'text',
+          seq: 0
+        }),
+        expect.objectContaining({ type: 'chunk', data: 'Hello' }),
+        expect.objectContaining({ type: 'chunk', data: ' world' }),
+        expect.objectContaining({ type: 'stream.end', result: { tokens: 2 } })
+      ]);
+    });
+
+    test('cancels the stream of a client leaving', async () => {
+      app = await startRealtimeServer();
+      let aborted = false;
+      assistant(async function* (_: unknown, { signal }: any) {
+        yield 'a';
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        aborted = signal.aborted;
+      });
+
+      const controller = new AbortController();
+      const response = await fetch(`${app.url}/actions/assistant`, {
+        method: 'POST',
+        headers: {
+          authorization: 'Bearer test',
+          'x-user': JSON.stringify(user),
+          'content-type': 'application/json',
+          accept: 'text/event-stream'
+        },
+        body: JSON.stringify({ prompt: 'p' }),
+        signal: controller.signal
+      });
+      await response.body!.getReader().read();
+      controller.abort();
+      await until(() => aborted);
+
+      expect(aborted).toBe(true);
+    });
+
+    test('refuses a streaming action not accepting its events', async () => {
+      app = await startRealtimeServer();
+      assistant();
+
+      const json = await streamCall('assistant', {
+        accept: 'application/json'
+      });
+      const forgotten = await streamCall('assistant', {}, '?ack=false');
+
+      expect(json.status).toBe(406);
+      expect((await json.json()).code).toBe('REALTIME_STREAM_ACCEPT');
+      expect(forgotten.status).toBe(400);
+      expect((await forgotten.json()).code).toBe('REALTIME_MESSAGE_INVALID');
+    });
+
+    test('answers a refused streaming action with a problem', async () => {
+      app = await startRealtimeServer();
+      createRealtimeAction({
+        name: 'assistant',
+        payload: Type.Object({ prompt: Type.String() }),
+        roles: ['admin'],
+        stream: {},
+        async *handler() {
+          yield 'a';
+        }
+      });
+
+      const response = await streamCall('assistant');
+
+      expect(response.status).toBe(403);
+      expect((await response.json()).code).toBe('REALTIME_ACTION_DENIED');
+    });
+
+    test('sends a stream to its subscribers over SSE and the WebSocket', async () => {
+      app = await startRealtimeServer();
+      const radio = createStream({ name: 'radio', codec: 'binary' });
+      const socket = await connect();
+      socket.send({
+        type: 'subscribe',
+        id: 'r',
+        channel: 'stream:radio',
+        key: 'jazz'
+      });
+      await socket.next((m) => m.type === 'subscribed');
+      const subscriptions = encodeURIComponent(
+        JSON.stringify([{ id: 'r', channel: 'stream:radio', key: 'jazz' }])
+      );
+      const events = await openEventStream(
+        `${app.url}/events?ticket=${await ticket()}&subscriptions=${subscriptions}`
+      );
+      await events.next((m) => m.type === 'subscribed');
+
+      const writer = radio.open('jazz');
+      writer.write(new Uint8Array([1, 2, 3]), { sync: true });
+      writer.end();
+      const viaSocket = await socket.next((m) => m.type === 'chunk');
+      const viaEvents = await events.next((m) => m.type === 'chunk');
+      events.abort();
+
+      expect(viaSocket).toEqual({
+        type: 'chunk',
+        sid: expect.any(Number),
+        seq: 0,
+        data: 'AQID',
+        sync: true
+      });
+      expect(viaEvents).toEqual(viaSocket);
     });
   });
 

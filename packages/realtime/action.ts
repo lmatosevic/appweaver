@@ -1,4 +1,5 @@
 import { TSchema } from '@sinclair/typebox';
+import { StreamCodec } from './stream/types';
 import { RealtimeAction, RealtimeActionConfig } from './types';
 import { createRegistry } from './utils/registry';
 
@@ -13,11 +14,23 @@ const actions = createRegistry<RealtimeAction>(REALTIME_ACTION, 'action');
  * policies of the resources apply to what it does. The actions are for the custom operations of the application,
  * never for the CRUD of a resource, which goes through its routes.
  *
+ * An action with `stream` streams the chunks its handler yields to the caller only, as they come, and ends with the
+ * value it returns: the answer of an LLM, token by token.
+ *
  * @example
  * createRealtimeAction({
  *   name: 'chat.typing',
  *   payload: Type.Object({ roomId: Type.Integer() }),
  *   handler: async ({ roomId }, { user }) => typing.publish({ roomId, userId: user!.id })
+ * });
+ *
+ * createRealtimeAction({
+ *   name: 'assistant.prompt',
+ *   payload: Type.Object({ prompt: Type.String() }),
+ *   stream: { codec: 'text', coalesce: 16 },
+ *   async *handler({ prompt }, { signal }) {
+ *     for await (const token of llm.stream(prompt, { signal })) yield token;
+ *   }
  * });
  *
  * @param {RealtimeActionConfig} config - The name, the schemas, the access and the handler of the action.
@@ -26,12 +39,14 @@ const actions = createRegistry<RealtimeAction>(REALTIME_ACTION, 'action');
  */
 export function createRealtimeAction<
   P extends TSchema,
-  R extends TSchema = TSchema
->(config: RealtimeActionConfig<P, R>): RealtimeAction<P, R> {
+  R extends TSchema = TSchema,
+  C extends StreamCodec = 'text',
+  J extends TSchema = TSchema
+>(config: RealtimeActionConfig<P, R, C, J>): RealtimeAction<P, R, C, J> {
   return actions.add({
     name: config.name,
-    config
-  }) as RealtimeAction<P, R>;
+    config: config
+  }) as never;
 }
 
 /**

@@ -181,7 +181,11 @@ export enum ErrorCode {
   RealtimeMessageInvalid = 'REALTIME_MESSAGE_INVALID',
   RealtimeConnectionLimit = 'REALTIME_CONNECTION_LIMIT',
   RealtimeRateLimited = 'REALTIME_RATE_LIMITED',
-  RealtimeTransportDisabled = 'REALTIME_TRANSPORT_DISABLED'
+  RealtimeTransportDisabled = 'REALTIME_TRANSPORT_DISABLED',
+  RealtimeStreamNotFound = 'REALTIME_STREAM_NOT_FOUND',
+  RealtimeStreamEnded = 'REALTIME_STREAM_ENDED',
+  RealtimeStreamLost = 'REALTIME_STREAM_LOST',
+  RealtimeStreamAccept = 'REALTIME_STREAM_ACCEPT'
 }
 
 /** The error codes starting with the prefix of a module, i.e. `'RESOURCE'`. */
