@@ -795,6 +795,46 @@
               "default": 20,
               "minimum": 0,
               "type": "integer"
+            },
+            "streamReplayLimit": {
+              "default": "256KB",
+              "type": "string"
+            },
+            "streamHighWaterMark": {
+              "default": "64KB",
+              "type": "string"
+            },
+            "streamLinger": {
+              "default": 10000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "streamRelayFlushInterval": {
+              "default": 20,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "streamRelayMaxBatch": {
+              "default": "64KB",
+              "type": "string"
+            },
+            "streamRelayHeartbeat": {
+              "default": 5000,
+              "minimum": 100,
+              "type": "integer"
+            },
+            "streamInputWindow": {
+              "default": "256KB",
+              "type": "string"
+            },
+            "streamInputMaxBytes": {
+              "default": "10MB",
+              "type": "string"
+            },
+            "shutdownGracePeriod": {
+              "default": 30000,
+              "minimum": 0,
+              "type": "integer"
             }
           }
         },
