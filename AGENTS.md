@@ -91,7 +91,7 @@ describe('Feature Verification', () => {
   `npm run format:check`, `npm run lint` (after `npm run build`, since the samples import the built packages) and
   `npm run check:circular`, then `npm test`. The test job uploads the coverage to Codecov (the `CODECOV_TOKEN` secret),
   which the coverage badge of the READMEs reads and which reports the coverage diff of every pull request in its
-  status checks, without a comment (`comment: false` of `codecov.yml`).
+  informational status checks, never failing, and without a comment (`codecov.yml`).
 - **Branch names**: a new branch is named after the work it holds, in kebab-case (`fix/realtime-input-errors`), never
   a random or generated name.
 - **Dependency Management**: Packages are linked locally in `node_modules/@appweaver` after the build. Ensure you run

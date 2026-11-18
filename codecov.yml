@@ -1,2 +1,12 @@
 # The coverage is reported by the status checks and the Codecov dashboard, never as a pull request comment
 comment: false
+
+# The checks report the coverage without failing a pull request
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
