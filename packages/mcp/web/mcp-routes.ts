@@ -15,7 +15,7 @@ export function registerMcpRoutes(): void {
   if (!mcpConfig.ENABLED) {
     return;
   }
-  const path = `/${mcpConfig.ROUTE_PATH.replace(/^\/+|\/+$/g, '')}`;
+  const path = `/${mcpConfig.ROUTE_PREFIX.replace(/^\/+|\/+$/g, '')}`;
   const notAllowed = async (_: FastifyRequest, reply: FastifyReply) =>
     reply.code(405).header('allow', 'POST').send();
 

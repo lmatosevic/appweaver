@@ -159,7 +159,7 @@ describe('mcp-routes', () => {
     });
 
     test('serves another path', async () => {
-      configOverrides.MCP_ROUTE_PATH = '/agents/mcp/';
+      configOverrides.MCP_ROUTE_PREFIX = '/agents/mcp/';
       const { server } = await start(user);
 
       const response = await server.inject({

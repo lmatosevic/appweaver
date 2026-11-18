@@ -404,7 +404,7 @@
     },
     "mcp": {
       "enabled": true,
-      "routePath": "/mcp",
+      "routePrefix": "/mcp",
       "auth": ["jwt", "apiKey"],
       "anonymousEnabled": false,
       "destructiveEnabled": false,

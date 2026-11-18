@@ -10,7 +10,7 @@ npm install @appweaver/mcp   # or: weaver module add mcp
 
 ## Endpoint and authentication
 
-`POST /api/mcp` (`mcp.routePath`) is the Streamable HTTP transport without sessions: a JSON-RPC message (`initialize`,
+`POST /api/mcp` (`mcp.routePrefix`) is the Streamable HTTP transport without sessions: a JSON-RPC message (`initialize`,
 `ping`, `tools/list`, `tools/call`) answered with its JSON response, `202` for a notification, `405` for `GET` and
 `DELETE`. A request authenticates with the strategies of `mcp.auth` (JWT and API keys by default); without
 credentials it is refused with `401` unless `mcp.anonymousEnabled`, which shows only the `public` tools. A browser
