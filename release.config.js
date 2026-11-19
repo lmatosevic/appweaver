@@ -104,7 +104,9 @@ module.exports = {
     [
       '@semantic-release/github',
       {
-        assets: []
+        assets: [],
+        // No "included in version" comments on the released pull requests and issues
+        successComment: false
       }
     ],
 
