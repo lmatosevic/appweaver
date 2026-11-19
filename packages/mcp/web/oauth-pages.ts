@@ -10,8 +10,8 @@ export type OAuthPageData = {
   /** `sign-in`: the name of the client and the host it redirects to */
   client?: string;
   host?: string;
-  /** `sign-in`: the links of the OAuth2 providers */
-  providers?: { name: string; url: string }[];
+  /** `sign-in`: the links of the OAuth2 providers, with their translated names */
+  providers?: { name: string; label: string; url: string }[];
   /** The URL the form posts to, and its single-use state */
   action?: string;
   state?: string;
@@ -97,7 +97,10 @@ function plainPage(
       body =
         `<p>${t('mcp.signIn.message', { client: data.client!, host: data.host! })}</p><ul>` +
         (data.providers ?? [])
-          .map(({ name, url }) => `<li><a href="${e(url)}">${e(name)}</a></li>`)
+          .map(
+            ({ label, url }) =>
+              `<li><a href="${e(url)}">${t('mcp.signIn.continue', { provider: label })}</a></li>`
+          )
           .join('') +
         '</ul>';
       break;

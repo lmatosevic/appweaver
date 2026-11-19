@@ -39,7 +39,19 @@ export const defaultTranslations: Translations = {
     signIn: {
       title: 'Sign in',
       client: 'An MCP client',
-      message: '{client} of {host} asks to act as you. Sign in with:'
+      message: '{client} of {host} asks to act as you.',
+      continue: 'Continue with {provider}',
+      providers: {
+        apple: 'Apple',
+        custom: 'single sign-on',
+        facebook: 'Facebook',
+        github: 'GitHub',
+        gitlab: 'GitLab',
+        google: 'Google',
+        linkedin: 'LinkedIn',
+        microsoft: 'Microsoft',
+        x: 'X'
+      }
     },
     password: {
       title: 'Confirm your password',

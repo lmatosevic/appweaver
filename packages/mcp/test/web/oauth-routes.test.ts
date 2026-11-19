@@ -424,7 +424,20 @@ describe('oauth-routes', () => {
         'Agent of localhost:3333 asks to act as you'
       );
       expect(response.body).toContain('/auth/login/google?redirectToUrl=');
-      expect(response.body).toContain('/auth/login/github?redirectToUrl=');
+      expect(response.body).toContain('Continue with Google</a>');
+      expect(response.body).toContain('Continue with GitHub</a>');
+    });
+
+    test('names a provider without a translation by its name', async () => {
+      await start([AuthSource.OAuth2Google]);
+      const clientId = await register();
+      jest
+        .spyOn(LocaleService.prototype, 'hasTranslation')
+        .mockReturnValue(false);
+
+      const response = await authorize(authorizeParams(clientId));
+
+      expect(response.body).toContain('Continue with google</a>');
     });
 
     test('redirects a failed sign-in to the client', async () => {
@@ -674,7 +687,12 @@ describe('oauth-routes', () => {
       expect(response.body).toBe('custom Agent');
       expect(render).toHaveBeenCalledWith(
         'mcp/sign-in.html',
-        expect.objectContaining({ host: 'localhost:3333' }),
+        expect.objectContaining({
+          host: 'localhost:3333',
+          providers: [
+            expect.objectContaining({ name: 'google', label: 'Google' })
+          ]
+        }),
         { locale: 'de-AT' }
       );
     });

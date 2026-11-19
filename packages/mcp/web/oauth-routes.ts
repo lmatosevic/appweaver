@@ -9,7 +9,7 @@ import {
   SecurityStore,
   TwoFactorChallengeMethod
 } from '@appweaver/common';
-import { define, inject } from '@appweaver/core';
+import { define, inject, LocaleService } from '@appweaver/core';
 import {
   AuthService,
   AuthTokens,
@@ -272,7 +272,13 @@ async function authorize(
     {
       client: client.name ?? translate('mcp.signIn.client', locale),
       host: new URL(redirectUri).host,
-      providers: providers.map((name) => ({ name, url: loginUrl(name) }))
+      providers: providers.map((name) => {
+        const key = `mcp.signIn.providers.${name}`;
+        const label = inject(LocaleService).hasTranslation(key, locale)
+          ? translate(key, locale)
+          : name;
+        return { name, label, url: loginUrl(name) };
+      })
     },
     locale
   );

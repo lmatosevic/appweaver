@@ -39,11 +39,13 @@ const pages: [string, object, string[]][] = [
     {
       client: 'Agent',
       host: 'localhost:3333',
-      providers: [{ name: 'google', url: '/auth/login/google?a=1&b=2' }]
+      providers: [
+        { name: 'google', label: 'Google', url: '/auth/login/google?a=1&b=2' }
+      ]
     },
     [
-      'Agent of localhost:3333 asks to act as you. Sign in with:',
-      'href="/auth/login/google?a&#x3D;1&amp;b&#x3D;2"'
+      'Agent of localhost:3333 asks to act as you.',
+      'class="button provider-google" href="/auth/login/google?a&#x3D;1&amp;b&#x3D;2">Continue with Google</a>'
     ]
   ],
   [

@@ -60,12 +60,13 @@ a recovery code; a wrong code is retried until `maxAttempts`, then the client ge
 
 Each page renders the `mcp/<page>.html` template of the template engine when the application has one, otherwise a
 plain HTML page, in the locale of `Accept-Language`. The texts are the `mcp.*` translations, defined in English by the
-framework and overridden by `locales/<locale>.json`. A project with the `mcp` and `templates` modules starts with the
+framework and overridden by `locales/<locale>.json`, the provider names included (`mcp.signIn.providers.google`, a
+provider without one shown by its name). A project with the `mcp` and `templates` modules starts with the
 four templates and their `layouts/page.html` layout, in the card style of the email layout.
 
 | Page         | Data                                                                                |
 |--------------|-------------------------------------------------------------------------------------|
-| `sign-in`    | `client`, `host`, `providers` (`{ name, url }`)                                     |
+| `sign-in`    | `client`, `host`, `providers` (`{ name, label, url }`)                              |
 | `password`   | `action`, `state` (posted back as `state`), `error`                                 |
 | `two-factor` | `action`, `state`, `error`, `hint`, `methods` (`{ value, label, selected }`)        |
 | `error`      | `message`                                                                           |
