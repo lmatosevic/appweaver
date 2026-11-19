@@ -1,3 +1,10 @@
+## [2.8.0](https://github.com/lmatosevic/appweaver/compare/v2.7.1...v2.8.0) (2026-11-19)
+
+### Features
+
+* **ai:** add the AI module and the OpenAI-compatible driver ([ec1f9bc](https://github.com/lmatosevic/appweaver/commit/ec1f9bc745dbd3a1bfdc5e722ef93359b4e3bd96))
+* **mcp:** add the MCP server of the AI agents ([0164ded](https://github.com/lmatosevic/appweaver/commit/0164ded618278fa390af36dc95d9c70cc912b6c4))
+
 ## [2.7.1](https://github.com/lmatosevic/appweaver/compare/v2.7.0...v2.7.1) (2026-11-18)
 
 ### Bug Fixes

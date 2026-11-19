@@ -1,6 +1,6 @@
 {
   "name": "@appweaver/openai",
-  "version": "2.7.1",
+  "version": "2.8.0",
   "description": "Appweaver - the backend framework for AI-first development (@openai)",
   "author": "Luka Matosevic",
   "license": "MIT",
