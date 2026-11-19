@@ -163,7 +163,7 @@ an `onRequest` hook and made active in the `createAsyncResource` of the request 
 (`data/database/telemetry-extension.ts`, a `$allOperations` query extension), the queues (`memory`, `bullmq`), the
 `cron` scheduler, `EmailService`, `SmsService`, `CacheService` (metrics only), `weaver run`, the realtime
 connections of `@appweaver/realtime` (`realtime/utils/telemetry.ts`) and the AI model and tool calls of `@appweaver/ai`
-(`ai/utils/telemetry.ts`, the `gen_ai.*` conventions). The logger adds the
+(`ai/utils/telemetry.ts`, the `gen_ai.*` conventions) and the tool calls of `@appweaver/mcp` (`mcp/utils/telemetry.ts`). The logger adds the
 `trace_id` of the active span to every record, and `addLogDestination` lets the SDK module receive the records.
 
 The SDK is the `@appweaver/opentelemetry` module (`packages/opentelemetry`), never a contract with providers: OTLP is
@@ -201,6 +201,7 @@ on it:
 | `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, ... | One driver each, carrying the library it wraps as a dependency                               |
 | `@appweaver/realtime`                                             | The realtime connections over WebSocket and SSE: channels, resource events and actions       |
 | `@appweaver/ai`                                                   | `AiService`: the AI models of the endpoints, streams, objects, tools, embeddings, the queue   |
+| `@appweaver/mcp`                                                  | The MCP server of the AI agents: the resource actions and the custom tools                   |
 | `@appweaver/openai`                                               | The `openai` AI driver, for OpenAI and every OpenAI-compatible server (Ollama, OpenRouter)   |
 | `@appweaver/opentelemetry`                                        | The OpenTelemetry SDK exporting the traces, metrics and logs of the instrumentation          |
 | `@appweaver/testing`                                              | The test helpers shared by the packages                                                      |
@@ -476,14 +477,27 @@ API is a package with an `AiDriver` provider, tested with `testAiDriverContract`
 options setting `maxTokensParam`, `reasoningParam` and `streamUsage`. The SDK rejects an undefined request option and
 ends an aborted stream without an error, so the driver omits the former and checks the signal after the latter.
 
+### `packages/mcp`
+
+The MCP server (`@appweaver/mcp`), requiring `@appweaver/web`, implemented on Fastify without the MCP SDK: the
+Streamable HTTP transport without sessions (`web/mcp-routes.ts`, `POST` of a JSON-RPC message, `405` for `GET` and
+`DELETE`) and the methods `initialize`, `ping`, `tools/list` and `tools/call` (`server/mcp-server.ts`). Nothing is
+exposed unless declared: the actions of the `mcp` key of `createRoutes` (`tools/resource-tools.ts`, `<model>_<action>`,
+a simple filter of the visible scalars, the results projected onto the response schema) and the tools of
+`createMcpTool` (`tools/create-tool.ts`, which also takes an AI tool). A tool runs as the user of the request, listed
+only for the users its access allows, and a destructive one (`update`, `delete`, `destructive: true`) only with
+`mcp.destructiveEnabled`. The schemas are published as plain JSON Schema (`utils/schema-util.ts`, the model references
+inlined). A new protocol method goes into `handleMcpMessage`, and `createMcpClient` of `@appweaver/testing` calls the
+server in the tests.
+
 ### `packages/testing`
 
 `@appweaver/testing` holds the test helpers of the packages and their modules: `resetContext` (clears the application
 context between tests), `linkModels` (links the models defined in a test), `createDatabaseStub` (records the queries of
 a stubbed Prisma client), `prismaError` and `sourceLoggerNames` (the `createLogger` names of a source directory, the
 `loggers` of a manifest are checked against), `cliConventionViolations` (the violations of the CLI conventions by a
-Commander program, see **CLI conventions**) and `recordTelemetry` (an in-memory OpenTelemetry SDK, reading the spans
-and the metrics a test records). The tests of `data`, `web` and the drivers import them from
+Commander program, see **CLI conventions**), `recordTelemetry` (an in-memory OpenTelemetry SDK, reading the spans
+and the metrics a test records) and `createMcpClient` (a client of the MCP server through `inject`). The tests of `data`, `web` and the drivers import them from
 `@appweaver/testing`, and the other packages by their names (`@appweaver/core`, `@appweaver/data`), never by a relative
 path into another package. Jest maps every `@appweaver/*` import to the sources of its package (`moduleNameMapper` of
 `jest.config.json`), so the tests need no build and share one instance of each module.
@@ -561,13 +575,14 @@ adds the optional modules selected: the default ones (`defaultModules` of `scaff
 with the `--add <modules...>` ones, or every module with `--all`, minus the `--exclude <modules...>` ones, which leave
 out the default modules too, with or without `--all` (`--exclude data web` for the core application alone). The
 modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `sms`,
-`templates`, `locales`, `timeseries` (requires `data`), `telemetry`, `realtime` (requires `web`), `ai` and `docker`. The base project depends only on
+`templates`, `locales`, `timeseries` (requires `data`), `telemetry`, `realtime` (requires `web`), `ai`, `mcp` (requires
+`web`) and `docker`. The base project depends only on
 `@appweaver/cli`, `common`, `core` and TypeBox, and a module
 adds its packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
 `projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`), `@appweaver/twilio` (`sms`, with the `json`
 sender in dev and test and the Twilio keys of `.env`), `@appweaver/handlebars` (`templates`), `@appweaver/realtime` (`realtime`),
-`@appweaver/ai` and `@appweaver/openai` (`ai`, a local Ollama endpoint and the `mock` model in test) and
+`@appweaver/ai` and `@appweaver/openai` (`ai`, a local Ollama endpoint and the `mock` model in test), `@appweaver/mcp` (`mcp`) and
 `@appweaver/opentelemetry` (`telemetry`, with the OTLP endpoint and telemetry off in test), every
 `@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
 `--database`, `--host` and `--port` configure `data` and `web` only (`ProjectContext`), and `weaver module add` takes
@@ -849,7 +864,7 @@ unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any ne
 ### `weaver module` (alias: `mod`)
 
 Add and remove the optional modules of `@appweaver/create` (`data`, `web`, `redis`, `queue`, `scheduler`, `mailer`,
-`sms`, `templates`, `locales`, `timeseries`, `telemetry`, `realtime`, `ai`, `docker`) in the current project, with the scaffold templates
+`sms`, `templates`, `locales`, `timeseries`, `telemetry`, `realtime`, `ai`, `mcp`, `docker`) in the current project, with the scaffold templates
 of `@appweaver/create/scaffold`, install module packages, and create local modules.
 
 ```
@@ -1363,7 +1378,7 @@ This runs the following steps automatically:
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
    `common`, `ai`, `openai`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `opentelemetry`,
-   `realtime`, `handlebars`, `sharp`, `testing`, `cli`, `client` and `create`.
+   `realtime`, `mcp`, `handlebars`, `sharp`, `testing`, `cli`, `client` and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
@@ -1384,6 +1399,7 @@ This runs the following steps automatically:
     cd packages/twilio/dist     && npm publish
     cd packages/opentelemetry/dist && npm publish
     cd packages/realtime/dist   && npm publish
+    cd packages/mcp/dist        && npm publish
     cd packages/handlebars/dist && npm publish
     cd packages/sharp/dist      && npm publish
     cd packages/testing/dist    && npm publish

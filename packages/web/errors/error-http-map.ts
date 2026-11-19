@@ -400,6 +400,13 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     title: 'Invalid AI model output'
   },
 
+  [ErrorCode.McpOriginDenied]: { status: 403, title: 'MCP origin denied' },
+  [ErrorCode.McpInputInvalid]: { status: 400, title: 'Invalid MCP tool input' },
+  [ErrorCode.McpResultTooLarge]: {
+    status: 413,
+    title: 'MCP tool result too large'
+  },
+
   [ErrorCode.TimeSeriesNotEnabled]: {
     status: 404,
     title: 'Time series not enabled'

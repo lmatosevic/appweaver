@@ -96,7 +96,7 @@ export function realtimeSpec(): RealtimeSpec {
       .map(([model, routes]) => ({
         model: String(model),
         channel: RESOURCE_CHANNEL_PREFIX + String(model),
-        actions: [...resourceEventActions(routes.config.events!)].map(
+        actions: [...resourceEventActions(routes.config)].map(
           ([action, config]) => ({ action, ...access(config) })
         )
       })),

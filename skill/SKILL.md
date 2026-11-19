@@ -98,6 +98,7 @@ with `data` and `web`:
 | `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)        |
 | `telemetry`      | `@appweaver/opentelemetry`, the OTLP endpoint, telemetry off in the `test` environment                          | no telemetry exported                       |
 | `realtime`       | `@appweaver/realtime` (requires `web`): channels, resource events, actions and streams over WebSocket and SSE    | no realtime connections                     |
+| `mcp`            | `@appweaver/mcp` (requires `web`): the MCP server of the AI agents at `/mcp`                               | no MCP server                               |
 | `ai`             | `@appweaver/ai` and `@appweaver/openai`: `AiService` on a local Ollama in `dev`, the `mock` model in `test`     | no AI models                                |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                             |
 
@@ -976,6 +977,26 @@ await ai.generateQueued({ prompt: 'Summarize ...' }); // through the `ai` queue,
 A stream is an async iterable of text: a streaming realtime action returns it, `pipeAiStream` writes it into a
 `createStream` writer, `aiEventStream` into an SSE response. See [ai.md](references/ai.md).
 
+### MCP server
+
+With the `mcp` module (`@appweaver/mcp`), AI agents call the application over the Model Context Protocol at
+`POST /mcp`, authenticated like the API (JWT, API keys) and running as that user, so the policies apply. Nothing is
+exposed unless declared: resource actions with the `mcp` key of `createRoutes`, custom tools with `createMcpTool`.
+`update`, `delete` and tools marked `destructive` also need `mcp.destructiveEnabled`:
+
+```ts
+createRoutes({ modelName: 'post', mcp: { actions: ['find', 'query', 'create'], exclude: ['note'] } }); // the access of the API routes
+createMcpTool({
+  name: 'refundOrder',
+  input: Type.Object({ orderId: Type.Integer() }),
+  roles: ['support'],
+  destructive: true,
+  handler: ({ orderId }) => refunds.refund(orderId)
+});
+```
+
+See [mcp.md](references/mcp.md).
+
 ### Registering a custom model
 
 Use `registerModel` to register a custom [TypeBox](https://github.com/sinclairzx81/typebox) schema as a named model.
@@ -1304,6 +1325,7 @@ npm run lint  # eslint "./**/*.ts"
 - Events & Hooks: [events.md](references/events.md)
 - Realtime channels, resource events, actions & streams (WebSocket, SSE): [realtime.md](references/realtime.md)
 - AI models, streams, objects, tools & embeddings: [ai.md](references/ai.md)
+- MCP server of the AI agents: [mcp.md](references/mcp.md)
 - Cache management: [cache.md](references/cache.md)
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)

@@ -1148,8 +1148,8 @@ export class RealtimeGateway implements OnReady, OnDestroy {
     action: string | undefined,
     channel: string
   ): string[] {
-    const events = context.resource.routes.get(model)?.config.events;
-    const exposed = events ? resourceEventActions(events) : new Map();
+    const routes = context.resource.routes.get(model)?.config;
+    const exposed = routes ? resourceEventActions(routes) : new Map();
 
     if (
       !context.resource.models.has(model) ||
@@ -1459,9 +1459,7 @@ export class RealtimeGateway implements OnReady, OnDestroy {
 
     for (const [name, routes] of context.resource.routes) {
       const model = String(name);
-      const actions = routes.config.events
-        ? resourceEventActions(routes.config.events).keys()
-        : [];
+      const actions = resourceEventActions(routes.config).keys();
       for (const action of actions) {
         const listenerId = events.onResourceEvent(
           model,

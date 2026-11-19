@@ -20,6 +20,7 @@ first-party module does.
 | `@appweaver/realtime`      | Installed (requires `web`)   | The realtime connections (`RealtimeGateway`) over WebSocket and SSE: channels, resource events and actions, see [realtime](./realtime.md)                   |
 | `@appweaver/ai`            | Installed                    | `AiService` calling the AI models of the endpoints of the `ai` config, the tools, the built-in `mock` driver, see [ai](./ai.md)                          |
 | `@appweaver/openai`        | Installed (requires `ai`)    | The `openai` AI driver (`AiDriver`), for OpenAI and every OpenAI-compatible server (Ollama, OpenRouter, vLLM, ...), with the `openai` SDK                  |
+| `@appweaver/mcp`           | Installed (requires `web`)   | The MCP server of the AI agents: the resource actions of the `mcp` route config and `createMcpTool`, see [mcp](./mcp.md)                                  |
 | `@appweaver/opentelemetry` | Installed                    | The OpenTelemetry SDK (`TelemetryService`) exporting the traces, metrics and logs over OTLP, see [telemetry](./telemetry.md)                               |
 | `@appweaver/handlebars`    | Installed                    | The `handlebars` template engine                                                                                                                           |
 | `@appweaver/sharp`         | Installed                    | The `sharp` image processor                                                                                                                                |

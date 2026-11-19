@@ -14,6 +14,7 @@ export const moduleNames = [
   'telemetry',
   'realtime',
   'ai',
+  'mcp',
   'docker'
 ] as const;
 

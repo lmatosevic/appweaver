@@ -214,9 +214,13 @@ export function createServer(): Server {
   }
 
   // Register other defined routes
-  const routes = injectAll<(router: Router) => void>(ROUTE);
+  const routes = injectAll<
+    ((server: Server) => Promise<void>) & { apiPrefix?: boolean }
+  >(ROUTE);
   for (const route of routes) {
-    server.register(route, { prefix: serverConfig.API_PREFIX + '/' });
+    server.register(route, {
+      prefix: route.apiPrefix === false ? '' : serverConfig.API_PREFIX + '/'
+    });
   }
 
   return server;

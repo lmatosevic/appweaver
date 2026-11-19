@@ -197,7 +197,12 @@ export enum ErrorCode {
   AiTimeout = 'AI_TIMEOUT',
   AiProviderUnavailable = 'AI_PROVIDER_UNAVAILABLE',
   AiContextLengthExceeded = 'AI_CONTEXT_LENGTH_EXCEEDED',
-  AiOutputInvalid = 'AI_OUTPUT_INVALID'
+  AiOutputInvalid = 'AI_OUTPUT_INVALID',
+
+  // MCP
+  McpOriginDenied = 'MCP_ORIGIN_DENIED',
+  McpInputInvalid = 'MCP_INPUT_INVALID',
+  McpResultTooLarge = 'MCP_RESULT_TOO_LARGE'
 }
 
 /** The error codes starting with the prefix of a module, i.e. `'RESOURCE'`. */

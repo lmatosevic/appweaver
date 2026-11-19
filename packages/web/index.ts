@@ -4,6 +4,7 @@ export * from './factory/create-routes';
 export * from './health/health-routes';
 export * from './resource/resource-routes';
 export * from './resource/resource-schema';
+export { routeAccess } from './resource/utils/route-config-util';
 export * from './security/access-util';
 export * from './security/auth-schema';
 export * from './security/auth-service';

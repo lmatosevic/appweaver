@@ -34,6 +34,8 @@
       "@appweaver/cron/*": ["./packages/cron/*"],
       "@appweaver/nodemailer": ["./packages/nodemailer"],
       "@appweaver/nodemailer/*": ["./packages/nodemailer/*"],
+      "@appweaver/mcp": ["./packages/mcp"],
+      "@appweaver/mcp/*": ["./packages/mcp/*"],
       "@appweaver/realtime": ["./packages/realtime"],
       "@appweaver/realtime/*": ["./packages/realtime/*"],
       "@appweaver/twilio": ["./packages/twilio"],

@@ -24,18 +24,27 @@ import {
 
 const logger = createLogger('server');
 
+/** The config of the routes of `registerRoute`. */
+export type RegisterRouteConfig = RouteConfig &
+  RouteCacheConfig & {
+    /** Registers the routes under `server.apiPrefix`. Default: `true`. */
+    apiPrefix?: boolean;
+  };
+
 /**
  * Registers custom routes of the application. The routes declared by the handler are captured on a temporary server
  * and copied to the application server once it starts, with the authentication, bot checks, error responses, and
  * cache of the given config applied to each one.
  *
  * @param {Function} handler - Declares the routes on the given router.
- * @param {RouteConfig & RouteCacheConfig} [config] - The authentication, bot check, and cache config of the routes.
+ * @param {RegisterRouteConfig} [options] - The authentication, bot check, and cache config of the routes, and
+ * `apiPrefix: false` to register them at the root instead of under `server.apiPrefix`.
  */
 export function registerRoute(
   handler: (router: Router) => void,
-  config?: RouteConfig & RouteCacheConfig
+  options?: RegisterRouteConfig
 ): void {
+  const { apiPrefix = true, ...config } = options ?? {};
   const routes: RouteOptions[] = [];
   const tempServer = Fastify({
     logger: false,
@@ -69,10 +78,10 @@ export function registerRoute(
 
     for (const route of routes) {
       const captchaConfig = {
-        recaptcha: config?.recaptcha,
-        recaptchaAction: config?.recaptchaAction,
-        turnstile: config?.turnstile,
-        turnstileAction: config?.turnstileAction
+        recaptcha: config.recaptcha,
+        recaptchaAction: config.recaptchaAction,
+        turnstile: config.turnstile,
+        turnstileAction: config.turnstileAction
       };
       const captchaHeader = captchaHeaderSchema(captchaConfig);
 
@@ -92,9 +101,7 @@ export function registerRoute(
         ...route,
         schema: {
           ...route.schema,
-          security: config?.public
-            ? []
-            : authSchema(config?.auth as AuthType[]),
+          security: config.public ? [] : authSchema(config.auth as AuthType[]),
           headers: route.schema?.headers
             ? Type.Composite([
                 captchaHeader,
@@ -105,16 +112,16 @@ export function registerRoute(
             (route.schema?.response as Record<string, unknown>) ?? {},
             errorResponses(
               ...authErrorCodes(
-                config?.public ? [] : (config?.auth as AuthType[])
+                config.public ? [] : (config.auth as AuthType[])
               ),
               ...captchaErrorCodes(captchaConfig)
             )
           )
         },
         onRequest: [
-          config?.public ? undefined : authenticate(config?.auth as AuthType[]),
-          config?.recaptcha || config?.recaptchaAction ? recaptcha : undefined,
-          config?.turnstile || config?.turnstileAction ? turnstile : undefined,
+          config.public ? undefined : authenticate(config.auth as AuthType[]),
+          config.recaptcha || config.recaptchaAction ? recaptcha : undefined,
+          config.turnstile || config.turnstileAction ? turnstile : undefined,
           ...(isArray(route.onRequest) ? route.onRequest : [route.onRequest])
         ].filter((h) => h !== undefined),
         preSerialization: [
@@ -138,5 +145,5 @@ export function registerRoute(
     }
   };
 
-  define(routeBuilder, ROUTE, 'append');
+  define(Object.assign(routeBuilder, { apiPrefix }), ROUTE, 'append');
 }
