@@ -153,7 +153,9 @@ export function registerOAuthRoutes(): void {
       authorize(server, request, reply)
     );
     route('GET', `${prefix}/callback`, callback);
-    route('POST', `${prefix}/sign-in`, signInStep, 12);
+    if (mcpOAuth2Config.FORMS_ENABLED) {
+      route('POST', `${prefix}/sign-in`, signInStep, 12);
+    }
     route(
       'POST',
       `${prefix}/token`,
@@ -289,7 +291,8 @@ async function callback(request: FastifyRequest, reply: FastifyReply) {
   } catch {
     return sendExpired(reply, locale);
   }
-  if (query.passwordRequired === 'true') {
+  // Without the forms, the exchange refuses a password it needs
+  if (query.passwordRequired === 'true' && mcpOAuth2Config.FORMS_ENABLED) {
     return sendStep(reply, locale, {
       request: pending,
       step: 'password',
@@ -385,6 +388,13 @@ async function signIn(
     );
   }
   if (payload.scope === AuthScope.TwoFA) {
+    if (!mcpOAuth2Config.FORMS_ENABLED) {
+      return deny(
+        reply,
+        pending,
+        'The user must pass the two-factor authentication'
+      );
+    }
     return sendChallenge(reply, requestLocale(request), {
       request: pending,
       step: 'twoFactor',

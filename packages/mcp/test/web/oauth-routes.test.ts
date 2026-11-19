@@ -626,6 +626,32 @@ describe('oauth-routes', () => {
       );
     });
 
+    test('refuses the users the forms would ask, without the forms', async () => {
+      configOverrides.MCP_OAUTH2_FORMS_ENABLED = false;
+      await start();
+      const clientId = await register();
+
+      authService.exchangeToken.mockRejectedValueOnce(
+        new AuthError(ErrorCode.AuthPasswordRequired, 'Password required')
+      );
+      const password = await callbackOf(clientId, '&passwordRequired=true');
+      expect(authService.exchangeToken).toHaveBeenCalledWith('ott');
+      expect(location(password).get('error_description')).toBe(
+        'Password required'
+      );
+
+      authService.exchangeToken.mockResolvedValueOnce({
+        accessToken: sign(AuthScope.TwoFA)
+      });
+      const twoFactor = await callbackOf(clientId);
+      expect(Object.fromEntries(location(twoFactor))).toMatchObject({
+        error: 'access_denied',
+        error_description: 'The user must pass the two-factor authentication'
+      });
+      expect(twoFactorService.sendChallenge).not.toHaveBeenCalled();
+      expect((await postStep('any', { code: '1' })).statusCode).toBe(404);
+    });
+
     test('renders the template of a page when the application has one', async () => {
       const render = jest.fn(
         async (_: string, data: any) => `custom ${data.client}`

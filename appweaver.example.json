@@ -417,7 +417,8 @@
       "oauth2": {
         "enabled": false,
         "routePrefix": "/oauth",
-        "providers": []
+        "providers": [],
+        "formsEnabled": true
       }
     },
     "ai": {

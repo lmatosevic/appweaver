@@ -72,6 +72,9 @@ four templates and their `layouts/page.html` layout, in the card style of the em
 
 The forms post `state`, with `password`, or `code`, `method` and `action` (`verify` or `resend`).
 
+`mcp.oauth2.formsEnabled: false` removes the forms (`POST /oauth/sign-in` answers `404`) and refuses the users who
+must confirm a password or pass 2FA with `access_denied`. The consent page of `/oauth/authorize` always shows.
+
 ## Resource tools
 
 Opt a model in with the `mcp` key of `createRoutes`, like `events`:
