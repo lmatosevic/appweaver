@@ -995,8 +995,8 @@ createMcpTool({
 });
 ```
 
-Opt-in: `mcp.cache.enabled` caches the results of the read-only tools per user (evicted when their models change),
-`mcp.rateLimit.enabled` limits the tool calls of each user (`MCP_RATE_LIMITED`). See [mcp.md](references/mcp.md).
+`mcp.cache.enabled` caches the read-only tool results per user, `mcp.rateLimit.enabled` limits the tool calls per
+user. See [mcp.md](references/mcp.md).
 
 ### Registering a custom model
 

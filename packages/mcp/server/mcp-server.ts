@@ -18,7 +18,7 @@ import { McpTool } from '../types';
 import { toJsonSchema } from '../utils/schema-util';
 import { traceToolCall } from '../utils/telemetry';
 import { checkRateLimit } from './rate-limit';
-import { findCachedResult, storeCachedResult } from './tool-cache';
+import { cachedToolCall } from './tool-cache';
 
 const logger = createLogger('mcp');
 
@@ -159,16 +159,11 @@ function initialize(requested: unknown) {
 }
 
 function describeTool(tool: McpTool): object {
-  let description = descriptions.get(tool);
-  if (!description) {
-    description = buildDescription(tool);
-    descriptions.set(tool, description);
+  const cached = descriptions.get(tool);
+  if (cached) {
+    return cached;
   }
-  return description;
-}
-
-function buildDescription(tool: McpTool): object {
-  return {
+  const description = {
     name: tool.name,
     ...(tool.title ? { title: tool.title } : {}),
     description: tool.description,
@@ -180,6 +175,8 @@ function buildDescription(tool: McpTool): object {
       openWorldHint: false
     }
   };
+  descriptions.set(tool, description);
+  return description;
 }
 
 async function callTool(
@@ -209,19 +206,18 @@ async function callTool(
         { tool: tool.name, errors }
       );
     }
-    const lookup = await findCachedResult<McpToolResult>(tool, args, user);
-    if (lookup?.value) {
-      cached = true;
-      outcome = lookup.value;
-    } else {
-      const value = await traceToolCall(tool.name, () =>
-        tool.call(args, { user, signal })
-      );
-      outcome = toResult(tool, value);
-      if (lookup) {
-        await storeCachedResult(lookup, outcome);
-      }
-    }
+    ({ result: outcome, cached } = await cachedToolCall(
+      tool,
+      args,
+      user,
+      async () =>
+        toResult(
+          tool,
+          await traceToolCall(tool.name, () =>
+            tool.call(args, { user, signal })
+          )
+        )
+    ));
   } catch (e) {
     outcome = errorResult(tool, e);
   }
