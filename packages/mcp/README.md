@@ -18,7 +18,7 @@
 ## Description
 
 `@appweaver/mcp` is the Model Context Protocol server of [Appweaver](https://github.com/lmatosevic/appweaver), a module
-enabled by installing it. AI agents call the application at `POST /api/mcp`, authenticated like the API and running
+enabled by installing it. AI agents call the application at `POST /mcp`, authenticated like the API and running
 as that user, so the resource policies apply. Nothing is exposed unless declared: the resource actions of the `mcp`
 key of `createRoutes`, and the custom tools of `createMcpTool`. The destructive tools need `mcp.destructiveEnabled`.
 

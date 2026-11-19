@@ -27,7 +27,7 @@ export type McpTestClient = {
  * const { structuredContent } = await mcp.callTool('order_find', { id: 1 });
  *
  * @param {InjectRequest} inject - Injects a request into the server.
- * @param {Object} [options] - The path of the endpoint (default `/api/mcp`) and the headers of the requests.
+ * @param {Object} [options] - The path of the endpoint (default `/mcp`) and the headers of the requests.
  * @return {McpTestClient} The client.
  */
 export function createMcpClient(
@@ -41,7 +41,7 @@ export function createMcpClient(
   ): Promise<any> => {
     const response = await inject({
       method: 'POST',
-      url: options.path ?? '/api/mcp',
+      url: options.path ?? '/mcp',
       headers: { 'content-type': 'application/json', ...options.headers },
       payload: { jsonrpc: '2.0', id: ++id, method, params }
     });

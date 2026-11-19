@@ -273,7 +273,7 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
   mcp: {
     name: 'mcp',
     description:
-      'MCP server of the AI agents at /api/mcp: the resource actions of the mcp route config and the custom tools, otherwise none',
+      'MCP server of the AI agents at /mcp: the resource actions of the mcp route config and the custom tools, otherwise none',
     packages: ['@appweaver/mcp'],
     requires: ['web'],
     enabledConfig: () => [],

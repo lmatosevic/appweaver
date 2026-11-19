@@ -98,7 +98,7 @@ with `data` and `web`:
 | `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)        |
 | `telemetry`      | `@appweaver/opentelemetry`, the OTLP endpoint, telemetry off in the `test` environment                          | no telemetry exported                       |
 | `realtime`       | `@appweaver/realtime` (requires `web`): channels, resource events, actions and streams over WebSocket and SSE    | no realtime connections                     |
-| `mcp`            | `@appweaver/mcp` (requires `web`): the MCP server of the AI agents at `/api/mcp`                               | no MCP server                               |
+| `mcp`            | `@appweaver/mcp` (requires `web`): the MCP server of the AI agents at `/mcp`                               | no MCP server                               |
 | `ai`             | `@appweaver/ai` and `@appweaver/openai`: `AiService` on a local Ollama in `dev`, the `mock` model in `test`     | no AI models                                |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                             |
 
@@ -980,7 +980,7 @@ A stream is an async iterable of text: a streaming realtime action returns it, `
 ### MCP server
 
 With the `mcp` module (`@appweaver/mcp`), AI agents call the application over the Model Context Protocol at
-`POST /api/mcp`, authenticated like the API (JWT, API keys) and running as that user, so the policies apply. Nothing is
+`POST /mcp`, authenticated like the API (JWT, API keys) and running as that user, so the policies apply. Nothing is
 exposed unless declared: resource actions with the `mcp` key of `createRoutes`, custom tools with `createMcpTool`.
 `update`, `delete` and tools marked `destructive` also need `mcp.destructiveEnabled`:
 

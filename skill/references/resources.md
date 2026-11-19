@@ -1778,6 +1778,7 @@ registerRoute(
 | `cacheSkipInvalidation` | boolean                  | Skip automatic cache invalidation.          |
 | `cacheModelName`        | string                   | Model name for cache invalidation tracking. |
 | `cacheRelations`        | string[]                 | Related model names for cache invalidation. |
+| `apiPrefix`             | boolean                  | Register under `server.apiPrefix` (`true`), or at the root (`false`, like the auth and health routes). |
 
 The error codes a custom route responds with are listed in its `errorResponses`, see
 [errors.md](./errors.md#documenting-the-errors-of-a-route).

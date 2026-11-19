@@ -10,14 +10,14 @@ npm install @appweaver/mcp   # or: weaver module add mcp
 
 ## Endpoint and authentication
 
-`POST /api/mcp` (`mcp.routePrefix`) is the Streamable HTTP transport without sessions: a JSON-RPC message (`initialize`,
+`POST /mcp` (`mcp.routePrefix`, i.e. `/api/mcp` to put it under the API) is the Streamable HTTP transport without sessions: a JSON-RPC message (`initialize`,
 `ping`, `tools/list`, `tools/call`) answered with its JSON response, `202` for a notification, `405` for `GET` and
 `DELETE`. A request authenticates with the strategies of `mcp.auth` (JWT and API keys by default); without
 credentials it is refused with `401` unless `mcp.anonymousEnabled`, which shows only the `public` tools. A browser
 `Origin` not in `mcp.allowedOrigins` is refused with `MCP_ORIGIN_DENIED`.
 
 ```sh
-claude mcp add --transport http my-api http://localhost:3000/api/mcp --header "X-Api-Key: <key>"
+claude mcp add --transport http my-api http://localhost:3000/mcp --header "X-Api-Key: <key>"
 ```
 
 `tools/list` returns only the tools the user may call.

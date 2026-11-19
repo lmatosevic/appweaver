@@ -101,7 +101,9 @@ export async function startMcpApp(authUser?: object) {
     }
   );
   for (const route of injectAll<any>(ROUTE)) {
-    server.register(route, { prefix: '/api/' });
+    server.register(route, {
+      prefix: route.apiPrefix === false ? '' : '/api/'
+    });
   }
   await server.ready();
   const client = createMcpClient((request) => server.inject(request), {

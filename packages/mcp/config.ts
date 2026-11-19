@@ -4,7 +4,7 @@ import { AuthType, defineConfig } from '@appweaver/common';
 export const mcpConfig = defineConfig('mcp', {
   /** Enable the MCP endpoint. Default: `true`. */
   ENABLED: Type.Boolean({ default: true }),
-  /** Prefix of the MCP endpoint, under the API prefix. Default: `'/mcp'`. */
+  /** Path of the MCP endpoint, at the root like the auth and health routes (`'/api/mcp'` under the API). Default: `'/mcp'`. */
   ROUTE_PREFIX: Type.String({ default: '/mcp' }),
   /** The authentication strategies of the endpoint (`jwt`, `apiKey`, `basic`). Default: `['jwt', 'apiKey']`. */
   AUTH: Type.Array(Type.String(), {

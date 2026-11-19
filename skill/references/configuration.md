@@ -890,7 +890,7 @@ The MCP server of `@appweaver/mcp` ([mcp.md](./mcp.md)).
 | Property                  | Type     | Default              | Description                                                                                          |
 |---------------------------|----------|----------------------|------------------------------------------------------------------------------------------------------|
 | `MCP_ENABLED`             | boolean  | `true`               | Enable the MCP endpoint.                                                                             |
-| `MCP_ROUTE_PREFIX`        | string   | `'/mcp'`             | Prefix of the MCP endpoint, under the API prefix.                                                    |
+| `MCP_ROUTE_PREFIX`        | string   | `'/mcp'`             | Path of the MCP endpoint, at the root (`'/api/mcp'` under the API).                                  |
 | `MCP_AUTH`                | string[] | `['jwt', 'apiKey']`  | The authentication strategies of the endpoint.                                                       |
 | `MCP_ANONYMOUS_ENABLED`   | boolean  | `false`              | Allow the anonymous clients, which see only the `public` tools.                                     |
 | `MCP_DESTRUCTIVE_ENABLED` | boolean  | `false`              | Expose the destructive tools: the `update` and `delete` resource actions and the `destructive` tools. |

@@ -62,6 +62,17 @@ describe('register-route', () => {
       expect(head.statusCode).toBe(200);
     });
 
+    test('marks the routes registered at the root instead of under the API prefix', () => {
+      registerRoute(() => {}, { public: true });
+      registerRoute(() => {}, { public: true, apiPrefix: false });
+
+      const builders = context.definitions
+        .filter((definition) => definition.name === ROUTE)
+        .map((definition) => (definition.value as any).apiPrefix);
+
+      expect(builders).toEqual([true, false]);
+    });
+
     test('registers the routes of the other methods', async () => {
       registerRoute(
         (router) => {

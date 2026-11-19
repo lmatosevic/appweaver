@@ -91,7 +91,7 @@ describe('mcp-routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/api/mcp',
+        url: '/mcp',
         headers: { authorization: `Bearer ${JSON.stringify(user)}` },
         payload: { jsonrpc: '2.0', method: 'notifications/initialized' }
       });
@@ -103,7 +103,7 @@ describe('mcp-routes', () => {
       const { server } = await start(user);
 
       for (const method of ['GET', 'DELETE'] as const) {
-        const response = await server.inject({ method, url: '/api/mcp' });
+        const response = await server.inject({ method, url: '/mcp' });
         expect(response.statusCode).toBe(405);
         expect(response.headers.allow).toBe('POST');
       }
@@ -129,7 +129,7 @@ describe('mcp-routes', () => {
       const send = (origin: string) =>
         server.inject({
           method: 'POST',
-          url: '/api/mcp',
+          url: '/mcp',
           headers: {
             origin,
             authorization: `Bearer ${JSON.stringify(user)}`
@@ -158,13 +158,13 @@ describe('mcp-routes', () => {
       });
     });
 
-    test('serves another path', async () => {
-      configOverrides.MCP_ROUTE_PREFIX = '/agents/mcp/';
+    test('serves another path, i.e. under the API prefix', async () => {
+      configOverrides.MCP_ROUTE_PREFIX = '/api/mcp/';
       const { server } = await start(user);
 
       const response = await server.inject({
         method: 'POST',
-        url: '/api/agents/mcp',
+        url: '/api/mcp',
         headers: { authorization: `Bearer ${JSON.stringify(user)}` },
         payload: { jsonrpc: '2.0', id: 1, method: 'ping' }
       });
