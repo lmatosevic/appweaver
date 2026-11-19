@@ -61,7 +61,7 @@
 
     "@appweaver/sharp": ["@appweaver/sharp@2.7.1", "", { "dependencies": { "sharp": "0.35.5" }, "peerDependencies": { "@appweaver/common": "^2.7.1", "@appweaver/core": "^2.7.1" } }, "sha512-H5CkxWIwANDFYj/JOGgz2IdZeV+pxMkgzESYs4iifQ8okDwTJxcWxQdJ4jtK5uGSBMZVfkFpVfb4e++Il84A7A=="],
 
-    "@appweaver/web": ["@appweaver/web@2.7.1", "", { "dependencies": { "@fastify/ajv-compiler": "4.0.5", "@fastify/auth": "5.1.1", "@fastify/basic-auth": "6.3.0", "@fastify/cors": "11.3.0", "@fastify/fast-json-stringify-compiler": "5.0.3", "@fastify/helmet": "13.1.1", "@fastify/jwt": "10.2.5", "@fastify/multipart": "10.1.8", "@fastify/oauth2": "8.3.2", "@fastify/rate-limit": "11.2.0", "@fastify/request-context": "7.0.0", "@fastify/static": "10.1.11", "@fastify/swagger": "9.9.1", "@fastify/swagger-ui": "6.1.1", "@fastify/type-provider-typebox": "6.1.0", "@sinclair/typebox": "0.34.49", "fastify": "5.12.8", "fastify-plugin": "6.0.0" }, "peerDependencies": { "@appweaver/common": "^2.7.1", "@appweaver/core": "^2.7.1", "@appweaver/data": "^2.7.1" } }, "sha512-CH4Y+F0uZKbyMZm2+pFx7oPRJ+O70y5/Y5/qsBp0RpKT7j/cTVOtocgBDkZGP27Q5GfZOYHqfkWPH6szXgLhnA=="],
+    "@appweaver/web": ["@appweaver/web@2.7.1", "", { "dependencies": { "@fastify/ajv-compiler": "4.0.5", "@fastify/auth": "5.1.1", "@fastify/basic-auth": "6.3.0", "@fastify/cors": "11.3.0", "@fastify/fast-json-stringify-compiler": "5.0.3", "@fastify/helmet": "13.1.1", "@fastify/jwt": "10.2.5", "@fastify/multipart": "10.1.9", "@fastify/oauth2": "8.3.2", "@fastify/rate-limit": "11.2.0", "@fastify/request-context": "7.0.0", "@fastify/static": "10.1.11", "@fastify/swagger": "9.9.1", "@fastify/swagger-ui": "6.1.1", "@fastify/type-provider-typebox": "6.1.0", "@sinclair/typebox": "0.34.49", "fastify": "5.12.8", "fastify-plugin": "6.0.0" }, "peerDependencies": { "@appweaver/common": "^2.7.1", "@appweaver/core": "^2.7.1", "@appweaver/data": "^2.7.1" } }, "sha512-CH4Y+F0uZKbyMZm2+pFx7oPRJ+O70y5/Y5/qsBp0RpKT7j/cTVOtocgBDkZGP27Q5GfZOYHqfkWPH6szXgLhnA=="],
 
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 
@@ -123,7 +123,7 @@
 
     "@fastify/merge-json-schemas": ["@fastify/merge-json-schemas@0.2.1", "", { "dependencies": { "dequal": "^2.0.3" } }, "sha512-OA3KGBCy6KtIvLf8DINC5880o5iBlDX4SxzLQS8HorJAbqluzLRn80UXU0bxZn7UOFhFgpRJDasfwn9nG4FG4A=="],
 
-    "@fastify/multipart": ["@fastify/multipart@10.1.2", "", { "dependencies": { "@fastify/busboy": "^3.0.0", "@fastify/deepmerge": "^3.0.0", "@fastify/error": "^4.0.0", "fastify-plugin": "^6.0.0", "secure-json-parse": "^4.0.0" } }, "sha512-WHsqW5ffDXCbXXtdBQDryxu58fQvFPVGh4E4MlCO6hwCLNm0lYTCS6GKXUw2P64REDoECUNpMVvtMMstdIyBjQ=="],
+    "@fastify/multipart": ["@fastify/multipart@10.1.9", "", { "dependencies": { "@fastify/busboy": "^3.0.0", "@fastify/deepmerge": "^3.0.0", "@fastify/error": "^4.0.0", "fastify-plugin": "^6.0.0", "secure-json-parse": "^4.0.0" } }, "sha512-WHsqW5ffDXCbXXtdBQDryxu58fQvFPVGh4E4MlCO6hwCLNm0lYTCS6GKXUw2P64REDoECUNpMVvtMMstdIyBjQ=="],
 
     "@fastify/oauth2": ["@fastify/oauth2@8.3.0", "", { "dependencies": { "@fastify/cookie": "^11.0.2", "fastify-plugin": "^6.0.0", "simple-oauth2": "^5.1.0" } }, "sha512-ZVjoOkBeWRBYPRIL3XiWzd30DqYMkRaoyxBxIUE0ciICtXpFLX0YpM4JiUwauF3vObqsqntF2b8GDXJ9/Gpr5A=="],
 
