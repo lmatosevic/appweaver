@@ -104,6 +104,7 @@ their prefix:
 | `TimeSeriesError`    | `@appweaver/common` | `TIMESERIES_`    | The time series service and stores: invalid points and queries                           |
 | `SpatialError`       | `@appweaver/common` | `SPATIAL_`       | The geo fields: invalid geometries and spatial filters                                   |
 | `RealtimeError`      | `@appweaver/common` | `REALTIME_`      | The realtime connections: tickets, subscriptions, actions, streams and limits            |
+| `AiError`            | `@appweaver/common` | `AI_`            | The AI models: unknown models, missing capabilities, provider failures, invalid objects  |
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
@@ -220,10 +221,8 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `QUEUE_CLOSED`                       | 503    | Queue closed                          |
 | `QUEUE_UNAVAILABLE`                  | 503    | Queue unavailable                     |
 | `MAILER_SEND_FAILED`                 | 502    | Email sending failed                  |
-| `MAILER_JOB_NOT_FOUND`               | 500    | Email job not found                   |
 | `MAILER_SENDER_MISSING`              | 500    | Email sender missing                  |
 | `SMS_SEND_FAILED`                    | 502    | SMS sending failed                    |
-| `SMS_JOB_NOT_FOUND`                  | 500    | SMS job not found                     |
 | `TEMPLATE_NOT_FOUND`                 | 500    | Template not found                    |
 | `TEMPLATE_RENDER_FAILED`             | 500    | Template rendering failed             |
 | `TEMPLATE_LOAD_FAILED`               | 500    | Template loading failed               |
@@ -262,6 +261,16 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `REALTIME_STREAM_ACCEPT`             | 406    | Realtime stream not accepted          |
 | `REALTIME_INPUT_LIMIT`               | 413    | Realtime input too large              |
 | `REALTIME_SHUTTING_DOWN`             | 503    | Realtime server shutting down         |
+| `AI_MODEL_UNKNOWN`                   | 500    | AI model unknown                      |
+| `AI_REQUEST_INVALID`                 | 400    | Invalid AI request                    |
+| `AI_CAPABILITY_UNSUPPORTED`          | 400    | AI capability not supported by the model |
+| `AI_REQUEST_FAILED`                  | 502    | AI request failed                     |
+| `AI_AUTH_FAILED`                     | 502    | AI provider authentication failed     |
+| `AI_RATE_LIMITED`                    | 429    | AI provider rate limited              |
+| `AI_TIMEOUT`                         | 504    | AI request timed out                  |
+| `AI_PROVIDER_UNAVAILABLE`            | 503    | AI provider unavailable               |
+| `AI_CONTEXT_LENGTH_EXCEEDED`         | 422    | AI context length exceeded            |
+| `AI_OUTPUT_INVALID`                  | 502    | Invalid AI model output               |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 

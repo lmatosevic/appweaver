@@ -9,6 +9,7 @@ export * from './health/health-service';
 export * from './locale';
 export * from './mailer/email-service';
 export * from './mailer/utils/email-util';
+export * from './queue/job-results';
 export * from './sms/sms-service';
 export * from './task/create-task';
 export * from './template/register-template';

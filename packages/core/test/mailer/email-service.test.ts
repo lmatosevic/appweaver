@@ -25,8 +25,11 @@ describe('email-service', () => {
   let mailer: { sendEmail: jest.Mock };
   let processor: Record<string, jest.Mock>;
   let worker: (job: any) => Promise<boolean>;
-  let completed: (job: any) => void;
-  let failed: (job: any, error: Error) => void;
+  let completed: (job: any) => Promise<void>;
+  let failed: (job: any, error: Error) => Promise<void>;
+
+  /** The ID the service sent the job of the given call with. */
+  const jobIdOf = (call = 0) => processor.sendJob.mock.calls[call][2].jobId;
   let service: EmailService;
 
   beforeEach(() => {
@@ -34,11 +37,23 @@ describe('email-service', () => {
     let jobId = 0;
     mailer = { sendEmail: jest.fn(async () => true) };
     // Captures the handlers the service registers, so a test fires them itself
+    const onCompleted: ((...args: any[]) => unknown)[] = [];
+    const onFailed: ((...args: any[]) => unknown)[] = [];
+    completed = async (job) => {
+      await Promise.all(onCompleted.map((fn) => fn(job, true)));
+    };
+    failed = async (job, error) => {
+      await Promise.all(onFailed.map((fn) => fn(job, error)));
+    };
     processor = {
       addWorker: jest.fn((fn) => (worker = fn)),
-      onCompleted: jest.fn((fn) => (completed = fn)),
-      onFailed: jest.fn((fn) => (failed = fn)),
-      sendJob: jest.fn(async (data) => ({ id: String(++jobId), data })),
+      onCompleted: jest.fn((fn) => onCompleted.push(fn)),
+      onFailed: jest.fn((fn) => onFailed.push(fn)),
+      willRetry: jest.fn(() => false),
+      sendJob: jest.fn(async (data, _name, options) => ({
+        id: options?.jobId ?? String(++jobId),
+        data
+      })),
       sendBulkJobs: jest.fn()
     };
     define(mailer, Mailer);
@@ -164,7 +179,7 @@ describe('email-service', () => {
       const sent = service.sendEmailAndWait(email);
       await new Promise(setImmediate);
 
-      completed({ id: '1', data: email });
+      await completed({ id: jobIdOf(), data: email });
 
       await expect(sent).resolves.toBe(true);
     });
@@ -173,16 +188,25 @@ describe('email-service', () => {
       const sent = service.sendEmailAndWait(email);
       await new Promise(setImmediate);
 
-      failed({ id: '1', data: email }, new Error('rejected'));
+      await failed({ id: jobIdOf(), data: email }, new Error('rejected'));
 
-      await expect(sent).rejects.toThrow('rejected');
+      await expect(sent).rejects.toMatchObject({
+        code: ErrorCode.MailerSendFailed,
+        message: 'rejected'
+      });
     });
 
-    test('rejects a job without an id', async () => {
-      processor.sendJob.mockResolvedValueOnce({ data: email });
+    test('keeps the code of a mailer error', async () => {
+      const sent = service.sendEmailAndWait(email);
+      await new Promise(setImmediate);
 
-      await expect(service.sendEmailAndWait(email)).rejects.toMatchObject({
-        code: ErrorCode.MailerJobNotFound
+      await failed(
+        { id: jobIdOf(), data: email },
+        new MailerError(ErrorCode.MailerSenderMissing, 'No sender')
+      );
+
+      await expect(sent).rejects.toMatchObject({
+        code: ErrorCode.MailerSenderMissing
       });
     });
   });
@@ -192,13 +216,15 @@ describe('email-service', () => {
       const sent = service.sendEmailBulkAndWait([email, email]);
       await new Promise(setImmediate);
 
-      const error = new Error('rejected');
-      completed({ id: '1', data: email });
-      failed({ id: '2', data: email }, error);
+      await completed({ id: jobIdOf(0), data: email });
+      await failed({ id: jobIdOf(1), data: email }, new Error('rejected'));
 
       expect(await sent).toEqual([
         { success: true },
-        { success: false, error }
+        {
+          success: false,
+          error: expect.objectContaining({ message: 'rejected' })
+        }
       ]);
     });
   });
@@ -393,8 +419,12 @@ describe('email-service', () => {
       const sent = service.sendEmailAndWait(templateEmail);
       await new Promise(setImmediate);
 
-      expect(processor.sendJob).toHaveBeenCalledWith(rendered);
-      completed({ id: '1', data: rendered });
+      expect(processor.sendJob).toHaveBeenCalledWith(
+        rendered,
+        undefined,
+        expect.objectContaining({ jobId: expect.any(String) })
+      );
+      await completed({ id: jobIdOf(), data: rendered });
       await expect(sent).resolves.toBe(true);
     });
 
@@ -405,7 +435,7 @@ describe('email-service', () => {
       ]);
       await new Promise(setImmediate);
 
-      completed({ id: '1', data: rendered });
+      await completed({ id: jobIdOf(), data: rendered });
 
       expect(await sent).toEqual([
         { success: true },

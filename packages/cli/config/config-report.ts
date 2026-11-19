@@ -1,4 +1,6 @@
+import { TSchema } from '@sinclair/typebox';
 import {
+  camelToSnakeCase,
   ConfigSectionDefinition,
   configSource,
   ConfigSource
@@ -47,13 +49,53 @@ export function readConfigReport(sections: Iterable<ConfigSectionDefinition>): {
       rows.push({
         key,
         value:
-          secret && value !== undefined ? '********' : redactUrlPassword(value),
+          secret && value !== undefined
+            ? '********'
+            : redactRecordSecrets(redactUrlPassword(value), property),
         source: configSource(key)
       });
     }
   }
 
   return { rows: rows.sort((a, b) => a.key.localeCompare(b.key)), errors };
+}
+
+/**
+ * Hides the secret properties of the entries of a record of objects, i.e. the `apiKey` of an AI endpoint: the ones
+ * with the `secret: true` option or a secret name.
+ *
+ * @param {unknown} value - The value of a key.
+ * @param {TSchema} property - The schema of the key.
+ * @return {unknown} The value, the secrets of its entries hidden.
+ */
+export function redactRecordSecrets(
+  value: unknown,
+  property: TSchema
+): unknown {
+  const fields = Object.values(property.patternProperties ?? {})[0] as
+    | TSchema
+    | undefined;
+  if (!fields?.properties || !value || typeof value !== 'object') {
+    return value;
+  }
+  const secret = (name: string) =>
+    (fields.properties[name] as { secret?: boolean } | undefined)?.secret ===
+      true || SECRET_KEY.test(camelToSnakeCase(name).toUpperCase());
+  return Object.fromEntries(
+    Object.entries(value).map(([entry, object]) => [
+      entry,
+      object && typeof object === 'object'
+        ? Object.fromEntries(
+            Object.entries(object).map(([name, field]) => [
+              name,
+              secret(name) && field !== undefined
+                ? '********'
+                : redactUrlPassword(field)
+            ])
+          )
+        : object
+    ])
+  );
 }
 
 /**

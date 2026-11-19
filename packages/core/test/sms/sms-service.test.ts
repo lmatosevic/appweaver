@@ -2,6 +2,7 @@ import {
   configOverrides,
   createLogger,
   ErrorCode,
+  PubSub,
   Queue,
   SmsError,
   SmsSender,
@@ -10,6 +11,7 @@ import {
 } from '@appweaver/common';
 import { recordTelemetry, TelemetryRecorder } from '@appweaver/testing';
 import { context } from '../../context';
+import { MemoryPubSub } from '../../pubsub/memory-pubsub';
 import { define } from '../../context/dependency-injection';
 import { SmsService } from '../../sms';
 import { resetContext } from '../fixtures/context-fixture';
@@ -20,8 +22,8 @@ describe('sms-service', () => {
   let sender: { sendSms: jest.Mock };
   let processor: Record<string, jest.Mock>;
   let worker: (job: any) => Promise<boolean>;
-  let completed: (job: any) => void;
-  let failed: (job: any, error: Error) => void;
+  let completed: (job: any) => Promise<void>;
+  let failed: (job: any, error: Error) => Promise<void>;
   let engine: { hasTemplate: jest.Mock; render: jest.Mock };
   let service: SmsService;
 
@@ -40,11 +42,23 @@ describe('sms-service', () => {
     let jobId = 0;
     sender = { sendSms: jest.fn(async () => true) };
     // Captures the handlers the service registers, so a test fires them itself
+    const onCompleted: ((...args: any[]) => unknown)[] = [];
+    const onFailed: ((...args: any[]) => unknown)[] = [];
+    completed = async (job) => {
+      await Promise.all(onCompleted.map((fn) => fn(job, true)));
+    };
+    failed = async (job, error) => {
+      await Promise.all(onFailed.map((fn) => fn(job, error)));
+    };
     processor = {
       addWorker: jest.fn((fn) => (worker = fn)),
-      onCompleted: jest.fn((fn) => (completed = fn)),
-      onFailed: jest.fn((fn) => (failed = fn)),
-      sendJob: jest.fn(async (data) => ({ id: String(++jobId), data })),
+      onCompleted: jest.fn((fn) => onCompleted.push(fn)),
+      onFailed: jest.fn((fn) => onFailed.push(fn)),
+      willRetry: jest.fn(() => false),
+      sendJob: jest.fn(async (data, _name, options) => ({
+        id: options?.jobId ?? String(++jobId),
+        data
+      })),
       sendBulkJobs: jest.fn()
     };
     engine = {
@@ -222,11 +236,14 @@ describe('sms-service', () => {
   });
 
   describe('sendSmsAndWait', () => {
+    /** The ID the service sent the job of the given call with. */
+    const jobIdOf = (call = 0) => processor.sendJob.mock.calls[call][2].jobId;
+
     test('resolves once the job of the message completes', async () => {
       const sent = service.sendSmsAndWait({ to: '+1555', text: 'Hi' });
       await new Promise(setImmediate);
 
-      completed({ id: '1', data: {} });
+      await completed({ id: jobIdOf(), data: {} });
 
       await expect(sent).resolves.toBe(true);
     });
@@ -235,17 +252,64 @@ describe('sms-service', () => {
       const sent = service.sendSmsAndWait({ to: '+1555', text: 'Hi' });
       await new Promise(setImmediate);
 
-      failed({ id: '1', data: {} }, new Error('Rejected'));
+      await failed({ id: jobIdOf(), data: {} }, new Error('Rejected'));
 
-      await expect(sent).rejects.toThrow('Rejected');
+      await expect(sent).rejects.toMatchObject({
+        code: ErrorCode.SmsSendFailed,
+        message: 'Rejected'
+      });
     });
 
-    test('rejects a job without an id', async () => {
-      processor.sendJob.mockResolvedValue({ data: {} });
+    test('keeps the code and the details of an SMS error', async () => {
+      const sent = service.sendSmsAndWait({ to: '+1555', text: 'Hi' });
+      await new Promise(setImmediate);
+
+      await failed(
+        { id: jobIdOf(), data: {} },
+        new SmsError(ErrorCode.SmsSendFailed, 'Blocked', {
+          provider: 'twilio',
+          status: 400
+        })
+      );
+
+      await expect(sent).rejects.toMatchObject({
+        code: ErrorCode.SmsSendFailed,
+        details: { provider: 'twilio', status: 400 }
+      });
+    });
+
+    test('waits for the last attempt of a retried job', async () => {
+      processor.willRetry.mockReturnValueOnce(true);
+      const sent = service.sendSmsAndWait({ to: '+1555', text: 'Hi' });
+      await new Promise(setImmediate);
+
+      await failed({ id: jobIdOf(), data: {} }, new Error('Busy'));
+      await completed({ id: jobIdOf(), data: {} });
+
+      await expect(sent).resolves.toBe(true);
+    });
+
+    test('rejects when the job cannot be queued', async () => {
+      processor.sendJob.mockRejectedValueOnce(new Error('Queue closed'));
 
       await expect(
         service.sendSmsAndWait({ to: '+1555', text: 'Hi' })
-      ).rejects.toMatchObject({ code: ErrorCode.SmsJobNotFound });
+      ).rejects.toThrow('Queue closed');
+    });
+
+    test('receives the result from the worker of another instance', async () => {
+      resetContext();
+      define(sender, SmsSender);
+      define({ get: () => processor }, Queue);
+      define(new MemoryPubSub(), PubSub);
+      // The worker of the other instance completes the job the first one waits for
+      const waiting = new SmsService();
+      const sent = waiting.sendSmsAndWait({ to: '+1555', text: 'Hi' });
+      await new Promise(setImmediate);
+
+      await completed({ id: jobIdOf(), data: {} });
+
+      await expect(sent).resolves.toBe(true);
     });
 
     test('rejects a template message failing to render', async () => {
@@ -257,9 +321,14 @@ describe('sms-service', () => {
       expect(processor.sendJob).not.toHaveBeenCalled();
     });
 
-    test('ignores the events of the jobs nobody waits for', () => {
-      expect(() => completed({ data: {} })).not.toThrow();
-      expect(() => failed(undefined, new Error('Lost'))).not.toThrow();
+    test('ignores the events of the jobs nobody waits for', async () => {
+      await expect(completed({ data: {} })).resolves.toBeUndefined();
+      await expect(
+        failed({ id: 'waited-gone', data: {} }, new Error('Lost'))
+      ).resolves.toBeUndefined();
+      await expect(
+        failed(undefined, new Error('Lost'))
+      ).resolves.toBeUndefined();
     });
   });
 
@@ -271,12 +340,16 @@ describe('sms-service', () => {
       ]);
       await new Promise(setImmediate);
 
-      completed({ id: '1', data: {} });
-      failed({ id: '2', data: {} }, new Error('Rejected'));
+      const [first, second] = processor.sendJob.mock.calls;
+      await completed({ id: first[2].jobId, data: {} });
+      await failed({ id: second[2].jobId, data: {} }, new Error('Rejected'));
 
       await expect(sent).resolves.toEqual([
         { success: true },
-        { success: false, error: new Error('Rejected') }
+        {
+          success: false,
+          error: expect.objectContaining({ message: 'Rejected' })
+        }
       ]);
     });
   });

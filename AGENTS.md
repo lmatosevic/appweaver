@@ -118,7 +118,9 @@ module it belongs to: `appConfig` and `logConfig` in `packages/common/config/app
 section reads its keys by their short names (`serverConfig.PORT` for `SERVER_PORT`), its TypeBox schema gives the
 types, and a doc comment above each key describes it. Two packages may define the same section path with their own
 keys (`healthCheck` in core and web, `security.oauth2` in data and web), but a flattened key belongs to one section
-only. Tests override any key with `configOverrides` of `@appweaver/common`, by its flattened name.
+only. Tests override any key with `configOverrides` of `@appweaver/common`, by its flattened name. A `Type.Record` key is
+read entry by entry (`LOG_LEVELS_DATABASE`), and a record of objects property by property
+(`AI_ENDPOINTS_OPENROUTER_API_KEY`, the longest property name ending the flattened name, `splitRecordEntry`).
 
 A module lists its sections in the `config` of its manifest, which registers them when the module is discovered, so
 `weaver generate` writes the JSON Schema of `appweaver.json` (`appweaver.schema.json`, the `$schema` of the samples and
@@ -159,8 +161,9 @@ helpers every package instruments with, and re-exports the few parts of the API 
 The instrumented parts are the HTTP server (`web/telemetry/http-telemetry.ts`, the server span of a request started in
 an `onRequest` hook and made active in the `createAsyncResource` of the request context), the Prisma client
 (`data/database/telemetry-extension.ts`, a `$allOperations` query extension), the queues (`memory`, `bullmq`), the
-`cron` scheduler, `EmailService`, `SmsService`, `CacheService` (metrics only), `weaver run` and the realtime
-connections of `@appweaver/realtime` (`realtime/utils/telemetry.ts`). The logger adds the
+`cron` scheduler, `EmailService`, `SmsService`, `CacheService` (metrics only), `weaver run`, the realtime
+connections of `@appweaver/realtime` (`realtime/utils/telemetry.ts`) and the AI model and tool calls of `@appweaver/ai`
+(`ai/utils/telemetry.ts`, the `gen_ai.*` conventions). The logger adds the
 `trace_id` of the active span to every record, and `addLogDestination` lets the SDK module receive the records.
 
 The SDK is the `@appweaver/opentelemetry` module (`packages/opentelemetry`), never a contract with providers: OTLP is
@@ -197,6 +200,8 @@ on it:
 | `@appweaver/web`                                                  | The Fastify server, the resource routes, the authentication, the problem details and Swagger |
 | `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, ... | One driver each, carrying the library it wraps as a dependency                               |
 | `@appweaver/realtime`                                             | The realtime connections over WebSocket and SSE: channels, resource events and actions       |
+| `@appweaver/ai`                                                   | `AiService`: the AI models of the endpoints, streams, objects, tools, embeddings, the queue   |
+| `@appweaver/openai`                                               | The `openai` AI driver, for OpenAI and every OpenAI-compatible server (Ollama, OpenRouter)   |
 | `@appweaver/opentelemetry`                                        | The OpenTelemetry SDK exporting the traces, metrics and logs of the instrumentation          |
 | `@appweaver/testing`                                              | The test helpers shared by the packages                                                      |
 
@@ -237,7 +242,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 | `events/`     | The `node` driver of `Events`                                                                                                        |
 | `pubsub/`     | The `pubsub` config and the in-process `memory` driver of `PubSub`, the messages every instance receives (the realtime events)       |
 | `storage/`    | The `local` filesystem driver of `Storage`                                                                                           |
-| `queue/`      | The in-process `memory` driver of `Queue`                                                                                            |
+| `queue/`      | The in-process `memory` driver of `Queue`, `JobResults` waiting for a job on any instance through the `PubSub`                       |
 | `scheduler/`  | The scheduler config, its driver is `@appweaver/cron`                                                                                |
 | `mailer/`     | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
 | `sms/`        | `SmsService`, sending the text messages through the `sms` queue, and the `json` SMS sender of development and tests                  |
@@ -444,6 +449,33 @@ up to `realtime.shutdownGracePeriod` to end. A streaming action is relayed like 
 from the draining one (`StreamHub.resumeAction`), a cancellation travels back as a `cancel` control message, and its
 owner lingers it only once no instance relays it.
 
+### `packages/ai`
+
+The AI module (`@appweaver/ai`), requiring only core. `AiService` calls the models of the endpoints of the `ai` config:
+an endpoint is a named server completed by its preset (`driver/presets.ts`), a model reference is `<endpoint>:<model>`
+split at the first `:`, and an alias is a reference or a list of them tried in turn on a retriable error. The drivers
+are `AiDriver` providers of driver modules, a contract no module declares, so `loadProviders` ignores them:
+`ModelRegistry` loads an endpoint's driver by name from `context.modules.enabled` and creates it once per endpoint, so
+every installed driver is usable at once. The `mock` driver is built in, `registerAiDriver` registers one without a
+module.
+
+| File                       | Purpose                                                                                      |
+|----------------------------|----------------------------------------------------------------------------------------------|
+| `config.ts`, `types.ts`    | The `ai` section (endpoints are a record of objects), the messages, requests and stream parts |
+| `driver/`                  | `AiDriver`, the presets, `ModelRegistry` and the `mock` driver                               |
+| `service/ai-service.ts`    | `AiService`: one step loop (`run`, `steps`) serving generate and stream, objects, the queue  |
+| `service/`                 | `AiStream`, `AiObjectStream` and the prompt types                                            |
+| `tools/create-tool.ts`     | `createAiTool`, registered by name for the queued prompts                                    |
+| `utils/`                   | Partial JSON, SSE and stream writer helpers, similarity, the `gen_ai` telemetry               |
+
+A capability the model lacks fails before the request with `AI_CAPABILITY_UNSUPPORTED`. `generateQueued` waits with
+`JobResults` of core, `streamQueued` relays the worker's parts on `ai:stream:<id>` of the `PubSub`. A driver of another
+API is a package with an `AiDriver` provider, tested with `testAiDriverContract`.
+
+`@appweaver/openai` holds the `openai` driver on the official `openai` SDK (Chat Completions, Embeddings), the preset
+options setting `maxTokensParam`, `reasoningParam` and `streamUsage`. The SDK rejects an undefined request option and
+ends an aborted stream without an error, so the driver omits the former and checks the signal after the latter.
+
 ### `packages/testing`
 
 `@appweaver/testing` holds the test helpers of the packages and their modules: `resetContext` (clears the application
@@ -458,12 +490,13 @@ path into another package. Jest maps every `@appweaver/*` import to the sources 
 
 The contract suites of `contracts/` test a driver against the behavior every driver of its contract shares:
 `testMemoryContract`, `testStorageContract`, `testQueueContract`, `testSchedulerContract`, `testMailerContract`,
-`testSmsContract`, `testPubSubContract` and `testTimeSeriesContract`, each called as `(name, () => driver)` at the top level of a test
+`testSmsContract`, `testPubSubContract`, `testTimeSeriesContract` and `testAiDriverContract`, each called as `(name, () => driver)` at the top level of a test
 file. They use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
 and Bun, and create a fresh driver for every test.
 `InMemory`, `RedisMemory` (on `ioredis-mock`, which runs its Lua scripts), `MemoryPubSub`, `RedisPubSub` (on
 `ioredis-mock`), `FilesystemStorage`, `MemoryQueue`,
-`JsonMailer`, `SmtpMailer` (on a mocked transport), `JsonSms`, `TwilioSms` (on a mocked `fetch`), `CronScheduler`,
+`JsonMailer`, `SmtpMailer` (on a mocked transport), `JsonSms`, `TwilioSms` (on a mocked `fetch`), `MockAiDriver`,
+`OpenAiDriver` (on a fake OpenAI-compatible server behind a mocked `fetch`), `CronScheduler`,
 `MemoryTimeSeries`, `DatabaseTimeSeries` and `TimescaleTimeSeries` (on SQLite, and on the databases of
 `TIMESERIES_TEST_POSTGRES_URL`, `TIMESERIES_TEST_MYSQL_URL`,
 `TIMESERIES_TEST_SQLSERVER_URL` and `TIMESERIES_TEST_TIMESCALE_URL` when set) run them, and so does the test of a driver
@@ -528,12 +561,13 @@ adds the optional modules selected: the default ones (`defaultModules` of `scaff
 with the `--add <modules...>` ones, or every module with `--all`, minus the `--exclude <modules...>` ones, which leave
 out the default modules too, with or without `--all` (`--exclude data web` for the core application alone). The
 modules are `data`, `web` (requires `data`), `redis`, `queue` (requires `redis`), `scheduler`, `mailer`, `sms`,
-`templates`, `locales`, `timeseries` (requires `data`), `telemetry`, `realtime` (requires `web`) and `docker`. The base project depends only on
+`templates`, `locales`, `timeseries` (requires `data`), `telemetry`, `realtime` (requires `web`), `ai` and `docker`. The base project depends only on
 `@appweaver/cli`, `common`, `core` and TypeBox, and a module
 adds its packages: `@appweaver/data`, `@appweaver/sharp`, Prisma and the driver adapter of `--database` (`data`, its
 `projectPackages`), `@appweaver/web` (`web`), `@appweaver/redis` (`redis`), `@appweaver/bullmq` (`queue`),
 `@appweaver/cron` (`scheduler`), `@appweaver/nodemailer` (`mailer`), `@appweaver/twilio` (`sms`, with the `json`
-sender in dev and test and the Twilio keys of `.env`), `@appweaver/handlebars` (`templates`), `@appweaver/realtime` (`realtime`) and
+sender in dev and test and the Twilio keys of `.env`), `@appweaver/handlebars` (`templates`), `@appweaver/realtime` (`realtime`),
+`@appweaver/ai` and `@appweaver/openai` (`ai`, a local Ollama endpoint and the `mock` model in test) and
 `@appweaver/opentelemetry` (`telemetry`, with the OTLP endpoint and telemetry off in test), every
 `@appweaver/*` package at the framework version, the version of `@appweaver/create` (`scaffold/package-versions.ts`).
 `--database`, `--host` and `--port` configure `data` and `web` only (`ProjectContext`), and `weaver module add` takes
@@ -815,7 +849,7 @@ unless `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` is `false`. Call it before any ne
 ### `weaver module` (alias: `mod`)
 
 Add and remove the optional modules of `@appweaver/create` (`data`, `web`, `redis`, `queue`, `scheduler`, `mailer`,
-`sms`, `templates`, `locales`, `timeseries`, `telemetry`, `realtime`, `docker`) in the current project, with the scaffold templates
+`sms`, `templates`, `locales`, `timeseries`, `telemetry`, `realtime`, `ai`, `docker`) in the current project, with the scaffold templates
 of `@appweaver/create/scaffold`, install module packages, and create local modules.
 
 ```
@@ -1328,8 +1362,8 @@ This runs the following steps automatically:
 4. **Changelog** (`@semantic-release/changelog`) — appends notes to `CHANGELOG.md`.
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
-   `common`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `opentelemetry`, `realtime`,
-   `handlebars`, `sharp`, `testing`, `cli`, `client` and `create`.
+   `common`, `ai`, `openai`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `opentelemetry`,
+   `realtime`, `handlebars`, `sharp`, `testing`, `cli`, `client` and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
@@ -1339,6 +1373,8 @@ This runs the following steps automatically:
     ```bash
     cd packages/common/dist     && npm publish
     cd packages/core/dist       && npm publish
+    cd packages/ai/dist         && npm publish
+    cd packages/openai/dist     && npm publish
     cd packages/data/dist       && npm publish
     cd packages/web/dist        && npm publish
     cd packages/redis/dist      && npm publish

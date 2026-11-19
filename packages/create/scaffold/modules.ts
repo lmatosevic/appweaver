@@ -252,6 +252,24 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     enabledConfig: () => [],
     disabledConfig: []
   },
+  ai: {
+    name: 'ai',
+    description:
+      'AI models of OpenAI-compatible endpoints (a local Ollama, OpenRouter, OpenAI, ...) through AiService, the mock model while testing',
+    packages: ['@appweaver/ai', '@appweaver/openai'],
+    requires: [],
+    // A local Ollama while developing, the built-in mock without a model while testing
+    enabledConfig: () => [
+      ['config.ai.endpoints.local.preset', 'ollama'],
+      [
+        'config.ai.endpoints.local.baseUrl',
+        'http://${OLLAMA_HOST:-localhost}:11434/v1'
+      ],
+      ['config.ai.defaultModel', 'local:qwen3:0.6b'],
+      ['environments.test.ai.defaultModel', 'mock:echo']
+    ],
+    disabledConfig: []
+  },
   docker: {
     name: 'docker',
     description:

@@ -7,7 +7,9 @@
       "@appweaver/common": ["../common"],
       "@appweaver/common/*": ["../common/*"],
       "@appweaver/core": ["../core"],
-      "@appweaver/core/*": ["../core/*"]
+      "@appweaver/core/*": ["../core/*"],
+      "@appweaver/ai": ["../ai"],
+      "@appweaver/ai/*": ["../ai/*"]
     },
     "types": ["node"]
   },
@@ -18,6 +20,9 @@
     },
     {
       "path": "../core/tsconfig.build.json"
+    },
+    {
+      "path": "../ai/tsconfig.build.json"
     }
   ]
 }

@@ -30,6 +30,8 @@ export const telemetryInstrumentationsConfig = defineConfig(
     TASK: Type.Boolean({ default: true }),
     /** Trace the realtime actions and streams, and measure the realtime connections, events and streams. Default:
      * `true`. */
-    REALTIME: Type.Boolean({ default: true })
+    REALTIME: Type.Boolean({ default: true }),
+    /** Trace and measure the calls of the AI models, their tokens and the tool calls. Default: `true`. */
+    AI: Type.Boolean({ default: true })
   }
 );

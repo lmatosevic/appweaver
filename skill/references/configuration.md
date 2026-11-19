@@ -883,6 +883,29 @@ The realtime connections of `@appweaver/realtime` ([realtime.md](./realtime.md))
 | `REALTIME_STREAM_INPUT_MAX_BYTES`   | string  | `'10MB'`      | Bytes a client may stream to an action in all, unless the action sets its own `input.maxBytes`.                                                   |
 | `REALTIME_SHUTDOWN_GRACE_PERIOD`    | integer | `30000`       | Milliseconds a shutting down instance waits for its calls to end after moving its clients to the other instances (`1012`), `0` to end them at once. |
 
+### AI (AI\_\*)
+
+The AI models of `@appweaver/ai` ([ai.md](./ai.md)): the endpoints by their names, the default models and the aliases
+the code calls the models by. A model reference is `<endpoint>:<model>` (`local:qwen3:8b`), the built-in `mock`
+endpoint answering without a server.
+
+| Property                     | Type     | Default  | Description                                                                                                                                                                                                                       |
+|------------------------------|----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `AI_ENDPOINTS`               | record   | `{}`     | The endpoints by name, each with `preset` (`openai`, `openrouter`, `ollama`, `lmstudio`, `vllm`, `llamacpp`, `litellm`, `groq`, `together`, `fireworks`, `deepseek`, `mistral`, `xai`, `gemini`, `huggingface`, `mock`), `driver`, `baseUrl`, `apiKey`, `headers` (`Name: value`), `capabilities`, `timeout` and `maxRetries`. Each property is also its own variable, `AI_ENDPOINTS_<NAME>_<PROPERTY>` (`AI_ENDPOINTS_OPENROUTER_API_KEY`). |
+| `AI_DEFAULT_MODEL`           | string?  | -        | The model of a call naming none, a model reference or an alias.                                                                                                                                                                   |
+| `AI_DEFAULT_EMBEDDING_MODEL` | string?  | -        | The embedding model of a call naming none, a model reference or an alias.                                                                                                                                                         |
+| `AI_ALIASES`                 | record   | `{}`     | The names the code calls the models by (`fast`, `smart`, any name without `:`), each a model reference or a list of them tried in turn on a rate limit, a timeout or an unavailable provider (comma-separated in a variable).    |
+| `AI_MAX_TOKENS`              | integer? | -        | The maximum output tokens of a call setting none.                                                                                                                                                                                 |
+| `AI_TEMPERATURE`             | number?  | -        | The temperature of a call setting none.                                                                                                                                                                                           |
+| `AI_TIMEOUT`                 | integer  | `120000` | Timeout of a request to a model in milliseconds, unless the endpoint sets its own.                                                                                                                                               |
+| `AI_MAX_RETRIES`             | integer  | `2`      | Retries of a request failing with a rate limit, a timeout or a server error, unless the endpoint sets its own.                                                                                                                   |
+| `AI_MAX_STEPS`               | integer  | `5`      | Maximum model calls of a call with tools, the model being called again with the results of the tools it called.                                                                                                                  |
+| `AI_REPAIR_ATTEMPTS`         | integer  | `1`      | Calls repairing an object not matching its schema (`generateObject`), sent the validation errors.                                                                                                                                 |
+| `AI_LOG_PROMPTS`             | boolean  | `false`  | Log the prompts and the responses at the `debug` level.                                                                                                                                                                           |
+| `AI_HEALTH_CHECK_ENDPOINTS`  | string[] | `[]`     | The endpoints the `ai` health check checks, by listing their models.                                                                                                                                                              |
+| `AI_QUEUE_CONCURRENCY`       | integer  | `4`      | Jobs of the `ai` queue a worker runs at once.                                                                                                                                                                                     |
+| `AI_STREAM_FLUSH_INTERVAL`   | integer  | `50`     | Milliseconds the parts of a queued stream (`streamQueued`) are batched for before they are published.                                                                                                                            |
+
 ### Mailer (MAILER\_\*)
 
 | Property                | Type    | Default       | Description                                                                                                                                                                                                                                                               |
@@ -929,6 +952,7 @@ The OpenTelemetry instrumentation of the framework, and the SDK of `@appweaver/o
 | `TELEMETRY_INSTRUMENTATIONS_CACHE`     | boolean  | `true`  | Count the cache hits and misses.                                                                                  |
 | `TELEMETRY_INSTRUMENTATIONS_TASK`      | boolean  | `true`  | Trace the tasks of `weaver run`.                                                                                  |
 | `TELEMETRY_INSTRUMENTATIONS_REALTIME`  | boolean  | `true`  | Trace the realtime actions and streams, and measure the realtime connections, events and streams. (realtime)      |
+| `TELEMETRY_INSTRUMENTATIONS_AI`        | boolean  | `true`  | Trace and measure the calls of the AI models, their tokens and the tool calls. (ai)                               |
 | `TELEMETRY_HTTP_IGNORE_PATHS`          | string[] | `[]`    | URL paths left out of the traces and the metrics: an exact path, or a prefix ending with `*` (`/public/*`). (web) |
 | `TELEMETRY_HTTP_HEALTH_CHECK`          | boolean  | `false` | Trace and measure the requests of the health check routes. (web)                                                  |
 

@@ -36,10 +36,17 @@
     "node": ">= 24.7"
   },
   "peerDependencies": {
+    "@appweaver/ai": "^1.12.2",
     "@appweaver/common": "^1.12.2",
     "@appweaver/core": "^1.12.2"
   },
+  "peerDependenciesMeta": {
+    "@appweaver/ai": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@appweaver/ai": "^1.12.2",
     "@appweaver/common": "^1.12.2",
     "@appweaver/core": "^1.12.2"
   },

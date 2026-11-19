@@ -98,6 +98,7 @@ with `data` and `web`:
 | `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)        |
 | `telemetry`      | `@appweaver/opentelemetry`, the OTLP endpoint, telemetry off in the `test` environment                          | no telemetry exported                       |
 | `realtime`       | `@appweaver/realtime` (requires `web`): channels, resource events, actions and streams over WebSocket and SSE    | no realtime connections                     |
+| `ai`             | `@appweaver/ai` and `@appweaver/openai`: `AiService` on a local Ollama in `dev`, the `mock` model in `test`     | no AI models                                |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                             |
 
 Options are given after the positional arguments, since `--add` and `--exclude` take every following value up to the
@@ -955,6 +956,26 @@ The generated client calls `client.realtime.subscribe`, `on`, `send`, `emit`, `c
 iterable of its chunks, with `call.input` or `{ input }` for an input) and `stream`. See
 [realtime.md](references/realtime.md).
 
+### AI models
+
+With the `ai` module (`@appweaver/ai` and `@appweaver/openai`), `AiService` calls the models of the endpoints of the
+`ai` config: any OpenAI-compatible server (Ollama, LM Studio, OpenRouter, OpenAI, ...), all usable at once. A model is a
+reference `<endpoint>:<model>` (`local:qwen3:8b`) or an alias of `ai.aliases` (`fast`, any name), so each environment
+picks its models (the built-in `mock` endpoint in tests):
+
+```ts
+const ai = inject(AiService);
+const { text } = await ai.generate({ model: 'fast', system: 'Be brief.', prompt: question });
+for await (const delta of ai.stream({ prompt: { template: 'prompts/answer', data } })) send(delta);
+const { object } = await ai.generateObject({ prompt: ticket.body, schema: TicketTriage });
+const label = await ai.classify(ticket.body, ['bug', 'billing']);
+await ai.generate({ prompt: 'Where is order 42?', tools: [getOrder] }); // createAiTool, run as the user
+await ai.generateQueued({ prompt: 'Summarize ...' }); // through the `ai` queue, on any instance
+```
+
+A stream is an async iterable of text: a streaming realtime action returns it, `pipeAiStream` writes it into a
+`createStream` writer, `aiEventStream` into an SSE response. See [ai.md](references/ai.md).
+
 ### Registering a custom model
 
 Use `registerModel` to register a custom [TypeBox](https://github.com/sinclairzx81/typebox) schema as a named model.
@@ -1282,6 +1303,7 @@ npm run lint  # eslint "./**/*.ts"
 - Database & Migrations: [database.md](references/database.md)
 - Events & Hooks: [events.md](references/events.md)
 - Realtime channels, resource events, actions & streams (WebSocket, SSE): [realtime.md](references/realtime.md)
+- AI models, streams, objects, tools & embeddings: [ai.md](references/ai.md)
 - Cache management: [cache.md](references/cache.md)
 - Queue jobs: [queue.md](references/queue.md)
 - Scheduling jobs: [scheduler.md](references/scheduler.md)

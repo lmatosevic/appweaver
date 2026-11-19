@@ -17,6 +17,7 @@ import {
 } from '@appweaver/common';
 import { selectedProvider } from '../app/load-providers';
 import { inject } from '../context';
+import { JobErrorData, JobResults } from '../queue/job-results';
 import { smsConfig } from './sms-config';
 
 const logger = createLogger('sms');
@@ -29,10 +30,9 @@ export class SmsService {
   /** @internal */
   private readonly _templateEngine = inject(TemplateEngine, false);
   /** @internal */
-  private readonly _waitedJobs = new Map<
-    string,
-    { resolve: (success: boolean) => void; reject: (error: Error) => void }
-  >();
+  private readonly _results = new JobResults(this._smsQueue, 'sms', {
+    toError: smsError
+  });
 
   constructor() {
     this._smsQueue.addWorker(this.processSms.bind(this));
@@ -90,33 +90,21 @@ export class SmsService {
   }
 
   /**
-   * Sends a text message through the SMS queue and waits until it is sent, or failed after the retries of the queue.
-   * A template message is rendered first, see {@link renderTemplateSms}.
+   * Sends a text message through the SMS queue and waits until it is sent, or failed after the retries of the queue,
+   * on whichever instance the worker sending it runs. A template message is rendered first, see
+   * {@link renderTemplateSms}.
    *
    * @param {SmsMessage | TemplateSms} sms - The message to send, or the template message to render and send.
    * @return {Promise<boolean>} A promise that resolves with `true` once the message is sent.
-   * @throws {SmsError} `SMS_SEND_FAILED` if the provider rejects the message, `SMS_JOB_NOT_FOUND` if the queue returns
-   * no job id.
+   * @throws {SmsError} `SMS_SEND_FAILED` if the provider rejects the message.
    * @throws {TemplateError} See {@link renderTemplateSms}.
    */
   public async sendSmsAndWait(sms: SmsMessage | TemplateSms): Promise<boolean> {
-    const job = await this._smsQueue.sendJob(await this.toSms(sms));
-
-    return new Promise<boolean>((resolve, reject) => {
-      if (!job.id) {
-        return reject(
-          new SmsError(
-            ErrorCode.SmsJobNotFound,
-            'SMS job not found. The SMS could still be sent.'
-          )
-        );
-      }
-      this._waitedJobs.set(job.id, { resolve, reject });
-    }).finally(() => {
-      if (job.id) {
-        this._waitedJobs.delete(job.id);
-      }
-    });
+    const message = await this.toSms(sms);
+    await this._results.wait((jobId) =>
+      this._smsQueue.sendJob(message, undefined, { jobId })
+    );
+    return true;
   }
 
   /**
@@ -218,10 +206,6 @@ export class SmsService {
 
   /** @internal */
   private onSmsSent(job: QueueJob<SmsMessage, boolean>): void {
-    if (job.id) {
-      this._waitedJobs.get(job.id)?.resolve(true);
-    }
-
     logger.debug({ jobId: job.id }, 'SMS sent');
   }
 
@@ -230,10 +214,20 @@ export class SmsService {
     job: QueueJob<SmsMessage, boolean> | undefined,
     error: Error
   ): void {
-    if (job?.id) {
-      this._waitedJobs.get(job.id)?.reject(error);
-    }
-
     logger.error(error, 'SMS sending failed');
   }
+}
+
+/** Creates the error of a failed SMS job, published by the instance that ran it. */
+function smsError(data: JobErrorData): SmsError {
+  const code = data.code?.startsWith('SMS_')
+    ? data.code
+    : ErrorCode.SmsSendFailed;
+  return new SmsError(
+    code as ErrorCode.SmsSendFailed,
+    data.message,
+    (data.details ?? {
+      provider: ''
+    }) as SmsError<ErrorCode.SmsSendFailed>['details']
+  );
 }

@@ -275,17 +275,12 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
   [ErrorCode.QueueUnavailable]: { status: 503, title: 'Queue unavailable' },
 
   [ErrorCode.MailerSendFailed]: { status: 502, title: 'Email sending failed' },
-  [ErrorCode.MailerJobNotFound]: {
-    status: 500,
-    title: 'Email job not found'
-  },
   [ErrorCode.MailerSenderMissing]: {
     status: 500,
     title: 'Email sender missing'
   },
 
   [ErrorCode.SmsSendFailed]: { status: 502, title: 'SMS sending failed' },
-  [ErrorCode.SmsJobNotFound]: { status: 500, title: 'SMS job not found' },
 
   [ErrorCode.TemplateNotFound]: { status: 500, title: 'Template not found' },
   [ErrorCode.TemplateRenderFailed]: {
@@ -377,6 +372,32 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
   [ErrorCode.RealtimeShuttingDown]: {
     status: 503,
     title: 'Realtime server shutting down'
+  },
+
+  [ErrorCode.AiModelUnknown]: { status: 500, title: 'AI model unknown' },
+  [ErrorCode.AiRequestInvalid]: { status: 400, title: 'Invalid AI request' },
+  [ErrorCode.AiCapabilityUnsupported]: {
+    status: 400,
+    title: 'AI capability not supported by the model'
+  },
+  [ErrorCode.AiRequestFailed]: { status: 502, title: 'AI request failed' },
+  [ErrorCode.AiAuthFailed]: {
+    status: 502,
+    title: 'AI provider authentication failed'
+  },
+  [ErrorCode.AiRateLimited]: { status: 429, title: 'AI provider rate limited' },
+  [ErrorCode.AiTimeout]: { status: 504, title: 'AI request timed out' },
+  [ErrorCode.AiProviderUnavailable]: {
+    status: 503,
+    title: 'AI provider unavailable'
+  },
+  [ErrorCode.AiContextLengthExceeded]: {
+    status: 422,
+    title: 'AI context length exceeded'
+  },
+  [ErrorCode.AiOutputInvalid]: {
+    status: 502,
+    title: 'Invalid AI model output'
   },
 
   [ErrorCode.TimeSeriesNotEnabled]: {

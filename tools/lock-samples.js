@@ -32,6 +32,8 @@ const lockedPackages = [
   'twilio',
   'opentelemetry',
   'realtime',
+  'ai',
+  'openai',
   'testing',
   'cli',
   'client',

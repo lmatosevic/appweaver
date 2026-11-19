@@ -130,12 +130,10 @@ export enum ErrorCode {
 
   // Mailer
   MailerSendFailed = 'MAILER_SEND_FAILED',
-  MailerJobNotFound = 'MAILER_JOB_NOT_FOUND',
   MailerSenderMissing = 'MAILER_SENDER_MISSING',
 
   // SMS
   SmsSendFailed = 'SMS_SEND_FAILED',
-  SmsJobNotFound = 'SMS_JOB_NOT_FOUND',
 
   // Templates
   TemplateNotFound = 'TEMPLATE_NOT_FOUND',
@@ -187,7 +185,19 @@ export enum ErrorCode {
   RealtimeStreamLost = 'REALTIME_STREAM_LOST',
   RealtimeStreamAccept = 'REALTIME_STREAM_ACCEPT',
   RealtimeInputLimit = 'REALTIME_INPUT_LIMIT',
-  RealtimeShuttingDown = 'REALTIME_SHUTTING_DOWN'
+  RealtimeShuttingDown = 'REALTIME_SHUTTING_DOWN',
+
+  // AI
+  AiModelUnknown = 'AI_MODEL_UNKNOWN',
+  AiRequestInvalid = 'AI_REQUEST_INVALID',
+  AiCapabilityUnsupported = 'AI_CAPABILITY_UNSUPPORTED',
+  AiRequestFailed = 'AI_REQUEST_FAILED',
+  AiAuthFailed = 'AI_AUTH_FAILED',
+  AiRateLimited = 'AI_RATE_LIMITED',
+  AiTimeout = 'AI_TIMEOUT',
+  AiProviderUnavailable = 'AI_PROVIDER_UNAVAILABLE',
+  AiContextLengthExceeded = 'AI_CONTEXT_LENGTH_EXCEEDED',
+  AiOutputInvalid = 'AI_OUTPUT_INVALID'
 }
 
 /** The error codes starting with the prefix of a module, i.e. `'RESOURCE'`. */

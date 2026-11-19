@@ -1,3 +1,4 @@
+export * from './ai-driver-contract';
 export * from './contract-util';
 export * from './mailer-contract';
 export * from './memory-contract';

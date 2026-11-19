@@ -291,6 +291,21 @@ describe('bull-queue', () => {
       expect(drained).not.toHaveBeenCalled();
     });
 
+    test('tells a failed job with attempts left apart from its last failure', () => {
+      const processor = queue.get('emails');
+
+      expect(
+        processor.willRetry({ attemptsMade: 1, opts: { attempts: 3 } } as any)
+      ).toBe(true);
+      expect(
+        processor.willRetry({ attemptsMade: 3, opts: { attempts: 3 } } as any)
+      ).toBe(false);
+      expect(processor.willRetry({ attemptsMade: 1, opts: {} } as any)).toBe(
+        false
+      );
+      expect(processor.willRetry(undefined)).toBe(false);
+    });
+
     test('removes a worker by its id', async () => {
       const processor = queue.get('emails');
       const worker = processor.addWorker(async () => true);

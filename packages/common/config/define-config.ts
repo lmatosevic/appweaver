@@ -256,7 +256,7 @@ function parseSection<V>(
 function readSectionValue(key: string, property: TSchema): unknown {
   const rawKey = `_${CONFIG_NAME}_${key}`;
   if (isRecord(property)) {
-    return readRecordValue(rawKey);
+    return readRecordValue(rawKey, property);
   }
   const mapFrom = property.mapFrom as string | undefined;
   const envValue =
@@ -280,21 +280,38 @@ function readSectionValue(key: string, property: TSchema): unknown {
 /**
  * Reads the entries of a record key, each from its own flattened key (`LOG_LEVELS_DATABASE` for the `database` entry
  * of `log.levels`), and the environment string listing them as `name:value` pairs (`LOG_LEVELS=database:trace`). An
- * entry of the environment overrides the same entry of the JSON files.
+ * entry of the environment overrides the same entry of the JSON files. The entries of a record of objects are read
+ * property by property (`AI_ENDPOINTS_OPENROUTER_API_KEY` for the `apiKey` of the `openrouter` entry).
  */
-function readRecordValue(rawKey: string): Record<string, unknown> | undefined {
+function readRecordValue(
+  rawKey: string,
+  property: TSchema
+): Record<string, unknown> | undefined {
   const record: Record<string, unknown> = {};
+  const fields = recordFields(property);
   const readEntries = (source: ConfigEntry['config']) => {
     for (const [name, value] of Object.entries(source)) {
-      if (name.startsWith(`${rawKey}_`) && !isEmpty(value)) {
-        record[recordEntryName(name.slice(rawKey.length + 1))] = value;
+      if (!name.startsWith(`${rawKey}_`) || isEmpty(value)) {
+        continue;
+      }
+      const entry = splitRecordEntry(property, name.slice(rawKey.length + 1));
+      if (!entry) {
+        continue;
+      }
+      if (entry.field === undefined) {
+        record[entry.entry] = value;
+      } else {
+        record[entry.entry] = {
+          ...(record[entry.entry] as object),
+          [entry.field]: readEnvString(value, fields![entry.field])
+        };
       }
     }
   };
 
   readEntries(rawConfig.json);
   const envValue = rawConfig.env[rawKey];
-  if (typeof envValue === 'string') {
+  if (typeof envValue === 'string' && !fields) {
     for (const pair of parseArray(envValue)) {
       const separator = pair.indexOf(':');
       if (separator > 0) {
@@ -309,9 +326,67 @@ function readRecordValue(rawKey: string): Record<string, unknown> | undefined {
   return Object.keys(record).length > 0 ? record : undefined;
 }
 
+/**
+ * Splits the flattened name of a record entry, without the key of the record, into the camelCase name of the entry
+ * and, for a record of objects, the property of the entry it holds: `OPENROUTER_API_KEY` of `ai.endpoints` is the
+ * `apiKey` of the `openrouter` entry, the longest property ending the name being taken.
+ *
+ * @param {TSchema} property - The schema of the record key.
+ * @param {string} name - The flattened name of the entry, i.e. `DATABASE` or `OPENROUTER_API_KEY`.
+ * @return {Object | undefined} The entry and its property, or `undefined` for a name of a record of objects ending
+ * with none of its properties.
+ */
+export function splitRecordEntry(
+  property: TSchema,
+  name: string
+): { entry: string; field?: string } | undefined {
+  const fields = recordFields(property);
+  if (!fields) {
+    return { entry: recordEntryName(name) };
+  }
+  const matches = Object.keys(fields)
+    .map((field) => ({
+      field,
+      suffix: `_${camelToSnakeCase(field).toUpperCase()}`
+    }))
+    .filter(
+      ({ suffix }) => name.endsWith(suffix) && name.length > suffix.length
+    )
+    .sort((a, b) => b.suffix.length - a.suffix.length);
+  if (!matches.length) {
+    return undefined;
+  }
+  const { field, suffix } = matches[0];
+  return { entry: recordEntryName(name.slice(0, -suffix.length)), field };
+}
+
 /** The camelCase name of a record entry, flattened in upper snake case (`RATE_LIMIT` → `rateLimit`). */
 function recordEntryName(name: string): string {
   return snakeToCamelCase(camelToSnakeCase(name).toLowerCase());
+}
+
+/** The properties of the objects of a record of objects, `undefined` for a record of other values. */
+function recordFields(property: TSchema): Record<string, TSchema> | undefined {
+  const value = Object.values(property.patternProperties ?? {})[0] as
+    | TSchema
+    | undefined;
+  return value?.type === 'object' && value.properties
+    ? (value.properties as Record<string, TSchema>)
+    : undefined;
+}
+
+/** Converts an environment string of an array or a boolean property, the other values being converted on parsing. */
+function readEnvString(value: unknown, property: TSchema): unknown {
+  if (typeof value !== 'string') {
+    return value;
+  }
+  if (property.type === 'array') {
+    return parseArray(value);
+  }
+  if (property.type === 'boolean') {
+    return ['true', 'on', 'yes', '1'].includes(value.toLowerCase().trim());
+  }
+  return value;
 }
 
 /** Tells whether a key is a TypeBox record, whose entries are flattened into keys of their own. */

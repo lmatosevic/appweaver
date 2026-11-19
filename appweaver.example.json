@@ -402,6 +402,36 @@
       "streamInputMaxBytes": "10MB",
       "shutdownGracePeriod": 30000
     },
+    "ai": {
+      "endpoints": {
+        "local": {
+          "preset": "ollama",
+          "baseUrl": "http://localhost:11434/v1"
+        },
+        "openrouter": {
+          "preset": "openrouter",
+          "apiKey": "${OPENROUTER_API_KEY}",
+          "headers": ["X-Title: Appweaver"],
+          "timeout": 60000
+        }
+      },
+      "defaultModel": "local:qwen3:0.6b",
+      "defaultEmbeddingModel": "local:nomic-embed-text",
+      "aliases": {
+        "fast": "local:qwen3:0.6b",
+        "smart": ["openrouter:openai/gpt-4o-mini", "local:qwen3:8b"]
+      },
+      "maxTokens": 1024,
+      "temperature": 0.7,
+      "timeout": 120000,
+      "maxRetries": 2,
+      "maxSteps": 5,
+      "repairAttempts": 1,
+      "logPrompts": false,
+      "healthCheckEndpoints": [],
+      "queueConcurrency": 4,
+      "streamFlushInterval": 50
+    },
     "mailer": {
       "senderName": "John Doe",
       "senderAddress": "no-reply@appweaver.co",
@@ -466,6 +496,7 @@
         "cache": true,
         "task": true,
         "realtime": true,
+        "ai": true,
         "fetch": true
       }
     },

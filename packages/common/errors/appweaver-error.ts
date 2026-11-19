@@ -25,6 +25,7 @@ export type ErrorModule =
   | 'timeseries'
   | 'spatial'
   | 'realtime'
+  | 'ai'
   | 'application';
 
 /** The details and the options of an error, the details being optional for
