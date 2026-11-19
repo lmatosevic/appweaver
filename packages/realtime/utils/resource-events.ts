@@ -1,23 +1,31 @@
 import {
   RealtimeAccess,
   ResourceEventAction,
-  ResourceEventsConfig
+  ResourceRoutesConfig
 } from '@appweaver/common';
+import { routeAccess } from '@appweaver/web';
 
 /**
- * Reads the exposed actions of the resource events of a model, each with its access: the `public`, `roles` and
- * `permissions` of an action object when it sets any of them, otherwise the ones of the `events`.
+ * Reads the exposed actions of the resource events of a model, each with the access of the first of these setting any
+ * of `public`, `roles` and `permissions`: its action object, the `events`, then the `find` route, since an event
+ * delivers a record to its readers.
  *
- * @param {ResourceEventsConfig} events - The `events` of the resource routes.
+ * @param {ResourceRoutesConfig} routes - The config of the resource routes, with their `events`.
  * @return {Map<ResourceEventAction, RealtimeAccess>} The access of every exposed action, in their order.
  */
 export function resourceEventActions(
-  events: ResourceEventsConfig
+  routes: Omit<ResourceRoutesConfig, 'modelName'>
 ): Map<ResourceEventAction, RealtimeAccess> {
-  const defaults = accessOf(events);
   const actions = new Map<ResourceEventAction, RealtimeAccess>();
+  if (!routes.events) {
+    return actions;
+  }
+  const defaults =
+    [accessOf(routes.events), routeAccess('find', routes)].find(
+      (access) => Object.keys(access).length > 0
+    ) ?? {};
 
-  for (const entry of events.actions) {
+  for (const entry of routes.events.actions) {
     if (typeof entry === 'string') {
       actions.set(entry, defaults);
     } else {

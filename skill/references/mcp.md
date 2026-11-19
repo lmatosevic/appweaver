@@ -43,7 +43,8 @@ export default createRoutes({
 A tool has the access of its API route (`public`, `roles`, `permissions`, from the route or the `defaults`), so the
 agents of a user can do what the user can do through the API. The `mcp` config overrides it for every action
 (`mcp: { public: true, ... }`) or for one (`{ action: 'delete', roles: ['admin'] }`), the action first. The API route
-may be excluded, the tool still runs.
+may be excluded, the tool still runs. The resource events of `@appweaver/realtime` default the same way to the access
+of the `find` route.
 
 | Tool             | Arguments                                                     | Kind        |
 |------------------|---------------------------------------------------------------|-------------|

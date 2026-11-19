@@ -7,12 +7,12 @@ import {
   ResourceMcpConfig,
   ResourceModel,
   ResourceRoutesConfig,
-  RouteConfig,
   StringEnum
 } from '@appweaver/common';
 import { injectModel, injectService } from '@appweaver/core';
 import { context } from '@appweaver/core/internal';
 import { AggregateDateSchema, AggregateNumericSchema } from '@appweaver/data';
+import { routeAccess } from '@appweaver/web';
 import { mcpConfig } from '../config';
 import { McpTool } from '../types';
 
@@ -47,7 +47,7 @@ export function resourceTools(): McpTool[] {
 /**
  * The exposed actions of a resource, each with its description and the access of the first of these setting any of
  * `public`, `roles` and `permissions`: the action in the `mcp` config, the `mcp` config, then the API route of the
- * action (its own config, else the `defaults` of the routes, like the route itself).
+ * action.
  */
 function mcpActions(
   routes: ResourceRoutesConfig
@@ -59,16 +59,9 @@ function mcpActions(
   >();
   for (const entry of config.actions) {
     const action = typeof entry === 'string' ? entry : entry.action;
-    const route: RouteConfig = routes[action] ?? {};
-    const access = [
-      typeof entry === 'string' ? {} : accessOf(entry),
-      accessOf(config),
-      ACCESS_KEYS.some((key) => route[key] !== undefined) || route.auth
-        ? accessOf(route)
-        : accessOf(routes.defaults ?? {})
-    ].find((candidate) => Object.keys(candidate).length);
+    const own = typeof entry === 'string' ? {} : accessOf(entry);
     actions.set(action, {
-      access: access ?? {},
+      access: firstAccess(own, accessOf(config), routeAccess(action, routes)),
       description: typeof entry === 'string' ? undefined : entry.description
     });
   }
@@ -305,6 +298,11 @@ function aggregateSchema(fields: [string, TSchema][]): TObject {
     description:
       'The aggregations of each field, i.e. { "price": { "sum": true, "avg": true } }'
   });
+}
+
+/** The first access setting any option. */
+function firstAccess(...candidates: RealtimeAccess[]): RealtimeAccess {
+  return candidates.find((access) => Object.keys(access).length) ?? {};
 }
 
 function accessOf(config: RealtimeAccess): RealtimeAccess {

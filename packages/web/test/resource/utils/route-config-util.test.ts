@@ -1,7 +1,8 @@
 import * as common from '@appweaver/common';
 import {
   mergeRouteDefaults,
-  resolveRouteConfig
+  resolveRouteConfig,
+  routeAccess
 } from '../../../resource/utils/route-config-util';
 
 describe('route-config-util', () => {
@@ -232,6 +233,25 @@ describe('route-config-util', () => {
       expect(
         resolveRouteConfig('bulkUpdate', { replace: { exclude: true } }).exclude
       ).toBe(false);
+    });
+  });
+
+  describe('routeAccess', () => {
+    test('reads the access of a route, else of its parents and the defaults', () => {
+      const routes = {
+        defaults: { roles: ['staff'], cache: true },
+        find: { public: true, exclude: true },
+        update: { permissions: ['post:edit'] },
+        create: { auth: ['apiKey'] }
+      };
+
+      expect(routeAccess('find', routes)).toEqual({ public: true });
+      expect(routeAccess('query', routes)).toEqual({ roles: ['staff'] });
+      expect(routeAccess('replace', routes)).toEqual({
+        permissions: ['post:edit']
+      });
+      expect(routeAccess('create', routes)).toEqual({});
+      expect(routeAccess('delete')).toEqual({});
     });
   });
 });

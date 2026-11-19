@@ -138,10 +138,12 @@ export type ResourceEventActionConfig = RealtimeAccess & {
   action: ResourceEventAction;
 };
 
-/** The resource events a model exposes to the realtime connections, as the `resource:<Model>.<action>` channels. */
+/** The resource events a model exposes to the realtime connections, as the `resource:<Model>.<action>` channels. The
+ * access of an action (`public`, `roles`, `permissions`) is the one of its object, else of the `events`, else of the
+ * `find` route. */
 export type ResourceEventsConfig = RealtimeAccess & {
-  /** The actions whose events are exposed, each with the access of the `events`, or an object with its own `public`,
-   * `roles` and `permissions` replacing them, i.e. `['create', { action: 'update', public: true }]`. */
+  /** The actions whose events are exposed, or objects with their own access, i.e.
+   * `['create', { action: 'update', public: true }]`. */
   actions: (ResourceEventAction | ResourceEventActionConfig)[];
 };
 

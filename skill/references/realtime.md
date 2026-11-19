@@ -66,6 +66,10 @@ createRoutes({
 });
 ```
 
+An action takes the access (`public`, `roles`, `permissions`) of its object, else of the `events`, else of the `find`
+route (its own config or the `defaults` of the routes, excluded or not): an event delivers a record, so by default the
+users reading it through the API receive it, while the write routes keep their own access.
+
 The model exposes `resource:Product` (every action the user has the access of, refused when none) and
 `resource:Product.<action>`. The event data is `{ model, action, current, previous? }`, the records the service
 returned to the request (the same virtual field values, relation counts and hidden soft deleted relations), without

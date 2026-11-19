@@ -1,6 +1,7 @@
 import {
   BulkRouteConfig,
   QueryRouteConfig,
+  RealtimeAccess,
   ResourceRoutesConfig,
   SeriesWriteRouteConfig
 } from '@appweaver/common';
@@ -132,4 +133,27 @@ export function resolveRouteConfig(
   }
 
   return config;
+}
+
+/**
+ * The access of a resource route, its `public`, `roles` and `permissions` resolved like the route itself (its own
+ * config, else the one of the routes it inherits from and the `defaults`), whether the route is excluded or not. The
+ * MCP tools and the realtime events of a resource default to it.
+ *
+ * @param {ResourceRouteName} routeName The route to read the access of.
+ * @param {Object} [routesConfig={}] The config of the resource routes.
+ * @return {RealtimeAccess} The access, only the options set.
+ */
+export function routeAccess(
+  routeName: ResourceRouteName,
+  routesConfig: Omit<ResourceRoutesConfig, 'modelName' | 'path'> = {}
+): RealtimeAccess {
+  const config = resolveRouteConfig(routeName, routesConfig);
+  const access: RealtimeAccess = {};
+  for (const key of ['public', 'roles', 'permissions'] as const) {
+    if (config[key] !== undefined) {
+      (access as Record<string, unknown>)[key] = config[key];
+    }
+  }
+  return access;
 }
