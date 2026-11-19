@@ -25,6 +25,7 @@
     "@appweaver/cron": "^2.8.0",
     "@appweaver/data": "^2.8.0",
     "@appweaver/handlebars": "^2.8.0",
+    "@appweaver/mcp": "^2.8.0",
     "@appweaver/nodemailer": "^2.8.0",
     "@appweaver/redis": "^2.8.0",
     "@appweaver/sharp": "^2.8.0",

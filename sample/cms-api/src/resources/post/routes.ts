@@ -34,5 +34,14 @@ export default createRoutes({
     roles: ['Admin', 'User'],
     recaptcha: true,
     recaptchaAction: 'delete-post-file'
+  },
+  // The tools of the AI agents, with the access of the routes above: anyone
+  // signed in reads, authors write, only admins aggregate
+  mcp: {
+    description:
+      'The blog posts, each in a category, with tags, written as a Draft and then Published or Archived.',
+    actions: ['find', 'query', 'aggregate', 'create', 'update'],
+    exclude: ['seo'],
+    maxLimit: 20
   }
 });

@@ -23,6 +23,119 @@
     "config": {
       "type": "object",
       "properties": {
+        "ai": {
+          "type": "object",
+          "properties": {
+            "endpoints": {
+              "default": {},
+              "type": "object",
+              "patternProperties": {
+                "^(.*)$": {
+                  "type": "object",
+                  "properties": {
+                    "preset": {
+                      "type": "string"
+                    },
+                    "driver": {
+                      "type": "string"
+                    },
+                    "baseUrl": {
+                      "type": "string"
+                    },
+                    "apiKey": {
+                      "secret": true,
+                      "type": "string"
+                    },
+                    "headers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "capabilities": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "timeout": {
+                      "type": "integer"
+                    },
+                    "maxRetries": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            },
+            "defaultModel": {
+              "type": "string"
+            },
+            "defaultEmbeddingModel": {
+              "type": "string"
+            },
+            "aliases": {
+              "default": {},
+              "type": "object",
+              "patternProperties": {
+                "^(.*)$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "maxTokens": {
+              "type": "integer"
+            },
+            "temperature": {
+              "type": "number"
+            },
+            "timeout": {
+              "default": 120000,
+              "type": "integer"
+            },
+            "maxRetries": {
+              "default": 2,
+              "type": "integer"
+            },
+            "maxSteps": {
+              "default": 5,
+              "type": "integer"
+            },
+            "repairAttempts": {
+              "default": 1,
+              "type": "integer"
+            },
+            "logPrompts": {
+              "default": false,
+              "type": "boolean"
+            },
+            "healthCheckEndpoints": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "queueConcurrency": {
+              "default": 4,
+              "type": "integer"
+            },
+            "streamFlushInterval": {
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        },
         "app": {
           "type": "object",
           "properties": {
@@ -505,6 +618,9 @@
                 }
               },
               "properties": {
+                "ai": {
+                  "$ref": "#/definitions/logLevel"
+                },
                 "app": {
                   "$ref": "#/definitions/logLevel"
                 },
@@ -1828,6 +1944,14 @@
                   "type": "boolean"
                 },
                 "realtime": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "ai": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "mcp": {
                   "default": true,
                   "type": "boolean"
                 },

@@ -5,3 +5,4 @@ import './catalog/lowest-price-route';
 import './orders/order-routes';
 import './orders/unpaid-orders-job';
 import './payments/payment-worker';
+import './support/support-route';

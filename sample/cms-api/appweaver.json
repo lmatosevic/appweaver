@@ -55,6 +55,10 @@
         }
       }
     },
+    "mcp": {
+      "instructions": "The CMS of a blog. Posts are written as a Draft, then Published (or scheduled with a future publishedAt) and Archived. Look up the category and the tags of a post before creating it, and reuse an existing tag by its slug.",
+      "destructiveEnabled": true
+    },
     "resource": {
       "bulkCreateEnabled": true,
       "bulkUpdateEnabled": true,

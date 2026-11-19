@@ -39,5 +39,9 @@ export default createRoutes({
   },
   bulkDelete: {
     exclude: false
+  },
+  mcp: {
+    description: 'The tags of the posts, matched by their slug.',
+    actions: ['find', 'query', 'create']
   }
 });

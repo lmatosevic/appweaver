@@ -121,6 +121,10 @@ services:
       DB_HOST: "postgres"
       REDIS_HOST: "redis"
       OTEL_HOST: "jaeger"
+      # The Ollama of the host, the model of the support assistant in dev
+      OLLAMA_HOST: "host.docker.internal"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - webshop-api
 

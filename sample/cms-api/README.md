@@ -28,6 +28,7 @@ scheduled for publishing, static pages for the site menu, and comments open to g
 | Template preview route of the development environment (`/templates/<name>?<data>`)    | `template.preview` of the `dev` environment in [`appweaver.json`](appweaver.json)        |
 | Translated default value stored by a service hook                                     | [`resources/category/service.ts`](src/resources/category/service.ts)                     |
 | Fastify plugin logging every request                                                  | [`plugins/request-logger.ts`](src/plugins/request-logger.ts)                             |
+| MCP server for AI agents, with the resource tools and a custom tool                   | [`features/publisher/publish-tool.ts`](src/features/publisher/publish-tool.ts)           |
 | Basic, API key, Google OAuth2, and reCAPTCHA security, all in a single config file    | [`appweaver.json`](appweaver.json)                                                       |
 
 ## Getting started
@@ -76,6 +77,58 @@ curl -s localhost:5001/api/posts/<slug>/share -H "authorization: Bearer $TOKEN" 
 curl -s localhost:5001/api/comments -H 'content-type: application/json' \
   -d '{"body":"Great read!","guestName":"Ana","post":1}' | jq '{id, status}'
 ```
+
+## Connect an AI agent (MCP)
+
+`@appweaver/mcp` serves the CMS to AI agents such as Claude at `POST /mcp`. Every tool runs as the user of the API
+key, so an agent can do exactly what its user can do through the API (any user means any signed-in one):
+
+| Tool                                              | Who         | Kind        |
+|---------------------------------------------------|-------------|-------------|
+| `post_find`, `post_query`                         | Any user    | read-only   |
+| `post_create`                                     | Admin, User | write       |
+| `post_update`                                     | Admin, User | destructive |
+| `post_aggregate`                                  | Admin       | read-only   |
+| `comment_find`, `comment_query` (no guest emails) | Any user    | read-only   |
+| `comment_update` (moderation)                     | Admin       | destructive |
+| `category_find`, `category_query`                 | Any user    | read-only   |
+| `tag_find`, `tag_query`                           | Any user    | read-only   |
+| `tag_create`                                      | Admin, User | write       |
+| `publishScheduledPosts`                           | Admin       | destructive |
+
+The destructive tools are enabled by `mcp.destructiveEnabled` of [`appweaver.json`](appweaver.json), and carry
+the `destructiveHint` annotation, so the client asks before running them.
+
+1. Create an API key for the user the agent acts as (shown once):
+
+   ```bash
+   curl -s localhost:5001/api/api-keys -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+     -d '{"name":"Claude"}' | jq -r .key
+   ```
+
+2. Add the server to Claude Code:
+
+   ```bash
+   claude mcp add --transport http cms-api http://localhost:5001/mcp --header "X-Api-Key: <key>"
+   ```
+
+   Or to Claude Desktop, in `claude_desktop_config.json` (Settings → Developer → Edit Config), through the
+   `mcp-remote` bridge:
+
+   ```json
+   {
+     "mcpServers": {
+       "cms-api": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "http://localhost:5001/mcp", "--header", "X-Api-Key:${CMS_API_KEY}"],
+         "env": { "CMS_API_KEY": "<key>" }
+       }
+     }
+   }
+   ```
+
+3. Ask away: _"List the published posts in the Travel category"_, _"Draft a post about mountain huts tagged hiking"_,
+   _"Approve the pending comments that are not spam"_.
 
 ## Tests
 

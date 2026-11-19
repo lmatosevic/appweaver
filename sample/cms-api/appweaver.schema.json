@@ -526,6 +526,9 @@
                 "mailer": {
                   "$ref": "#/definitions/logLevel"
                 },
+                "mcp": {
+                  "$ref": "#/definitions/logLevel"
+                },
                 "memory": {
                   "$ref": "#/definitions/logLevel"
                 },
@@ -636,6 +639,63 @@
                   "type": "string"
                 }
               }
+            }
+          }
+        },
+        "mcp": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": true,
+              "type": "boolean"
+            },
+            "routePrefix": {
+              "default": "/mcp",
+              "type": "string"
+            },
+            "auth": {
+              "default": [
+                "jwt",
+                "apiKey"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "anonymousEnabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "destructiveEnabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "serverName": {
+              "type": "string"
+            },
+            "instructions": {
+              "type": "string"
+            },
+            "maxLimit": {
+              "default": 50,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxResultSize": {
+              "default": "256KB",
+              "type": "string"
+            },
+            "allowedOrigins": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "logCalls": {
+              "default": true,
+              "type": "boolean"
             }
           }
         },
@@ -1767,6 +1827,14 @@
                   "type": "boolean"
                 },
                 "realtime": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "ai": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "mcp": {
                   "default": true,
                   "type": "boolean"
                 }

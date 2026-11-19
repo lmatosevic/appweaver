@@ -16,5 +16,9 @@ export default createRoutes({
   },
   aggregate: {
     exclude: true
+  },
+  mcp: {
+    description: 'The category tree of the posts.',
+    actions: ['find', 'query']
   }
 });

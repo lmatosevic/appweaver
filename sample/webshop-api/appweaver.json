@@ -33,6 +33,20 @@
     "timeseries": {
       "provider": "timescale"
     },
+    "ai": {
+      "endpoints": {
+        "openai": {
+          "preset": "openai"
+        },
+        "local": {
+          "preset": "ollama",
+          "baseUrl": "http://${OLLAMA_HOST:-localhost}:11434/v1"
+        }
+      },
+      "aliases": {
+        "support": "openai:gpt-4.1-mini"
+      }
+    },
     "telemetry": {
       "endpoint": "http://${OTEL_HOST:-localhost}:4318",
       "logs": {
@@ -48,6 +62,11 @@
       "log": {
         "level": "debug",
         "pretty": true
+      },
+      "ai": {
+        "aliases": {
+          "support": "local:qwen3.5:9b"
+        }
       },
       "template": {
         "cache": false,
@@ -84,6 +103,11 @@
       },
       "telemetry": {
         "enabled": false
+      },
+      "ai": {
+        "aliases": {
+          "support": "mock:echo"
+        }
       }
     }
   }

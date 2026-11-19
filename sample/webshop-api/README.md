@@ -31,6 +31,7 @@ It runs on PostgreSQL with the TimescaleDB extension and Redis, the production-l
 | Verified purchase reviews, and public rating aggregates                                                                                         | [`resources/review/service.ts`](src/resources/review/service.ts)                                                       |
 | Sales reports through the aggregate route, CSV exports of orders and products                                                                   | order and product routes                                                                                               |
 | Product image galleries with image processing                                                                                                   | [`resources/product/model.ts`](src/resources/product/model.ts)                                                         |
+| An **AI support assistant** (`@appweaver/ai`, `@appweaver/openai`) looking up the orders and the catalog with tools                             | [`features/support/`](src/features/support/support-route.ts)                                                           |
 | Application error codes (`OUT_OF_STOCK`, ...) documented per route, a taken email answered by the unique constraint                             | [`errors.ts`](src/errors.ts), [`features/checkout/register-route.ts`](src/features/checkout/register-route.ts)         |
 
 ## Getting started
@@ -125,6 +126,37 @@ curl -s localhost:5002/api/products/1/lowest-price
 
 An order above 10,000 EUR is declined by the simulated payment provider ([
 `payment-gateway.ts`](src/features/payments/payment-gateway.ts)), which fails the order and releases its stock.
+
+## Support assistant
+
+A signed-in customer asks the support assistant about their orders and the catalog, in any language. It is
+`AiService` of `@appweaver/ai` calling the `support` model alias with three tools
+([`support-tools.ts`](src/features/support/support-tools.ts)), `listMyOrders`, `getOrder` and `searchProducts`,
+which run as the customer, so the order and product policies keep it to their own orders and the active products. The
+system prompt is a Handlebars template, [`templates/prompts/support.md.hbs`](templates/prompts/support.md.hbs).
+
+| Environment | `support` alias       | Endpoint                                                       |
+|-------------|-----------------------|----------------------------------------------------------------|
+| `dev`       | `local:qwen3.5:9b`    | A local [Ollama](https://ollama.com), `ollama pull qwen3.5:9b` |
+| production  | `openai:gpt-4.1-mini` | OpenAI, with `OPENAI_API_KEY`                                  |
+| `test`      | `mock:echo`           | The built-in mock, scripted by the tests                       |
+
+Any OpenAI-compatible server works through `@appweaver/openai`: `AI_ALIASES_SUPPORT=openai:gpt-4.1-mini` in `.env`
+switches the development to OpenAI, and an OpenRouter endpoint is a `"preset": "openrouter"` beside the others.
+
+```bash
+TOKEN=$(curl -s localhost:5002/auth/login -H 'content-type: application/json' \
+  -d '{"username":"olivia@example.com","password":"Passw0rd!"}' | jq -r .accessToken)
+
+# The whole answer, with the tools it looked things up with
+curl -s localhost:5002/api/support/chat -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+  -d '{"message":"Where is my last order, and what was in it?"}' | jq
+
+# The same answer streamed as Server-Sent Events, the earlier turns sent along by the client
+curl -sN localhost:5002/api/support/chat/stream -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+  -d '{"message":"Kann ich sie noch stornieren?","history":[{"role":"user","content":"Where is my last order?"},
+       {"role":"assistant","content":"Your order WS-2026-000042 is paid and waiting to ship."}]}'
+```
 
 ## Tests
 
