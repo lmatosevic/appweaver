@@ -3,6 +3,7 @@ import { context } from '@appweaver/core/internal';
 import {
   isSoftDeleteModel,
   liveRecordFilter,
+  validateRelationOmits,
   validateScalarDefaults,
   validateSoftDeleteCascades
 } from '../../utils/model-util';
@@ -208,6 +209,40 @@ describe('model-util', () => {
 
     test('returns no condition for a model without soft delete', () => {
       expect(liveRecordFilter('Missing')).toEqual({});
+    });
+  });
+
+  describe('validateRelationOmits', () => {
+    const omitModels = (omit: string[]) =>
+      ({
+        User: {
+          name: 'User',
+          config: { name: 'User' },
+          readOneModel: { properties: { id: {}, email: {}, phone: {} } }
+        },
+        Post: {
+          name: 'Post',
+          config: {
+            name: 'Post',
+            relations: {
+              author: { model: 'user', type: 'one', output: { omit } }
+            }
+          }
+        }
+      }) as unknown as Record<string, ResourceModel>;
+
+    test('accepts the fields of the related model', () => {
+      expect(() =>
+        validateRelationOmits(omitModels(['email', 'phone']))
+      ).not.toThrow();
+    });
+
+    test('rejects a field the related model does not have', () => {
+      expect(() =>
+        validateRelationOmits(omitModels(['email', 'mail']))
+      ).toThrow(
+        /Invalid resource model relation outputs:\n {2}- Post.author omits mail, not fields of User/
+      );
     });
   });
 

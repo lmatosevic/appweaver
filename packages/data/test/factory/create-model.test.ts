@@ -1,6 +1,7 @@
 import { Value } from '@sinclair/typebox/value';
 import { ErrorCode } from '@appweaver/common';
-import { resetContext } from '@appweaver/testing';
+import { linkModels, resetContext } from '@appweaver/testing';
+import { context } from '@appweaver/core/internal';
 import { createModel } from '../../factory/create-model';
 
 describe('create-model', () => {
@@ -13,6 +14,59 @@ describe('create-model', () => {
   });
 
   describe('createModel', () => {
+    test('leaves the omitted fields out of the output of a relation only', () => {
+      createModel({
+        name: 'User',
+        scalars: {
+          name: { type: 'string' },
+          email: { type: 'string' },
+          phone: { type: 'string', required: false }
+        }
+      });
+      createModel({
+        name: 'Post',
+        scalars: { title: { type: 'string' } },
+        relations: {
+          author: {
+            model: 'User',
+            type: 'one',
+            required: false,
+            output: { type: 'always', omit: ['email', 'phone'] }
+          },
+          editors: {
+            model: 'User',
+            type: 'manyToMany',
+            output: { type: 'always', omit: ['email'] }
+          }
+        }
+      } as never);
+      linkModels();
+      const post = context.resource.models.get('Post')!;
+      const user = context.resource.models.get('User')!;
+      const postSchema = post.readOneModel.$defs.PostSingle;
+
+      expect(Object.keys(postSchema.properties.author.properties)).toEqual(
+        expect.arrayContaining(['id', 'name'])
+      );
+      expect(postSchema.properties.author.properties).not.toHaveProperty(
+        'email'
+      );
+      expect(postSchema.properties.author.properties).not.toHaveProperty(
+        'phone'
+      );
+      expect(postSchema.properties.author.nullable).toBe(true);
+      expect(
+        Object.keys(postSchema.properties.editors.items.properties)
+      ).toEqual(expect.arrayContaining(['name', 'phone']));
+      expect(
+        Object.keys(postSchema.properties.editors.items.properties)
+      ).not.toContain('email');
+      expect(
+        Object.keys(user.readOneModel.$defs.UserSingle.properties)
+      ).toEqual(expect.arrayContaining(['email', 'phone']));
+      expect(JSON.stringify(postSchema)).not.toMatch(/"target"|"parameters"/);
+    });
+
     test('takes the geo fields as GeoJSON, a point input as a { lat, lng } too', () => {
       const model = createModel({
         name: 'Store',

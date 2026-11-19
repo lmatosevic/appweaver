@@ -52,6 +52,33 @@ export const resourceModelProps: Record<
 };
 
 /**
+ * Removes the `target` and `parameters` a TypeBox module leaves on a computed type it evaluated, i.e. the `Omit`
+ * of the `omit` of a relation output, so the schema registered with the server and published in the OpenAPI document
+ * holds only JSON Schema keywords. The schema is changed in place.
+ *
+ * @param {TSchema} schema - A schema imported from the module of the models.
+ * @return {TSchema} The same schema.
+ */
+export function removeComputedKeywords<T extends TSchema>(schema: T): T {
+  const visit = (node: unknown, seen: Set<object>): void => {
+    if (!node || typeof node !== 'object' || seen.has(node)) {
+      return;
+    }
+    seen.add(node);
+    const value = node as Record<string, unknown>;
+    if (typeof value.target === 'string' && isArray(value.parameters)) {
+      delete value.target;
+      delete value.parameters;
+    }
+    for (const child of Object.values(value)) {
+      visit(child, seen);
+    }
+  };
+  visit(schema, new Set());
+  return schema;
+}
+
+/**
  * Reads the resource name annotation off a model schema. Array schemas are
  * unwrapped first, so both a resource schema and a list of that resource resolve
  * to the same name.

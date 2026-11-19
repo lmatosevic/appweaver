@@ -646,6 +646,7 @@ record by that field before creating a new one, so the inline create becomes a c
 | `include`  | Record\<string, RelationOutput>                      | Nested relation output configuration.                                                                                                  |
 | `maxDepth` | number                                               | Levels of a relation pointing back at its own model. Default `1`.                                                                      |
 | `count`    | boolean                                              | Include a count of related records.                                                                                                    |
+| `omit`     | string[]                                             | Fields of the related model left out of this relation only. Not in a nested `include`.                                                 |
 
 A relation is typed as the related model's `<Model>Single`, so a nested record carries its own relations again and a
 self-reference recurses. The schema says what a response can hold, the config how deep one is read.
@@ -675,6 +676,24 @@ const config = {
     }
   }
 }
+```
+
+`omit` hides fields of the related model in this relation only (routes, MCP tools, realtime events), while its own
+routes keep them; an unknown name fails the startup. A field to hide everywhere is `hidden` instead.
+
+```ts
+// The author of a public post, without the contact details
+const config = {
+  author: {
+    model: 'User',
+    type: 'manyToOne',
+    mappedBy: 'posts',
+    output: {
+      type: 'always',
+      omit: ['email', 'phone']
+    }
+  }
+};
 ```
 
 A nested `include` entry carries its own `maxDepth`, applied to the model that entry belongs to:
@@ -1474,30 +1493,30 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 }
 ```
 
-| Property      | Type             | Description                                                            |
-|---------------|------------------|------------------------------------------------------------------------|
-| `modelName`   | string           | Model name to bind routes to (required).                               |
-| `path`        | string           | Custom base URL path (default: derived from model name).               |
-| `defaults`    | QueryRouteConfig | Config applied to every route (see [Route defaults](#route-defaults)). |
-| `find`        | ReadRouteConfig  | `GET /:id` - Find single resource by ID.                               |
-| `query`       | QueryRouteConfig | `POST /query` - Query resources with filters.                          |
-| `aggregate`   | QueryRouteConfig | `POST /aggregate` - Aggregate resources.                               |
-| `create`      | RouteConfig      | `POST /` - Create a new resource.                                      |
-| `update`      | RouteConfig      | `PATCH /:id` - Update a resource (inherited by `replace`).             |
-| `replace`     | RouteConfig      | `PUT /:id` - Replace a resource (inherits `update`).                   |
-| `delete`      | RouteConfig      | `DELETE /:id` - Delete a resource.                                     |
-| `export`      | RouteConfig      | `POST /export` - Export resources to CSV.                              |
-| `fileUpload`  | RouteConfig      | `POST /:id/files` - Upload files to a resource.                        |
-| `fileDelete`  | RouteConfig      | `POST /:id/delete-files` - Delete files from a resource.               |
-| `seriesWrite` | SeriesWriteRouteConfig | `POST /:id/series`, `POST /series` - Write time series points ([timeseries.md](./timeseries.md)). |
-| `seriesQuery` | RouteConfig      | `GET /:id/series`, `POST /series/query` - Query time series points.     |
-| `seriesDelete`| RouteConfig      | `POST /:id/delete-series` - Delete the time series points of a range.   |
-| `bulkCreate`  | BulkRouteConfig  | `POST /bulk` - Create many (disabled by default).                      |
-| `bulkUpdate`  | BulkRouteConfig  | `PATCH /bulk` - Update many (disabled by default).                     |
-| `bulkReplace` | BulkRouteConfig  | `PUT /bulk` - Replace many (enabled along with `bulkUpdate`).          |
-| `bulkDelete`  | BulkRouteConfig  | `DELETE /bulk` - Delete many (disabled by default).                    |
-| `events`      | ResourceEventsConfig | The `create`, `update` and `delete` events exposed to the realtime connections (`{ actions, public?, roles?, permissions? }`, an action as an object `{ action, public?, roles?, permissions? }` with its own access), none unless set ([realtime.md](./realtime.md#resource-events)). |
-| `mcp`         | ResourceMcpConfig    | The actions exposed as tools of the MCP server of `@appweaver/mcp` (`{ actions, description?, exclude?, maxLimit?, public?, roles?, permissions? }`, `update` and `delete` only with `mcp.destructiveEnabled`), none unless set ([mcp.md](./mcp.md)). |
+| Property       | Type                   | Description                                                                                                                                                                                                                                                                            |
+|----------------|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `modelName`    | string                 | Model name to bind routes to (required).                                                                                                                                                                                                                                               |
+| `path`         | string                 | Custom base URL path (default: derived from model name).                                                                                                                                                                                                                               |
+| `defaults`     | QueryRouteConfig       | Config applied to every route (see [Route defaults](#route-defaults)).                                                                                                                                                                                                                 |
+| `find`         | ReadRouteConfig        | `GET /:id` - Find single resource by ID.                                                                                                                                                                                                                                               |
+| `query`        | QueryRouteConfig       | `POST /query` - Query resources with filters.                                                                                                                                                                                                                                          |
+| `aggregate`    | QueryRouteConfig       | `POST /aggregate` - Aggregate resources.                                                                                                                                                                                                                                               |
+| `create`       | RouteConfig            | `POST /` - Create a new resource.                                                                                                                                                                                                                                                      |
+| `update`       | RouteConfig            | `PATCH /:id` - Update a resource (inherited by `replace`).                                                                                                                                                                                                                             |
+| `replace`      | RouteConfig            | `PUT /:id` - Replace a resource (inherits `update`).                                                                                                                                                                                                                                   |
+| `delete`       | RouteConfig            | `DELETE /:id` - Delete a resource.                                                                                                                                                                                                                                                     |
+| `export`       | RouteConfig            | `POST /export` - Export resources to CSV.                                                                                                                                                                                                                                              |
+| `fileUpload`   | RouteConfig            | `POST /:id/files` - Upload files to a resource.                                                                                                                                                                                                                                        |
+| `fileDelete`   | RouteConfig            | `POST /:id/delete-files` - Delete files from a resource.                                                                                                                                                                                                                               |
+| `seriesWrite`  | SeriesWriteRouteConfig | `POST /:id/series`, `POST /series` - Write time series points ([timeseries.md](./timeseries.md)).                                                                                                                                                                                      |
+| `seriesQuery`  | RouteConfig            | `GET /:id/series`, `POST /series/query` - Query time series points.                                                                                                                                                                                                                    |
+| `seriesDelete` | RouteConfig            | `POST /:id/delete-series` - Delete the time series points of a range.                                                                                                                                                                                                                  |
+| `bulkCreate`   | BulkRouteConfig        | `POST /bulk` - Create many (disabled by default).                                                                                                                                                                                                                                      |
+| `bulkUpdate`   | BulkRouteConfig        | `PATCH /bulk` - Update many (disabled by default).                                                                                                                                                                                                                                     |
+| `bulkReplace`  | BulkRouteConfig        | `PUT /bulk` - Replace many (enabled along with `bulkUpdate`).                                                                                                                                                                                                                          |
+| `bulkDelete`   | BulkRouteConfig        | `DELETE /bulk` - Delete many (disabled by default).                                                                                                                                                                                                                                    |
+| `events`       | ResourceEventsConfig   | The `create`, `update` and `delete` events exposed to the realtime connections (`{ actions, public?, roles?, permissions? }`, an action as an object `{ action, public?, roles?, permissions? }` with its own access), none unless set ([realtime.md](./realtime.md#resource-events)). |
+| `mcp`          | ResourceMcpConfig      | The actions exposed as tools of the MCP server of `@appweaver/mcp` (`{ actions, description?, exclude?, maxLimit?, public?, roles?, permissions? }`, `update` and `delete` only with `mcp.destructiveEnabled`), none unless set ([mcp.md](./mcp.md)).                                  |
 
 ### Route defaults
 
@@ -1539,11 +1558,11 @@ export default createRoutes({
 
 Extends RouteConfig with caching options (the global TTL and invalidation strategy are in [cache.md](./cache.md)):
 
-| Property                | Type               | Default | Description                                                    |
-|-------------------------|--------------------|---------|----------------------------------------------------------------|
-| `cache`                 | boolean            | `false` | Enable response caching.                                       |
-| `cacheTTL`              | number             | -       | Cache TTL in milliseconds (overrides global default).          |
-| `cacheSkipInvalidation` | boolean            | `false` | Skip automatic cache invalidation on writes.                   |
+| Property                | Type    | Default | Description                                           |
+|-------------------------|---------|---------|-------------------------------------------------------|
+| `cache`                 | boolean | `false` | Enable response caching.                              |
+| `cacheTTL`              | number  | -       | Cache TTL in milliseconds (overrides global default). |
+| `cacheSkipInvalidation` | boolean | `false` | Skip automatic cache invalidation on writes.          |
 
 The cache key of a resource route is built from the model, the route, the request and the user, so the
 invalidation of the model's writes reaches it. A custom `cacheKey`, with `cacheModelName` and `cacheRelations`, is an
@@ -1683,13 +1702,13 @@ function createPolicy(config: ResourcePolicyConfig, override ?: Partial<Resource
 }
 ```
 
-| Property            | Type                                  | Description                                                                                                               |
-|---------------------|---------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| `modelName`         | string                                | Model name to bind this policy to (required).                                                                             |
-| `checkAccess`       | `(user, resource, action) => boolean` | Dynamic access check against a resource instance. Return `true` to allow, `false` to deny.                                |
-| `readRestrictions`  | `(user, resource, action) => filter`  | Returns a Prisma filter object applied to all read queries (find, query, aggregate). Restricts which records are visible. |
-| `writeRestrictions` | `(user, resource, action) => data`    | Returns data to merge or validate on create/update operations.                                                            |
-| `files`             | Record\<string, FilePolicy>           | Per-file field access policy.                                                                                             |
+| Property            | Type                                  | Description                                                                                                                                                                                                                   |
+|---------------------|---------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `modelName`         | string                                | Model name to bind this policy to (required).                                                                                                                                                                                 |
+| `checkAccess`       | `(user, resource, action) => boolean` | Dynamic access check against a resource instance. Return `true` to allow, `false` to deny.                                                                                                                                    |
+| `readRestrictions`  | `(user, resource, action) => filter`  | Returns a Prisma filter object applied to all read queries (find, query, aggregate). Restricts which records are visible.                                                                                                     |
+| `writeRestrictions` | `(user, resource, action) => data`    | Returns data to merge or validate on create/update operations.                                                                                                                                                                |
+| `files`             | Record\<string, FilePolicy>           | Per-file field access policy.                                                                                                                                                                                                 |
 | `events`            | `(user, event) => boolean`            | Returns `false` to keep a resource event from the realtime connection of a user, replacing the default `checkAccess` of a `find` and the matching of the `readRestrictions` ([realtime.md](./realtime.md#the-events-policy)). |
 
 **Action types**: `'find'`, `'query'`, `'aggregate'`, `'create'`, `'update'`, `'delete'`
@@ -1760,24 +1779,24 @@ registerRoute(
 
 ### Config options
 
-| Property                | Type                     | Description                                 |
-|-------------------------|--------------------------|---------------------------------------------|
-| `exclude`               | boolean                  | Skip registration of this route.            |
-| `public`                | boolean                  | No authentication required.                 |
-| `roles`                 | string[]                 | Required roles.                             |
-| `permissions`           | string[]                 | Required permissions.                       |
-| `auth`                  | AuthType[]               | Allowed authentication types.               |
-| `rateLimit`             | RateLimitConfig \| false | Rate limiting configuration.                |
-| `recaptcha`             | boolean                  | Require reCAPTCHA verification.             |
-| `recaptchaAction`       | string                   | Expected reCAPTCHA action.                  |
-| `turnstile`             | boolean                  | Require Cloudflare Turnstile verification.  |
-| `turnstileAction`       | string                   | Expected Turnstile action.                  |
-| `cache`                 | boolean                  | Enable response caching.                    |
-| `cacheKey`              | string \| function       | Custom cache key.                           |
-| `cacheTTL`              | number                   | Cache TTL in milliseconds.                  |
-| `cacheSkipInvalidation` | boolean                  | Skip automatic cache invalidation.          |
-| `cacheModelName`        | string                   | Model name for cache invalidation tracking. |
-| `cacheRelations`        | string[]                 | Related model names for cache invalidation. |
+| Property                | Type                     | Description                                                                                            |
+|-------------------------|--------------------------|--------------------------------------------------------------------------------------------------------|
+| `exclude`               | boolean                  | Skip registration of this route.                                                                       |
+| `public`                | boolean                  | No authentication required.                                                                            |
+| `roles`                 | string[]                 | Required roles.                                                                                        |
+| `permissions`           | string[]                 | Required permissions.                                                                                  |
+| `auth`                  | AuthType[]               | Allowed authentication types.                                                                          |
+| `rateLimit`             | RateLimitConfig \| false | Rate limiting configuration.                                                                           |
+| `recaptcha`             | boolean                  | Require reCAPTCHA verification.                                                                        |
+| `recaptchaAction`       | string                   | Expected reCAPTCHA action.                                                                             |
+| `turnstile`             | boolean                  | Require Cloudflare Turnstile verification.                                                             |
+| `turnstileAction`       | string                   | Expected Turnstile action.                                                                             |
+| `cache`                 | boolean                  | Enable response caching.                                                                               |
+| `cacheKey`              | string \| function       | Custom cache key.                                                                                      |
+| `cacheTTL`              | number                   | Cache TTL in milliseconds.                                                                             |
+| `cacheSkipInvalidation` | boolean                  | Skip automatic cache invalidation.                                                                     |
+| `cacheModelName`        | string                   | Model name for cache invalidation tracking.                                                            |
+| `cacheRelations`        | string[]                 | Related model names for cache invalidation.                                                            |
 | `apiPrefix`             | boolean                  | Register under `server.apiPrefix` (`true`), or at the root (`false`, like the auth and health routes). |
 
 The error codes a custom route responds with are listed in its `errorResponses`, see

@@ -406,6 +406,10 @@ A relation holding the foreign key of a one-to-many relation is declared with `t
 and the model it points at lists the inverse side with `type: 'oneToMany'`. The `omit` and `pick` lists of `read`,
 `create`, and `update` only accept the fields the model declares, its `id`, and its audit fields.
 
+A field to hide everywhere is `hidden`. One to hide only where a relation shows it, i.e. the email of the author of a
+public post, goes into the `omit` of that relation's `output` (`output: { type: 'always', omit: ['email'] }`), which
+leaves it out of the routes, the MCP tools and the realtime events while the related model's own routes keep it.
+
 Index entries are field names, nested in an array for a composite index. Prefix a name with `-` for a descending index
 or `+` for an ascending one; without a prefix, the database default order is used:
 
