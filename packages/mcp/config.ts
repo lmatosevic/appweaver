@@ -29,3 +29,14 @@ export const mcpConfig = defineConfig('mcp', {
   /** Log every tool call at the info level: the user, the tool, the duration and the outcome. Default: `true`. */
   LOG_CALLS: Type.Boolean({ default: true })
 });
+
+export const mcpOAuth2Config = defineConfig('mcp.oauth2', {
+  /** Let the MCP clients sign their users in with OAuth 2.1: the endpoint answers `401` with the URL of its protected
+   * resource metadata, and the application is the authorization server, registering the clients dynamically and
+   * signing the users in with the OAuth2 providers of `security.oauth2`. Default: `false`. */
+  ENABLED: Type.Boolean({ default: false }),
+  /** Path of the authorization, token and registration endpoints. Default: `'/oauth'`. */
+  ROUTE_PREFIX: Type.String({ default: '/oauth' }),
+  /** The OAuth2 providers offered to sign in, by name (`google`, `github`, ...). Default: every enabled one. */
+  PROVIDERS: Type.Array(Type.String(), { default: [] })
+});

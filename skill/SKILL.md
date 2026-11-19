@@ -995,7 +995,8 @@ createMcpTool({
 });
 ```
 
-See [mcp.md](references/mcp.md).
+`mcp.oauth2.enabled` lets the MCP clients sign their users in by themselves (OAuth discovery, dynamic client
+registration, PKCE), through the OAuth2 providers of `security.oauth2`. See [mcp.md](references/mcp.md).
 
 ### Registering a custom model
 

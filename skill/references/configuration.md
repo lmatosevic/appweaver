@@ -900,6 +900,9 @@ The MCP server of `@appweaver/mcp` ([mcp.md](./mcp.md)).
 | `MCP_MAX_RESULT_SIZE`     | string   | `'256KB'`            | The maximum size of a tool result.                                                                   |
 | `MCP_ALLOWED_ORIGINS`     | string[] | `[]`                 | Browser origins allowed to call the endpoint (`*` for any); requests without `Origin` always pass.   |
 | `MCP_LOG_CALLS`           | boolean  | `true`               | Log every tool call at the info level.                                                               |
+| `MCP_OAUTH2_ENABLED`      | boolean  | `false`              | Make the application the OAuth 2.1 authorization server of the MCP clients (discovery, DCR, PKCE).   |
+| `MCP_OAUTH2_ROUTE_PREFIX` | string   | `'/oauth'`           | Path of the authorization, token and registration endpoints.                                         |
+| `MCP_OAUTH2_PROVIDERS`    | string[] | `[]`                 | The `security.oauth2` providers offered to sign in (`google`, `github`, ...), every enabled one by default. |
 
 ### AI (AI\_\*)
 

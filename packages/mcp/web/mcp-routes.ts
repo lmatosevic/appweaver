@@ -4,17 +4,22 @@ import { AuthError, AuthType, ErrorCode, McpError } from '@appweaver/common';
 import { currentAuthUser } from '@appweaver/core';
 import { apiKeyConfig } from '@appweaver/data/config';
 import { authErrorCodes, registerRoute, Router } from '@appweaver/web';
-import { mcpConfig } from '../config';
+import { mcpConfig, mcpOAuth2Config } from '../config';
+import { resourceMetadataUrl } from '../oauth/oauth-util';
 import { handleMcpMessage } from '../server/mcp-server';
+import { registerOAuthRoutes } from './oauth-routes';
 
 /**
  * Registers the MCP endpoint, the Streamable HTTP transport without sessions: a `POST` of a JSON-RPC message answered
  * with its JSON response, `202` for a notification. The server opens no stream, so `GET` and `DELETE` answer `405`.
+ * With `mcp.oauth2.enabled`, also the OAuth endpoints of the MCP clients, and a `401` names the protected resource
+ * metadata in its `WWW-Authenticate` header.
  */
 export function registerMcpRoutes(): void {
   if (!mcpConfig.ENABLED) {
     return;
   }
+  registerOAuthRoutes();
   const path = `/${mcpConfig.ROUTE_PREFIX.replace(/^\/+|\/+$/g, '')}`;
   const notAllowed = async (_: FastifyRequest, reply: FastifyReply) =>
     reply.code(405).header('allow', 'POST').send();
@@ -35,6 +40,7 @@ export function registerMcpRoutes(): void {
             response: { 200: Type.Unknown(), 202: Type.Null() }
           },
           onRequest: [checkOrigin, optionalAuthentication],
+          onSend: challenge,
           config: {
             errorCodes: [...authErrorCodes(), ErrorCode.McpOriginDenied]
           }
@@ -63,6 +69,21 @@ export function registerMcpRoutes(): void {
     },
     { public: true, apiPrefix: false }
   );
+}
+
+/** Points an unauthenticated client to the protected resource metadata, where it finds the authorization server. */
+async function challenge(
+  _: FastifyRequest,
+  reply: FastifyReply,
+  payload: unknown
+): Promise<unknown> {
+  if (reply.statusCode === 401 && mcpOAuth2Config.ENABLED) {
+    reply.header(
+      'www-authenticate',
+      `Bearer resource_metadata="${resourceMetadataUrl()}"`
+    );
+  }
+  return payload;
 }
 
 /** Refuses a browser of an origin not allowed, against the DNS rebinding of a local server. */

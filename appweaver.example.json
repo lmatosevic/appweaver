@@ -413,7 +413,12 @@
       "maxLimit": 50,
       "maxResultSize": "256KB",
       "allowedOrigins": [],
-      "logCalls": true
+      "logCalls": true,
+      "oauth2": {
+        "enabled": false,
+        "routePrefix": "/oauth",
+        "providers": []
+      }
     },
     "ai": {
       "endpoints": {
