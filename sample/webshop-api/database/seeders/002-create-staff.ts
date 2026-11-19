@@ -23,7 +23,7 @@ export async function createStaff(): Promise<void> {
   const apiKey = await db.apiKey.create({
     data: {
       name: 'Warehouse integration',
-      key: `...${secret.slice(-6)}`,
+      key: `${secret.slice(0, 4)}...${secret.slice(-4)}`,
       keyHash: makeHash(secret),
       userId: warehouse.id
     }

@@ -40,7 +40,9 @@ export default apiKeyConfig.ENABLED
       },
       afterCreate: async (data: ApiKey) => {
         const service = injectService('ApiKey');
-        await service.update(data.id, { key: `...${data.key.slice(-6)}` });
+        await service.update(data.id, {
+          key: `${data.key.slice(0, 4)}...${data.key.slice(-4)}`
+        });
         data.key = `${data.id}${apiKeyConfig.DELIMITER}${data.key}`;
       }
     })

@@ -150,7 +150,7 @@ API keys provide long-lived, per-user credentials for programmatic access.
 1. A user signed in with a JWT creates an API key via the CRUD endpoints of `/api-keys`
 2. The server generates a 64-character random secret of letters and digits and stores its SHA256 hash
 3. The full key is returned once as `{id}{delimiter}{secret}` (e.g. `42AKa1b2c3d4...`)
-4. Subsequent reads show only a masked version: `{id}...{last6chars}`
+4. Subsequent reads show only a masked version of the secret, its first and last 4 characters: `a1b2...e5f6`
 5. On each request, the server extracts the key from the header, parses `id` and `secret`, hashes the secret, and
    compares against the stored hash
 
@@ -167,7 +167,7 @@ Default delimiter is `AK`, so a key looks like: `42AKa1b2c3d4e5f6...`
 | Field         | Type          | Description                                          |
 |---------------|---------------|------------------------------------------------------|
 | `id`          | int           | Auto-generated ID.                                   |
-| `key`         | string        | 64-char secret (shown only at creation).             |
+| `key`         | string        | Whole at creation only, then masked (`a1b2...e5f6`). |
 | `keyHash`     | string        | SHA256 hash of the key (stored, hidden from API).    |
 | `name`        | string?       | Optional friendly name.                              |
 | `description` | string?       | Optional description.                                |

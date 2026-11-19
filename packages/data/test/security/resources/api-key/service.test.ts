@@ -16,7 +16,7 @@ async function loadService() {
   const Service = (
     await import('../../../../security/resources/api-key/service')
   ).default as any;
-  return { hooks: Service[common.CONFIG], runAs: core.runAs };
+  return { hooks: Service[common.CONFIG], runAs: core.runAs, context };
 }
 
 const owner = {
@@ -83,6 +83,21 @@ describe('api-key service', () => {
       const { hooks } = await loadService();
 
       expect(() => hooks.beforeUpdate(5, { permissions: [21] })).not.toThrow();
+    });
+  });
+
+  describe('afterCreate', () => {
+    test('stores the key masked, and returns it whole with its id', async () => {
+      const { hooks, context } = await loadService();
+      const update = jest.fn(async () => ({}));
+      context.resource.services.set('ApiKey', { update } as any);
+      const secret = 'abcd' + 'x'.repeat(56) + 'wxyz';
+      const data: any = { id: 42, key: secret };
+
+      await hooks.afterCreate(data);
+
+      expect(update).toHaveBeenCalledWith(42, { key: 'abcd...wxyz' });
+      expect(data.key).toBe(`42AK${secret}`);
     });
   });
 });

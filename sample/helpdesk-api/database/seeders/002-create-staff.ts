@@ -61,7 +61,7 @@ export async function createStaff(): Promise<string> {
   const apiKey = await db.apiKey.create({
     data: {
       name: 'Status page integration',
-      key: `...${secret.slice(-6)}`,
+      key: `${secret.slice(0, 4)}...${secret.slice(-4)}`,
       keyHash: makeHash(secret),
       userId: statusPage.id
     }
