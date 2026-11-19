@@ -7,7 +7,7 @@ import { context } from '@appweaver/core/internal';
 import { createModel } from '@appweaver/data';
 import { createMcpClient, linkModels } from '@appweaver/testing';
 import { errorHandler, Server, stashErrorResponses } from '@appweaver/web';
-import { ResourceMcpConfig } from '@appweaver/common';
+import { ResourceMcpConfig, ResourceRoutesConfig } from '@appweaver/common';
 import { registerMcpRoutes } from '../../web/mcp-routes';
 
 export const user = { id: 1, email: 'user@test.com', enabled: true, roles: [] };
@@ -29,7 +29,10 @@ export const post = {
 };
 
 /** Defines the Post model, its routes exposing the given MCP config, and a stub of its service. */
-export function usePosts(mcp?: ResourceMcpConfig) {
+export function usePosts(
+  mcp?: ResourceMcpConfig,
+  routes: Partial<ResourceRoutesConfig> = {}
+) {
   createModel({
     name: 'Post',
     scalars: {
@@ -47,7 +50,7 @@ export function usePosts(mcp?: ResourceMcpConfig) {
   } as any);
   linkModels();
   context.resource.routes.set('Post', {
-    config: { modelName: 'Post', mcp },
+    config: { modelName: 'Post', ...routes, mcp },
     basePath: 'posts',
     handler: () => {}
   });

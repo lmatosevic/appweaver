@@ -161,10 +161,11 @@ export type ResourceMcpActionConfig = RealtimeAccess & {
   description?: string;
 };
 
-/** The actions of a model exposed as the tools of the MCP server of `@appweaver/mcp`. */
+/** The actions of a model exposed as the tools of the MCP server of `@appweaver/mcp`. The access of an action
+ * (`public`, `roles`, `permissions`) is the one of its object, else of the `mcp` config, else of its API route. */
 export type ResourceMcpConfig = RealtimeAccess & {
-  /** The exposed actions, each with the access of the `mcp` config, or an object with its own. `update` and
-   * `delete` are destructive, exposed only with `mcp.destructiveEnabled` */
+  /** The exposed actions, or objects with their own access and description. `update` and `delete` are
+   * destructive, exposed only with `mcp.destructiveEnabled` */
   actions: (ResourceMcpAction | ResourceMcpActionConfig)[];
   /** What the resource is, added to the descriptions of its tools */
   description?: string;

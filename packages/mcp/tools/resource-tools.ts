@@ -6,6 +6,8 @@ import {
   ResourceMcpAction,
   ResourceMcpConfig,
   ResourceModel,
+  ResourceRoutesConfig,
+  RouteConfig,
   StringEnum
 } from '@appweaver/common';
 import { injectModel, injectService } from '@appweaver/core';
@@ -15,6 +17,7 @@ import { mcpConfig } from '../config';
 import { McpTool } from '../types';
 
 const NUMERIC_TYPES = new Set(['int', 'bigInt', 'float']);
+const ACCESS_KEYS = ['public', 'roles', 'permissions'] as const;
 
 /** The operators of a field condition of the query tools, a subset of the full filter. */
 const STRING_OPERATORS = ['_contains', '_starts', '_ends', '_ilike'];
@@ -34,32 +37,40 @@ export function resourceTools(): McpTool[] {
     if (!config || !model) {
       continue;
     }
-    for (const [action, { access, description }] of mcpActions(config)) {
+    for (const [action, { access, description }] of mcpActions(routes.config)) {
       tools.push(resourceTool(model, config, action, access, description));
     }
   }
   return tools;
 }
 
-/** The exposed actions of a resource, each with its access and description. */
+/**
+ * The exposed actions of a resource, each with its description and the access of the first of these setting any of
+ * `public`, `roles` and `permissions`: the action in the `mcp` config, the `mcp` config, then the API route of the
+ * action (its own config, else the `defaults` of the routes, like the route itself).
+ */
 function mcpActions(
-  config: ResourceMcpConfig
+  routes: ResourceRoutesConfig
 ): Map<ResourceMcpAction, { access: RealtimeAccess; description?: string }> {
-  const defaults = accessOf(config);
+  const config = routes.mcp!;
   const actions = new Map<
     ResourceMcpAction,
     { access: RealtimeAccess; description?: string }
   >();
   for (const entry of config.actions) {
-    if (typeof entry === 'string') {
-      actions.set(entry, { access: defaults });
-    } else {
-      const own = accessOf(entry);
-      actions.set(entry.action, {
-        access: Object.keys(own).length ? own : defaults,
-        description: entry.description
-      });
-    }
+    const action = typeof entry === 'string' ? entry : entry.action;
+    const route: RouteConfig = routes[action] ?? {};
+    const access = [
+      typeof entry === 'string' ? {} : accessOf(entry),
+      accessOf(config),
+      ACCESS_KEYS.some((key) => route[key] !== undefined) || route.auth
+        ? accessOf(route)
+        : accessOf(routes.defaults ?? {})
+    ].find((candidate) => Object.keys(candidate).length);
+    actions.set(action, {
+      access: access ?? {},
+      description: typeof entry === 'string' ? undefined : entry.description
+    });
   }
   return actions;
 }
@@ -298,7 +309,7 @@ function aggregateSchema(fields: [string, TSchema][]): TObject {
 
 function accessOf(config: RealtimeAccess): RealtimeAccess {
   const access: RealtimeAccess = {};
-  for (const key of ['public', 'roles', 'permissions'] as const) {
+  for (const key of ACCESS_KEYS) {
     if (config[key] !== undefined) {
       (access as Record<string, unknown>)[key] = config[key];
     }

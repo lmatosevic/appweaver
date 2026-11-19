@@ -66,6 +66,50 @@ describe('resource-tools', () => {
       expect(remove.access).toEqual({ roles: ['editor'] });
     });
 
+    test('takes the access of the API route of an action when the mcp config sets none', () => {
+      usePosts(
+        {
+          actions: [
+            'find',
+            'query',
+            'create',
+            'update',
+            { action: 'delete', permissions: ['post:purge'] }
+          ]
+        },
+        {
+          defaults: { roles: ['editor'] },
+          find: { public: true, exclude: true },
+          create: { auth: ['apiKey'] },
+          update: { roles: ['admin'], permissions: ['post:edit'] },
+          delete: { roles: ['admin'] }
+        }
+      );
+
+      expect(resourceTools().map((t) => [t.name, t.access])).toEqual([
+        ['post_find', { public: true }],
+        ['post_query', { roles: ['editor'] }],
+        ['post_create', {}],
+        ['post_update', { roles: ['admin'], permissions: ['post:edit'] }],
+        ['post_delete', { permissions: ['post:purge'] }]
+      ]);
+    });
+
+    test('overrides the access of the API routes with the one of the mcp config', () => {
+      usePosts(
+        {
+          public: true,
+          actions: ['find', { action: 'query', roles: ['agent'] }]
+        },
+        { defaults: { roles: ['editor'] }, find: { roles: ['admin'] } }
+      );
+
+      expect(resourceTools().map((t) => t.access)).toEqual([
+        { public: true },
+        { roles: ['agent'] }
+      ]);
+    });
+
     test('finds a record, projected without the hidden and the excluded fields', async () => {
       const service = usePosts({ actions: ['find'], exclude: ['views'] });
 

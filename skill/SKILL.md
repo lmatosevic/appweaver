@@ -985,7 +985,7 @@ exposed unless declared: resource actions with the `mcp` key of `createRoutes`, 
 `update`, `delete` and tools marked `destructive` also need `mcp.destructiveEnabled`:
 
 ```ts
-createRoutes({ modelName: 'post', mcp: { actions: ['find', 'query', 'create'], roles: ['editor'], exclude: ['note'] } });
+createRoutes({ modelName: 'post', mcp: { actions: ['find', 'query', 'create'], exclude: ['note'] } }); // the access of the API routes
 createMcpTool({
   name: 'refundOrder',
   input: Type.Object({ orderId: Type.Integer() }),

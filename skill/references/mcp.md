@@ -29,15 +29,21 @@ Opt a model in with the `mcp` key of `createRoutes`, like `events`:
 ```ts
 export default createRoutes({
   modelName: 'post',
+  defaults: { roles: ['editor'] },           // the API routes, and the tools by default
+  delete: { roles: ['admin'] },
   mcp: {
     description: 'The articles of the blog.',
-    roles: ['editor'],                       // default access, also public and permissions
-    actions: ['find', 'query', 'aggregate', 'create', { action: 'delete', roles: ['admin'] }],
+    actions: ['find', 'query', 'aggregate', 'create', 'delete'],
     exclude: ['internalNote'],               // fields left out of the results, filters and sorts
     maxLimit: 20                             // default: mcp.maxLimit
   }
 });
 ```
+
+A tool has the access of its API route (`public`, `roles`, `permissions`, from the route or the `defaults`), so the
+agents of a user can do what the user can do through the API. The `mcp` config overrides it for every action
+(`mcp: { public: true, ... }`) or for one (`{ action: 'delete', roles: ['admin'] }`), the action first. The API route
+may be excluded, the tool still runs.
 
 | Tool             | Arguments                                                     | Kind        |
 |------------------|---------------------------------------------------------------|-------------|
