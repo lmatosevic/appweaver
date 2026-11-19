@@ -63,13 +63,13 @@
     "fastify-plugin": "6.0.0"
   },
   "peerDependencies": {
-    "@appweaver/common": "^1.12.2",
-    "@appweaver/core": "^1.12.2",
-    "@appweaver/data": "^1.12.2"
+    "@appweaver/common": "^2.8.0",
+    "@appweaver/core": "^2.8.0",
+    "@appweaver/data": "^2.8.0"
   },
   "devDependencies": {
-    "@appweaver/common": "^1.12.2",
-    "@appweaver/core": "^1.12.2",
-    "@appweaver/data": "^1.12.2"
+    "@appweaver/common": "^2.8.0",
+    "@appweaver/core": "^2.8.0",
+    "@appweaver/data": "^2.8.0"
   }
 }

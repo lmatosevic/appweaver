@@ -36,9 +36,9 @@
     "node": ">= 24.7"
   },
   "peerDependencies": {
-    "@appweaver/ai": "^1.12.2",
-    "@appweaver/common": "^1.12.2",
-    "@appweaver/core": "^1.12.2"
+    "@appweaver/ai": "^2.8.0",
+    "@appweaver/common": "^2.8.0",
+    "@appweaver/core": "^2.8.0"
   },
   "peerDependenciesMeta": {
     "@appweaver/ai": {
@@ -46,9 +46,9 @@
     }
   },
   "devDependencies": {
-    "@appweaver/ai": "^1.12.2",
-    "@appweaver/common": "^1.12.2",
-    "@appweaver/core": "^1.12.2"
+    "@appweaver/ai": "^2.8.0",
+    "@appweaver/common": "^2.8.0",
+    "@appweaver/core": "^2.8.0"
   },
   "dependencies": {
     "@opentelemetry/api": "1.10.0",
