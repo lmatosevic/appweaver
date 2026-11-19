@@ -413,7 +413,16 @@
       "maxLimit": 50,
       "maxResultSize": "256KB",
       "allowedOrigins": [],
-      "logCalls": true
+      "logCalls": true,
+      "cache": {
+        "enabled": false,
+        "ttl": 5000
+      },
+      "rateLimit": {
+        "enabled": false,
+        "max": 60,
+        "window": 60000
+      }
     },
     "ai": {
       "endpoints": {

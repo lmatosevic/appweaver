@@ -3,8 +3,11 @@ import {
   AiError,
   configOverrides,
   createLogger,
-  ErrorCode
+  ErrorCode,
+  Memory
 } from '@appweaver/common';
+import { define } from '@appweaver/core';
+import { InMemory } from '@appweaver/core/drivers';
 import {
   recordTelemetry,
   resetContext,
@@ -113,6 +116,22 @@ describe('mcp-server', () => {
       ).resolves.toMatchObject({ error: { code: -32602 } });
       await expect(call('admin', {}, admin)).resolves.toMatchObject({
         structuredContent: { result: 1 }
+      });
+    });
+
+    test('answers a call past the rate limit of the user with its error', async () => {
+      define(new InMemory(), Memory);
+      configOverrides.MCP_RATE_LIMIT_ENABLED = true;
+      configOverrides.MCP_RATE_LIMIT_MAX = 1;
+      createMcpTool({ name: 'limited', handler: () => 1 });
+
+      await expect(call('limited')).resolves.not.toHaveProperty('isError');
+      const limited = await call('limited');
+
+      expect(limited.isError).toBe(true);
+      expect(JSON.parse(limited.content[0].text)).toMatchObject({
+        code: ErrorCode.McpRateLimited,
+        details: { limit: 1 }
       });
     });
 

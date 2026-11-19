@@ -29,3 +29,21 @@ export const mcpConfig = defineConfig('mcp', {
   /** Log every tool call at the info level: the user, the tool, the duration and the outcome. Default: `true`. */
   LOG_CALLS: Type.Boolean({ default: true })
 });
+
+export const mcpCacheConfig = defineConfig('mcp.cache', {
+  /** Cache the results of the read-only tools: the `find`, `query` and `aggregate` resource actions, evicted when
+   * their models change, and the custom tools setting `cache`. Requires `cache.enabled`. Default: `false`. */
+  ENABLED: Type.Boolean({ default: false }),
+  /** Time-to-live of a cached result in milliseconds, unless the tool sets its own. Default: `5000` (5 sec). */
+  TTL: Type.Integer({ default: 5000, minimum: 1 })
+});
+
+export const mcpRateLimitConfig = defineConfig('mcp.rateLimit', {
+  /** Limit the tool calls of each authenticated user, counted in the `Memory` provider, so shared by the instances
+   * with `redis`. The anonymous calls are left to the rate limit of the server. Default: `false`. */
+  ENABLED: Type.Boolean({ default: false }),
+  /** Maximum tool calls of a user per window. Default: `60`. */
+  MAX: Type.Integer({ default: 60, minimum: 1 }),
+  /** The window in milliseconds. Default: `60000` (1 min). */
+  WINDOW: Type.Integer({ default: 60000, minimum: 1 })
+});

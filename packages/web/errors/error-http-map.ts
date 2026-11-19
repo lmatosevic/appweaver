@@ -406,6 +406,7 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     status: 413,
     title: 'MCP tool result too large'
   },
+  [ErrorCode.McpRateLimited]: { status: 429, title: 'MCP rate limit exceeded' },
 
   [ErrorCode.TimeSeriesNotEnabled]: {
     status: 404,

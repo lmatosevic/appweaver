@@ -202,7 +202,8 @@ export enum ErrorCode {
   // MCP
   McpOriginDenied = 'MCP_ORIGIN_DENIED',
   McpInputInvalid = 'MCP_INPUT_INVALID',
-  McpResultTooLarge = 'MCP_RESULT_TOO_LARGE'
+  McpResultTooLarge = 'MCP_RESULT_TOO_LARGE',
+  McpRateLimited = 'MCP_RATE_LIMITED'
 }
 
 /** The error codes starting with the prefix of a module, i.e. `'RESOURCE'`. */

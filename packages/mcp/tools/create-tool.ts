@@ -32,6 +32,11 @@ export type McpToolConfig<I extends TSchema = TSchema> = RealtimeAccess & {
   readOnly?: boolean;
   /** May change or delete existing data, exposed only with `mcp.destructiveEnabled`. Default: `false` */
   destructive?: boolean;
+  /** Cache the results of a read-only tool per user and arguments with `mcp.cache.enabled`: `true` for
+   * `mcp.cache.ttl`, or the time-to-live in milliseconds. Default: `false` */
+  cache?: boolean | number;
+  /** The models whose changes evict the cached results, which otherwise only expire */
+  cacheRelations?: string[];
   /** Runs the tool as the user of the request */
   handler?: (args: Static<I>, context: McpToolContext) => unknown;
   /** Runs the tool, as an AI tool of `createAiTool` names it */
@@ -55,7 +60,8 @@ export type McpToolConfig<I extends TSchema = TSchema> = RealtimeAccess & {
  *
  * @param {McpToolConfig} config - The tool.
  * @return {McpTool} The tool.
- * @throws {ConfigurationError} `CONFIGURATION_INVALID` for an invalid or taken name, or a tool without a handler.
+ * @throws {ConfigurationError} `CONFIGURATION_INVALID` for an invalid or taken name, a tool without a handler, or a
+ * cached tool not read-only.
  */
 export function createMcpTool<I extends TSchema = TSchema>(
   config: McpToolConfig<I>
@@ -66,6 +72,12 @@ export function createMcpTool<I extends TSchema = TSchema>(
     throw new ConfigurationError(
       ErrorCode.ConfigurationInvalid,
       `Invalid MCP tool '${name}': a name of up to 64 letters, digits, '_', '-' and '.', and a handler`
+    );
+  }
+  if (config.cache && !config.readOnly) {
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      `MCP tool '${name}' caches its results, so must be readOnly`
     );
   }
   if (findMcpTool(name)) {
@@ -83,7 +95,13 @@ export function createMcpTool<I extends TSchema = TSchema>(
     readOnly: config.readOnly ?? false,
     destructive: config.destructive ?? false,
     access: { public: isPublic, roles, permissions },
-    call: handler
+    call: handler,
+    cache: config.cache
+      ? {
+          ttl: typeof config.cache === 'number' ? config.cache : undefined,
+          relations: config.cacheRelations
+        }
+      : undefined
   };
   // Wrapped in an object, since the context would instantiate a function
   define({ tool }, MCP_TOOL, 'append');

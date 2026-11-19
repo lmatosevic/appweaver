@@ -17,6 +17,8 @@ import { resourceTools } from '../tools/resource-tools';
 import { McpTool } from '../types';
 import { toJsonSchema } from '../utils/schema-util';
 import { traceToolCall } from '../utils/telemetry';
+import { checkRateLimit } from './rate-limit';
+import { findCachedResult, storeCachedResult } from './tool-cache';
 
 const logger = createLogger('mcp');
 
@@ -52,6 +54,9 @@ const INVALID_PARAMS = -32602;
 
 /** The warnings already logged, each logged once. */
 const logged = new Set<string>();
+
+/** The description of each tool, built once. */
+const descriptions = new WeakMap<McpTool, object>();
 
 /**
  * Handles a JSON-RPC message of an MCP client as the user of the request: `initialize`, `ping`, `tools/list` and
@@ -153,7 +158,16 @@ function initialize(requested: unknown) {
   };
 }
 
-function describeTool(tool: McpTool) {
+function describeTool(tool: McpTool): object {
+  let description = descriptions.get(tool);
+  if (!description) {
+    description = buildDescription(tool);
+    descriptions.set(tool, description);
+  }
+  return description;
+}
+
+function buildDescription(tool: McpTool): object {
   return {
     name: tool.name,
     ...(tool.title ? { title: tool.title } : {}),
@@ -176,7 +190,9 @@ async function callTool(
 ): Promise<McpToolResult> {
   const started = performance.now();
   let outcome: McpToolResult;
+  let cached = false;
   try {
+    await checkRateLimit(user);
     // TypeBox fails every format it has not registered, i.e. a date-time
     registerSchemaFormats();
     const args = Value.Convert(
@@ -193,10 +209,19 @@ async function callTool(
         { tool: tool.name, errors }
       );
     }
-    const value = await traceToolCall(tool.name, () =>
-      tool.call(args, { user, signal })
-    );
-    outcome = toResult(tool, value);
+    const lookup = await findCachedResult<McpToolResult>(tool, args, user);
+    if (lookup?.value) {
+      cached = true;
+      outcome = lookup.value;
+    } else {
+      const value = await traceToolCall(tool.name, () =>
+        tool.call(args, { user, signal })
+      );
+      outcome = toResult(tool, value);
+      if (lookup) {
+        await storeCachedResult(lookup, outcome);
+      }
+    }
   } catch (e) {
     outcome = errorResult(tool, e);
   }
@@ -206,7 +231,8 @@ async function callTool(
         tool: tool.name,
         userId: user?.id ?? null,
         durationMs: Math.round(performance.now() - started),
-        isError: outcome.isError ?? false
+        isError: outcome.isError ?? false,
+        ...(cached ? { cached } : {})
       },
       'MCP tool called'
     );

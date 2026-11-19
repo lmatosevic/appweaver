@@ -35,7 +35,8 @@ export default createRoutes({
     description: 'The articles of the blog.',
     actions: ['find', 'query', 'aggregate', 'create', 'delete'],
     exclude: ['internalNote'],               // fields left out of the results, filters and sorts
-    maxLimit: 20                             // default: mcp.maxLimit
+    maxLimit: 20,                            // default: mcp.maxLimit
+    cache: 10_000                            // with mcp.cache.enabled: false, or the TTL in ms (default mcp.cache.ttl)
   }
 });
 ```
@@ -85,6 +86,32 @@ createMcpTool({ ...getOrder, roles: ['support'] }); // an AI tool of createAiToo
 The arguments are validated against `input` (defaults filled in) before the handler runs. A text result is returned
 as text, any other value as JSON text and `structuredContent` (an array or a scalar as `{ result }`).
 
+## Caching
+
+With `mcp.cache.enabled: true` (default `false`, and `cache.enabled`), the results of the read-only tools are kept in
+the `Cache` for `mcp.cache.ttl` ms (default `5000`), per tool, arguments and user, only the successful ones:
+
+- the `find`, `query` and `aggregate` resource tools, evicted like the cached API routes when their model or a model
+  they include changes; `cache: false` in the `mcp` config of a resource leaves them out, a number sets their TTL
+- the custom tools with `readOnly: true` and `cache: true` (or the TTL in ms), evicted on a change of the models of
+  `cacheRelations`, otherwise only expiring. A tool setting `cache` without `readOnly` fails with
+  `CONFIGURATION_INVALID`
+
+```ts
+createMcpTool({ name: 'topPosts', readOnly: true, cache: 30_000, cacheRelations: ['Post'], handler: () => top() });
+```
+
+A call answered from the cache is logged with `cached: true` and records no span.
+
+## Rate limiting
+
+With `mcp.rateLimit.enabled: true` (default `false`), each authenticated user makes at most `mcp.rateLimit.max` tool
+calls (default `60`) per window of `mcp.rateLimit.window` ms (default `60000`), counted in the `Memory` provider, so
+shared by the instances with `redis`. A call past the limit returns `isError: true` with `MCP_RATE_LIMITED` and
+`{ limit, retryAfter }` (seconds), so the agent can wait. Only the tool calls count, cached ones included; the
+anonymous calls are not counted and stay under the IP rate limit of the server (`rateLimit`), which applies to every
+MCP request either way. A failing store lets the calls through.
+
 ## Destructive tools
 
 `update`, `delete` and every tool marked `destructive` need both:
@@ -99,7 +126,7 @@ Until then they are hidden, with a warning logged once. Every tool also carries 
 
 A failed call returns `isError: true` with `{ code, message, details }` of an Appweaver error (`MCP_INPUT_INVALID`
 for invalid arguments, `RESOURCE_NOT_FOUND`, ...); any other error is logged and returned as `INTERNAL_ERROR`. A
-result over `mcp.maxResultSize` fails with `MCP_RESULT_TOO_LARGE`. An unknown tool, or one the user may not call, is
+result over `mcp.maxResultSize` fails with `MCP_RESULT_TOO_LARGE`, a call past the rate limit with `MCP_RATE_LIMITED`. An unknown tool, or one the user may not call, is
 the JSON-RPC error `-32602`.
 
 ## Logging, telemetry, testing

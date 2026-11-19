@@ -162,6 +162,7 @@ export interface ErrorDetailsMap {
   [ErrorCode.McpOriginDenied]: { origin: string };
   [ErrorCode.McpInputInvalid]: { tool: string; errors: string[] };
   [ErrorCode.McpResultTooLarge]: { tool: string; size: number; limit: number };
+  [ErrorCode.McpRateLimited]: { limit: number; retryAfter: number };
 
   [ErrorCode.TimeSeriesNotEnabled]: ModelDetails;
   [ErrorCode.TimeSeriesInvalidField]: ModelDetails & { field: string };
