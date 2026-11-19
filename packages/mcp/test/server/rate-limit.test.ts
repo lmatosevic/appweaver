@@ -40,9 +40,9 @@ describe('rate-limit', () => {
 
   describe('checkRateLimit', () => {
     test('limits the calls of each user in the window', async () => {
-      await checkRateLimit(user as never);
-      await checkRateLimit(user as never);
-      const error = await checkRateLimit(user as never).catch((e) => e);
+      await checkRateLimit(user);
+      await checkRateLimit(user);
+      const error = await checkRateLimit(user).catch((e) => e);
 
       expect(error).toBeInstanceOf(McpError);
       expect(error).toMatchObject({
@@ -52,12 +52,12 @@ describe('rate-limit', () => {
       await expect(checkRateLimit(admin as never)).resolves.toBeUndefined();
 
       jest.setSystemTime(new Date('2026-01-01T00:01:00.000Z'));
-      await expect(checkRateLimit(user as never)).resolves.toBeUndefined();
+      await expect(checkRateLimit(user)).resolves.toBeUndefined();
     });
 
     test('counts the concurrent calls of a user one after another', async () => {
       const results = await Promise.allSettled(
-        [1, 2, 3, 4].map(() => checkRateLimit(user as never))
+        [1, 2, 3, 4].map(() => checkRateLimit(user))
       );
 
       expect(results.map((r) => r.status)).toEqual([
@@ -74,7 +74,7 @@ describe('rate-limit', () => {
       }
       configOverrides.MCP_RATE_LIMIT_ENABLED = false;
       for (let i = 0; i < 3; i++) {
-        await checkRateLimit(user as never);
+        await checkRateLimit(user);
       }
 
       expect(await memory.keys('mcp:*')).toEqual([]);
@@ -85,7 +85,7 @@ describe('rate-limit', () => {
       jest.spyOn(memory, 'get').mockRejectedValue(new Error('down'));
 
       for (let i = 0; i < 3; i++) {
-        await checkRateLimit(user as never);
+        await checkRateLimit(user);
       }
 
       expect(warn).toHaveBeenCalledWith(
