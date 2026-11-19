@@ -64,12 +64,16 @@ describe('oauth-routes', () => {
     resource: 'http://api.test/mcp'
   });
 
+  /** The first sign-in link of the consent page of an authorization request. */
+  const loginUrl = async (clientId: string) => {
+    const page = (await authorize(authorizeParams(clientId))).body;
+    const href = /href="([^"]+)"/.exec(page)![1].replaceAll('&amp;', '&');
+    return new URL(href, 'http://api.test');
+  };
+
   /** Runs the flow up to the redirect back to the client, returning its URL. */
   const signIn = async (clientId: string) => {
-    const login = new URL(
-      (await authorize(authorizeParams(clientId))).headers.location as string,
-      'http://api.test'
-    );
+    const login = await loginUrl(clientId);
     const callback = new URL(login.searchParams.get('redirectToUrl')!);
     authService.exchangeToken.mockResolvedValue({
       accessToken: sign(AuthScope.Auth)
@@ -369,14 +373,16 @@ describe('oauth-routes', () => {
       await expect(error({})).resolves.toBe('temporarily_unavailable');
     });
 
-    test('lets the user choose among the providers', async () => {
+    test('asks the user to sign in for the named client with a provider', async () => {
       await start([AuthSource.OAuth2Google, AuthSource.OAuth2Github]);
       const clientId = await register();
 
       const response = await authorize(authorizeParams(clientId));
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toContain('Agent asks to act as you');
+      expect(response.body).toContain(
+        'Agent of localhost:3333 asks to act as you'
+      );
       expect(response.body).toContain('/auth/login/google?redirectToUrl=');
       expect(response.body).toContain('/auth/login/github?redirectToUrl=');
     });
@@ -385,11 +391,7 @@ describe('oauth-routes', () => {
       await start();
       const clientId = await register();
       const callbackOf = async () => {
-        const login = new URL(
-          (await authorize(authorizeParams(clientId))).headers
-            .location as string,
-          'http://api.test'
-        );
+        const login = await loginUrl(clientId);
         const callback = new URL(login.searchParams.get('redirectToUrl')!);
         const response = await server.inject({
           url: `${callback.pathname}${callback.search}&token=ott`

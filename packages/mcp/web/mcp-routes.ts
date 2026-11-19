@@ -5,7 +5,7 @@ import { currentAuthUser } from '@appweaver/core';
 import { apiKeyConfig } from '@appweaver/data/config';
 import { authErrorCodes, registerRoute, Router } from '@appweaver/web';
 import { mcpConfig, mcpOAuth2Config } from '../config';
-import { resourceMetadataUrl } from '../oauth/oauth-util';
+import { resourceMetadataUrl, routePath } from '../oauth/oauth-util';
 import { handleMcpMessage } from '../server/mcp-server';
 import { registerOAuthRoutes } from './oauth-routes';
 
@@ -20,7 +20,7 @@ export function registerMcpRoutes(): void {
     return;
   }
   registerOAuthRoutes();
-  const path = `/${mcpConfig.ROUTE_PREFIX.replace(/^\/+|\/+$/g, '')}`;
+  const path = routePath(mcpConfig.ROUTE_PREFIX);
   const notAllowed = async (_: FastifyRequest, reply: FastifyReply) =>
     reply.code(405).header('allow', 'POST').send();
 

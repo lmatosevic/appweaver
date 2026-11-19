@@ -31,9 +31,8 @@ export const mcpConfig = defineConfig('mcp', {
 });
 
 export const mcpOAuth2Config = defineConfig('mcp.oauth2', {
-  /** Let the MCP clients sign their users in with OAuth 2.1: the endpoint answers `401` with the URL of its protected
-   * resource metadata, and the application is the authorization server, registering the clients dynamically and
-   * signing the users in with the OAuth2 providers of `security.oauth2`. Default: `false`. */
+  /** Make the application the OAuth 2.1 authorization server of the MCP clients, signing the users in with the
+   * OAuth2 providers of `security.oauth2`. Default: `false`. */
   ENABLED: Type.Boolean({ default: false }),
   /** Path of the authorization, token and registration endpoints. Default: `'/oauth'`. */
   ROUTE_PREFIX: Type.String({ default: '/oauth' }),

@@ -12,17 +12,6 @@ export type OAuthClient = {
   name?: string;
 };
 
-/** An error of the OAuth endpoints, answered as `{ error, error_description }` (RFC 6749). */
-export class OAuthError extends Error {
-  constructor(
-    public readonly error: string,
-    description: string,
-    public readonly status: number = 400
-  ) {
-    super(description);
-  }
-}
-
 /** The signing keys of the client IDs, by their source. */
 const keys = new Map<string, Buffer>();
 

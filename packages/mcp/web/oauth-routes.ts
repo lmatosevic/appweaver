@@ -1,4 +1,4 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyReply, FastifyRequest, RouteOptions } from 'fastify';
 import {
   AuthScope,
   AuthSource,
@@ -10,13 +10,12 @@ import {
 import { define, inject } from '@appweaver/core';
 import { AuthService, JwtPayload, Server } from '@appweaver/web';
 import { oauth2Config, securityConfig } from '@appweaver/web/config';
-import { mcpOAuth2Config } from '../config';
+import { mcpConfig, mcpOAuth2Config } from '../config';
 import {
   authorizationServerMetadata,
   createClientId,
   isAllowedRedirectUri,
   mcpResource,
-  OAuthError,
   oauthIssuer,
   readClientId,
   resourceMetadata,
@@ -48,6 +47,16 @@ type AuthorizationCode = AuthorizationRequest & {
 
 type Query = Record<string, string | undefined>;
 
+/** An error of the OAuth endpoints, answered as `{ error, error_description }` (RFC 6749). */
+class OAuthError extends Error {
+  constructor(
+    public readonly error: string,
+    description: string
+  ) {
+    super(description);
+  }
+}
+
 /** The JWTs of the server, decorated by the auth plugin of web. */
 type Jwt = {
   verify: <T>(token: string) => T;
@@ -76,38 +85,47 @@ export function registerOAuthRoutes(): void {
     }
     const prefix = routePath(mcpOAuth2Config.ROUTE_PREFIX);
     // The protocol endpoints stay out of the OpenAPI document
-    const hide = { schema: { hide: true } } as never;
+    const route = (
+      method: 'GET' | 'POST',
+      url: string,
+      handler: (request: FastifyRequest, reply: FastifyReply) => unknown,
+      rateLimit?: number
+    ) =>
+      server.route({
+        method,
+        url,
+        handler,
+        schema: { hide: true },
+        ...(rateLimit ? { config: { rateLimit: { max: rateLimit } } } : {})
+      } as RouteOptions);
 
-    const sendResourceMetadata = async () => resourceMetadata();
-    server.get(
-      '/.well-known/oauth-protected-resource',
-      hide,
-      sendResourceMetadata
+    route('GET', '/.well-known/oauth-protected-resource', resourceMetadata);
+    route(
+      'GET',
+      `/.well-known/oauth-protected-resource${routePath(mcpConfig.ROUTE_PREFIX)}`,
+      resourceMetadata
     );
-    server.get(
-      `/.well-known/oauth-protected-resource${new URL(mcpResource()).pathname}`,
-      hide,
-      sendResourceMetadata
+    route(
+      'GET',
+      '/.well-known/oauth-authorization-server',
+      authorizationServerMetadata
     );
-    server.get('/.well-known/oauth-authorization-server', hide, async () =>
-      authorizationServerMetadata()
-    );
-    server.post(
+    route(
+      'POST',
       `${prefix}/register`,
-      { schema: { hide: true }, config: { rateLimit: { max: 12 } } } as never,
-      (request, reply) => oauthReply(reply, () => register(request, reply))
+      (request, reply) => oauthReply(reply, () => register(request, reply)),
+      12
     );
-    server.get(`${prefix}/authorize`, hide, (request, reply) =>
+    route('GET', `${prefix}/authorize`, (request, reply) =>
       authorize(server, request, reply)
     );
-    server.get(`${prefix}/callback`, hide, (request, reply) =>
-      callback(request, reply)
-    );
-    server.post(
+    route('GET', `${prefix}/callback`, callback);
+    route(
+      'POST',
       `${prefix}/token`,
-      { schema: { hide: true }, config: { rateLimit: { max: 30 } } } as never,
       (request, reply) =>
-        oauthReply(reply, () => token(server, request.body as Query, reply))
+        oauthReply(reply, () => token(server, request.body as Query, reply)),
+      30
     );
   };
   define(Object.assign(routes, { apiPrefix: false }), ROUTE, 'append');
@@ -153,7 +171,7 @@ async function register(request: FastifyRequest, reply: FastifyReply) {
   });
 }
 
-/** Checks an authorization request, then sends the user to sign in with an OAuth2 provider. */
+/** Checks an authorization request, then asks the user to sign in with an OAuth2 provider for the named client. */
 async function authorize(
   server: Server,
   request: FastifyRequest,
@@ -208,9 +226,7 @@ async function authorize(
   const loginUrl = (provider: string) =>
     `${routePath(securityConfig.ROUTE_PREFIX)}/login/${provider}?redirectToUrl=${encodeURIComponent(callbackUrl)}`;
 
-  if (providers.length === 1) {
-    return reply.redirect(loginUrl(providers[0]));
-  }
+  // Always asked, so a link of a registered client never signs the user in unseen
   const links = providers
     .map(
       (provider) =>
@@ -221,7 +237,7 @@ async function authorize(
     reply,
     200,
     'Sign in',
-    `${client.name ?? 'An MCP client'} asks to act as you. Sign in with:`,
+    `${client.name ?? 'An MCP client'} of ${new URL(redirectUri).host} asks to act as you. Sign in with:`,
     `<ul>${links}</ul>`
   );
 }
@@ -385,7 +401,7 @@ async function oauthReply(reply: FastifyReply, fn: () => Promise<unknown>) {
       throw e;
     }
     return reply
-      .code(e.status)
+      .code(400)
       .header('cache-control', 'no-store')
       .send({ error: e.error, error_description: e.message });
   }

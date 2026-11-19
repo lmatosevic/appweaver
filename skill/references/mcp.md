@@ -24,21 +24,18 @@ claude mcp add --transport http my-api http://localhost:3000/mcp --header "X-Api
 
 ## OAuth sign-in of the MCP clients
 
-With `mcp.oauth2.enabled: true` (default `false`), an MCP client (Claude, ChatGPT, Cursor, ...) signs its user in by
-itself, given only the URL of the endpoint, following the authorization of the MCP specification:
+Opt-in with `mcp.oauth2.enabled`: an MCP client given only the endpoint URL signs its user in by itself (the MCP
+authorization spec), the application acting as the authorization server:
 
-1. The endpoint answers a request without credentials with `401` and
-   `WWW-Authenticate: Bearer resource_metadata="<hostname>/.well-known/oauth-protected-resource/mcp"`.
-2. The protected resource metadata (RFC 9728) names the application (`app.hostname`) as the authorization server,
-   whose metadata is at `/.well-known/oauth-authorization-server` (RFC 8414).
-3. The client registers itself at `POST /oauth/register` (RFC 7591): a public client of HTTPS or loopback redirect
-   URIs, stored nowhere, since its `client_id` holds them, signed with the JWT secret or private key.
-4. `GET /oauth/authorize` (authorization code with PKCE `S256`, `resource` checked against the endpoint, RFC 8707)
-   sends the user to sign in with an OAuth2 provider of `security.oauth2` (a page lists them when there are several,
-   `mcp.oauth2.providers` picks them), through the same `/auth/login/<provider>` flow as the API, registering or
-   linking the account like it.
-5. `POST /oauth/token` exchanges the code (`authorization_code`) and later the refresh token (`refresh_token`) for the
-   JWTs of `AuthService`, the same access and refresh tokens as the login of the API.
+1. A request without credentials gets `401` with `WWW-Authenticate: Bearer resource_metadata="..."`, the protected
+   resource metadata (RFC 9728) at `/.well-known/oauth-protected-resource/mcp`, naming `app.hostname` as the issuer
+   of `/.well-known/oauth-authorization-server` (RFC 8414).
+2. `POST /oauth/register` (RFC 7591) registers a public client of HTTPS or loopback redirect URIs, stored nowhere: the
+   `client_id` holds them, signed with the JWT secret or private key.
+3. `GET /oauth/authorize` (code flow, PKCE `S256`, `resource` checked) shows a page naming the client and its
+   redirect host, with a link per OAuth2 provider of `security.oauth2` (`mcp.oauth2.providers` picks them), signing
+   in through `/auth/login/<provider>` like the API.
+4. `POST /oauth/token` exchanges the code, then the refresh token, for the JWTs of the API login.
 
 ```json
 {
@@ -48,14 +45,10 @@ itself, given only the URL of the endpoint, following the authorization of the M
 }
 ```
 
-- At least one provider of `security.oauth2` must be enabled, and `security.allowedRedirectHosts` must allow the host
-  of `app.hostname`, the provider flow redirecting back to `/oauth/callback`.
-- The tokens are the user's JWTs, valid for the whole API like the ones of the login; a logout revokes them.
-- `mcp.auth` must keep `jwt` (the default) for the endpoint to accept them.
-- A user who has to pass 2FA, or to confirm the password of an account the provider links, is refused
-  (`access_denied`), since the client cannot ask for it. API keys keep working for them.
-- With `mcp.anonymousEnabled`, a request without credentials is anonymous instead of `401`, so the client never
-  starts the sign-in.
+- `security.allowedRedirectHosts` must allow the host of `app.hostname`, and `mcp.auth` keep `jwt` (the default).
+- The tokens are valid for the whole API, like the login's, and a logout revokes them.
+- A user who must pass 2FA or confirm a password to link the provider account is refused (`access_denied`).
+- With `mcp.anonymousEnabled` there is no `401`, so no client starts the sign-in.
 
 ## Resource tools
 
