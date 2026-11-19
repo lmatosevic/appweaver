@@ -7,6 +7,7 @@ import {
   isAppweaverError,
   McpError,
   RealtimeAccess,
+  registerSchemaFormats,
   textToBytes
 } from '@appweaver/common';
 import { hasPermissions, hasRoles } from '@appweaver/data';
@@ -176,6 +177,8 @@ async function callTool(
   const started = performance.now();
   let outcome: McpToolResult;
   try {
+    // TypeBox fails every format it has not registered, i.e. a date-time
+    registerSchemaFormats();
     const args = Value.Convert(
       tool.input,
       Value.Default(tool.input, structuredClone(input))

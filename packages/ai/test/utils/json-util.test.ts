@@ -1,4 +1,4 @@
-import { Type } from '@sinclair/typebox';
+import { FormatRegistry, Type } from '@sinclair/typebox';
 import { parseJsonOutput, parsePartialJson, schemaErrors } from '../../index';
 
 describe('json-util', () => {
@@ -40,6 +40,16 @@ describe('json-util', () => {
   });
 
   describe('schemaErrors', () => {
+    test('checks the string formats', () => {
+      FormatRegistry.Clear();
+      const schema = Type.Object({ at: Type.String({ format: 'date-time' }) });
+
+      expect(schemaErrors(schema, { at: '2026-11-19T14:37:00Z' })).toEqual([]);
+      expect(schemaErrors(schema, { at: 'tomorrow' })).toEqual([
+        "/at: Expected string to match 'date-time' format"
+      ]);
+    });
+
     test('lists up to ten errors with their paths', () => {
       const schema = Type.Object({ n: Type.Integer() });
 

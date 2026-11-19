@@ -22,4 +22,5 @@ export * from './utils/export-util';
 export * from './utils/file-util';
 export * from './utils/model-util';
 export * from './utils/policy-util';
+export * from './utils/record-util';
 export * from './utils/virtual-util';

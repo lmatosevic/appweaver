@@ -21,6 +21,7 @@ import { injectService, inject, runAs } from '@appweaver/core';
 import { context } from '@appweaver/core/internal';
 import {
   matchesWhere,
+  projectRecord,
   queryFilterWhere,
   resourceAuthService
 } from '@appweaver/data';
@@ -51,7 +52,6 @@ import {
 } from '../types';
 import { hasAccess } from '../utils/access';
 import { loadAuthUser } from '../utils/auth-user';
-import { projectRecord } from '../utils/project-record';
 import { resourceEventActions } from '../utils/resource-events';
 import { validatePayload } from '../utils/validate';
 import { realtimeMetrics } from '../utils/telemetry';

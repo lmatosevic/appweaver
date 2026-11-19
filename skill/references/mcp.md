@@ -59,8 +59,11 @@ of the `find` route.
 - The query filter covers the visible scalar fields: a value, or the operators `_eq`, `_ne`, `_gt`, `_gte`, `_lt`,
   `_lte`, `_in`, `_exists` (and `_contains`, `_starts`, `_ends`, `_ilike` on texts), combined with `_or`. The sort is
   `{ field: 'asc' | 'desc' }`.
-- The results are projected onto the response schema of the model (no hidden fields), and the `exclude` fields are
-  left out of the results, the filter, the sort and the aggregations.
+- The results are projected onto the response schema of the model, its relations included (no hidden fields, i.e. no
+  password hash of an author), and the `exclude` fields are left out of the results, the filter, the sort and the
+  aggregations.
+- The string formats of the arguments are checked (`date-time`, `email`, `uuid`, ...), a date with its time zone, i.e.
+  `2026-11-19T14:37:00Z` or `2026-11-19T15:37:00+01:00`.
 - The schemas are published as plain JSON Schema, the model references inlined.
 
 ## Custom tools

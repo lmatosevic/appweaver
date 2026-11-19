@@ -5,9 +5,10 @@ import { injectModel } from '@appweaver/core';
 const MAX_DEPTH = 8;
 
 /**
- * Projects a record of a resource event, the record the resource service returns (its virtual fields and relation
- * counts set, its soft deleted relations hidden), onto the response schema of its model, as its `find` route
- * responds with it: without its hidden fields or any field the schema does not declare, relations included.
+ * Projects a record the resource service returns (its virtual fields and relation counts set, its soft deleted
+ * relations hidden) onto the response schema of its model, as its `find` route responds with it: without its hidden
+ * fields or any field the schema does not declare, in its relations too. Used where a record leaves the application
+ * without the response serializer of a route, i.e. a resource event or the result of an MCP tool.
  *
  * @param {string} modelName - The name of the model of the record.
  * @param {Object} record - The record, as the resource service returned it.

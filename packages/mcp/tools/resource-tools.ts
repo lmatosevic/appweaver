@@ -1,5 +1,4 @@
 import { TObject, TSchema, Type } from '@sinclair/typebox';
-import { Value } from '@sinclair/typebox/value';
 import {
   camelToSnakeCase,
   RealtimeAccess,
@@ -11,7 +10,11 @@ import {
 } from '@appweaver/common';
 import { injectModel, injectService } from '@appweaver/core';
 import { context } from '@appweaver/core/internal';
-import { AggregateDateSchema, AggregateNumericSchema } from '@appweaver/data';
+import {
+  AggregateDateSchema,
+  AggregateNumericSchema,
+  projectRecord
+} from '@appweaver/data';
 import { routeAccess } from '@appweaver/web';
 import { mcpConfig } from '../config';
 import { McpTool } from '../types';
@@ -76,7 +79,7 @@ function resourceTool(
   description?: string
 ): McpTool {
   const service = () => injectService(model.name as never) as any;
-  const project = (record: unknown) => projectRecord(model, record, config);
+  const project = (record: unknown) => projectResult(model, record, config);
   const id = idSchema(model);
   const visible = fields(model, config.exclude);
   const about = config.description ? ` ${config.description}` : '';
@@ -161,16 +164,16 @@ function resourceTool(
   }
 }
 
-/** Projects a record onto the response schema of its model, without the excluded fields. */
-function projectRecord(
+/** Projects a record onto the response schema of its model, its relations included, without the excluded fields. */
+function projectResult(
   model: ResourceModel,
   record: unknown,
   config: ResourceMcpConfig
 ): unknown {
-  const projected = Value.Clean(
-    model.readOneModel,
-    structuredClone(record)
-  ) as Record<string, unknown>;
+  const projected = projectRecord(model.name, record) as Record<
+    string,
+    unknown
+  >;
   for (const field of config.exclude ?? []) {
     delete projected[field];
   }

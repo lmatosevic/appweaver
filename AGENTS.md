@@ -295,7 +295,7 @@ loads the resources of the application, then the `resources` of the modules.
 | `timeseries/` | The `database` and `timescale` drivers of `TimeSeries` (the `<Model>Series` tables, SQL per database, the retention deletes, the hypertables) and their config                             |
 | `spatial/`    | The `geo` fields: `SpatialService` (the spatial filters), the `postgis` and `database` engines, the Prisma extension writing the geometries and their bounding boxes, the `spatial` config |
 | `types/`      | The auth and storage types, and the generated types of the framework models (`generated.ts`)                                                                                               |
-| `utils/`      | Helpers shared by the modules or meant for library users: export, file, model, policy and virtual field utilities, the write data mapping of the Prisma extensions                         |
+| `utils/`      | Helpers shared by the modules or meant for library users: export, file, model, policy, record and virtual field utilities, the write data mapping of the Prisma extensions                 |
 | `prisma/`     | The generated Prisma schema, client and migration of the framework models                                                                                                                  |
 
 **Data development scripts** (run from `packages/data`):
@@ -411,7 +411,6 @@ core (`memory`, or `redis` of `@appweaver/redis` to reach every instance), while
 | `transport/`                  | `SseConnection` and `WsConnection`, the transports of a `RealtimeConnection`                                |
 | `web/realtime-routes.ts`      | The web part: the WebSocket plugin and the ticket, events, ws and actions routes                            |
 | `web/realtime-spec.ts`        | The `x-appweaver-realtime` extension of the OpenAPI document (`registerSpecExtension` of web)               |
-| `utils/project-record.ts`     | Projects the record of a resource event onto the `find` response schema of its model                        |
 | `stream/create-stream.ts`     | `createStream`, the streams of a key, defined in the context under their symbol                             |
 | `stream/stream-instance.ts`   | `StreamInstance`: the sequence, the frames encoded once, the replay, the coalescing, the slow subscribers   |
 | `stream/stream-hub.ts`        | `StreamHub`: the streams of the instance, the streaming actions, and the relay between the instances        |
@@ -483,7 +482,8 @@ The MCP server (`@appweaver/mcp`), requiring `@appweaver/web`, implemented on Fa
 Streamable HTTP transport without sessions (`web/mcp-routes.ts`, `POST` of a JSON-RPC message, `405` for `GET` and
 `DELETE`) and the methods `initialize`, `ping`, `tools/list` and `tools/call` (`server/mcp-server.ts`). Nothing is
 exposed unless declared: the actions of the `mcp` key of `createRoutes` (`tools/resource-tools.ts`, `<model>_<action>`,
-a simple filter of the visible scalars, the results projected onto the response schema) and the tools of
+a simple filter of the visible scalars, the results projected onto the response schema by `projectRecord` of
+`@appweaver/data`, relations included) and the tools of
 `createMcpTool` (`tools/create-tool.ts`, which also takes an AI tool). A tool runs as the user of the request, listed
 only for the users its access allows, and a destructive one (`update`, `delete`, `destructive: true`) only with
 `mcp.destructiveEnabled`. The schemas are published as plain JSON Schema (`utils/schema-util.ts`, the model references

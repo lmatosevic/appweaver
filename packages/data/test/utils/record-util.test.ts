@@ -1,8 +1,8 @@
-import { createModel } from '@appweaver/data';
 import { linkModels, resetContext } from '@appweaver/testing';
-import { projectRecord } from '../../utils/project-record';
+import { createModel } from '../../factory/create-model';
+import { projectRecord } from '../../utils/record-util';
 
-describe('project-record', () => {
+describe('record-util', () => {
   beforeEach(() => {
     resetContext();
     createModel({

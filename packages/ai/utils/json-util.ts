@@ -1,5 +1,6 @@
 import { TSchema } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
+import { registerSchemaFormats } from '@appweaver/common';
 
 /** The characters a partial JSON is trimmed by at most, looking for a prefix that completes into a valid value. */
 const MAX_TRIM = 64;
@@ -59,13 +60,15 @@ export function parsePartialJson(text: string): unknown {
 }
 
 /**
- * Lists the errors of a value against a schema, each with its path.
+ * Lists the errors of a value against a schema, each with its path, the string formats of `registerSchemaFormats`
+ * checked.
  *
  * @param {TSchema} schema - The schema.
  * @param {unknown} value - The value.
  * @return {string[]} The first ten errors, empty for a valid value.
  */
 export function schemaErrors(schema: TSchema, value: unknown): string[] {
+  registerSchemaFormats();
   const errors: string[] = [];
   for (const error of Value.Errors(schema, value)) {
     errors.push(`${error.path || '/'}: ${error.message}`);

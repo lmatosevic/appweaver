@@ -1,5 +1,6 @@
 import { configOverrides } from '@appweaver/common';
-import { resetContext } from '@appweaver/testing';
+import { createModel } from '@appweaver/data';
+import { linkModels, resetContext } from '@appweaver/testing';
 import { context } from '@appweaver/core/internal';
 import { resourceTools } from '../../tools/resource-tools';
 import { toJsonSchema } from '../../utils/schema-util';
@@ -122,6 +123,49 @@ describe('resource-tools', () => {
         createdAt: post.createdAt,
         updatedAt: post.updatedAt
       });
+    });
+
+    test('leaves the hidden fields of the related records out', async () => {
+      createModel({
+        name: 'User',
+        scalars: {
+          email: { type: 'string' },
+          passwordHash: { type: 'string', hidden: true }
+        }
+      });
+      createModel({
+        name: 'Post',
+        scalars: { title: { type: 'string' } },
+        relations: {
+          author: { model: 'User', type: 'one', required: false },
+          editors: { model: 'User', type: 'many' }
+        }
+      } as never);
+      linkModels();
+      context.resource.routes.set('Post', {
+        config: { modelName: 'Post', mcp: { actions: ['find', 'query'] } },
+        basePath: 'posts',
+        handler: () => {}
+      } as never);
+      const author = { id: 2, email: 'a@test.com', passwordHash: 'hash' };
+      const record = {
+        id: 1,
+        title: 'Hello',
+        author,
+        editors: [{ ...author, id: 3 }]
+      };
+      context.resource.services.set('Post', {
+        find: async () => record,
+        query: async () => ({ items: [record] })
+      } as never);
+
+      const found: any = await tool('post_find').call({ id: 1 }, ctx);
+      const queried: any = await tool('post_query').call({}, ctx);
+
+      for (const result of [found, queried.items[0]]) {
+        expect(result.author).toEqual({ id: 2, email: 'a@test.com' });
+        expect(result.editors).toEqual([{ id: 3, email: 'a@test.com' }]);
+      }
     });
 
     test('leaves the excluded fields out of the filter, the sort and the aggregations', () => {

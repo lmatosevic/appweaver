@@ -1,4 +1,4 @@
-import { Type } from '@sinclair/typebox';
+import { FormatRegistry, Type } from '@sinclair/typebox';
 import {
   AiError,
   configOverrides,
@@ -162,6 +162,35 @@ describe('mcp-server', () => {
         { n: 3, step: 1 },
         expect.objectContaining({ user })
       );
+    });
+
+    test('checks the string formats of the arguments', async () => {
+      // No format is registered until a validation needs them
+      FormatRegistry.Clear();
+      const handler = jest.fn(() => 'ok');
+      createMcpTool({
+        name: 'schedule',
+        input: Type.Object({
+          at: Type.String({ format: 'date-time' }),
+          email: Type.String({ format: 'email' })
+        }),
+        handler
+      });
+
+      const valid = await call('schedule', {
+        at: '2026-11-19T14:37:00.000Z',
+        email: 'ana@example.com'
+      });
+      const invalid = await call('schedule', {
+        at: 'tomorrow',
+        email: 'ana@example.com'
+      });
+
+      expect(valid.isError).toBeFalsy();
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(JSON.parse(invalid.content[0].text).details.errors).toEqual([
+        expect.stringContaining("/at: Expected string to match 'date-time'")
+      ]);
     });
 
     test('returns the error of a failed call, hiding an unexpected one', async () => {

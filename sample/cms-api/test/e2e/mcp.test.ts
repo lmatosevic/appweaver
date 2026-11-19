@@ -164,6 +164,8 @@ describe('MCP server', () => {
     const post = created.structuredContent;
     expect(post).toMatchObject({ status: 'Draft', slug: 'mountain-huts' });
     expect(post.author.email).toBe('mcp-user@example.com');
+    // Projected like the API responds with it, the related records included
+    expect(post.author).not.toHaveProperty('passwordHash');
     expect(post.tags.map((tag: any) => tag.slug).sort()).toEqual([
       'hiking',
       'huts'
@@ -194,6 +196,26 @@ describe('MCP server', () => {
     expect(
       result.structuredContent.items.map((post: any) => post.slug)
     ).toEqual(['third', 'first']);
+  });
+
+  test('schedules a post with a date and time zone, and rejects one without', async () => {
+    const post = await posts.create({ title: 'Later', slug: 'later' });
+
+    const scheduled = await callTool(authorKey, 'post_update', {
+      id: post.id,
+      data: { publishedAt: '2026-12-01T09:00:00+01:00' }
+    });
+    const ambiguous = await callTool(authorKey, 'post_update', {
+      id: post.id,
+      data: { publishedAt: '2026-12-01T09:00:00' }
+    });
+
+    expect(scheduled.isError).toBeFalsy();
+    expect(scheduled.structuredContent.publishedAt).toBe(
+      '2026-12-01T08:00:00.000Z'
+    );
+    expect(ambiguous.isError).toBe(true);
+    expect(ambiguous.content[0].text).toContain('MCP_INPUT_INVALID');
   });
 
   test('publishes the scheduled posts as an admin', async () => {
