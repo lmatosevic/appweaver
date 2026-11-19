@@ -11,7 +11,11 @@ export default apiKeyConfig.ENABLED
       beforeCreate: (data: ApiKey) => {
         checkScope(data);
 
-        data.key = randomString(64, { special: false });
+        data.key = randomString(64, {
+          numbers: true,
+          lowercase: true,
+          uppercase: true
+        });
         data.keyHash = makeHash(data.key);
 
         // Add relation to the current user when creating a new API Key

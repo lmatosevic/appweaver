@@ -72,7 +72,10 @@ describe('MCP server', () => {
       headers: { authorization: `Bearer ${login.json().accessToken}` },
       payload: { name: 'Claude' }
     });
-    return created.json().key;
+    const { key } = created.json();
+    // The id, the delimiter, then letters and digits only
+    expect(key).toMatch(/^\d+AK[A-Za-z0-9]{64}$/);
+    return key;
   };
 
   beforeAll(async () => {

@@ -44,6 +44,16 @@ describe('api-key service', () => {
       expect(data.user).toEqual({ id: 7 });
     });
 
+    test('generates a key of letters and digits only', async () => {
+      const { hooks, runAs } = await loadService();
+
+      for (let i = 0; i < 20; i++) {
+        const data: any = {};
+        await runAs(owner, () => hooks.beforeCreate(data));
+        expect(data.key).toMatch(/^[A-Za-z0-9]{64}$/);
+      }
+    });
+
     test('rejects a scope its owner does not hold', async () => {
       const { hooks, runAs } = await loadService();
 

@@ -148,7 +148,7 @@ API keys provide long-lived, per-user credentials for programmatic access.
 ### How it works
 
 1. A user signed in with a JWT creates an API key via the CRUD endpoints of `/api-keys`
-2. The server generates a 64-character random secret and stores its SHA256 hash
+2. The server generates a 64-character random secret of letters and digits and stores its SHA256 hash
 3. The full key is returned once as `{id}{delimiter}{secret}` (e.g. `42AKa1b2c3d4...`)
 4. Subsequent reads show only a masked version: `{id}...{last6chars}`
 5. On each request, the server extracts the key from the header, parses `id` and `secret`, hashes the secret, and
