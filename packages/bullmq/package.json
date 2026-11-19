@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "bullmq": "5.79.1",
-    "@appweaver/redis": "1.12.2"
+    "@appweaver/redis": "^2.8.0"
   },
   "peerDependencies": {
     "@appweaver/common": "^2.8.0",
