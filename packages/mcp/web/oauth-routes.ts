@@ -3,12 +3,20 @@ import {
   AuthScope,
   AuthSource,
   createLogger,
+  ErrorCode,
   isAppweaverError,
   ROUTE,
-  SecurityStore
+  SecurityStore,
+  TwoFactorChallengeMethod
 } from '@appweaver/common';
 import { define, inject } from '@appweaver/core';
-import { AuthService, JwtPayload, Server } from '@appweaver/web';
+import {
+  AuthService,
+  AuthTokens,
+  JwtPayload,
+  Server,
+  TwoFactorService
+} from '@appweaver/web';
 import { oauth2Config, securityConfig } from '@appweaver/web/config';
 import { mcpConfig, mcpOAuth2Config } from '../config';
 import {
@@ -22,6 +30,7 @@ import {
   routePath,
   verifyCodeChallenge
 } from '../oauth/oauth-util';
+import { requestLocale, sendPage, translate } from './oauth-pages';
 
 const logger = createLogger('mcp');
 
@@ -29,6 +38,16 @@ const logger = createLogger('mcp');
 const AUTHORIZATION_PURPOSE = 'mcpAuthorization';
 /** The one-time token of an authorization code. */
 const CODE_PURPOSE = 'mcpAuthorizationCode';
+/** The one-time token of the password or the 2FA step of a sign-in, the state of its form. */
+const SIGN_IN_PURPOSE = 'mcpSignIn';
+/** The challenge method of the recovery codes. */
+const RECOVERY = 'Recovery';
+/** The errors of a method the user cannot use, leaving the current challenge in place. */
+const RETRY_CODES = new Set<string>([
+  ErrorCode.Account2FAMethodUnavailable,
+  ErrorCode.Account2FAMethodNotEnabled,
+  ErrorCode.AccountPhoneNotVerified
+]);
 const MAX_REDIRECT_URIS = 10;
 
 /** An authorization request of a client. */
@@ -43,6 +62,20 @@ type AuthorizationRequest = {
 type AuthorizationCode = AuthorizationRequest & {
   authUserId: string | number;
   authSource: AuthSource;
+};
+
+/** The password or the 2FA step of a sign-in. */
+type SignInState = {
+  request: AuthorizationRequest;
+  step: 'password' | 'twoFactor';
+  /** The token of the provider sign-in, exchanged with the password */
+  token?: string;
+  authUserId?: string | number;
+  authSource?: AuthSource;
+  challengeId?: string;
+  method?: TwoFactorChallengeMethod;
+  destination?: string | null;
+  methods?: TwoFactorChallengeMethod[];
 };
 
 type Query = Record<string, string | undefined>;
@@ -120,6 +153,7 @@ export function registerOAuthRoutes(): void {
       authorize(server, request, reply)
     );
     route('GET', `${prefix}/callback`, callback);
+    route('POST', `${prefix}/sign-in`, signInStep, 12);
     route(
       'POST',
       `${prefix}/token`,
@@ -182,11 +216,13 @@ async function authorize(
   const redirectUri = query.redirect_uri;
   // Without a known client and redirect URI, the error is never redirected
   if (!client || !redirectUri || !client.redirectUris.includes(redirectUri)) {
+    const locale = requestLocale(request);
     return sendPage(
       reply,
-      400,
-      'Invalid authorization request',
-      'The client is unknown, or its redirect URI is not registered.'
+      'error',
+      { message: translate('mcp.error.invalid', locale) },
+      locale,
+      400
     );
   }
   const fail = (error: string, description: string) =>
@@ -227,66 +263,136 @@ async function authorize(
     `${routePath(securityConfig.ROUTE_PREFIX)}/login/${provider}?redirectToUrl=${encodeURIComponent(callbackUrl)}`;
 
   // Always asked, so a link of a registered client never signs the user in unseen
-  const links = providers
-    .map(
-      (provider) =>
-        `<li><a href="${escapeHtml(loginUrl(provider))}">${escapeHtml(provider)}</a></li>`
-    )
-    .join('');
+  const locale = requestLocale(request);
   return sendPage(
     reply,
-    200,
-    'Sign in',
-    `${client.name ?? 'An MCP client'} of ${new URL(redirectUri).host} asks to act as you. Sign in with:`,
-    `<ul>${links}</ul>`
+    'sign-in',
+    {
+      client: client.name ?? translate('mcp.signIn.client', locale),
+      host: new URL(redirectUri).host,
+      providers: providers.map((name) => ({ name, url: loginUrl(name) }))
+    },
+    locale
   );
 }
 
-/** Issues the authorization code of a user signed in by a provider, redirecting back to the client. */
+/** Signs in a user back from a provider, asking for the password of an account to link first. */
 async function callback(request: FastifyRequest, reply: FastifyReply) {
   const query = request.query as Query;
-  const securityStore = inject(SecurityStore);
+  const locale = requestLocale(request);
   let pending: AuthorizationRequest;
   try {
-    pending = await securityStore.useOneTimeToken<AuthorizationRequest>(
+    pending = await inject(SecurityStore).useOneTimeToken<AuthorizationRequest>(
       query.request ?? '',
       AUTHORIZATION_PURPOSE
     );
   } catch {
-    return sendPage(
-      reply,
-      400,
-      'Authorization expired',
-      'The authorization request is unknown or expired, start again from the client.'
+    return sendExpired(reply, locale);
+  }
+  if (query.passwordRequired === 'true') {
+    return sendStep(reply, locale, {
+      request: pending,
+      step: 'password',
+      token: query.token ?? ''
+    });
+  }
+  return signIn(request, reply, pending, () =>
+    inject(AuthService).exchangeToken(query.token ?? '')
+  );
+}
+
+/** Completes the password or the 2FA step of a sign-in. */
+async function signInStep(request: FastifyRequest, reply: FastifyReply) {
+  const body = (request.body ?? {}) as Query;
+  const locale = requestLocale(request);
+  let state: SignInState;
+  try {
+    state = await inject(SecurityStore).useOneTimeToken<SignInState>(
+      body.state ?? '',
+      SIGN_IN_PURPOSE
+    );
+  } catch {
+    return sendExpired(reply, locale);
+  }
+  if (state.step === 'password') {
+    // A wrong password uses the token up, so the user starts again
+    return signIn(request, reply, state.request, () =>
+      inject(AuthService).exchangeToken(state.token!, body.password ?? '')
     );
   }
-  const back = (params: Query) =>
-    redirectWith(reply, pending.redirectUri, {
-      ...params,
-      state: pending.state
-    });
 
+  const authUser = await inject(AuthService).findById(state.authUserId!);
+  if (!authUser?.enabled) {
+    return deny(reply, state.request, 'The user does not exist or is disabled');
+  }
+  try {
+    if (body.action === 'resend') {
+      const method = body.method as TwoFactorChallengeMethod | undefined;
+      return await sendChallenge(reply, locale, state, method);
+    }
+    const { token } = await inject(TwoFactorService).verifyChallenge(
+      authUser,
+      state.challengeId!,
+      body.code ?? ''
+    );
+    return await signIn(request, reply, state.request, () =>
+      inject(AuthService).exchangeToken(token)
+    );
+  } catch (e) {
+    if (!isAppweaverError(e)) {
+      throw e;
+    }
+    // A wrong code keeps the challenge for another try, a method the user cannot use keeps the current one
+    if (e.code === (ErrorCode.Account2FACodeInvalid as string)) {
+      return sendStep(
+        reply,
+        locale,
+        state,
+        translate('mcp.twoFactor.invalid', locale)
+      );
+    }
+    if (RETRY_CODES.has(e.code)) {
+      return sendStep(reply, locale, state, e.message);
+    }
+    return deny(reply, state.request, e.message);
+  }
+}
+
+/**
+ * Signs the user in with the tokens of an exchange, starting the 2FA challenge of a user who must pass it, otherwise
+ * redirecting back to the client with an authorization code.
+ */
+async function signIn(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  pending: AuthorizationRequest,
+  exchange: () => Promise<AuthTokens>
+) {
   let payload: JwtPayload;
   try {
     // Signs the user in like the OAuth2 login, linking the provider account
-    const tokens = await inject(AuthService).exchangeToken(query.token ?? '');
-    payload = jwt(request.server).decode<JwtPayload>(tokens.accessToken)!;
+    payload = jwt(request.server).decode<JwtPayload>(
+      (await exchange()).accessToken
+    )!;
   } catch (e) {
     if (!isAppweaverError(e)) {
       logger.error({ err: e }, 'MCP OAuth sign-in failed');
     }
-    return back({
-      error: 'access_denied',
-      error_description: isAppweaverError(e) ? e.message : 'The sign-in failed'
+    return deny(
+      reply,
+      pending,
+      isAppweaverError(e) ? e.message : 'The sign-in failed'
+    );
+  }
+  if (payload.scope === AuthScope.TwoFA) {
+    return sendChallenge(reply, requestLocale(request), {
+      request: pending,
+      step: 'twoFactor',
+      authUserId: payload.sub,
+      authSource: payload.source
     });
   }
-  if (payload.scope !== AuthScope.Auth) {
-    return back({
-      error: 'access_denied',
-      error_description: 'The user must pass the two-factor authentication'
-    });
-  }
-  const code = await securityStore.generateOneTimeToken(
+  const code = await inject(SecurityStore).generateOneTimeToken(
     CODE_PURPOSE,
     {
       ...pending,
@@ -295,7 +401,96 @@ async function callback(request: FastifyRequest, reply: FastifyReply) {
     } satisfies AuthorizationCode,
     securityConfig.AUTH_OTT_TTL
   );
-  return back({ code });
+  return redirectWith(reply, pending.redirectUri, {
+    code,
+    state: pending.state
+  });
+}
+
+/** Sends a 2FA challenge of the method, the default one of the user without, and asks for its code. */
+async function sendChallenge(
+  reply: FastifyReply,
+  locale: string | undefined,
+  state: SignInState,
+  method?: TwoFactorChallengeMethod
+) {
+  const authUser = (await inject(AuthService).findById(state.authUserId!))!;
+  const challenge = await inject(TwoFactorService).sendChallenge(authUser, {
+    method,
+    authSource: state.authSource,
+    locale
+  });
+  return sendStep(reply, locale, {
+    ...state,
+    challengeId: challenge.challengeId,
+    method: challenge.method,
+    destination: challenge.destination,
+    methods: [...challenge.methods, RECOVERY]
+  });
+}
+
+/** Asks for the password or the 2FA code of a step, its state kept for the single use of the form. */
+async function sendStep(
+  reply: FastifyReply,
+  locale: string | undefined,
+  state: SignInState,
+  error?: string
+) {
+  const token = await inject(SecurityStore).generateOneTimeToken(
+    SIGN_IN_PURPOSE,
+    state,
+    oauth2Config.STATE_TTL
+  );
+  const action = `${routePath(mcpOAuth2Config.ROUTE_PREFIX)}/sign-in`;
+  if (state.step === 'password') {
+    return sendPage(reply, 'password', { action, state: token, error }, locale);
+  }
+  const hint =
+    state.method === RECOVERY
+      ? translate('mcp.twoFactor.recovery', locale)
+      : state.destination
+        ? translate('mcp.twoFactor.sent', locale, {
+            destination: state.destination
+          })
+        : translate('mcp.twoFactor.app', locale);
+  return sendPage(
+    reply,
+    'two-factor',
+    {
+      action,
+      state: token,
+      error,
+      hint,
+      methods: state.methods!.map((value) => ({
+        value,
+        label: translate(`mcp.twoFactor.methods.${value}`, locale),
+        selected: value === state.method
+      }))
+    },
+    locale
+  );
+}
+
+function sendExpired(reply: FastifyReply, locale?: string) {
+  return sendPage(
+    reply,
+    'error',
+    { message: translate('mcp.error.expired', locale) },
+    locale,
+    400
+  );
+}
+
+function deny(
+  reply: FastifyReply,
+  pending: AuthorizationRequest,
+  description: string
+) {
+  return redirectWith(reply, pending.redirectUri, {
+    error: 'access_denied',
+    error_description: description,
+    state: pending.state
+  });
 }
 
 /** Exchanges an authorization code or a refresh token for the tokens of the user. */
@@ -418,31 +613,4 @@ function redirectWith(reply: FastifyReply, uri: string, params: Query) {
     }
   }
   return reply.redirect(url.toString());
-}
-
-function sendPage(
-  reply: FastifyReply,
-  status: number,
-  title: string,
-  message: string,
-  html = ''
-) {
-  return reply
-    .code(status)
-    .type('text/html; charset=utf-8')
-    .send(
-      `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">` +
-        `<title>${escapeHtml(title)}</title></head><body><h1>${escapeHtml(title)}</h1>` +
-        `<p>${escapeHtml(message)}</p>${html}</body></html>`
-    );
-}
-
-function escapeHtml(text: string): string {
-  return text.replace(
-    /[&<>"']/g,
-    (char) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
-        char
-      ]!
-  );
 }

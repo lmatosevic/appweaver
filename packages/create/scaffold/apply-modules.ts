@@ -246,6 +246,25 @@ const integrations: ModuleIntegration[] = [
       }
     }
   },
+  // The sign-in pages of the MCP clients
+  {
+    modules: ['mcp', 'templates'],
+    enable: (scaffold) => scaffold.files.remove('templates/.gitkeep'),
+    disable: (scaffold, name) => {
+      if (name === 'mcp') {
+        restoreTemplatesPlaceholder(scaffold, 'mcp+templates');
+      }
+    }
+  },
+  {
+    modules: ['mcp', 'locales'],
+    enable: (scaffold) => addSourceTranslations(scaffold, 'mcp'),
+    disable: (scaffold, name) => {
+      if (name === 'mcp') {
+        removeSourceTranslations(scaffold, 'mcp');
+      }
+    }
+  },
   // The English texts of the account emails, in the translation file of the project
   {
     modules: ['mailer', 'locales'],

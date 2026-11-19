@@ -1,0 +1,6 @@
+{{#> layouts/page.html title=(t "mcp.signIn.title")}}
+<p>{{t "mcp.signIn.message" client=client host=host}}</p>
+{{#each providers}}
+<a class="button" href="{{url}}">{{name}}</a>
+{{/each}}
+{{/layouts/page.html}}

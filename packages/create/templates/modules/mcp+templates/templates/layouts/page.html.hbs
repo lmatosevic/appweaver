@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="{{@locale}}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{title}}</title>
+    <style>
+      body { margin: 0; padding: 32px 16px; background: #f4f5f7; font: 16px/24px Arial, Helvetica, sans-serif; color: #1f2933 }
+      main { max-width: 420px; margin: 0 auto; padding: 32px; background: #fff; border-radius: 8px }
+      h1 { margin: 0 0 16px; font-size: 22px; line-height: 30px }
+      label { display: block; margin-bottom: 4px; font-size: 14px; color: #52606d }
+      input, select { box-sizing: border-box; width: 100%; padding: 10px 12px; border: 1px solid #cbd2d9; border-radius: 6px; font: inherit }
+      button, .button { display: block; box-sizing: border-box; width: 100%; margin-top: 16px; padding: 12px; border: 0; border-radius: 6px; background: #2563eb; color: #fff; font: bold 16px Arial, Helvetica, sans-serif; text-align: center; text-decoration: none; cursor: pointer }
+      .secondary { background: #e4e7eb; color: #1f2933 }
+      .error { padding: 12px; border-radius: 6px; background: #fde8e8; color: #9b1c1c }
+      footer { margin-top: 16px; font-size: 12px; text-align: center; color: #7b8794 }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>{{title}}</h1>
+      {{#if error}}<p class="error" role="alert">{{error}}</p>{{/if}}
+      {{> @partial-block}}
+    </main>
+    <footer>{{@app.name}}</footer>
+  </body>
+</html>

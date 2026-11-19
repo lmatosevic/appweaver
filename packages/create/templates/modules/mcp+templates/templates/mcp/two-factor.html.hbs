@@ -1,0 +1,18 @@
+{{#> layouts/page.html title=(t "mcp.twoFactor.title")}}
+<p>{{hint}}</p>
+<form method="post" action="{{action}}">
+  <input type="hidden" name="state" value="{{state}}" />
+  <label for="code">{{t "mcp.twoFactor.label"}}</label>
+  <input id="code" name="code" autocomplete="one-time-code" autofocus />
+  <button name="action" value="verify">{{t "mcp.twoFactor.submit"}}</button>
+  <p>
+    <label for="method">{{t "mcp.twoFactor.method"}}</label>
+    <select id="method" name="method">
+      {{#each methods}}
+      <option value="{{value}}"{{#if selected}} selected{{/if}}>{{label}}</option>
+      {{/each}}
+    </select>
+  </p>
+  <button class="secondary" name="action" value="resend">{{t "mcp.twoFactor.resend"}}</button>
+</form>
+{{/layouts/page.html}}
