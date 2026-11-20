@@ -24,4 +24,16 @@ export type McpTool = {
   title?: string;
   /** The schema of the structured result */
   output?: TSchema;
+  /** Caches the results of a read-only tool with `mcp.cache.enabled` */
+  cache?: McpToolCache;
+};
+
+/** How the results of a read-only tool are cached, per user and arguments. */
+export type McpToolCache = {
+  /** Time-to-live in milliseconds. Default: `mcp.cache.ttl` */
+  ttl?: number;
+  /** The model the tool reads, its results evicted when it or a model it includes changes */
+  modelName?: string;
+  /** The models whose changes evict the results */
+  relations?: string[];
 };

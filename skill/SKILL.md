@@ -999,7 +999,8 @@ createMcpTool({
 });
 ```
 
-See [mcp.md](references/mcp.md).
+`mcp.cache.enabled` caches the read-only tool results per user, `mcp.rateLimit.enabled` limits the tool calls per
+user. See [mcp.md](references/mcp.md).
 
 ### Registering a custom model
 

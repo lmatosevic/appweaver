@@ -35,7 +35,8 @@ export default createRoutes({
     description: 'The articles of the blog.',
     actions: ['find', 'query', 'aggregate', 'create', 'delete'],
     exclude: ['internalNote'],               // fields left out of the results, filters and sorts
-    maxLimit: 20                             // default: mcp.maxLimit
+    maxLimit: 20,                            // default: mcp.maxLimit
+    cache: 10_000                            // TTL in ms with mcp.cache.enabled, or false
   }
 });
 ```
@@ -84,6 +85,27 @@ createMcpTool({ ...getOrder, roles: ['support'] }); // an AI tool of createAiToo
 
 The arguments are validated against `input` (defaults filled in) before the handler runs. A text result is returned
 as text, any other value as JSON text and `structuredContent` (an array or a scalar as `{ result }`).
+
+## Caching
+
+Opt-in with `mcp.cache.enabled` (and `cache.enabled`): the successful results of the read-only tools are cached per
+tool, arguments and user for `mcp.cache.ttl` ms (default `5000`).
+
+- `find`, `query` and `aggregate` resource tools: evicted when their model or an included model changes. The `cache`
+  of the `mcp` config sets their TTL, `false` turns it off.
+- Custom tools: `readOnly: true` with `cache: true | <ms>`, evicted on a change of the `cacheRelations` models.
+  `cache` without `readOnly` fails with `CONFIGURATION_INVALID`.
+
+```ts
+createMcpTool({ name: 'topPosts', readOnly: true, cache: 30_000, cacheRelations: ['Post'], handler: () => top() });
+```
+
+## Rate limiting
+
+Opt-in with `mcp.rateLimit.enabled`: each authenticated user makes at most `mcp.rateLimit.max` tool calls (default
+`60`) per `mcp.rateLimit.window` ms (default `60000`), counted in the `Memory` provider (shared across instances with
+`redis`). Past it a call returns `isError: true` with `MCP_RATE_LIMITED` and `{ limit, retryAfter }` (seconds).
+Anonymous calls are not counted; the server's `rateLimit` still applies to every request.
 
 ## Destructive tools
 
