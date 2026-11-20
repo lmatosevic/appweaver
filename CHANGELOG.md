@@ -1,3 +1,21 @@
+## [2.9.0](https://github.com/lmatosevic/appweaver/compare/v2.8.0...v2.9.0) (2026-11-20)
+
+### Features
+
+* **mcp:** ask for the password and the 2FA code in the OAuth sign-in flow ([08763af](https://github.com/lmatosevic/appweaver/commit/08763af02fe3db0e63718513b96891f2fd20a090))
+* **mcp:** cache the read-only tool results and limit the tool calls per user ([c1682c3](https://github.com/lmatosevic/appweaver/commit/c1682c34292ff53e9085dea2511c8d53975dd1d4))
+* **mcp:** let the MCP clients sign their users in with OAuth ([556ac5c](https://github.com/lmatosevic/appweaver/commit/556ac5cfc7d01e7694ff73e6cc80cd334b989fc2))
+* **mcp:** sign the MCP users in with their email and password, and opt in to the bot checks of the auth routes ([628111f](https://github.com/lmatosevic/appweaver/commit/628111f5e10505fbf679e1becd3aba865762d5d0))
+
+### Bug Fixes
+
+* add omit config for relational output models ([afd2f8a](https://github.com/lmatosevic/appweaver/commit/afd2f8ab00d4a2af1ab5b799ccf51213b0744ac4))
+* fix mcp schema serialization ([89e9cc1](https://github.com/lmatosevic/appweaver/commit/89e9cc113757375b7a0b9883d1a3db5d8092b419))
+* fix relation ID mapping bug ([39616c4](https://github.com/lmatosevic/appweaver/commit/39616c47b40f61d1edc90d7dea4fe54924a9b665))
+* remove special characters from generated API key ([f1b713d](https://github.com/lmatosevic/appweaver/commit/f1b713d3f8ff716a8ca86b2590cc0d93bdcfeb19))
+* rename phoneNumber to phone in auth model resource ([1f7fd27](https://github.com/lmatosevic/appweaver/commit/1f7fd2767a609f36b8974ff1487dd797243484e2))
+* show first and las 4 characters for generated API keys ([3249456](https://github.com/lmatosevic/appweaver/commit/32494562ad351ec521ad03d2935b2fc2fd3627cc))
+
 ## [2.8.0](https://github.com/lmatosevic/appweaver/compare/v2.7.1...v2.8.0) (2026-11-19)
 
 ### Features
