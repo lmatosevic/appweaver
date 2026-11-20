@@ -1710,6 +1710,14 @@
                 "realtime": {
                   "default": true,
                   "type": "boolean"
+                },
+                "ai": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "mcp": {
+                  "default": true,
+                  "type": "boolean"
                 }
               }
             }

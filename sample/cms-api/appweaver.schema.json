@@ -696,6 +696,63 @@
             "logCalls": {
               "default": true,
               "type": "boolean"
+            },
+            "cache": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "ttl": {
+                  "default": 5000,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              }
+            },
+            "oauth2": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "routePrefix": {
+                  "default": "/oauth",
+                  "type": "string"
+                },
+                "providers": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "formsEnabled": {
+                  "default": true,
+                  "type": "boolean"
+                }
+              }
+            },
+            "rateLimit": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "max": {
+                  "default": 60,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "window": {
+                  "default": 60000,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              }
             }
           }
         },
