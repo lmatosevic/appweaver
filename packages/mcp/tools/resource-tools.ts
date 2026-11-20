@@ -25,26 +25,45 @@ const ACCESS_KEYS = ['public', 'roles', 'permissions'] as const;
 /** The operators of a field condition of the query tools, a subset of the full filter. */
 const STRING_OPERATORS = ['_contains', '_starts', '_ends', '_ilike'];
 const VALUE_OPERATORS = ['_eq', '_ne', '_gt', '_gte', '_lt', '_lte'];
+const READ_ACTIONS = new Set<ResourceMcpAction>(['find', 'query', 'aggregate']);
+
+/** The tools of each resource routes config, built once. */
+const built = new WeakMap<ResourceRoutesConfig, McpTool[]>();
 
 /**
  * Builds the tools of the resource actions the `mcp` config of the resource routes exposes, named
- * `<model>_<action>` in snake case, i.e. `blog_post_query`.
+ * `<model>_<action>` in snake case, i.e. `blog_post_query`. The tools of a resource are built once.
  *
  * @return {McpTool[]} The tools.
  */
 export function resourceTools(): McpTool[] {
   const tools: McpTool[] = [];
   for (const routes of context.resource.routes.values()) {
-    const config = routes.config.mcp;
-    const model = config && injectModel(routes.config.modelName, false);
-    if (!config || !model) {
-      continue;
+    let own = built.get(routes.config);
+    if (!own) {
+      own = buildTools(routes.config);
+      if (own) {
+        built.set(routes.config, own);
+      }
     }
-    for (const [action, { access, description }] of mcpActions(routes.config)) {
-      tools.push(resourceTool(model, config, action, access, description));
-    }
+    tools.push(...(own ?? []));
   }
   return tools;
+}
+
+/** The tools of a resource, undefined until its model is defined. */
+function buildTools(routes: ResourceRoutesConfig): McpTool[] | undefined {
+  const config = routes.mcp;
+  if (!config) {
+    return [];
+  }
+  const model = injectModel(routes.modelName, false);
+  if (!model) {
+    return undefined;
+  }
+  return [...mcpActions(routes)].map(([action, { access, description }]) =>
+    resourceTool(model, config, action, access, description)
+  );
 }
 
 /**
@@ -91,10 +110,17 @@ function resourceTool(
     name: `${camelToSnakeCase(model.name).toLowerCase()}_${action}`,
     description: (description ?? `${summary}.`) + about,
     input,
-    readOnly: ['find', 'query', 'aggregate'].includes(action),
+    readOnly: READ_ACTIONS.has(action),
     destructive: action === 'update' || action === 'delete',
     access,
-    call
+    call,
+    cache:
+      READ_ACTIONS.has(action) && config.cache !== false
+        ? {
+            ttl: typeof config.cache === 'number' ? config.cache : undefined,
+            modelName: model.name
+          }
+        : undefined
   });
 
   switch (action) {

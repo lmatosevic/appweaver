@@ -231,7 +231,22 @@ export type Page = {
   showInMenu: boolean;
   menuPosition: number;
   seo?: any | null;
-  author?: UserSingle;
+  author?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    displayName?: string | null;
+    bio?: string | null;
+    website?: string | null;
+    byline: string;
+    updatedAt: Date;
+    createdAt: Date;
+    createdById?: number | null;
+    postsCount?: number;
+    pagesCount?: number;
+    roles?: Array<RoleSingle>;
+    avatar?: FileSingle | null;
+  };
   heroImage?: FileSingle | null;
   updatedAt: Date;
   createdAt: Date;
@@ -251,7 +266,22 @@ export type PageSingle = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: UserSingle | null;
+  author?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    displayName?: string | null;
+    bio?: string | null;
+    website?: string | null;
+    byline: string;
+    updatedAt: Date;
+    createdAt: Date;
+    createdById?: number | null;
+    postsCount?: number;
+    pagesCount?: number;
+    roles?: Array<RoleSingle>;
+    avatar?: FileSingle | null;
+  } | null;
   heroImage?: FileSingle | null;
 };
 
@@ -268,7 +298,22 @@ export type PageMultiple = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: UserSingle | null;
+  author?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    displayName?: string | null;
+    bio?: string | null;
+    website?: string | null;
+    byline: string;
+    updatedAt: Date;
+    createdAt: Date;
+    createdById?: number | null;
+    postsCount?: number;
+    pagesCount?: number;
+    roles?: Array<RoleSingle>;
+    avatar?: FileSingle | null;
+  } | null;
   heroImage?: FileSingle | null;
 };
 
@@ -355,7 +400,22 @@ export type Post = {
   featured: boolean;
   viewCount: number;
   seo?: any | null;
-  author?: UserSingle;
+  author?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    displayName?: string | null;
+    bio?: string | null;
+    website?: string | null;
+    byline: string;
+    updatedAt: Date;
+    createdAt: Date;
+    createdById?: number | null;
+    postsCount?: number;
+    pagesCount?: number;
+    roles?: Array<RoleSingle>;
+    avatar?: FileSingle | null;
+  };
   category?: CategorySingle;
   tags?: Array<TagSingle>;
   comments?: Array<CommentSingle>;
@@ -384,7 +444,22 @@ export type PostSingle = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: UserSingle | null;
+  author?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    displayName?: string | null;
+    bio?: string | null;
+    website?: string | null;
+    byline: string;
+    updatedAt: Date;
+    createdAt: Date;
+    createdById?: number | null;
+    postsCount?: number;
+    pagesCount?: number;
+    roles?: Array<RoleSingle>;
+    avatar?: FileSingle | null;
+  } | null;
   category?: CategorySingle | null;
   tags?: Array<TagSingle>;
   comments?: Array<CommentSingle>;
@@ -410,7 +485,22 @@ export type PostMultiple = {
   updatedAt: Date;
   createdAt: Date;
   createdById?: number | null;
-  author?: UserSingle | null;
+  author?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    displayName?: string | null;
+    bio?: string | null;
+    website?: string | null;
+    byline: string;
+    updatedAt: Date;
+    createdAt: Date;
+    createdById?: number | null;
+    postsCount?: number;
+    pagesCount?: number;
+    roles?: Array<RoleSingle>;
+    avatar?: FileSingle | null;
+  } | null;
   category?: CategorySingle | null;
   tags?: Array<TagSingle>;
   commentsCount?: number;

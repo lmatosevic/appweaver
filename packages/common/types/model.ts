@@ -196,13 +196,16 @@ export type RelationOutput = {
   /** Which operations include this relation in output */
   type: OutputType;
   /** Nested relations to include */
-  include?: { [key: string]: Omit<RelationOutput, 'count'> };
+  include?: { [key: string]: Omit<RelationOutput, 'count' | 'omit'> };
   /** Levels of a relation pointing back at its own model, counting the relation
    * itself as the first one: `maxDepth: 3` on a category `parent` carries three
    * ancestors. Default: `1`. */
   maxDepth?: number;
   /** Include count of related records */
   count?: boolean;
+  /** Fields of the related model left out of this relation only, while its own routes keep them, i.e. the email of
+   * the author of a public post: `omit: ['email', 'phone']` */
+  omit?: string[];
 };
 
 export type RelationType =
@@ -281,7 +284,7 @@ export type FileField<T = any> = {
   /** Maximum number of files */
   maxCount?: number;
   /** Output configuration for the file relation */
-  output?: Omit<RelationOutput, 'include' | 'maxDepth'>;
+  output?: Omit<RelationOutput, 'include' | 'maxDepth' | 'omit'>;
   /** Files on resource delete: `'delete'` (default) or `'keep'` unserved */
   onResourceDeleted?: 'delete' | 'keep';
   /** Files on resource soft delete: `'keep'` (default) unserved or `'delete'` */

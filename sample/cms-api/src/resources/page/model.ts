@@ -53,6 +53,20 @@ export default createModel({
       onDelete: 'setNull',
       input: {
         type: 'none'
+      },
+      // Public, so without the contact details and the account state the
+      // user sees on their own account
+      output: {
+        type: 'always',
+        omit: [
+          'email',
+          'phone',
+          'phoneNumber',
+          'verifiedEmail',
+          'verifiedPhone',
+          'enabled',
+          'logoutAt'
+        ]
       }
     }
   },

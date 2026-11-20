@@ -414,6 +414,15 @@
       "maxResultSize": "256KB",
       "allowedOrigins": [],
       "logCalls": true,
+      "cache": {
+        "enabled": false,
+        "ttl": 5000
+      },
+      "rateLimit": {
+        "enabled": false,
+        "max": 60,
+        "window": 60000
+      },
       "oauth2": {
         "enabled": false,
         "routePrefix": "/oauth",

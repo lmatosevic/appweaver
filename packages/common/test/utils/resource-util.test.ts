@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import {
+  removeComputedKeywords,
   countFieldName,
   defaultScalarValue,
   extractResourceName,
@@ -28,6 +29,38 @@ import {
 import { ResourceModel, ResourceModelConfig } from '../../types';
 
 describe('resource-util', () => {
+  describe('removeComputedKeywords', () => {
+    test('removes what a module leaves on a computed type, in place', () => {
+      const { Type } = jest.requireActual('@sinclair/typebox');
+      const module = Type.Module({
+        A: Type.Object({ id: Type.Integer(), secret: Type.String() }),
+        B: Type.Object({
+          a: Type.Optional(Type.Omit(Type.Ref('A'), ['secret']))
+        })
+      });
+      const schema = module.Import('B');
+
+      expect(JSON.stringify(schema)).toMatch(/"target"/);
+      expect(removeComputedKeywords(schema)).toBe(schema);
+      expect(JSON.stringify(schema)).not.toMatch(/"target"|"parameters"/);
+      expect(Object.keys(schema.$defs.B.properties.a.properties)).toEqual([
+        'id'
+      ]);
+    });
+
+    test('keeps a property named target', () => {
+      const schema = {
+        type: 'object',
+        properties: {
+          target: { type: 'string' },
+          parameters: { type: 'array' }
+        }
+      } as never;
+
+      expect(removeComputedKeywords(schema)).toEqual(schema);
+    });
+  });
+
   describe('resourceModelProps', () => {
     test('maps the model suffixes to the resource model properties', () => {
       expect(resourceModelProps['']).toBe('readModel');

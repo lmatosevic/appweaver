@@ -163,9 +163,12 @@ describe('MCP server', () => {
     expect(created.isError).toBeFalsy();
     const post = created.structuredContent;
     expect(post).toMatchObject({ status: 'Draft', slug: 'mountain-huts' });
-    expect(post.author.email).toBe('mcp-user@example.com');
-    // Projected like the API responds with it, the related records included
-    expect(post.author).not.toHaveProperty('passwordHash');
+    expect(post.author).toMatchObject({ firstName: 'Mcp', lastName: 'User' });
+    // Projected like the API responds with it: no hidden field, nor the
+    // contact details the author relation omits
+    for (const field of ['passwordHash', 'email', 'phone', 'phoneNumber']) {
+      expect(post.author).not.toHaveProperty(field);
+    }
     expect(post.tags.map((tag: any) => tag.slug).sort()).toEqual([
       'hiking',
       'huts'
