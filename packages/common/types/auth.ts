@@ -8,7 +8,7 @@ export type AuthUser = {
   passwordHash?: string | null;
   verifiedEmail?: boolean;
   /** The verified phone number in the E.164 format, i.e. `+385911234567`, set by the phone verification. */
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone?: boolean;
   /** The confirmed two-factor methods of the user, the first one being the default. Empty when 2FA is off. */
   twoFactorMethods?: `${TwoFactorMethodType}`[];

@@ -52,7 +52,7 @@ export type TwoFactorChallengeData = CodeChallengeData & {
 };
 
 export type PhoneVerificationData = CodeChallengeData & {
-  phoneNumber: string;
+  phone: string;
 };
 
 export type OAuth2StateData = {

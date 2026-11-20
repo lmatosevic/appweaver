@@ -38,7 +38,6 @@ describe('Update and replace routes', () => {
         firstName: 'Update',
         lastName: 'Methods',
         email,
-        phone: '+38512345670',
         passwordHash: await hashPassword(password),
         roles: {
           connectOrCreate: {

@@ -42,7 +42,7 @@ model User {
   email         String    @unique
   passwordHash  String?
   verifiedEmail Boolean   @default(false)
-  phoneNumber   String?
+  phone         String?
   verifiedPhone Boolean   @default(false)
   enabled       Boolean   @default(true)
   logoutAt      DateTime?

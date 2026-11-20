@@ -23,16 +23,14 @@ describe('Query sort input', () => {
         data: {
           email: 'ana@example.com',
           firstName: 'Ana',
-          lastName: 'Anic',
-          phone: '01234431'
+          lastName: 'Anic'
         }
       }),
       users.client.create({
         data: {
           email: 'bob@example.com',
           firstName: 'Bob',
-          lastName: 'Boric',
-          phone: '01234432'
+          lastName: 'Boric'
         }
       })
     ]);

@@ -25,7 +25,7 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "passwordHash" TEXT,
     "verifiedEmail" BOOLEAN NOT NULL DEFAULT false,
-    "phoneNumber" TEXT,
+    "phone" TEXT,
     "verifiedPhone" BOOLEAN NOT NULL DEFAULT false,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "logoutAt" DATETIME,

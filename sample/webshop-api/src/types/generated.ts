@@ -1024,12 +1024,11 @@ export type User = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   marketingOptIn: boolean;
   language: string;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -1050,11 +1049,10 @@ export type UserSingle = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   marketingOptIn: boolean;
   language: string;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -1072,11 +1070,10 @@ export type UserMultiple = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   marketingOptIn: boolean;
   language: string;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -1092,7 +1089,6 @@ export type UserCreate = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   marketingOptIn?: boolean;
   language?: string;
   enabled?: boolean;
@@ -1109,7 +1105,6 @@ export type UserUpdate = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string | null;
   marketingOptIn?: boolean;
   language?: string;
   enabled?: boolean;
@@ -1126,7 +1121,6 @@ export type UserReplace = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   marketingOptIn?: boolean;
   language?: string;
   enabled?: boolean;
@@ -1143,7 +1137,6 @@ export type UserRelationCreate = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   marketingOptIn?: boolean;
   language?: string;
   enabled?: boolean;
@@ -1155,7 +1148,6 @@ export type UserRelationUpdate = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string | null;
   marketingOptIn?: boolean;
   language?: string;
   enabled?: boolean;

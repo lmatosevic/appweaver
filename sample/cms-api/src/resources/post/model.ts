@@ -76,7 +76,6 @@ export default createModel({
         omit: [
           'email',
           'phone',
-          'phoneNumber',
           'verifiedEmail',
           'verifiedPhone',
           'enabled',

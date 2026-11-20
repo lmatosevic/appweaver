@@ -39,7 +39,6 @@ export async function createRolesAndAdminUser(): Promise<void> {
       firstName: 'Admin',
       lastName: 'Admin',
       email: systemConfig.ADMIN_INITIAL_EMAIL,
-      phone: '01234435',
       passwordHash,
       roles: {
         connect: { id: adminRole.id }

@@ -18,12 +18,6 @@ export default createAuthModel({
       maxLength: 255,
       example: 'user@example.com'
     },
-    phone: {
-      type: 'string',
-      required: false,
-      maxLength: 32,
-      example: '+15035550123'
-    },
     displayName: {
       type: 'string',
       required: false,

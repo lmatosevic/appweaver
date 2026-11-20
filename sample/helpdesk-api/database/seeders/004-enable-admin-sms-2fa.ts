@@ -9,14 +9,14 @@ import { db } from '@db/client';
  * without it the admin verifies a number and enables the method themselves.
  */
 export async function enableAdminSmsTwoFactor(): Promise<string> {
-  const phoneNumber = process.env.ADMIN_PHONE_NUMBER;
-  if (!phoneNumber) {
+  const phone = process.env.ADMIN_PHONE_NUMBER;
+  if (!phone) {
     return 'ADMIN_PHONE_NUMBER is not set, the SMS 2FA of the admin is left for them to enable';
   }
 
   const admin = await db.user.update({
     where: { email: systemConfig.ADMIN_INITIAL_EMAIL },
-    data: { phoneNumber, verifiedPhone: true }
+    data: { phone, verifiedPhone: true }
   });
 
   await db.twoFactorMethod.create({

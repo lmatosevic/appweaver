@@ -35,12 +35,6 @@ export default createAuthModel({
       maxLength: 255,
       example: 'emily.parker@hr.example.com'
     },
-    phone: {
-      type: 'string',
-      required: false,
-      maxLength: 32,
-      example: '+15035550123'
-    },
     employmentType: {
       type: 'enum',
       values: ['FullTime', 'PartTime', 'Contractor', 'Intern'],

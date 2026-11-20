@@ -693,7 +693,7 @@ export type User = {
   available: boolean;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -716,7 +716,7 @@ export type UserSingle = {
   email: string;
   available: boolean;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -734,7 +734,7 @@ export type UserMultiple = {
   email: string;
   available: boolean;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;

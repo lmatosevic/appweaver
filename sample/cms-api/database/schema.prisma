@@ -162,14 +162,13 @@ model User {
   firstName     String
   lastName      String
   email         String    @unique
-  phone         String?
   displayName   String?
   bio           String?
   website       String?
   internalNotes String?
   passwordHash  String?
   verifiedEmail Boolean   @default(false)
-  phoneNumber   String?
+  phone         String?
   verifiedPhone Boolean   @default(false)
   enabled       Boolean   @default(true)
   logoutAt      DateTime?

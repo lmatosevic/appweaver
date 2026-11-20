@@ -102,7 +102,7 @@ describe('account-client', () => {
       const { stub, account } = createAccount({ challengeId: 'challenge' });
 
       await expect(
-        account.sendVerifyPhone({ phoneNumber: '+385911234567' })
+        account.sendVerifyPhone({ phone: '+385911234567' })
       ).resolves.toEqual({ challengeId: 'challenge' });
 
       expect(stub.lastCall()).toMatchObject({
@@ -110,7 +110,7 @@ describe('account-client', () => {
         path: '/auth/account/send-verify-phone'
       });
       expect(stub.lastCall().params.body).toEqual({
-        phoneNumber: '+385911234567'
+        phone: '+385911234567'
       });
     });
 

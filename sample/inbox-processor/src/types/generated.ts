@@ -146,7 +146,7 @@ export type User = {
   email: string;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -164,7 +164,7 @@ export type UserSingle = {
   lastName: string;
   email: string;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -181,7 +181,7 @@ export type UserMultiple = {
   lastName: string;
   email: string;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;

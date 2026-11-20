@@ -108,7 +108,7 @@ describe('account-routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/send-verify-phone',
-        payload: { phoneNumber: '+385911234567' }
+        payload: { phone: '+385911234567' }
       });
 
       expect(response.json()).toEqual({
@@ -132,7 +132,7 @@ describe('account-routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/send-verify-phone',
-        payload: { phoneNumber: '091 123 4567' }
+        payload: { phone: '091 123 4567' }
       });
 
       expect(response.statusCode).toBe(400);

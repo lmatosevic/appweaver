@@ -165,7 +165,7 @@ export function accountRoutes(server: Server): void {
       async (request, reply) => {
         const response = await accountService.sendPhoneVerification(
           currentUser(),
-          request.body.phoneNumber
+          request.body.phone
         );
 
         return reply.send(response);

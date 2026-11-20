@@ -22,12 +22,6 @@ export default createAuthModel({
       maxLength: 255,
       example: 'sarah@fleet.example.com'
     },
-    phone: {
-      type: 'string',
-      required: false,
-      maxLength: 32,
-      example: '+385915550123'
-    },
     // The driving licence categories of a driver, i.e. B, C, D
     licenceCategories: {
       type: 'string',

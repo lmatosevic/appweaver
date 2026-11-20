@@ -4160,10 +4160,8 @@ export const ErrorCode = {
   QueueClosed: 'QUEUE_CLOSED',
   QueueUnavailable: 'QUEUE_UNAVAILABLE',
   MailerSendFailed: 'MAILER_SEND_FAILED',
-  MailerJobNotFound: 'MAILER_JOB_NOT_FOUND',
   MailerSenderMissing: 'MAILER_SENDER_MISSING',
   SmsSendFailed: 'SMS_SEND_FAILED',
-  SmsJobNotFound: 'SMS_JOB_NOT_FOUND',
   TemplateNotFound: 'TEMPLATE_NOT_FOUND',
   TemplateRenderFailed: 'TEMPLATE_RENDER_FAILED',
   TemplateLoadFailed: 'TEMPLATE_LOAD_FAILED',
@@ -4202,6 +4200,20 @@ export const ErrorCode = {
   RealtimeStreamAccept: 'REALTIME_STREAM_ACCEPT',
   RealtimeInputLimit: 'REALTIME_INPUT_LIMIT',
   RealtimeShuttingDown: 'REALTIME_SHUTTING_DOWN',
+  AiModelUnknown: 'AI_MODEL_UNKNOWN',
+  AiRequestInvalid: 'AI_REQUEST_INVALID',
+  AiCapabilityUnsupported: 'AI_CAPABILITY_UNSUPPORTED',
+  AiRequestFailed: 'AI_REQUEST_FAILED',
+  AiAuthFailed: 'AI_AUTH_FAILED',
+  AiRateLimited: 'AI_RATE_LIMITED',
+  AiTimeout: 'AI_TIMEOUT',
+  AiProviderUnavailable: 'AI_PROVIDER_UNAVAILABLE',
+  AiContextLengthExceeded: 'AI_CONTEXT_LENGTH_EXCEEDED',
+  AiOutputInvalid: 'AI_OUTPUT_INVALID',
+  McpOriginDenied: 'MCP_ORIGIN_DENIED',
+  McpInputInvalid: 'MCP_INPUT_INVALID',
+  McpResultTooLarge: 'MCP_RESULT_TOO_LARGE',
+  McpRateLimited: 'MCP_RATE_LIMITED',
   AlreadyReviewed: 'ALREADY_REVIEWED',
   AlreadyOnWatchlist: 'ALREADY_ON_WATCHLIST'
 } as const;
@@ -6634,7 +6646,7 @@ export type UserMultiple = {
    * @maxLength 16
    * @pattern ^\+[1-9]\d{6,14}$
    */
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   /**
@@ -6703,8 +6715,8 @@ export type UserQueryFilter = {
   bio?: QueryFilterValue;
   /** @description Filter by the verifiedEmail field */
   verifiedEmail?: QueryFilterValue;
-  /** @description Filter by the phoneNumber field */
-  phoneNumber?: QueryFilterValue;
+  /** @description Filter by the phone field */
+  phone?: QueryFilterValue;
   /** @description Filter by the verifiedPhone field */
   verifiedPhone?: QueryFilterValue;
   /** @description Filter by the enabled field */
@@ -6789,7 +6801,7 @@ export type UserQuerySort = {
   /** @example desc */
   verifiedEmail?: SortDirection;
   /** @example desc */
-  phoneNumber?: SortDirection;
+  phone?: SortDirection;
   /** @example desc */
   verifiedPhone?: SortDirection;
   /** @example desc */
@@ -6867,7 +6879,7 @@ export type UserSingle = {
    * @maxLength 16
    * @pattern ^\+[1-9]\d{6,14}$
    */
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   /**

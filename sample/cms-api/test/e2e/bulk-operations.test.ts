@@ -64,7 +64,6 @@ describe('Bulk create, update, and delete routes', () => {
         firstName: 'Bulk',
         lastName: 'Operations',
         email,
-        phone: '+38512345671',
         passwordHash: await hashPassword(password),
         roles: {
           connectOrCreate: {

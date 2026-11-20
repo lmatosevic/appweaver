@@ -71,7 +71,7 @@ describe('Post author', () => {
         firstName: 'Paula',
         byline: 'Paula Writer'
       });
-      for (const field of ['email', 'phone', 'phoneNumber', 'logoutAt']) {
+      for (const field of ['email', 'phone', 'logoutAt']) {
         expect(author).not.toHaveProperty(field);
       }
     }

@@ -44,14 +44,14 @@ await smsService.sendSms({ to: '+385911234567', text: 'Your order has shipped.' 
 
 // Waits for the provider, i.e. to answer a request with a rejected number
 await smsService.sendSmsAndWait({
-  to: user.phoneNumber,
+  to: user.phone,
   template: 'sms/order-shipped',
   data: { orderId: order.id },
   locale: 'de'
 });
 
 const results = await smsService.sendSmsBulkAndWait(
-  customers.map((customer) => ({ to: customer.phoneNumber, text: 'We are open on Sunday.' }))
+  customers.map((customer) => ({ to: customer.phone, text: 'We are open on Sunday.' }))
 );
 ```
 

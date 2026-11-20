@@ -240,8 +240,8 @@ export class TwoFactorService {
       await this.sendEmailCode(authUser, code!, purpose, options.locale);
       destination = maskEmail(authUser.email);
     } else if (method === 'Sms') {
-      await this.sendSmsCode(authUser.phoneNumber!, code!, options.locale);
-      destination = maskPhoneNumber(authUser.phoneNumber!);
+      await this.sendSmsCode(authUser.phone!, code!, options.locale);
+      destination = maskPhoneNumber(authUser.phone!);
     }
 
     logger.debug(
@@ -873,7 +873,7 @@ export class TwoFactorService {
   private checkPhone(authUser: AuthUser, method: TwoFactorMethodType): void {
     if (
       method === TwoFactorMethodType.Sms &&
-      (!authUser.phoneNumber || !authUser.verifiedPhone)
+      (!authUser.phone || !authUser.verifiedPhone)
     ) {
       throw new AccountError(
         ErrorCode.AccountPhoneNotVerified,
@@ -910,14 +910,14 @@ export class TwoFactorService {
 
   /** @internal */
   private async sendSmsCode(
-    phoneNumber: string,
+    phone: string,
     code: string,
     locale?: string
   ): Promise<void> {
     await sendAccountSms(
       this._smsService!,
       {
-        to: phoneNumber,
+        to: phone,
         template: 'sms/two-factor-code',
         code,
         expiresInMinutes: Math.ceil(twoFactorConfig.OTT_TTL / 60_000),

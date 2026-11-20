@@ -174,7 +174,7 @@ model User {
   available     Boolean   @default(true)
   passwordHash  String?
   verifiedEmail Boolean   @default(false)
-  phoneNumber   String?   @db.VarChar(16)
+  phone         String?   @db.VarChar(16)
   verifiedPhone Boolean   @default(false)
   enabled       Boolean   @default(true)
   logoutAt      DateTime?

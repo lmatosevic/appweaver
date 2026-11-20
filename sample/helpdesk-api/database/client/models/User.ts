@@ -45,7 +45,7 @@ export type UserMinAggregateOutputType = {
   available: boolean | null
   passwordHash: string | null
   verifiedEmail: boolean | null
-  phoneNumber: string | null
+  phone: string | null
   verifiedPhone: boolean | null
   enabled: boolean | null
   logoutAt: Date | null
@@ -62,7 +62,7 @@ export type UserMaxAggregateOutputType = {
   available: boolean | null
   passwordHash: string | null
   verifiedEmail: boolean | null
-  phoneNumber: string | null
+  phone: string | null
   verifiedPhone: boolean | null
   enabled: boolean | null
   logoutAt: Date | null
@@ -79,7 +79,7 @@ export type UserCountAggregateOutputType = {
   available: number
   passwordHash: number
   verifiedEmail: number
-  phoneNumber: number
+  phone: number
   verifiedPhone: number
   enabled: number
   logoutAt: number
@@ -110,7 +110,7 @@ export type UserMinAggregateInputType = {
   available?: true
   passwordHash?: true
   verifiedEmail?: true
-  phoneNumber?: true
+  phone?: true
   verifiedPhone?: true
   enabled?: true
   logoutAt?: true
@@ -127,7 +127,7 @@ export type UserMaxAggregateInputType = {
   available?: true
   passwordHash?: true
   verifiedEmail?: true
-  phoneNumber?: true
+  phone?: true
   verifiedPhone?: true
   enabled?: true
   logoutAt?: true
@@ -144,7 +144,7 @@ export type UserCountAggregateInputType = {
   available?: true
   passwordHash?: true
   verifiedEmail?: true
-  phoneNumber?: true
+  phone?: true
   verifiedPhone?: true
   enabled?: true
   logoutAt?: true
@@ -248,7 +248,7 @@ export type UserGroupByOutputType = {
   available: boolean
   passwordHash: string | null
   verifiedEmail: boolean
-  phoneNumber: string | null
+  phone: string | null
   verifiedPhone: boolean
   enabled: boolean
   logoutAt: Date | null
@@ -288,7 +288,7 @@ export type UserWhereInput = {
   available?: Prisma.BoolFilter<"User"> | boolean
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  phone?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -326,7 +326,7 @@ export type UserOrderByWithRelationInput = {
   available?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -368,7 +368,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   available?: Prisma.BoolFilter<"User"> | boolean
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  phone?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -406,7 +406,7 @@ export type UserOrderByWithAggregationInput = {
   available?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -431,7 +431,7 @@ export type UserScalarWhereWithAggregatesInput = {
   available?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   passwordHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
-  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  phone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   verifiedPhone?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   enabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
@@ -447,7 +447,7 @@ export type UserCreateInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -483,7 +483,7 @@ export type UserUncheckedCreateInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -518,7 +518,7 @@ export type UserUpdateInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -554,7 +554,7 @@ export type UserUncheckedUpdateInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -590,7 +590,7 @@ export type UserCreateManyInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -606,7 +606,7 @@ export type UserUpdateManyMutationInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -621,7 +621,7 @@ export type UserUncheckedUpdateManyInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -659,7 +659,7 @@ export type UserCountOrderByAggregateInput = {
   available?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
@@ -682,7 +682,7 @@ export type UserMaxOrderByAggregateInput = {
   available?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
@@ -699,7 +699,7 @@ export type UserMinOrderByAggregateInput = {
   available?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
@@ -1130,7 +1130,7 @@ export type UserCreateWithoutCreatedCannedResponsesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1165,7 +1165,7 @@ export type UserUncheckedCreateWithoutCreatedCannedResponsesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1215,7 +1215,7 @@ export type UserUpdateWithoutCreatedCannedResponsesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1250,7 +1250,7 @@ export type UserUncheckedUpdateWithoutCreatedCannedResponsesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1284,7 +1284,7 @@ export type UserCreateWithoutCreatedCustomersInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1319,7 +1319,7 @@ export type UserUncheckedCreateWithoutCreatedCustomersInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1369,7 +1369,7 @@ export type UserUpdateWithoutCreatedCustomersInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1404,7 +1404,7 @@ export type UserUncheckedUpdateWithoutCreatedCustomersInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1438,7 +1438,7 @@ export type UserCreateWithoutCreatedSlaPoliciesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1473,7 +1473,7 @@ export type UserUncheckedCreateWithoutCreatedSlaPoliciesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1523,7 +1523,7 @@ export type UserUpdateWithoutCreatedSlaPoliciesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1558,7 +1558,7 @@ export type UserUncheckedUpdateWithoutCreatedSlaPoliciesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1592,7 +1592,7 @@ export type UserCreateWithoutCreatedTagsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1627,7 +1627,7 @@ export type UserUncheckedCreateWithoutCreatedTagsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1677,7 +1677,7 @@ export type UserUpdateWithoutCreatedTagsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1712,7 +1712,7 @@ export type UserUncheckedUpdateWithoutCreatedTagsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1746,7 +1746,7 @@ export type UserCreateWithoutTeamInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1781,7 +1781,7 @@ export type UserUncheckedCreateWithoutTeamInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1825,7 +1825,7 @@ export type UserCreateWithoutCreatedTeamsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1860,7 +1860,7 @@ export type UserUncheckedCreateWithoutCreatedTeamsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1919,7 +1919,7 @@ export type UserScalarWhereInput = {
   available?: Prisma.BoolFilter<"User"> | boolean
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"User"> | boolean
-  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  phone?: Prisma.StringNullableFilter<"User"> | string | null
   verifiedPhone?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -1946,7 +1946,7 @@ export type UserUpdateWithoutCreatedTeamsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1981,7 +1981,7 @@ export type UserUncheckedUpdateWithoutCreatedTeamsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2015,7 +2015,7 @@ export type UserCreateWithoutMessagesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2050,7 +2050,7 @@ export type UserUncheckedCreateWithoutMessagesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2089,7 +2089,7 @@ export type UserCreateWithoutCreatedTicketMessagesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2124,7 +2124,7 @@ export type UserUncheckedCreateWithoutCreatedTicketMessagesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2174,7 +2174,7 @@ export type UserUpdateWithoutMessagesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2209,7 +2209,7 @@ export type UserUncheckedUpdateWithoutMessagesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2254,7 +2254,7 @@ export type UserUpdateWithoutCreatedTicketMessagesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2289,7 +2289,7 @@ export type UserUncheckedUpdateWithoutCreatedTicketMessagesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2323,7 +2323,7 @@ export type UserCreateWithoutAssignedTicketsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2358,7 +2358,7 @@ export type UserUncheckedCreateWithoutAssignedTicketsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2397,7 +2397,7 @@ export type UserCreateWithoutCreatedTicketsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2432,7 +2432,7 @@ export type UserUncheckedCreateWithoutCreatedTicketsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2482,7 +2482,7 @@ export type UserUpdateWithoutAssignedTicketsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2517,7 +2517,7 @@ export type UserUncheckedUpdateWithoutAssignedTicketsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2562,7 +2562,7 @@ export type UserUpdateWithoutCreatedTicketsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2597,7 +2597,7 @@ export type UserUncheckedUpdateWithoutCreatedTicketsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2631,7 +2631,7 @@ export type UserCreateWithoutCreatedByInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2666,7 +2666,7 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2710,7 +2710,7 @@ export type UserCreateWithoutCreatedUsersInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2745,7 +2745,7 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2811,7 +2811,7 @@ export type UserUpdateWithoutCreatedUsersInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2846,7 +2846,7 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2880,7 +2880,7 @@ export type UserCreateWithoutApiKeysInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2915,7 +2915,7 @@ export type UserUncheckedCreateWithoutApiKeysInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2954,7 +2954,7 @@ export type UserCreateWithoutCreatedApiKeysInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2989,7 +2989,7 @@ export type UserUncheckedCreateWithoutCreatedApiKeysInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3039,7 +3039,7 @@ export type UserUpdateWithoutApiKeysInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3074,7 +3074,7 @@ export type UserUncheckedUpdateWithoutApiKeysInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3119,7 +3119,7 @@ export type UserUpdateWithoutCreatedApiKeysInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3154,7 +3154,7 @@ export type UserUncheckedUpdateWithoutCreatedApiKeysInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3188,7 +3188,7 @@ export type UserCreateWithoutTwoFactorMethodsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3223,7 +3223,7 @@ export type UserUncheckedCreateWithoutTwoFactorMethodsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3273,7 +3273,7 @@ export type UserUpdateWithoutTwoFactorMethodsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3308,7 +3308,7 @@ export type UserUncheckedUpdateWithoutTwoFactorMethodsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3342,7 +3342,7 @@ export type UserCreateWithoutTwoFactorRecoveryCodesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3377,7 +3377,7 @@ export type UserUncheckedCreateWithoutTwoFactorRecoveryCodesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3427,7 +3427,7 @@ export type UserUpdateWithoutTwoFactorRecoveryCodesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3462,7 +3462,7 @@ export type UserUncheckedUpdateWithoutTwoFactorRecoveryCodesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3496,7 +3496,7 @@ export type UserCreateWithoutRolesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3531,7 +3531,7 @@ export type UserUncheckedCreateWithoutRolesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3570,7 +3570,7 @@ export type UserCreateWithoutCreatedRolesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3605,7 +3605,7 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3671,7 +3671,7 @@ export type UserUpdateWithoutCreatedRolesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3706,7 +3706,7 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3740,7 +3740,7 @@ export type UserCreateWithoutCreatedPermissionsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3775,7 +3775,7 @@ export type UserUncheckedCreateWithoutCreatedPermissionsInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3825,7 +3825,7 @@ export type UserUpdateWithoutCreatedPermissionsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3860,7 +3860,7 @@ export type UserUncheckedUpdateWithoutCreatedPermissionsInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3894,7 +3894,7 @@ export type UserCreateWithoutCreatedFilesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3929,7 +3929,7 @@ export type UserUncheckedCreateWithoutCreatedFilesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3968,7 +3968,7 @@ export type UserCreateWithoutDeletedFilesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4003,7 +4003,7 @@ export type UserUncheckedCreateWithoutDeletedFilesInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4053,7 +4053,7 @@ export type UserUpdateWithoutCreatedFilesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4088,7 +4088,7 @@ export type UserUncheckedUpdateWithoutCreatedFilesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4133,7 +4133,7 @@ export type UserUpdateWithoutDeletedFilesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4168,7 +4168,7 @@ export type UserUncheckedUpdateWithoutDeletedFilesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4203,7 +4203,7 @@ export type UserCreateManyTeamInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4218,7 +4218,7 @@ export type UserUpdateWithoutTeamInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4253,7 +4253,7 @@ export type UserUncheckedUpdateWithoutTeamInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4288,7 +4288,7 @@ export type UserUncheckedUpdateManyWithoutTeamInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4304,7 +4304,7 @@ export type UserCreateManyCreatedByInput = {
   available?: boolean
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4319,7 +4319,7 @@ export type UserUpdateWithoutCreatedByInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4354,7 +4354,7 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4389,7 +4389,7 @@ export type UserUncheckedUpdateManyWithoutCreatedByInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4404,7 +4404,7 @@ export type UserUpdateWithoutRolesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4439,7 +4439,7 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4474,7 +4474,7 @@ export type UserUncheckedUpdateManyWithoutRolesInput = {
   available?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4684,7 +4684,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   available?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  phoneNumber?: boolean
+  phone?: boolean
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
@@ -4725,7 +4725,7 @@ export type UserSelectScalar = {
   available?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  phoneNumber?: boolean
+  phone?: boolean
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
@@ -4735,7 +4735,7 @@ export type UserSelectScalar = {
   createdById?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "available" | "passwordHash" | "verifiedEmail" | "phoneNumber" | "verifiedPhone" | "enabled" | "logoutAt" | "teamId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "available" | "passwordHash" | "verifiedEmail" | "phone" | "verifiedPhone" | "enabled" | "logoutAt" | "teamId" | "updatedAt" | "createdAt" | "createdById", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   team?: boolean | Prisma.User$teamArgs<ExtArgs>
   assignedTickets?: boolean | Prisma.User$assignedTicketsArgs<ExtArgs>
@@ -4802,7 +4802,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     available: boolean
     passwordHash: string | null
     verifiedEmail: boolean
-    phoneNumber: string | null
+    phone: string | null
     verifiedPhone: boolean
     enabled: boolean
     logoutAt: Date | null
@@ -5209,7 +5209,7 @@ export interface UserFieldRefs {
   readonly available: Prisma.FieldRef<"User", 'Boolean'>
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly verifiedEmail: Prisma.FieldRef<"User", 'Boolean'>
-  readonly phoneNumber: Prisma.FieldRef<"User", 'String'>
+  readonly phone: Prisma.FieldRef<"User", 'String'>
   readonly verifiedPhone: Prisma.FieldRef<"User", 'Boolean'>
   readonly enabled: Prisma.FieldRef<"User", 'Boolean'>
   readonly logoutAt: Prisma.FieldRef<"User", 'DateTime'>

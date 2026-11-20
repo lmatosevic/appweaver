@@ -328,7 +328,7 @@ export class AccountService {
    * the user. A new number is verified before it replaces the current one.
    *
    * @param {AuthUser} authUser - The user verifying the phone number.
-   * @param {string} [phoneNumber] - The phone number in the E.164 format, i.e. `+385911234567`. Defaults to the phone
+   * @param {string} [phone] - The phone number in the E.164 format, i.e. `+385911234567`. Defaults to the phone
    * number of the user.
    * @param {string} [locale] - The locale of the message, the `sms.verifyPhone` translation. Defaults to the
    * `LOCALE_DEFAULT` config.
@@ -339,7 +339,7 @@ export class AccountService {
    */
   public async sendPhoneVerification(
     authUser: AuthUser,
-    phoneNumber: string | undefined = authUser.phoneNumber ?? undefined,
+    phone: string | undefined = authUser.phone ?? undefined,
     locale?: string
   ): Promise<{ challengeId: string; expiresIn: number }> {
     if (!this._smsService) {
@@ -350,14 +350,14 @@ export class AccountService {
       );
     }
 
-    if (!phoneNumber) {
+    if (!phone) {
       throw new AccountError(
         ErrorCode.AccountPhoneNotSet,
         'No phone number to verify'
       );
     }
 
-    if (authUser.verifiedPhone && authUser.phoneNumber === phoneNumber) {
+    if (authUser.verifiedPhone && authUser.phone === phone) {
       throw new AccountError(
         ErrorCode.AccountPhoneAlreadyVerified,
         'Phone number is already verified'
@@ -371,7 +371,7 @@ export class AccountService {
         AuthOTTPurpose.PhoneVerification,
         {
           authUserId: authUser.id,
-          phoneNumber,
+          phone,
           codeHash: makeHash(code),
           attempts: 0
         },
@@ -381,7 +381,7 @@ export class AccountService {
     await sendAccountSms(
       this._smsService,
       {
-        to: phoneNumber,
+        to: phone,
         template: 'sms/verify-phone',
         code,
         expiresInMinutes: Math.ceil(expiresIn / 60_000),
@@ -413,7 +413,7 @@ export class AccountService {
     challengeId: string,
     code: string
   ): Promise<string> {
-    const { phoneNumber } =
+    const { phone } =
       await this._securityStore.useOneTimeToken<PhoneVerificationData>(
         challengeId,
         AuthOTTPurpose.PhoneVerification,
@@ -422,12 +422,12 @@ export class AccountService {
         )
       );
 
-    if (authUser.phoneNumber !== phoneNumber) {
+    if (authUser.phone !== phone) {
       await this._twoFactorService.removeSmsMethod(authUser);
     }
 
     await this._authService.updateAuthUser(authUser.id, {
-      phoneNumber,
+      phone,
       verifiedPhone: true
     });
 

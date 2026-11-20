@@ -335,7 +335,7 @@ describe('two-factor-service', () => {
       addRow({ type: 'Sms', confirmedAt: new Date(), priority: 1 });
 
       const challenge = await service.sendChallenge(
-        currentUser({ phoneNumber: '+385911234567', verifiedPhone: true }),
+        currentUser({ phone: '+385911234567', verifiedPhone: true }),
         { method: 'Sms', authSource: AuthSource.OAuth2Google, locale: 'en' }
       );
 
@@ -433,7 +433,7 @@ describe('two-factor-service', () => {
 
       await expect(
         service.sendChallenge(
-          currentUser({ phoneNumber: '+385911234567', verifiedPhone: false })
+          currentUser({ phone: '+385911234567', verifiedPhone: false })
         )
       ).rejects.toMatchObject({ code: ErrorCode.AccountPhoneNotVerified });
     });
@@ -572,7 +572,7 @@ describe('two-factor-service', () => {
     test('enables the SMS method with a verified phone number', async () => {
       await expect(
         service.enableMethod(
-          currentUser({ phoneNumber: '+385911234567', verifiedPhone: true }),
+          currentUser({ phone: '+385911234567', verifiedPhone: true }),
           'Sms'
         )
       ).resolves.toEqual(['Sms']);

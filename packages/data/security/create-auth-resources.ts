@@ -11,7 +11,6 @@ import {
   ResourceModelConfig,
   ResourceServiceConfig,
   ScalarConfig,
-  ScalarFieldString,
   uncapitalize,
   VirtualConfig
 } from '@appweaver/common';
@@ -34,7 +33,7 @@ type AuthFieldName =
   | 'email'
   | 'passwordHash'
   | 'verifiedEmail'
-  | 'phoneNumber'
+  | 'phone'
   | 'verifiedPhone'
   | 'enabled'
   | 'logoutAt'
@@ -45,8 +44,19 @@ type AuthFieldName =
   | 'twoFactorRecoveryCodes';
 
 /**
+ * The properties of the auth fields a model config may set. The others keep the email a required unique address the
+ * sign-in looks the user up by, and the phone an optional E.164 number the phone verification and the SMS 2FA use.
+ */
+const overridableProperties: Record<string, string[]> = {
+  email: ['hidden', 'example', 'minLength', 'maxLength', 'pattern'],
+  phone: ['unique', 'hidden', 'example']
+};
+
+/**
  * Creates the resource model of an authenticatable user, adding the email, password, verification, phone, two-factor
- * method, and role fields to the configured ones.
+ * method, and role fields to the configured ones. A configured `email` overrides only its `hidden`, `example`,
+ * `minLength`, `maxLength` and `pattern`, a configured `phone` only its `unique`, `hidden` and `example`, and any other
+ * auth field replaces a configured one.
  *
  * @param {ResourceModelConfig} modelConfig - The model configuration.
  * @return {ResourceModel} The created auth resource model.
@@ -76,7 +86,7 @@ export function createAuthModel<
       default: false
     },
     // Set by the phone verification or the app code, never by the resource routes, in the E.164 format
-    phoneNumber: {
+    phone: {
       type: 'string',
       required: false,
       maxLength: 16,
@@ -96,12 +106,18 @@ export function createAuthModel<
     }
   };
 
-  // Override email properties if already present in the model config
-  if (config.scalars?.email?.type === 'string') {
-    authModelScalars.email = {
-      ...authModelScalars.email,
-      ...config.scalars.email
-    } as ScalarFieldString;
+  for (const [field, properties] of Object.entries(overridableProperties)) {
+    const scalar = config.scalars?.[field];
+    if (scalar?.type === 'string') {
+      Object.assign(
+        authModelScalars[field],
+        Object.fromEntries(
+          Object.entries(scalar).filter(
+            ([key, value]) => properties.includes(key) && value !== undefined
+          )
+        )
+      );
+    }
   }
 
   const authModelVirtual: VirtualConfig = {
@@ -193,7 +209,7 @@ export function createAuthModel<
 
   const authModelInputOmit = [
     'verifiedEmail',
-    'phoneNumber',
+    'phone',
     'verifiedPhone',
     'logoutAt'
   ];

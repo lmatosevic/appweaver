@@ -44,14 +44,13 @@ export type EmployeeMinAggregateOutputType = {
   firstName: string | null
   lastName: string | null
   email: string | null
-  phone: string | null
   employmentType: string | null
   status: string | null
   hireDate: Date | null
   terminatedAt: Date | null
   passwordHash: string | null
   verifiedEmail: boolean | null
-  phoneNumber: string | null
+  phone: string | null
   verifiedPhone: boolean | null
   enabled: boolean | null
   logoutAt: Date | null
@@ -72,14 +71,13 @@ export type EmployeeMaxAggregateOutputType = {
   firstName: string | null
   lastName: string | null
   email: string | null
-  phone: string | null
   employmentType: string | null
   status: string | null
   hireDate: Date | null
   terminatedAt: Date | null
   passwordHash: string | null
   verifiedEmail: boolean | null
-  phoneNumber: string | null
+  phone: string | null
   verifiedPhone: boolean | null
   enabled: boolean | null
   logoutAt: Date | null
@@ -100,14 +98,13 @@ export type EmployeeCountAggregateOutputType = {
   firstName: number
   lastName: number
   email: number
-  phone: number
   employmentType: number
   status: number
   hireDate: number
   terminatedAt: number
   passwordHash: number
   verifiedEmail: number
-  phoneNumber: number
+  phone: number
   verifiedPhone: number
   enabled: number
   logoutAt: number
@@ -142,14 +139,13 @@ export type EmployeeMinAggregateInputType = {
   firstName?: true
   lastName?: true
   email?: true
-  phone?: true
   employmentType?: true
   status?: true
   hireDate?: true
   terminatedAt?: true
   passwordHash?: true
   verifiedEmail?: true
-  phoneNumber?: true
+  phone?: true
   verifiedPhone?: true
   enabled?: true
   logoutAt?: true
@@ -170,14 +166,13 @@ export type EmployeeMaxAggregateInputType = {
   firstName?: true
   lastName?: true
   email?: true
-  phone?: true
   employmentType?: true
   status?: true
   hireDate?: true
   terminatedAt?: true
   passwordHash?: true
   verifiedEmail?: true
-  phoneNumber?: true
+  phone?: true
   verifiedPhone?: true
   enabled?: true
   logoutAt?: true
@@ -198,14 +193,13 @@ export type EmployeeCountAggregateInputType = {
   firstName?: true
   lastName?: true
   email?: true
-  phone?: true
   employmentType?: true
   status?: true
   hireDate?: true
   terminatedAt?: true
   passwordHash?: true
   verifiedEmail?: true
-  phoneNumber?: true
+  phone?: true
   verifiedPhone?: true
   enabled?: true
   logoutAt?: true
@@ -313,14 +307,13 @@ export type EmployeeGroupByOutputType = {
   firstName: string
   lastName: string
   email: string
-  phone: string | null
   employmentType: string
   status: string
   hireDate: Date
   terminatedAt: Date | null
   passwordHash: string | null
   verifiedEmail: boolean
-  phoneNumber: string | null
+  phone: string | null
   verifiedPhone: boolean
   enabled: boolean
   logoutAt: Date | null
@@ -364,14 +357,13 @@ export type EmployeeWhereInput = {
   firstName?: Prisma.StringFilter<"Employee"> | string
   lastName?: Prisma.StringFilter<"Employee"> | string
   email?: Prisma.StringFilter<"Employee"> | string
-  phone?: Prisma.StringNullableFilter<"Employee"> | string | null
   employmentType?: Prisma.StringFilter<"Employee"> | string
   status?: Prisma.StringFilter<"Employee"> | string
   hireDate?: Prisma.DateTimeFilter<"Employee"> | Date | string
   terminatedAt?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
   passwordHash?: Prisma.StringNullableFilter<"Employee"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"Employee"> | boolean
-  phoneNumber?: Prisma.StringNullableFilter<"Employee"> | string | null
+  phone?: Prisma.StringNullableFilter<"Employee"> | string | null
   verifiedPhone?: Prisma.BoolFilter<"Employee"> | boolean
   enabled?: Prisma.BoolFilter<"Employee"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
@@ -426,14 +418,13 @@ export type EmployeeOrderByWithRelationInput = {
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   employmentType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   hireDate?: Prisma.SortOrder
   terminatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -492,14 +483,13 @@ export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.EmployeeWhereInput | Prisma.EmployeeWhereInput[]
   firstName?: Prisma.StringFilter<"Employee"> | string
   lastName?: Prisma.StringFilter<"Employee"> | string
-  phone?: Prisma.StringNullableFilter<"Employee"> | string | null
   employmentType?: Prisma.StringFilter<"Employee"> | string
   status?: Prisma.StringFilter<"Employee"> | string
   hireDate?: Prisma.DateTimeFilter<"Employee"> | Date | string
   terminatedAt?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
   passwordHash?: Prisma.StringNullableFilter<"Employee"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"Employee"> | boolean
-  phoneNumber?: Prisma.StringNullableFilter<"Employee"> | string | null
+  phone?: Prisma.StringNullableFilter<"Employee"> | string | null
   verifiedPhone?: Prisma.BoolFilter<"Employee"> | boolean
   enabled?: Prisma.BoolFilter<"Employee"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
@@ -553,14 +543,13 @@ export type EmployeeOrderByWithAggregationInput = {
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   employmentType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   hireDate?: Prisma.SortOrder
   terminatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -589,14 +578,13 @@ export type EmployeeScalarWhereWithAggregatesInput = {
   firstName?: Prisma.StringWithAggregatesFilter<"Employee"> | string
   lastName?: Prisma.StringWithAggregatesFilter<"Employee"> | string
   email?: Prisma.StringWithAggregatesFilter<"Employee"> | string
-  phone?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   employmentType?: Prisma.StringWithAggregatesFilter<"Employee"> | string
   status?: Prisma.StringWithAggregatesFilter<"Employee"> | string
   hireDate?: Prisma.DateTimeWithAggregatesFilter<"Employee"> | Date | string
   terminatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Employee"> | Date | string | null
   passwordHash?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   verifiedEmail?: Prisma.BoolWithAggregatesFilter<"Employee"> | boolean
-  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
+  phone?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   verifiedPhone?: Prisma.BoolWithAggregatesFilter<"Employee"> | boolean
   enabled?: Prisma.BoolWithAggregatesFilter<"Employee"> | boolean
   logoutAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Employee"> | Date | string | null
@@ -617,14 +605,13 @@ export type EmployeeCreateInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -673,14 +660,13 @@ export type EmployeeUncheckedCreateInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -729,14 +715,13 @@ export type EmployeeUpdateInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -785,14 +770,13 @@ export type EmployeeUncheckedUpdateInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -841,14 +825,13 @@ export type EmployeeCreateManyInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -869,14 +852,13 @@ export type EmployeeUpdateManyMutationInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -891,14 +873,13 @@ export type EmployeeUncheckedUpdateManyInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -939,14 +920,13 @@ export type EmployeeCountOrderByAggregateInput = {
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  phone?: Prisma.SortOrder
   employmentType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   hireDate?: Prisma.SortOrder
   terminatedAt?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
@@ -973,14 +953,13 @@ export type EmployeeMaxOrderByAggregateInput = {
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  phone?: Prisma.SortOrder
   employmentType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   hireDate?: Prisma.SortOrder
   terminatedAt?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
@@ -1001,14 +980,13 @@ export type EmployeeMinOrderByAggregateInput = {
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  phone?: Prisma.SortOrder
   employmentType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   hireDate?: Prisma.SortOrder
   terminatedAt?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   verifiedEmail?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   verifiedPhone?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   logoutAt?: Prisma.SortOrder
@@ -1753,14 +1731,13 @@ export type EmployeeCreateWithoutCompensationsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1808,14 +1785,13 @@ export type EmployeeUncheckedCreateWithoutCompensationsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1868,14 +1844,13 @@ export type EmployeeCreateWithoutCreatedCompensationsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1923,14 +1898,13 @@ export type EmployeeUncheckedCreateWithoutCreatedCompensationsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -1983,14 +1957,13 @@ export type EmployeeCreateWithoutDeletedCompensationsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2038,14 +2011,13 @@ export type EmployeeUncheckedCreateWithoutDeletedCompensationsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2109,14 +2081,13 @@ export type EmployeeUpdateWithoutCompensationsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2164,14 +2135,13 @@ export type EmployeeUncheckedUpdateWithoutCompensationsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2230,14 +2200,13 @@ export type EmployeeUpdateWithoutCreatedCompensationsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2285,14 +2254,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedCompensationsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2351,14 +2319,13 @@ export type EmployeeUpdateWithoutDeletedCompensationsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2406,14 +2373,13 @@ export type EmployeeUncheckedUpdateWithoutDeletedCompensationsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2461,14 +2427,13 @@ export type EmployeeCreateWithoutHeadOfInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2516,14 +2481,13 @@ export type EmployeeUncheckedCreateWithoutHeadOfInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2576,14 +2540,13 @@ export type EmployeeCreateWithoutDepartmentInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2631,14 +2594,13 @@ export type EmployeeUncheckedCreateWithoutDepartmentInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2695,14 +2657,13 @@ export type EmployeeCreateWithoutCreatedDepartmentsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2750,14 +2711,13 @@ export type EmployeeUncheckedCreateWithoutCreatedDepartmentsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -2821,14 +2781,13 @@ export type EmployeeUpdateWithoutHeadOfInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2876,14 +2835,13 @@ export type EmployeeUncheckedUpdateWithoutHeadOfInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2950,14 +2908,13 @@ export type EmployeeScalarWhereInput = {
   firstName?: Prisma.StringFilter<"Employee"> | string
   lastName?: Prisma.StringFilter<"Employee"> | string
   email?: Prisma.StringFilter<"Employee"> | string
-  phone?: Prisma.StringNullableFilter<"Employee"> | string | null
   employmentType?: Prisma.StringFilter<"Employee"> | string
   status?: Prisma.StringFilter<"Employee"> | string
   hireDate?: Prisma.DateTimeFilter<"Employee"> | Date | string
   terminatedAt?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
   passwordHash?: Prisma.StringNullableFilter<"Employee"> | string | null
   verifiedEmail?: Prisma.BoolFilter<"Employee"> | boolean
-  phoneNumber?: Prisma.StringNullableFilter<"Employee"> | string | null
+  phone?: Prisma.StringNullableFilter<"Employee"> | string | null
   verifiedPhone?: Prisma.BoolFilter<"Employee"> | boolean
   enabled?: Prisma.BoolFilter<"Employee"> | boolean
   logoutAt?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
@@ -2989,14 +2946,13 @@ export type EmployeeUpdateWithoutCreatedDepartmentsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3044,14 +3000,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedDepartmentsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3099,14 +3054,13 @@ export type EmployeeCreateWithoutDocumentsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3154,14 +3108,13 @@ export type EmployeeUncheckedCreateWithoutDocumentsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3214,14 +3167,13 @@ export type EmployeeCreateWithoutCreatedEmployeeDocumentsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3269,14 +3221,13 @@ export type EmployeeUncheckedCreateWithoutCreatedEmployeeDocumentsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3329,14 +3280,13 @@ export type EmployeeCreateWithoutDeletedEmployeeDocumentsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3384,14 +3334,13 @@ export type EmployeeUncheckedCreateWithoutDeletedEmployeeDocumentsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3455,14 +3404,13 @@ export type EmployeeUpdateWithoutDocumentsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3510,14 +3458,13 @@ export type EmployeeUncheckedUpdateWithoutDocumentsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3576,14 +3523,13 @@ export type EmployeeUpdateWithoutCreatedEmployeeDocumentsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3631,14 +3577,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedEmployeeDocumentsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3697,14 +3642,13 @@ export type EmployeeUpdateWithoutDeletedEmployeeDocumentsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3752,14 +3696,13 @@ export type EmployeeUncheckedUpdateWithoutDeletedEmployeeDocumentsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3807,14 +3750,13 @@ export type EmployeeCreateWithoutReportsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3862,14 +3804,13 @@ export type EmployeeUncheckedCreateWithoutReportsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3922,14 +3863,13 @@ export type EmployeeCreateWithoutManagerInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -3977,14 +3917,13 @@ export type EmployeeUncheckedCreateWithoutManagerInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4041,14 +3980,13 @@ export type EmployeeCreateWithoutCreatedByInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4096,14 +4034,13 @@ export type EmployeeUncheckedCreateWithoutCreatedByInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4160,14 +4097,13 @@ export type EmployeeCreateWithoutDeletedByInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4215,14 +4151,13 @@ export type EmployeeUncheckedCreateWithoutDeletedByInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4279,14 +4214,13 @@ export type EmployeeCreateWithoutCreatedEmployeesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4334,14 +4268,13 @@ export type EmployeeUncheckedCreateWithoutCreatedEmployeesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4394,14 +4327,13 @@ export type EmployeeCreateWithoutDeletedEmployeesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4449,14 +4381,13 @@ export type EmployeeUncheckedCreateWithoutDeletedEmployeesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4520,14 +4451,13 @@ export type EmployeeUpdateWithoutReportsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4575,14 +4505,13 @@ export type EmployeeUncheckedUpdateWithoutReportsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4689,14 +4618,13 @@ export type EmployeeUpdateWithoutCreatedEmployeesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4744,14 +4672,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedEmployeesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4810,14 +4737,13 @@ export type EmployeeUpdateWithoutDeletedEmployeesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4865,14 +4791,13 @@ export type EmployeeUncheckedUpdateWithoutDeletedEmployeesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4920,14 +4845,13 @@ export type EmployeeCreateWithoutLeaveBalancesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -4975,14 +4899,13 @@ export type EmployeeUncheckedCreateWithoutLeaveBalancesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5035,14 +4958,13 @@ export type EmployeeCreateWithoutCreatedLeaveBalancesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5090,14 +5012,13 @@ export type EmployeeUncheckedCreateWithoutCreatedLeaveBalancesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5150,14 +5071,13 @@ export type EmployeeCreateWithoutDeletedLeaveBalancesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5205,14 +5125,13 @@ export type EmployeeUncheckedCreateWithoutDeletedLeaveBalancesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5276,14 +5195,13 @@ export type EmployeeUpdateWithoutLeaveBalancesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5331,14 +5249,13 @@ export type EmployeeUncheckedUpdateWithoutLeaveBalancesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5397,14 +5314,13 @@ export type EmployeeUpdateWithoutCreatedLeaveBalancesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5452,14 +5368,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedLeaveBalancesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5518,14 +5433,13 @@ export type EmployeeUpdateWithoutDeletedLeaveBalancesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5573,14 +5487,13 @@ export type EmployeeUncheckedUpdateWithoutDeletedLeaveBalancesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5628,14 +5541,13 @@ export type EmployeeCreateWithoutLeaveRequestsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5683,14 +5595,13 @@ export type EmployeeUncheckedCreateWithoutLeaveRequestsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5743,14 +5654,13 @@ export type EmployeeCreateWithoutDecidedLeaveRequestsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5798,14 +5708,13 @@ export type EmployeeUncheckedCreateWithoutDecidedLeaveRequestsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5858,14 +5767,13 @@ export type EmployeeCreateWithoutCreatedLeaveRequestsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5913,14 +5821,13 @@ export type EmployeeUncheckedCreateWithoutCreatedLeaveRequestsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -5973,14 +5880,13 @@ export type EmployeeCreateWithoutDeletedLeaveRequestsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -6028,14 +5934,13 @@ export type EmployeeUncheckedCreateWithoutDeletedLeaveRequestsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -6099,14 +6004,13 @@ export type EmployeeUpdateWithoutLeaveRequestsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6154,14 +6058,13 @@ export type EmployeeUncheckedUpdateWithoutLeaveRequestsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6220,14 +6123,13 @@ export type EmployeeUpdateWithoutDecidedLeaveRequestsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6275,14 +6177,13 @@ export type EmployeeUncheckedUpdateWithoutDecidedLeaveRequestsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6341,14 +6242,13 @@ export type EmployeeUpdateWithoutCreatedLeaveRequestsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6396,14 +6296,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedLeaveRequestsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6462,14 +6361,13 @@ export type EmployeeUpdateWithoutDeletedLeaveRequestsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6517,14 +6415,13 @@ export type EmployeeUncheckedUpdateWithoutDeletedLeaveRequestsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6572,14 +6469,13 @@ export type EmployeeCreateWithoutReviewsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -6627,14 +6523,13 @@ export type EmployeeUncheckedCreateWithoutReviewsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -6687,14 +6582,13 @@ export type EmployeeCreateWithoutWrittenReviewsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -6742,14 +6636,13 @@ export type EmployeeUncheckedCreateWithoutWrittenReviewsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -6802,14 +6695,13 @@ export type EmployeeCreateWithoutCreatedPerformanceReviewsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -6857,14 +6749,13 @@ export type EmployeeUncheckedCreateWithoutCreatedPerformanceReviewsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -6917,14 +6808,13 @@ export type EmployeeCreateWithoutDeletedPerformanceReviewsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -6972,14 +6862,13 @@ export type EmployeeUncheckedCreateWithoutDeletedPerformanceReviewsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -7043,14 +6932,13 @@ export type EmployeeUpdateWithoutReviewsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7098,14 +6986,13 @@ export type EmployeeUncheckedUpdateWithoutReviewsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7164,14 +7051,13 @@ export type EmployeeUpdateWithoutWrittenReviewsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7219,14 +7105,13 @@ export type EmployeeUncheckedUpdateWithoutWrittenReviewsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7285,14 +7170,13 @@ export type EmployeeUpdateWithoutCreatedPerformanceReviewsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7340,14 +7224,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedPerformanceReviewsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7406,14 +7289,13 @@ export type EmployeeUpdateWithoutDeletedPerformanceReviewsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7461,14 +7343,13 @@ export type EmployeeUncheckedUpdateWithoutDeletedPerformanceReviewsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7516,14 +7397,13 @@ export type EmployeeCreateWithoutPositionInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -7571,14 +7451,13 @@ export type EmployeeUncheckedCreateWithoutPositionInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -7635,14 +7514,13 @@ export type EmployeeCreateWithoutCreatedPositionsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -7690,14 +7568,13 @@ export type EmployeeUncheckedCreateWithoutCreatedPositionsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -7777,14 +7654,13 @@ export type EmployeeUpdateWithoutCreatedPositionsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7832,14 +7708,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedPositionsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7887,14 +7762,13 @@ export type EmployeeCreateWithoutRolesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -7942,14 +7816,13 @@ export type EmployeeUncheckedCreateWithoutRolesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8002,14 +7875,13 @@ export type EmployeeCreateWithoutCreatedRolesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8057,14 +7929,13 @@ export type EmployeeUncheckedCreateWithoutCreatedRolesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8144,14 +8015,13 @@ export type EmployeeUpdateWithoutCreatedRolesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8199,14 +8069,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedRolesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8254,14 +8123,13 @@ export type EmployeeCreateWithoutCreatedPermissionsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8309,14 +8177,13 @@ export type EmployeeUncheckedCreateWithoutCreatedPermissionsInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8380,14 +8247,13 @@ export type EmployeeUpdateWithoutCreatedPermissionsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8435,14 +8301,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedPermissionsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8490,14 +8355,13 @@ export type EmployeeCreateWithoutAvatarInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8545,14 +8409,13 @@ export type EmployeeUncheckedCreateWithoutAvatarInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8609,14 +8472,13 @@ export type EmployeeCreateWithoutCreatedFilesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8664,14 +8526,13 @@ export type EmployeeUncheckedCreateWithoutCreatedFilesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8724,14 +8585,13 @@ export type EmployeeCreateWithoutDeletedFilesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8779,14 +8639,13 @@ export type EmployeeUncheckedCreateWithoutDeletedFilesInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -8866,14 +8725,13 @@ export type EmployeeUpdateWithoutCreatedFilesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8921,14 +8779,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedFilesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8987,14 +8844,13 @@ export type EmployeeUpdateWithoutDeletedFilesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9042,14 +8898,13 @@ export type EmployeeUncheckedUpdateWithoutDeletedFilesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9097,14 +8952,13 @@ export type EmployeeCreateManyDepartmentInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -9124,14 +8978,13 @@ export type EmployeeUpdateWithoutDepartmentInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9179,14 +9032,13 @@ export type EmployeeUncheckedUpdateWithoutDepartmentInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9234,14 +9086,13 @@ export type EmployeeUncheckedUpdateManyWithoutDepartmentInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9261,14 +9112,13 @@ export type EmployeeCreateManyManagerInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -9288,14 +9138,13 @@ export type EmployeeCreateManyCreatedByInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -9315,14 +9164,13 @@ export type EmployeeCreateManyDeletedByInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -9342,14 +9190,13 @@ export type EmployeeUpdateWithoutManagerInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9397,14 +9244,13 @@ export type EmployeeUncheckedUpdateWithoutManagerInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9452,14 +9298,13 @@ export type EmployeeUncheckedUpdateManyWithoutManagerInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9479,14 +9324,13 @@ export type EmployeeUpdateWithoutCreatedByInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9534,14 +9378,13 @@ export type EmployeeUncheckedUpdateWithoutCreatedByInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9589,14 +9432,13 @@ export type EmployeeUncheckedUpdateManyWithoutCreatedByInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9616,14 +9458,13 @@ export type EmployeeUpdateWithoutDeletedByInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9671,14 +9512,13 @@ export type EmployeeUncheckedUpdateWithoutDeletedByInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9726,14 +9566,13 @@ export type EmployeeUncheckedUpdateManyWithoutDeletedByInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9753,14 +9592,13 @@ export type EmployeeCreateManyPositionInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -9780,14 +9618,13 @@ export type EmployeeUpdateWithoutPositionInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9835,14 +9672,13 @@ export type EmployeeUncheckedUpdateWithoutPositionInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9890,14 +9726,13 @@ export type EmployeeUncheckedUpdateManyWithoutPositionInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9917,14 +9752,13 @@ export type EmployeeUpdateWithoutRolesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9972,14 +9806,13 @@ export type EmployeeUncheckedUpdateWithoutRolesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10027,14 +9860,13 @@ export type EmployeeUncheckedUpdateManyWithoutRolesInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10055,14 +9887,13 @@ export type EmployeeCreateManyAvatarInput = {
   firstName: string
   lastName: string
   email: string
-  phone?: string | null
   employmentType?: string
   status?: string
   hireDate: Date | string
   terminatedAt?: Date | string | null
   passwordHash?: string | null
   verifiedEmail?: boolean
-  phoneNumber?: string | null
+  phone?: string | null
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: Date | string | null
@@ -10082,14 +9913,13 @@ export type EmployeeUpdateWithoutAvatarInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10137,14 +9967,13 @@ export type EmployeeUncheckedUpdateWithoutAvatarInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10192,14 +10021,13 @@ export type EmployeeUncheckedUpdateManyWithoutAvatarInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employmentType?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedEmail?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedPhone?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   logoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10484,14 +10312,13 @@ export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   firstName?: boolean
   lastName?: boolean
   email?: boolean
-  phone?: boolean
   employmentType?: boolean
   status?: boolean
   hireDate?: boolean
   terminatedAt?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  phoneNumber?: boolean
+  phone?: boolean
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
@@ -10549,14 +10376,13 @@ export type EmployeeSelectScalar = {
   firstName?: boolean
   lastName?: boolean
   email?: boolean
-  phone?: boolean
   employmentType?: boolean
   status?: boolean
   hireDate?: boolean
   terminatedAt?: boolean
   passwordHash?: boolean
   verifiedEmail?: boolean
-  phoneNumber?: boolean
+  phone?: boolean
   verifiedPhone?: boolean
   enabled?: boolean
   logoutAt?: boolean
@@ -10571,7 +10397,7 @@ export type EmployeeSelectScalar = {
   deletedById?: boolean
 }
 
-export type EmployeeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeNumber" | "firstName" | "lastName" | "email" | "phone" | "employmentType" | "status" | "hireDate" | "terminatedAt" | "passwordHash" | "verifiedEmail" | "phoneNumber" | "verifiedPhone" | "enabled" | "logoutAt" | "departmentId" | "positionId" | "managerId" | "avatarId" | "updatedAt" | "createdAt" | "createdById" | "deletedAt" | "deletedById", ExtArgs["result"]["employee"]>
+export type EmployeeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeNumber" | "firstName" | "lastName" | "email" | "employmentType" | "status" | "hireDate" | "terminatedAt" | "passwordHash" | "verifiedEmail" | "phone" | "verifiedPhone" | "enabled" | "logoutAt" | "departmentId" | "positionId" | "managerId" | "avatarId" | "updatedAt" | "createdAt" | "createdById" | "deletedAt" | "deletedById", ExtArgs["result"]["employee"]>
 export type EmployeeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   department?: boolean | Prisma.Employee$departmentArgs<ExtArgs>
   position?: boolean | Prisma.Employee$positionArgs<ExtArgs>
@@ -10666,14 +10492,13 @@ export type $EmployeePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     firstName: string
     lastName: string
     email: string
-    phone: string | null
     employmentType: string
     status: string
     hireDate: Date
     terminatedAt: Date | null
     passwordHash: string | null
     verifiedEmail: boolean
-    phoneNumber: string | null
+    phone: string | null
     verifiedPhone: boolean
     enabled: boolean
     logoutAt: Date | null
@@ -11097,14 +10922,13 @@ export interface EmployeeFieldRefs {
   readonly firstName: Prisma.FieldRef<"Employee", 'String'>
   readonly lastName: Prisma.FieldRef<"Employee", 'String'>
   readonly email: Prisma.FieldRef<"Employee", 'String'>
-  readonly phone: Prisma.FieldRef<"Employee", 'String'>
   readonly employmentType: Prisma.FieldRef<"Employee", 'String'>
   readonly status: Prisma.FieldRef<"Employee", 'String'>
   readonly hireDate: Prisma.FieldRef<"Employee", 'DateTime'>
   readonly terminatedAt: Prisma.FieldRef<"Employee", 'DateTime'>
   readonly passwordHash: Prisma.FieldRef<"Employee", 'String'>
   readonly verifiedEmail: Prisma.FieldRef<"Employee", 'Boolean'>
-  readonly phoneNumber: Prisma.FieldRef<"Employee", 'String'>
+  readonly phone: Prisma.FieldRef<"Employee", 'String'>
   readonly verifiedPhone: Prisma.FieldRef<"Employee", 'Boolean'>
   readonly enabled: Prisma.FieldRef<"Employee", 'Boolean'>
   readonly logoutAt: Prisma.FieldRef<"Employee", 'DateTime'>

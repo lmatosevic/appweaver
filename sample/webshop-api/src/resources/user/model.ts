@@ -22,12 +22,6 @@ export default createAuthModel({
       maxLength: 255,
       example: 'olivia@example.com'
     },
-    phone: {
-      type: 'string',
-      required: false,
-      maxLength: 32,
-      example: '+15035550123'
-    },
     marketingOptIn: {
       type: 'boolean',
       default: false

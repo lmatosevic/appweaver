@@ -694,14 +694,13 @@ export type User = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
   internalNotes?: string | null;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -725,12 +724,11 @@ export type UserSingle = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -749,12 +747,11 @@ export type UserMultiple = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -772,7 +769,6 @@ export type UserCreate = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
@@ -790,7 +786,6 @@ export type UserUpdate = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string | null;
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
@@ -808,7 +803,6 @@ export type UserReplace = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
@@ -826,7 +820,6 @@ export type UserRelationCreate = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;
@@ -839,7 +832,6 @@ export type UserRelationUpdate = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string | null;
   displayName?: string | null;
   bio?: string | null;
   website?: string | null;

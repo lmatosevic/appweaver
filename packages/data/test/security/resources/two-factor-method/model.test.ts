@@ -57,7 +57,7 @@ describe('two-factor-method model', () => {
       input: { type: 'none' },
       output: { type: 'none' }
     });
-    expect(authModel.config.scalars.phoneNumber).toMatchObject({
+    expect(authModel.config.scalars.phone).toMatchObject({
       type: 'string',
       required: false
     });
@@ -72,10 +72,10 @@ describe('two-factor-method model', () => {
     const { authModel } = await loadModels();
 
     expect(authModel.config.create.omit).toEqual(
-      expect.arrayContaining(['phoneNumber', 'verifiedPhone'])
+      expect.arrayContaining(['phone', 'verifiedPhone'])
     );
     expect(authModel.config.update.omit).toEqual(
-      expect.arrayContaining(['phoneNumber', 'verifiedPhone'])
+      expect.arrayContaining(['phone', 'verifiedPhone'])
     );
   });
 

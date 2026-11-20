@@ -797,11 +797,10 @@ export type User = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   licenceCategories: Array<string>;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -822,10 +821,9 @@ export type UserSingle = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   licenceCategories: Array<string>;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -842,10 +840,9 @@ export type UserMultiple = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   licenceCategories: Array<string>;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -861,7 +858,6 @@ export type UserCreate = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   licenceCategories?: Array<string>;
   enabled?: boolean;
   password: string;
@@ -877,7 +873,6 @@ export type UserUpdate = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string | null;
   licenceCategories?: Array<string>;
   enabled?: boolean;
   password?: string;
@@ -893,7 +888,6 @@ export type UserReplace = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   licenceCategories?: Array<string>;
   enabled?: boolean;
   password?: string;
@@ -909,7 +903,6 @@ export type UserRelationCreate = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   licenceCategories?: Array<string>;
   enabled?: boolean;
   password: string;
@@ -920,7 +913,6 @@ export type UserRelationUpdate = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string | null;
   licenceCategories?: Array<string>;
   enabled?: boolean;
   password?: string;

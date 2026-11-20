@@ -167,7 +167,7 @@ export default createPolicy({
 
 Use `createAuthModel` and `createAuthService` for authenticatable users. They must be used together.
 
-`createAuthModel` adds: `email`, `passwordHash`, `verifiedEmail`, `phoneNumber`, `verifiedPhone`, `enabled`, `logoutAt`
+`createAuthModel` adds: `email`, `passwordHash`, `verifiedEmail`, `phone`, `verifiedPhone`, `enabled`, `logoutAt`
 scalars; a virtual `password` field; a `roles` relation; a `twoFactorMethods` relation (while 2FA is enabled); and
 optional `apiKeys` relation. The 2FA methods (`Email`, `Sms`, `Totp`) are managed by the `/auth/account/2fa` routes,
 and `authUser.twoFactorMethods` lists the confirmed ones, the first being the default (see the security reference).

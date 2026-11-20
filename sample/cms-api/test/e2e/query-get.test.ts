@@ -61,7 +61,6 @@ describe('Query and aggregate GET routes', () => {
         firstName: 'Query',
         lastName: 'Get',
         email,
-        phone: '+38512345679',
         passwordHash: await hashPassword(password),
         roles: {
           connectOrCreate: {

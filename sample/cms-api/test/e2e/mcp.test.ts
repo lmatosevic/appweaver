@@ -166,7 +166,7 @@ describe('MCP server', () => {
     expect(post.author).toMatchObject({ firstName: 'Mcp', lastName: 'User' });
     // Projected like the API responds with it: no hidden field, nor the
     // contact details the author relation omits
-    for (const field of ['passwordHash', 'email', 'phone', 'phoneNumber']) {
+    for (const field of ['passwordHash', 'email', 'phone']) {
       expect(post.author).not.toHaveProperty(field);
     }
     expect(post.tags.map((tag: any) => tag.slug).sort()).toEqual([

@@ -72,7 +72,6 @@ describe('Files of deleted resources', () => {
       firstName: 'File',
       lastName: 'Owner',
       email: 'file-owner@example.com',
-      phone: '+38512345678',
       password: 'F1leOwner!Pass'
     });
     const avatar = await inject(FileService).saveBuffer(

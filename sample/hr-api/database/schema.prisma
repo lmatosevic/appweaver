@@ -98,14 +98,13 @@ model Employee {
   firstName      String    @db.NVarChar(100)
   lastName       String    @db.NVarChar(100)
   email          String    @unique @db.NVarChar(255)
-  phone          String?   @db.NVarChar(32)
   employmentType String    @default("FullTime") @db.NVarChar(10)
   status         String    @default("Active") @db.NVarChar(10)
   hireDate       DateTime
   terminatedAt   DateTime?
   passwordHash   String?
   verifiedEmail  Boolean   @default(false)
-  phoneNumber    String?   @db.NVarChar(16)
+  phone          String?   @db.NVarChar(16)
   verifiedPhone  Boolean   @default(false)
   enabled        Boolean   @default(true)
   logoutAt       DateTime?

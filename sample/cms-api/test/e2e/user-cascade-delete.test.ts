@@ -17,7 +17,6 @@ describe('Deleting a user with framework owned relations', () => {
       firstName: 'Cascade',
       lastName: 'Delete',
       email,
-      phone: '+38512345678',
       password: 'Casc4de!Pass'
     });
 

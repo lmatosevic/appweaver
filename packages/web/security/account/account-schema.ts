@@ -74,7 +74,7 @@ export const AccountResetPasswordRequest = Type.Object(
 
 export const AccountSendPhoneVerificationRequest = Type.Object(
   {
-    phoneNumber: Type.Optional(
+    phone: Type.Optional(
       Type.String({
         pattern: '^\\+[1-9]\\d{6,14}$',
         description:

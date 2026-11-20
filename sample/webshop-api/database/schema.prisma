@@ -234,12 +234,11 @@ model User {
   firstName      String    @db.VarChar(100)
   lastName       String    @db.VarChar(100)
   email          String    @unique @db.VarChar(255)
-  phone          String?   @db.VarChar(32)
   marketingOptIn Boolean   @default(false)
   language       String    @default("en") @db.VarChar(8)
   passwordHash   String?
   verifiedEmail  Boolean   @default(false)
-  phoneNumber    String?   @db.VarChar(16)
+  phone          String?   @db.VarChar(16)
   verifiedPhone  Boolean   @default(false)
   enabled        Boolean   @default(true)
   logoutAt       DateTime?

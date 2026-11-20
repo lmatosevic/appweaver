@@ -488,7 +488,7 @@ describe('account-service', () => {
         AuthOTTPurpose.PhoneVerification,
         {
           authUserId: 1,
-          phoneNumber: '+385911234567',
+          phone: '+385911234567',
           codeHash: makeHash(code),
           attempts: 0
         },
@@ -502,7 +502,7 @@ describe('account-service', () => {
 
     test('sends a code to change a verified phone number', async () => {
       await service.sendPhoneVerification(
-        authUser({ phoneNumber: '+385911111111', verifiedPhone: true }),
+        authUser({ phone: '+385911111111', verifiedPhone: true }),
         '+385912222222'
       );
 
@@ -511,20 +511,20 @@ describe('account-service', () => {
 
     test('sends the code to the stored phone number of the user', async () => {
       await service.sendPhoneVerification(
-        authUser({ phoneNumber: '+385911111111', verifiedPhone: false })
+        authUser({ phone: '+385911111111', verifiedPhone: false })
       );
 
       expect(sendSms.mock.calls[0][0].to).toBe('+385911111111');
       expect(securityStore.generateOneTimeToken).toHaveBeenCalledWith(
         AuthOTTPurpose.PhoneVerification,
-        expect.objectContaining({ phoneNumber: '+385911111111' }),
+        expect.objectContaining({ phone: '+385911111111' }),
         accountConfig.VERIFY_PHONE_OTT_TTL
       );
     });
 
     test('rejects a user without a phone number to verify', async () => {
       await expect(
-        service.sendPhoneVerification(authUser({ phoneNumber: null }))
+        service.sendPhoneVerification(authUser({ phone: null }))
       ).rejects.toMatchObject({ code: ErrorCode.AccountPhoneNotSet });
       expect(sendSms).not.toHaveBeenCalled();
     });
@@ -532,7 +532,7 @@ describe('account-service', () => {
     test('rejects the verified phone number of the user', async () => {
       await expect(
         service.sendPhoneVerification(
-          authUser({ phoneNumber: '+385911234567', verifiedPhone: true }),
+          authUser({ phone: '+385911234567', verifiedPhone: true }),
           '+385911234567'
         )
       ).rejects.toMatchObject({ code: ErrorCode.AccountPhoneAlreadyVerified });
@@ -553,7 +553,7 @@ describe('account-service', () => {
     beforeEach(() => {
       tokenData = {
         authUserId: 1,
-        phoneNumber: '+385911234567',
+        phone: '+385911234567',
         codeHash: makeHash('123456'),
         attempts: 0
       };
@@ -570,13 +570,13 @@ describe('account-service', () => {
         expect.any(Function)
       );
       expect(authService.updateAuthUser).toHaveBeenCalledWith(1, {
-        phoneNumber: '+385911234567',
+        phone: '+385911234567',
         verifiedPhone: true
       });
     });
 
     test('removes the SMS method of a changed phone number', async () => {
-      const user = authUser({ phoneNumber: '+385910000000' });
+      const user = authUser({ phone: '+385910000000' });
 
       await service.verifyPhone(user, 'challenge', '123456');
 
@@ -585,7 +585,7 @@ describe('account-service', () => {
 
     test('keeps the SMS method of the same phone number', async () => {
       await service.verifyPhone(
-        authUser({ phoneNumber: '+385911234567' }),
+        authUser({ phone: '+385911234567' }),
         'challenge',
         '123456'
       );

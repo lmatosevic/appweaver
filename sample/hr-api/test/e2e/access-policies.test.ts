@@ -73,16 +73,16 @@ describe('Access policies', () => {
   afterAll(resetTestData, 10_000);
 
   describe('employee profiles', () => {
-    test('lets an employee change their own contact details', async () => {
+    test('lets an employee change their own profile', async () => {
       const { status, body } = await request(
         as.employee,
         'PATCH',
         `/employees/${employee.id}`,
-        { phone: '+385911234567' }
+        { lastName: 'Parker-Novak' }
       );
 
       expect(status).toBe(200);
-      expect(body.phone).toBe('+385911234567');
+      expect(body.lastName).toBe('Parker-Novak');
     });
 
     test('keeps the organization fields for HR', async () => {
@@ -103,7 +103,7 @@ describe('Access policies', () => {
         as.employee,
         'PATCH',
         `/employees/${other.id}`,
-        { phone: '+385911234567' }
+        { lastName: 'Parker-Novak' }
       );
 
       expect(status).toBe(403);

@@ -129,7 +129,7 @@ CREATE TABLE `User` (
     `available` BOOLEAN NOT NULL DEFAULT true,
     `passwordHash` VARCHAR(191) NULL,
     `verifiedEmail` BOOLEAN NOT NULL DEFAULT false,
-    `phoneNumber` VARCHAR(16) NULL,
+    `phone` VARCHAR(16) NULL,
     `verifiedPhone` BOOLEAN NOT NULL DEFAULT false,
     `enabled` BOOLEAN NOT NULL DEFAULT true,
     `logoutAt` DATETIME(3) NULL,

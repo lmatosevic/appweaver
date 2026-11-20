@@ -32,7 +32,6 @@ describe('String primary key resources', () => {
       firstName: 'String',
       lastName: 'Id',
       email,
-      phone: '+38512345678',
       password
     });
 

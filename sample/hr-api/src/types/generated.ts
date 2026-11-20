@@ -339,14 +339,13 @@ export type Employee = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   employmentType: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status: 'Active' | 'OnLeave' | 'Terminated';
   hireDate: Date;
   terminatedAt?: Date | null;
   passwordHash?: string | null;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -380,13 +379,12 @@ export type EmployeeSingle = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   employmentType: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status: 'Active' | 'OnLeave' | 'Terminated';
   hireDate: Date;
   terminatedAt?: Date | null;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -413,13 +411,12 @@ export type EmployeeMultiple = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   employmentType: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status: 'Active' | 'OnLeave' | 'Terminated';
   hireDate: Date;
   terminatedAt?: Date | null;
   verifiedEmail: boolean;
-  phoneNumber?: string | null;
+  phone?: string | null;
   verifiedPhone: boolean;
   enabled: boolean;
   logoutAt?: Date | null;
@@ -441,7 +438,6 @@ export type EmployeeCreate = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   hireDate: Date;
   enabled?: boolean;
@@ -473,7 +469,6 @@ export type EmployeeUpdate = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string | null;
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate?: Date;
@@ -506,7 +501,6 @@ export type EmployeeReplace = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate: Date;
@@ -539,7 +533,6 @@ export type EmployeeRelationCreate = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   hireDate: Date;
   enabled?: boolean;
@@ -551,7 +544,6 @@ export type EmployeeRelationUpdate = {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string | null;
   employmentType?: 'FullTime' | 'PartTime' | 'Contractor' | 'Intern';
   status?: 'Active' | 'OnLeave' | 'Terminated';
   hireDate?: Date;

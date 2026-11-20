@@ -596,13 +596,16 @@ or roll them back together.
 Use `createAuthModel` and `createAuthService` instead of `createModel`/`createService` when the resource represents an
 authenticatable user. They cannot be used independently! If an auth model is created, then also auth service must exist.
 
-`createAuthModel` extends the config with: `email`, `passwordHash`, `verifiedEmail`, `phoneNumber`, `verifiedPhone`,
+`createAuthModel` extends the config with: `email`, `passwordHash`, `verifiedEmail`, `phone`, `verifiedPhone`,
 `enabled`, `logoutAt` scalars; a virtual `password` field (write-only); a `roles` relation; a `twoFactorMethods`
 relation (while 2FA is enabled, managed by the 2FA routes only); and an optional `apiKeys` relation (when
 `SECURITY_API_KEY_ENABLED` is set). An API key acts as its owner, or within the `roles` and `permissions` it
 lists,
 a subset of its owner's (`AUTH_API_KEY_PERMISSION_DENIED` otherwise), narrowed on every request; see
-[security.md](references/security.md#api-key-scope).
+[security.md](references/security.md#api-key-scope). A declared `email` overrides only its `hidden`, `example`,
+`minLength`, `maxLength` and `pattern` (it stays the required unique address the sign-in looks the user up by), a
+declared `phone` only its `unique`, `hidden` and `example` (the routes never write it, the phone verification does),
+and any other auth field replaces a declared one of the same name.
 
 `createAuthService` extends the config with automatic password hashing on create/update, an optional
 `registrationData` callback to customize registration payload (for OAuth2 logins its `additionalData` argument includes

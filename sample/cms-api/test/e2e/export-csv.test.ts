@@ -33,8 +33,7 @@ describe('CSV export', () => {
       data: {
         email: 'ana@example.com',
         firstName: 'Ana',
-        lastName: 'Anic',
-        phone: '01234431'
+        lastName: 'Anic'
       }
     });
 

@@ -689,16 +689,16 @@ a user who lost them all.
 
 ### Phone verification
 
-The SMS method needs a verified phone number (`phoneNumber`, `verifiedPhone` of the auth model, never accepted by the
+The SMS method needs a verified phone number (`phone`, `verifiedPhone` of the auth model, never accepted by the
 resource routes):
 
 ```
-1. POST /auth/account/send-verify-phone { phoneNumber: '+385911234567' }   -> { challengeId, expiresIn }, a code by SMS
-   POST /auth/account/send-verify-phone {}                                    -> the same, to the number of the user
-2. POST /auth/account/verify-phone { challengeId, code }                    -> { message }, the number is verified
+1. POST /auth/account/send-verify-phone { phone: '+385911234567' }   -> { challengeId, expiresIn }, a code by SMS
+   POST /auth/account/send-verify-phone {}                          -> the same, to the number of the user
+2. POST /auth/account/verify-phone { challengeId, code }          -> { message }, the number is verified
 ```
 
-The number is in the E.164 format. Without one, the code goes to the `phoneNumber` of the user (i.e. stored by the
+The number is in the E.164 format. Without one, the code goes to the `phone` of the user (i.e. stored by the
 sign-up code of the application), and without that the request fails with `ACCOUNT_PHONE_NOT_SET`. A new number
 replaces the current one only once verified. Verifying another number than the current one removes the `Sms` method of
 the user, enabled again for the new number. The routes are registered only with an SMS sender
@@ -903,7 +903,7 @@ Both stores behave the same way:
 
 ## Auth user model
 
-The security module automatically adds the following fields to the user model. `verifiedEmail`, `phoneNumber` and
+The security module automatically adds the following fields to the user model. `verifiedEmail`, `phone` and
 `verifiedPhone` are never accepted as input of the resource routes:
 
 | Field           | Type             | Default | Description                                                         |
@@ -911,10 +911,27 @@ The security module automatically adds the following fields to the user model. `
 | `email`         | string (unique)  | -       | User's email address.                                               |
 | `passwordHash`  | string? (hidden) | -       | Argon2id password hash (never exposed in API).                      |
 | `verifiedEmail` | boolean          | `false` | Whether the user's email is verified.                               |
-| `phoneNumber`   | string?          | -       | The phone number (E.164), set by the phone verification or the app. |
+| `phone`         | string?          | -       | The phone number (E.164), set by the phone verification or the app. |
 | `verifiedPhone` | boolean          | `false` | Whether the phone number is verified.                               |
 | `enabled`       | boolean          | `true`  | Whether the account is active.                                      |
 | `logoutAt`      | dateTime?        | -       | Timestamp used to invalidate tokens issued before this time.        |
+
+A model declaring `email` overrides only its `hidden`, `example`, `minLength`, `maxLength` and `pattern` (i.e. the
+addresses of a company domain), so it stays a required unique address in the email format, the one the sign-in, the
+password reset and the OAuth2 accounts look the user up by. A model declaring `phone` overrides only its `unique`,
+`hidden` and `example`, so it stays an optional E.164 number the routes never write, the one the SMS 2FA and the phone
+verification rely on. Any other field of the table replaces a declared one of the same name, so a contact phone the
+users edit themselves is a field of another name.
+
+```ts
+export default createAuthModel({
+  name: 'User',
+  scalars: {
+    email: { type: 'string', example: 'user@example.com' },
+    phone: { type: 'string', unique: true, example: '+15035550123' }
+  }
+});
+```
 
 **Relations:**
 

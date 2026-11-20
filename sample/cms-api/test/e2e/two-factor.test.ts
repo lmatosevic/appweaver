@@ -250,7 +250,7 @@ describe('Two-factor authentication', () => {
       '/auth/account/send-verify-phone',
       accessToken,
       {
-        phoneNumber: '+385911234567'
+        phone: '+385911234567'
       }
     );
     expect(sendSms).toHaveBeenCalledWith(

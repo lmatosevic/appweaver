@@ -39,7 +39,6 @@ describe('Templates and locales', () => {
         firstName: 'Ana',
         lastName: 'Anic',
         email,
-        phone: '+38512345679',
         passwordHash: await hashPassword(password),
         roles: {
           connectOrCreate: {
