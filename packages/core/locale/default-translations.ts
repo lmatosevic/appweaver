@@ -35,6 +35,55 @@ export const defaultTranslations: Translations = {
         'If it was not you, change your password and generate new recovery codes.'
     }
   },
+  mcp: {
+    signIn: {
+      title: 'Sign in',
+      client: 'An MCP client',
+      message: '{client} of {host} asks to act as you.',
+      continue: 'Continue with {provider}',
+      providers: {
+        apple: 'Apple',
+        custom: 'single sign-on',
+        facebook: 'Facebook',
+        github: 'GitHub',
+        gitlab: 'GitLab',
+        google: 'Google',
+        linkedin: 'LinkedIn',
+        microsoft: 'Microsoft',
+        x: 'X'
+      }
+    },
+    password: {
+      title: 'Confirm your password',
+      message:
+        'An account with your email address already exists. Enter its password to link this sign-in to it.',
+      label: 'Password',
+      submit: 'Continue'
+    },
+    twoFactor: {
+      title: 'Two-factor authentication',
+      sent: 'Enter the code we sent to {destination}.',
+      app: 'Enter the code of your authenticator app.',
+      recovery: 'Enter one of your recovery codes.',
+      label: 'Code',
+      submit: 'Verify',
+      method: 'Verify with',
+      resend: 'Send a new code',
+      invalid: 'The code is not valid, try again.',
+      methods: {
+        Email: 'Email',
+        Sms: 'Text message',
+        Totp: 'Authenticator app',
+        Recovery: 'Recovery code'
+      }
+    },
+    error: {
+      title: 'Sign-in failed',
+      invalid: 'The client is unknown, or its redirect URI is not registered.',
+      expired:
+        'The sign-in expired or was already completed. Start again from your client.'
+    }
+  },
   sms: {
     twoFactorCode:
       '{code} is your {appName} verification code. It expires in {count, plural, one {# minute} other {# minutes}}.',

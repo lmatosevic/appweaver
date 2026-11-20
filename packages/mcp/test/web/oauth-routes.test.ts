@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import fastifyJwt from '@fastify/jwt';
 import {
+  AccountError,
   AuthError,
   AuthScope,
   AuthSource,
@@ -8,12 +9,13 @@ import {
   createLogger,
   ErrorCode,
   Memory,
-  SecurityStore
+  SecurityStore,
+  TemplateEngine
 } from '@appweaver/common';
-import { define } from '@appweaver/core';
+import { define, LocaleService } from '@appweaver/core';
 import { InMemory, MemorySecurityStore } from '@appweaver/core/drivers';
 import { resetContext } from '@appweaver/testing';
-import { AuthService, Server } from '@appweaver/web';
+import { AuthService, Server, TwoFactorService } from '@appweaver/web';
 import { startMcpApp, user } from '../fixtures/mcp-app';
 
 const logger = createLogger('mcp');
@@ -24,6 +26,7 @@ const redirectUri = 'http://localhost:3333/callback';
 describe('oauth-routes', () => {
   let server: Server;
   let authService: Record<string, jest.Mock>;
+  let twoFactorService: Record<string, jest.Mock>;
 
   const sign = (scope: AuthScope, sub: number = 1) =>
     server.jwt.sign({ scope, sub, source: AuthSource.OAuth2Google });
@@ -85,6 +88,30 @@ describe('oauth-routes', () => {
     return new URL(response.headers.location as string);
   };
 
+  /** Goes back from the provider to the callback, with the query the provider adds. */
+  const callbackOf = async (clientId: string, query = '') => {
+    const login = await loginUrl(clientId);
+    const callback = new URL(login.searchParams.get('redirectToUrl')!);
+    return server.inject({
+      url: `${callback.pathname}${callback.search}&token=ott${query}`
+    });
+  };
+
+  /** The single-use state of the form of a page. */
+  const stateOf = (page: string) =>
+    /name="state" value="([^"]+)"/.exec(page)![1];
+
+  const postStep = (state: string, fields: Record<string, string>) =>
+    server.inject({
+      method: 'POST',
+      url: '/oauth/sign-in',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      payload: new URLSearchParams({ state, ...fields }).toString()
+    });
+
+  const location = (response: { headers: Record<string, unknown> }) =>
+    new URL(response.headers.location as string).searchParams;
+
   const token = (payload: Record<string, string>) =>
     server.inject({
       method: 'POST',
@@ -111,6 +138,17 @@ describe('oauth-routes', () => {
       }))
     };
     define(authService, AuthService);
+    twoFactorService = {
+      sendChallenge: jest.fn(async (_, { method }) => ({
+        challengeId: `challenge-${method ?? 'Email'}`,
+        method: method ?? 'Email',
+        destination: method && method !== 'Email' ? null : 'u***@test.com',
+        methods: ['Email', 'Totp']
+      })),
+      verifyChallenge: jest.fn(async () => ({ token: '2fa-ott' }))
+    };
+    define(twoFactorService, TwoFactorService);
+    define(new LocaleService(), LocaleService);
     jest.spyOn(logger, 'info').mockImplementation();
     jest.spyOn(logger, 'warn').mockImplementation();
     jest.spyOn(logger, 'error').mockImplementation();
@@ -347,7 +385,9 @@ describe('oauth-routes', () => {
       ]) {
         const response = await authorize(params);
         expect(response.statusCode).toBe(400);
-        expect(response.body).toContain('Invalid authorization request');
+        expect(response.body).toContain(
+          'The client is unknown, or its redirect URI is not registered.'
+        );
       }
     });
 
@@ -384,50 +424,277 @@ describe('oauth-routes', () => {
         'Agent of localhost:3333 asks to act as you'
       );
       expect(response.body).toContain('/auth/login/google?redirectToUrl=');
-      expect(response.body).toContain('/auth/login/github?redirectToUrl=');
+      expect(response.body).toContain('Continue with Google</a>');
+      expect(response.body).toContain('Continue with GitHub</a>');
+    });
+
+    test('names a provider without a translation by its name', async () => {
+      await start([AuthSource.OAuth2Google]);
+      const clientId = await register();
+      jest
+        .spyOn(LocaleService.prototype, 'hasTranslation')
+        .mockReturnValue(false);
+
+      const response = await authorize(authorizeParams(clientId));
+
+      expect(response.body).toContain('Continue with google</a>');
     });
 
     test('redirects a failed sign-in to the client', async () => {
       await start();
       const clientId = await register();
-      const callbackOf = async () => {
-        const login = await loginUrl(clientId);
-        const callback = new URL(login.searchParams.get('redirectToUrl')!);
-        const response = await server.inject({
-          url: `${callback.pathname}${callback.search}&token=ott`
-        });
-        return new URL(response.headers.location as string).searchParams;
-      };
+
+      authService.exchangeToken.mockRejectedValueOnce(
+        new AuthError(ErrorCode.AuthUnauthorized, 'Disabled')
+      );
+      expect(
+        Object.fromEntries(location(await callbackOf(clientId)))
+      ).toMatchObject({
+        error: 'access_denied',
+        error_description: 'Disabled',
+        state: 'xyz'
+      });
+      authService.exchangeToken.mockRejectedValueOnce(new Error('down'));
+      expect(
+        location(await callbackOf(clientId)).get('error_description')
+      ).toBe('The sign-in failed');
+    });
+
+    test('rejects an unknown or used authorization request and form state', async () => {
+      await start();
+
+      for (const response of [
+        await server.inject({ url: '/oauth/callback?request=unknown' }),
+        await postStep('unknown', { password: 'secret' })
+      ]) {
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toContain('Sign-in failed');
+        expect(response.body).toContain('Start again from your client.');
+      }
+    });
+
+    test('asks for the password of an account to link, never framed nor cached', async () => {
+      await start();
+      const clientId = await register();
+
+      const page = await callbackOf(clientId, '&passwordRequired=true');
+      expect(page.statusCode).toBe(200);
+      expect(page.headers).toMatchObject({
+        'cache-control': 'no-store',
+        'x-frame-options': 'DENY',
+        'content-security-policy': "frame-ancestors 'none'"
+      });
+      expect(page.body).toContain('Confirm your password');
+      expect(authService.exchangeToken).not.toHaveBeenCalled();
+
+      authService.exchangeToken.mockResolvedValueOnce({
+        accessToken: sign(AuthScope.Auth)
+      });
+      const state = stateOf(page.body);
+      const back = await postStep(state, { password: 'secret' });
+
+      expect(authService.exchangeToken).toHaveBeenCalledWith('ott', 'secret');
+      expect(location(back).get('code')).toBeTruthy();
+      // The state of a form is used once
+      expect((await postStep(state, { password: 'secret' })).statusCode).toBe(
+        400
+      );
+    });
+
+    test('sends a wrong password back to the client, to start again', async () => {
+      await start();
+      const clientId = await register();
+      const page = await callbackOf(clientId, '&passwordRequired=true');
+      authService.exchangeToken.mockRejectedValueOnce(
+        new AuthError(ErrorCode.AuthInvalidCredentials, 'Wrong password')
+      );
+
+      const back = await postStep(stateOf(page.body), { password: 'wrong' });
+
+      expect(Object.fromEntries(location(back))).toMatchObject({
+        error: 'access_denied',
+        error_description: 'Wrong password'
+      });
+    });
+
+    test('asks for the 2FA code of a user who must pass it, then issues the code', async () => {
+      await start();
+      const clientId = await register();
+      authService.exchangeToken.mockResolvedValueOnce({
+        accessToken: sign(AuthScope.TwoFA)
+      });
+
+      const page = await callbackOf(clientId);
+      expect(page.body).toContain('Enter the code we sent to u***@test.com.');
+      expect(page.body).toContain(
+        '<option value="Email" selected>Email</option>'
+      );
+      expect(page.body).toContain(
+        '<option value="Recovery">Recovery code</option>'
+      );
+      expect(twoFactorService.sendChallenge).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 1 }),
+        {
+          method: undefined,
+          authSource: AuthSource.OAuth2Google,
+          locale: undefined
+        }
+      );
+
+      twoFactorService.verifyChallenge.mockRejectedValueOnce(
+        new AccountError(ErrorCode.Account2FACodeInvalid, 'Invalid code', {
+          attemptsLeft: 4
+        })
+      );
+      const retry = await postStep(stateOf(page.body), {
+        action: 'verify',
+        code: '000000'
+      });
+      expect(retry.body).toContain('The code is not valid, try again.');
+
+      authService.exchangeToken.mockResolvedValueOnce({
+        accessToken: sign(AuthScope.Auth)
+      });
+      const back = await postStep(stateOf(retry.body), {
+        action: 'verify',
+        code: '123456'
+      });
+      expect(twoFactorService.verifyChallenge).toHaveBeenLastCalledWith(
+        expect.objectContaining({ id: 1 }),
+        'challenge-Email',
+        '123456'
+      );
+      expect(authService.exchangeToken).toHaveBeenLastCalledWith('2fa-ott');
+      expect(location(back).get('code')).toBeTruthy();
+    });
+
+    test('asks for the 2FA code after the password', async () => {
+      await start();
+      const clientId = await register();
+      const page = await callbackOf(clientId, '&passwordRequired=true');
+      authService.exchangeToken.mockResolvedValueOnce({
+        accessToken: sign(AuthScope.TwoFA)
+      });
+
+      const next = await postStep(stateOf(page.body), { password: 'secret' });
+
+      expect(next.body).toContain('Two-factor authentication');
+    });
+
+    test('sends a new code or switches the 2FA method', async () => {
+      await start();
+      const clientId = await register();
+      authService.exchangeToken.mockResolvedValueOnce({
+        accessToken: sign(AuthScope.TwoFA)
+      });
+      const page = await callbackOf(clientId);
+
+      const app = await postStep(stateOf(page.body), {
+        action: 'resend',
+        method: 'Totp'
+      });
+      expect(app.body).toContain('Enter the code of your authenticator app.');
+      const recovery = await postStep(stateOf(app.body), {
+        action: 'resend',
+        method: 'Recovery'
+      });
+      expect(recovery.body).toContain('Enter one of your recovery codes.');
+
+      twoFactorService.sendChallenge.mockRejectedValueOnce(
+        new AccountError(ErrorCode.Account2FAMethodNotEnabled, 'Not enabled', {
+          enabledMethods: ['Email']
+        })
+      );
+      const refused = await postStep(stateOf(recovery.body), {
+        action: 'resend',
+        method: 'Sms'
+      });
+      expect(refused.body).toContain('Not enabled');
+      expect(refused.body).toContain(
+        '<option value="Recovery" selected>Recovery code</option>'
+      );
+    });
+
+    test('sends the client back after too many wrong codes, or for a disabled user', async () => {
+      await start();
+      const clientId = await register();
+      authService.exchangeToken.mockResolvedValue({
+        accessToken: sign(AuthScope.TwoFA)
+      });
+
+      twoFactorService.verifyChallenge.mockRejectedValueOnce(
+        new AccountError(ErrorCode.Account2FATooManyAttempts, 'Too many', {
+          maxAttempts: 5
+        })
+      );
+      const page = await callbackOf(clientId);
+      const tooMany = await postStep(stateOf(page.body), { code: '1' });
+      expect(location(tooMany).get('error_description')).toBe('Too many');
+
+      const other = await callbackOf(clientId);
+      authService.findById.mockResolvedValueOnce({ ...user, enabled: false });
+      const disabled = await postStep(stateOf(other.body), { code: '1' });
+      expect(location(disabled).get('error_description')).toBe(
+        'The user does not exist or is disabled'
+      );
+    });
+
+    test('refuses the users the forms would ask, without the forms', async () => {
+      configOverrides.MCP_OAUTH2_FORMS_ENABLED = false;
+      await start();
+      const clientId = await register();
 
       authService.exchangeToken.mockRejectedValueOnce(
         new AuthError(ErrorCode.AuthPasswordRequired, 'Password required')
       );
-      expect(Object.fromEntries(await callbackOf())).toMatchObject({
-        error: 'access_denied',
-        error_description: 'Password required',
-        state: 'xyz'
-      });
-      authService.exchangeToken.mockRejectedValueOnce(new Error('down'));
-      expect((await callbackOf()).get('error_description')).toBe(
-        'The sign-in failed'
+      const password = await callbackOf(clientId, '&passwordRequired=true');
+      expect(authService.exchangeToken).toHaveBeenCalledWith('ott');
+      expect(location(password).get('error_description')).toBe(
+        'Password required'
       );
+
       authService.exchangeToken.mockResolvedValueOnce({
         accessToken: sign(AuthScope.TwoFA)
       });
-      expect((await callbackOf()).get('error_description')).toBe(
-        'The user must pass the two-factor authentication'
-      );
+      const twoFactor = await callbackOf(clientId);
+      expect(Object.fromEntries(location(twoFactor))).toMatchObject({
+        error: 'access_denied',
+        error_description: 'The user must pass the two-factor authentication'
+      });
+      expect(twoFactorService.sendChallenge).not.toHaveBeenCalled();
+      expect((await postStep('any', { code: '1' })).statusCode).toBe(404);
     });
 
-    test('rejects an unknown or used authorization request', async () => {
+    test('renders the template of a page when the application has one', async () => {
+      const render = jest.fn(
+        async (_: string, data: any) => `custom ${data.client}`
+      );
+      define(
+        {
+          hasTemplate: async (name: string) => name === 'mcp/sign-in.html',
+          render
+        },
+        TemplateEngine
+      );
       await start();
+      const clientId = await register();
 
       const response = await server.inject({
-        url: '/oauth/callback?request=unknown&token=ott'
+        url: `/oauth/authorize?${new URLSearchParams(authorizeParams(clientId))}`,
+        headers: { 'accept-language': 'de-AT,de;q=0.9' }
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toContain('Authorization expired');
+      expect(response.body).toBe('custom Agent');
+      expect(render).toHaveBeenCalledWith(
+        'mcp/sign-in.html',
+        expect.objectContaining({
+          host: 'localhost:3333',
+          providers: [
+            expect.objectContaining({ name: 'google', label: 'Google' })
+          ]
+        }),
+        { locale: 'de-AT' }
+      );
     });
   });
 });

@@ -54,5 +54,8 @@ export const mcpOAuth2Config = defineConfig('mcp.oauth2', {
   /** Path of the authorization, token and registration endpoints. Default: `'/oauth'`. */
   ROUTE_PREFIX: Type.String({ default: '/oauth' }),
   /** The OAuth2 providers offered to sign in, by name (`google`, `github`, ...). Default: every enabled one. */
-  PROVIDERS: Type.Array(Type.String(), { default: [] })
+  PROVIDERS: Type.Array(Type.String(), { default: [] }),
+  /** Ask for the password of an account to link and the 2FA code on the sign-in forms, otherwise refuse these users.
+   * Default: `true`. */
+  FORMS_ENABLED: Type.Boolean({ default: true })
 });

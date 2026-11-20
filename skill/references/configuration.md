@@ -908,6 +908,7 @@ The MCP server of `@appweaver/mcp` ([mcp.md](./mcp.md)).
 | `MCP_OAUTH2_ENABLED`      | boolean  | `false`              | Make the application the OAuth 2.1 authorization server of the MCP clients (discovery, DCR, PKCE).   |
 | `MCP_OAUTH2_ROUTE_PREFIX` | string   | `'/oauth'`           | Path of the authorization, token and registration endpoints.                                         |
 | `MCP_OAUTH2_PROVIDERS`    | string[] | `[]`                 | The `security.oauth2` providers offered to sign in (`google`, `github`, ...), every enabled one by default. |
+| `MCP_OAUTH2_FORMS_ENABLED` | boolean | `true`             | Ask for the password of an account to link and the 2FA code, otherwise refuse these users.           |
 
 ### AI (AI\_\*)
 

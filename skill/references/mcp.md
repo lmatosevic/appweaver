@@ -34,7 +34,9 @@ authorization spec), the application acting as the authorization server:
    `client_id` holds them, signed with the JWT secret or private key.
 3. `GET /oauth/authorize` (code flow, PKCE `S256`, `resource` checked) shows a page naming the client and its
    redirect host, with a link per OAuth2 provider of `security.oauth2` (`mcp.oauth2.providers` picks them), signing
-   in through `/auth/login/<provider>` like the API.
+   in through `/auth/login/<provider>` like the API. Back at `/oauth/callback`, the user confirms the password of an
+   existing account the provider account links to, then passes 2FA when required, on the forms of
+   `POST /oauth/sign-in`.
 4. `POST /oauth/token` exchanges the code, then the refresh token, for the JWTs of the API login.
 
 ```json
@@ -47,8 +49,32 @@ authorization spec), the application acting as the authorization server:
 
 - `security.allowedRedirectHosts` must allow the host of `app.hostname`, and `mcp.auth` keep `jwt` (the default).
 - The tokens are valid for the whole API, like the login's, and a logout revokes them.
-- A user who must pass 2FA or confirm a password to link the provider account is refused (`access_denied`).
 - With `mcp.anonymousEnabled` there is no `401`, so no client starts the sign-in.
+
+### Sign-in pages
+
+The pages are `mcp/sign-in`, `mcp/password`, `mcp/two-factor` and `mcp/error`, never cached nor framed. A wrong
+password sends the user back to the client to start again (`access_denied`), like `/auth/exchange-token`. The 2FA form
+verifies a code of the default method of the user, sends a new code, or switches to another method of the user or to
+a recovery code; a wrong code is retried until `maxAttempts`, then the client gets `access_denied`.
+
+Each page renders the `mcp/<page>.html` template of the template engine when the application has one, otherwise a
+plain HTML page, in the locale of `Accept-Language`. The texts are the `mcp.*` translations, defined in English by the
+framework and overridden by `locales/<locale>.json`, the provider names included (`mcp.signIn.providers.google`, a
+provider without one shown by its name). A project with the `mcp` and `templates` modules starts with the
+four templates and their `layouts/page.html` layout, in the card style of the email layout.
+
+| Page         | Data                                                                                |
+|--------------|-------------------------------------------------------------------------------------|
+| `sign-in`    | `client`, `host`, `providers` (`{ name, label, url }`)                              |
+| `password`   | `action`, `state` (posted back as `state`), `error`                                 |
+| `two-factor` | `action`, `state`, `error`, `hint`, `methods` (`{ value, label, selected }`)        |
+| `error`      | `message`                                                                           |
+
+The forms post `state`, with `password`, or `code`, `method` and `action` (`verify` or `resend`).
+
+`mcp.oauth2.formsEnabled: false` removes the forms (`POST /oauth/sign-in` answers `404`) and refuses the users who
+must confirm a password or pass 2FA with `access_denied`. The consent page of `/oauth/authorize` always shows.
 
 ## Resource tools
 

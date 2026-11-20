@@ -608,7 +608,7 @@ project, so both apply the same templates. `@appweaver/cli` depends on `@appweav
 | `scaffold/compose-util.ts`          | Adds and removes the Redis service of `docker-compose.yml` with the `yaml` document API                              |
 | `templates/base/`                   | The minimal core application every module is added to                                                                |
 | `templates/modules/<name>/`         | The files of a module, deleted when it is removed                                                                    |
-| `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates` and `sms+templates` hold the account templates)        |
+| `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates`, `sms+templates` and `mcp+templates` hold the account templates and the MCP sign-in pages) |
 | `templates/translations/en.json`    | The English texts of the scaffolded templates, merged into `locales/en.json` with the mailer                         |
 | `templates/module-package/`         | The files of every module package (`common/`), and those of each contract (`storage/`, `mailer/`, `sms/`, `none/`)   |
 
@@ -643,8 +643,8 @@ A module is defined by data (packages, config values) and its files, its edits o
 the module alone in `apply-modules.ts` (the database password of `.env`, the SQLite rules of `.gitignore`), and anything
 else it adds to another enabled module is an integration of the two (the database, Redis and
 server parts of `docker-compose.yml`, the Dockerfile `COPY` blocks of public files, templates, locales and Prisma and
-its `data` directory of SQLite, the database roles of `start.sh`, the `emails` and `sms` texts the mailer and the SMS
-module merge into `locales/en.json`).`@appweaver/create` creates the base project with every module's disabled config,
+its `data` directory of SQLite, the database roles of `start.sh`, the `emails`, `sms` and `mcp` texts the mailer, the SMS and the MCP
+modules merge into `locales/en.json`).`@appweaver/create` creates the base project with every module's disabled config,
 then adds the selected modules exactly like `weaver module add`, so a test checks that every combination of modules
 created, added one at a time, or removed from a full project gives the same files. Keep any new module or integration
 reversible: removal deletes its files and restores the config and packages.
