@@ -49,6 +49,50 @@ describe('record-util', () => {
       });
     });
 
+    test('leaves out the fields a relation omits', () => {
+      resetContext();
+      createModel({
+        name: 'User',
+        scalars: {
+          name: { type: 'string' },
+          email: { type: 'string' },
+          phone: { type: 'string', required: false }
+        }
+      });
+      createModel({
+        name: 'Post',
+        scalars: { title: { type: 'string' } },
+        relations: {
+          author: {
+            model: 'User',
+            type: 'one',
+            required: false,
+            output: { type: 'always', omit: ['email', 'phone'] }
+          },
+          editors: {
+            model: 'User',
+            type: 'manyToMany',
+            output: { type: 'always', omit: ['email'] }
+          }
+        }
+      } as never);
+      linkModels();
+
+      expect(
+        projectRecord('Post', {
+          id: 1,
+          title: 'Hello',
+          author: { id: 2, name: 'Ana', email: 'a@test.com', phone: '+1' },
+          editors: [{ id: 3, name: 'Ed', email: 'e@test.com', phone: '+2' }]
+        })
+      ).toEqual({
+        id: 1,
+        title: 'Hello',
+        author: { id: 2, name: 'Ana' },
+        editors: [{ id: 3, name: 'Ed', phone: '+2' }]
+      });
+    });
+
     test('keeps the virtual fields the service set', () => {
       expect(
         projectRecord('Post', { id: 1, title: 'Hello', slug: 'random-42' })

@@ -14,6 +14,10 @@ jest.mock('@fastify/fast-json-stringify-compiler', () => {
   };
 });
 
+import { resourceModelProps } from '@appweaver/common';
+import { context } from '@appweaver/core/internal';
+import { createModel } from '@appweaver/data';
+import { linkModels, resetContext } from '@appweaver/testing';
 import { referencedSerializer } from '../../server/response-serialization';
 
 const route = (schema: unknown) => ({
@@ -83,6 +87,55 @@ describe('response-serialization', () => {
       referencedSerializer()(nested, {})(route({ $ref: 'Inner' }));
 
       expect(mockBuildSerializer.mock.calls[0][0]).toBe(nested);
+    });
+
+    test('leaves out the fields a relation omits from the response of a model', () => {
+      resetContext();
+      createModel({
+        name: 'User',
+        scalars: { name: { type: 'string' }, email: { type: 'string' } }
+      });
+      createModel({
+        name: 'Post',
+        scalars: { title: { type: 'string' } },
+        relations: {
+          author: {
+            model: 'User',
+            type: 'one',
+            required: false,
+            output: { type: 'always', omit: ['email'] }
+          }
+        }
+      } as never);
+      linkModels();
+      // Registered like the schemas plugin of the server does
+      const models: Record<string, unknown> = {};
+      for (const model of context.resource.models.values()) {
+        for (const [suffix, property] of Object.entries(resourceModelProps)) {
+          const name = `${model.name}${suffix}`;
+          models[name] = (model as any)[property].$defs[name];
+        }
+      }
+      const stamps = {
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z'
+      };
+      const author = { id: 2, name: 'Ana', email: 'a@test.com', ...stamps };
+
+      const post = referencedSerializer()(models, {})(
+        route({ $ref: 'PostSingle' })
+      )({ id: 1, title: 'Hello', author, ...stamps });
+      const user = referencedSerializer()(models, {})(
+        route({ $ref: 'UserSingle' })
+      )(author);
+      resetContext();
+
+      expect(JSON.parse(post).author).toEqual({
+        id: 2,
+        name: 'Ana',
+        ...stamps
+      });
+      expect(JSON.parse(user)).toEqual(author);
     });
   });
 });

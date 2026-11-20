@@ -406,6 +406,10 @@ A relation holding the foreign key of a one-to-many relation is declared with `t
 and the model it points at lists the inverse side with `type: 'oneToMany'`. The `omit` and `pick` lists of `read`,
 `create`, and `update` only accept the fields the model declares, its `id`, and its audit fields.
 
+A field to hide everywhere is `hidden`. One to hide only where a relation shows it, i.e. the email of the author of a
+public post, goes into the `omit` of that relation's `output` (`output: { type: 'always', omit: ['email'] }`), which
+leaves it out of the routes, the MCP tools and the realtime events while the related model's own routes keep it.
+
 Index entries are field names, nested in an array for a composite index. Prefix a name with `-` for a descending index
 or `+` for an ascending one; without a prefix, the database default order is used:
 
@@ -995,8 +999,9 @@ createMcpTool({
 });
 ```
 
-`mcp.oauth2.enabled` lets the MCP clients sign their users in by themselves (OAuth discovery, dynamic client
-registration, PKCE), through the OAuth2 providers of `security.oauth2`. See [mcp.md](references/mcp.md).
+`mcp.cache.enabled` caches the read-only tool results per user, `mcp.rateLimit.enabled` limits the tool calls per
+user, and `mcp.oauth2.enabled` lets the MCP clients sign their users in by themselves (OAuth discovery, dynamic
+client registration, PKCE) through the OAuth2 providers of `security.oauth2`. See [mcp.md](references/mcp.md).
 
 ### Registering a custom model
 

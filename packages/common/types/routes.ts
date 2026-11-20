@@ -175,6 +175,9 @@ export type ResourceMcpConfig = RealtimeAccess & {
   exclude?: string[];
   /** The maximum records a query returns. Default: `mcp.maxLimit` */
   maxLimit?: number;
+  /** Cache the results of the `find`, `query` and `aggregate` tools with `mcp.cache.enabled`: `false` turns it off,
+   * a number sets their time-to-live in milliseconds. Default: `true` (`mcp.cache.ttl`) */
+  cache?: boolean | number;
 };
 
 export type ResourceRoutesConfig = {

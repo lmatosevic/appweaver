@@ -1,5 +1,9 @@
 import { TSchema, Type } from '@sinclair/typebox';
-import { relinkResourceModels, resourceModelProps } from '@appweaver/common';
+import {
+  relinkResourceModels,
+  removeComputedKeywords,
+  resourceModelProps
+} from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 
 /**
@@ -24,9 +28,8 @@ export function linkModels(): void {
 
   for (const model of models) {
     for (const [suffix, property] of Object.entries(resourceModelProps)) {
-      (model as unknown as Record<string, TSchema>)[property] = module.Import(
-        `${model.name}${suffix}`
-      );
+      (model as unknown as Record<string, TSchema>)[property] =
+        removeComputedKeywords(module.Import(`${model.name}${suffix}`));
     }
   }
 }

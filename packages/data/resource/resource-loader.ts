@@ -10,11 +10,13 @@ import {
   ResourceModel,
   resourceModelProps,
   ResourcePolicyConfig,
-  relinkResourceModels
+  relinkResourceModels,
+  removeComputedKeywords
 } from '@appweaver/common';
 import { resourceConfig } from './resource-config';
 import { validateFileNamePatterns } from '../utils/file-util';
 import {
+  validateRelationOmits,
   validateScalarDefaults,
   validateSoftDeleteCascades
 } from '../utils/model-util';
@@ -114,6 +116,10 @@ async function loadModels(
   // records, since the database cascade never runs on a soft delete
   validateSoftDeleteCascades(models);
 
+  // Reject an omitted relation field the related model does not have, which
+  // would leave the field it was meant to hide in the output
+  validateRelationOmits(models);
+
   // Map model variants to schemas using their corresponding suffixes
   const resourceModels: Record<string, TSchema> = {};
   for (const model of Object.values(models)) {
@@ -129,7 +135,7 @@ async function loadModels(
   for (const model of Object.values(models)) {
     for (const [suffix, property] of Object.entries(resourceModelProps)) {
       const schemaKey = `${model.name}${suffix}`;
-      const importedModel = module.Import(schemaKey);
+      const importedModel = removeComputedKeywords(module.Import(schemaKey));
       (model as unknown as Record<string, TSchema>)[property] = importedModel;
     }
   }

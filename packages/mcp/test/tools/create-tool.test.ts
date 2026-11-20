@@ -56,5 +56,28 @@ describe('create-tool', () => {
         ConfigurationError
       );
     });
+
+    test('caches a read-only tool only', () => {
+      expect(
+        createMcpTool({
+          name: 'cached',
+          readOnly: true,
+          cache: 1000,
+          cacheRelations: ['Post'],
+          handler: () => 1
+        }).cache
+      ).toEqual({ ttl: 1000, relations: ['Post'] });
+      expect(
+        createMcpTool({
+          name: 'defaultTtl',
+          readOnly: true,
+          cache: true,
+          handler: () => 1
+        }).cache
+      ).toEqual({ ttl: undefined, relations: undefined });
+      expect(() =>
+        createMcpTool({ name: 'writes', cache: true, handler: () => 1 })
+      ).toThrow("MCP tool 'writes' caches its results, so must be readOnly");
+    });
   });
 });

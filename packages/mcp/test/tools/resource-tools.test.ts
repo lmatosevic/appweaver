@@ -217,6 +217,37 @@ describe('resource-tools', () => {
       });
     });
 
+    test('builds the tools of a resource once its model is defined', () => {
+      context.resource.routes.set('Post', {
+        config: { modelName: 'Post', mcp: { actions: ['find'] } },
+        basePath: 'posts',
+        handler: () => {}
+      });
+      expect(resourceTools()).toEqual([]);
+
+      usePosts({ actions: ['find', 'query'] });
+      const tools = resourceTools();
+
+      expect(tools.map((t) => t.name)).toEqual(['post_find', 'post_query']);
+      expect(resourceTools()[0]).toBe(tools[0]);
+    });
+
+    test('caches the read actions unless the config turns it off', () => {
+      usePosts({ actions: ['find', 'query', 'aggregate', 'create'] });
+      expect(resourceTools().map((t) => t.cache)).toEqual([
+        { ttl: undefined, modelName: 'Post' },
+        { ttl: undefined, modelName: 'Post' },
+        { ttl: undefined, modelName: 'Post' },
+        undefined
+      ]);
+
+      usePosts({ actions: ['find'], cache: 1000 });
+      expect(tool('post_find').cache).toEqual({ ttl: 1000, modelName: 'Post' });
+
+      usePosts({ actions: ['find'], cache: false });
+      expect(tool('post_find').cache).toBeUndefined();
+    });
+
     test('filters and sorts the visible scalar fields', () => {
       usePosts({ actions: ['query', 'aggregate'] });
 

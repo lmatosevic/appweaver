@@ -1,5 +1,5 @@
 import { TSchema } from '@sinclair/typebox';
-import { isArray, isPlainObject } from '@appweaver/common';
+import { capitalize, isArray, isPlainObject } from '@appweaver/common';
 import { injectModel } from '@appweaver/core';
 
 const MAX_DEPTH = 8;
@@ -18,7 +18,12 @@ export function projectRecord(modelName: string, record: unknown): unknown {
   return project(modelName, record, 0);
 }
 
-function project(modelName: string, record: unknown, depth: number): unknown {
+function project(
+  modelName: string,
+  record: unknown,
+  depth: number,
+  omit: string[] = []
+): unknown {
   const model = injectModel(modelName, false);
   if (!model || !isPlainObject(record) || depth > MAX_DEPTH) {
     return model ? record : undefined;
@@ -28,17 +33,23 @@ function project(modelName: string, record: unknown, depth: number): unknown {
 
   for (const [key, schema] of Object.entries(properties(model.readOneModel))) {
     const value = (record as Record<string, unknown>)[key];
-    if (value === undefined) {
+    if (value === undefined || omit.includes(key)) {
       continue;
     }
 
-    const related = relatedModel(schema);
+    // A relation omitting fields has the schema of its own, without a reference to follow
+    const relation = model.config.relations?.[key];
+    const related = relation
+      ? capitalize(relation.model)
+      : relatedModel(schema);
+    const next = (item: unknown) =>
+      project(related!, item, depth + 1, relation?.output?.omit);
     if (!related || value === null) {
       projected[key] = value;
     } else if (isArray(value)) {
-      projected[key] = value.map((item) => project(related, item, depth + 1));
+      projected[key] = value.map(next);
     } else {
-      projected[key] = project(related, value, depth + 1);
+      projected[key] = next(value);
     }
   }
 

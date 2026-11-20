@@ -63,6 +63,48 @@ export function validateSoftDeleteCascades(
 }
 
 /**
+ * Validates that the `omit` of every relation output names fields of the response of the related model, so a typo
+ * cannot leave a field in the output it was meant to hide.
+ *
+ * @param {Record<string, ResourceModel>} models - All loaded models keyed by name, before they are linked.
+ * @throws {ConfigurationError} `CONFIGURATION_INVALID` listing the unknown fields.
+ */
+export function validateRelationOmits(
+  models: Record<string, ResourceModel>
+): void {
+  const errors: string[] = [];
+
+  for (const model of Object.values(models)) {
+    for (const [name, relation] of Object.entries(
+      model.config.relations ?? {}
+    )) {
+      const omit = relation.output?.omit ?? [];
+      const related = models[capitalize(relation.model)];
+      if (!omit.length || !related) {
+        continue;
+      }
+      const fields = Object.keys(related.readOneModel.properties ?? {});
+      const unknown = omit.filter((field) => !fields.includes(field));
+      if (unknown.length) {
+        errors.push(
+          `${model.name}.${name} omits ${unknown.join(', ')}, not fields of ${related.name}`
+        );
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      `Invalid resource model relation outputs:\n${errors
+        .map((error) => `  - ${error}`)
+        .join('\n')}`,
+      { errors }
+    );
+  }
+}
+
+/**
  * Validates that the default value of every scalar and virtual field satisfies
  * the constraints declared on that same field. A default outside its own
  * constraints produces records that do not match the output schema of their

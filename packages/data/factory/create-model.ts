@@ -594,7 +594,11 @@ function buildRelationsSchema(
 function buildRelationSchema(relation: RelationField): TSchema {
   const modelName = capitalize(relation.model);
   const modelRefName = `${modelName}Single`;
-  let relationType: TSchema = Type.Ref(modelRefName);
+  const omit = relation.output?.omit ?? [];
+  // Computed by the TypeBox module the models are linked with, the reference resolved
+  let relationType: TSchema = omit.length
+    ? Type.Omit(Type.Ref(modelRefName), omit)
+    : Type.Ref(modelRefName);
 
   relationType = isRelationArray(relation)
     ? Type.Array(relationType, pickProperties(relation, ['minItems']))

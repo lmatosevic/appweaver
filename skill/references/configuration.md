@@ -900,6 +900,11 @@ The MCP server of `@appweaver/mcp` ([mcp.md](./mcp.md)).
 | `MCP_MAX_RESULT_SIZE`     | string   | `'256KB'`            | The maximum size of a tool result.                                                                   |
 | `MCP_ALLOWED_ORIGINS`     | string[] | `[]`                 | Browser origins allowed to call the endpoint (`*` for any); requests without `Origin` always pass.   |
 | `MCP_LOG_CALLS`           | boolean  | `true`               | Log every tool call at the info level.                                                               |
+| `MCP_CACHE_ENABLED`       | boolean  | `false`              | Cache the results of the read-only tools (the read resource actions, the tools setting `cache`).     |
+| `MCP_CACHE_TTL`           | integer  | `5000`               | Time-to-live of a cached result in ms, unless the tool sets its own.                                 |
+| `MCP_RATE_LIMIT_ENABLED`  | boolean  | `false`              | Limit the tool calls of each authenticated user, counted in the `Memory` provider.                   |
+| `MCP_RATE_LIMIT_MAX`      | integer  | `60`                 | Maximum tool calls of a user per window.                                                             |
+| `MCP_RATE_LIMIT_WINDOW`   | integer  | `60000`              | The window of the rate limit in ms.                                                                  |
 | `MCP_OAUTH2_ENABLED`      | boolean  | `false`              | Make the application the OAuth 2.1 authorization server of the MCP clients (discovery, DCR, PKCE).   |
 | `MCP_OAUTH2_ROUTE_PREFIX` | string   | `'/oauth'`           | Path of the authorization, token and registration endpoints.                                         |
 | `MCP_OAUTH2_PROVIDERS`    | string[] | `[]`                 | The `security.oauth2` providers offered to sign in (`google`, `github`, ...), every enabled one by default. |
