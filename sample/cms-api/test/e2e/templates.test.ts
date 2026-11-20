@@ -5,14 +5,15 @@ import {
   inject,
   injectService
 } from '@appweaver/core';
+import { TemplateEngine } from '@appweaver/common';
 import { hashPassword } from '@appweaver/data';
 import { resetTestData } from './support/reset';
 
 /**
  * Exercises the templates of the `templates` directory and the translations of
  * the `locales` directory: a localized HTML page, an XML export for an external
- * integration, a localized email sent on demand, and a translated default value
- * stored by a service hook.
+ * integration, a localized email sent on demand, the localized sign-in pages
+ * of the MCP clients, and a translated default value stored by a service hook.
  */
 describe('Templates and locales', () => {
   let app: Application;
@@ -211,6 +212,132 @@ describe('Templates and locales', () => {
 
       expect(email.subject).toBe('Ihr Bestätigungscode');
       expect(email.text).toContain('Der Code läuft in 3 Minuten ab.');
+    });
+  });
+
+  describe('MCP sign-in pages', () => {
+    const redirectUri = 'http://127.0.0.1:4000/callback';
+
+    const authorize = async (headers: Record<string, string> = {}) => {
+      const register = await app.server.inject({
+        method: 'POST',
+        url: '/oauth/register',
+        payload: { redirect_uris: [redirectUri], client_name: 'Claude' }
+      });
+      const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: register.json().client_id,
+        redirect_uri: redirectUri,
+        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+        code_challenge_method: 'S256'
+      });
+      return app.server.inject({
+        method: 'GET',
+        url: `/oauth/authorize?${params}`,
+        headers
+      });
+    };
+
+    test('renders the sign-in with the providers in the layout of the forms', async () => {
+      const response = await authorize();
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toContain('<html lang="en">');
+      expect(response.body).toContain('<title>Sign in · CMS API</title>');
+      expect(response.body).toContain('Claude of 127.0.0.1:4000 asks to act');
+      expect(response.body).toContain('class="button outline provider-google"');
+      expect(response.body).toContain('Continue with Facebook');
+      expect(response.body).toContain(
+        'Signing in to CMS API on behalf of your AI agent.'
+      );
+    });
+
+    test('signs a user in with the password form, showing a wrong password in the locale', async () => {
+      const headers = { 'accept-language': 'de' };
+      const submit = (page: string, password: string) =>
+        app.server.inject({
+          method: 'POST',
+          url: '/oauth/sign-in',
+          headers: {
+            ...headers,
+            'content-type': 'application/x-www-form-urlencoded'
+          },
+          payload: new URLSearchParams({
+            state: /name="state" value="([^"]+)"/.exec(page)![1],
+            username: 'templates@example.com',
+            password
+          }).toString()
+        });
+
+      const page = await authorize(headers);
+      expect(page.body).toContain('<div class="divider">oder</div>');
+      expect(page.body).toContain('<label for="username">E-Mail</label>');
+
+      const wrong = await submit(page.body, 'wrong');
+      expect(wrong.statusCode).toBe(401);
+      expect(wrong.body).toContain(
+        'Die E-Mail-Adresse oder das Passwort ist ungültig.'
+      );
+
+      const back = await submit(wrong.body, 'Templates!Pass1');
+      expect(back.statusCode).toBe(302);
+      const location = new URL(back.headers.location as string);
+      expect(location.origin + location.pathname).toBe(redirectUri);
+      expect(location.searchParams.get('code')).toBeTruthy();
+    });
+
+    test('renders the sign-in in the locale of the browser', async () => {
+      const response = await authorize({ 'accept-language': 'de-DE,de;q=0.9' });
+
+      expect(response.body).toContain('<html lang="de-DE">');
+      expect(response.body).toContain('<h1>Anmelden</h1>');
+      expect(response.body).toContain('möchte in Ihrem Namen handeln');
+      expect(response.body).toContain('Weiter mit Google');
+    });
+
+    test('renders the error of an unknown client', async () => {
+      const response = await app.server.inject({
+        method: 'GET',
+        url: '/oauth/authorize?client_id=unknown',
+        headers: { 'accept-language': 'de' }
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toContain('<h1>Anmeldung fehlgeschlagen</h1>');
+      expect(response.body).toContain('Der Client ist unbekannt');
+    });
+
+    test('renders the password and the 2FA forms', async () => {
+      const engine = inject(TemplateEngine);
+
+      const password = await engine.render(
+        'mcp/password.html',
+        { action: '/oauth/sign-in', state: 'abc', error: 'Wrong' },
+        { locale: 'de' }
+      );
+      expect(password).toContain('<h1>Passwort bestätigen</h1>');
+      expect(password).toContain('<p class="error" role="alert">Wrong</p>');
+      expect(password).toContain('name="state" value="abc"');
+
+      const twoFactor = await engine.render(
+        'mcp/two-factor.html',
+        {
+          action: '/oauth/sign-in',
+          state: 'abc',
+          hint: 'Enter the code of your authenticator app.',
+          methods: [
+            { value: 'Totp', label: 'Authenticator app', selected: true },
+            { value: 'Recovery', label: 'Recovery code', selected: false }
+          ]
+        },
+        { locale: 'en' }
+      );
+      expect(twoFactor).toContain('<h1>Two-factor authentication</h1>');
+      expect(twoFactor).toContain('<option value="Totp" selected>');
+      expect(twoFactor).toContain('or use another method');
+      expect(twoFactor.indexOf('value="verify"')).toBeLessThan(
+        twoFactor.indexOf('value="resend"')
+      );
     });
   });
 

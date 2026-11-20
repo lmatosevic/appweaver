@@ -129,6 +129,7 @@ describe('oauth-routes', () => {
     define(new MemorySecurityStore(), SecurityStore);
     authService = {
       exchangeToken: jest.fn(),
+      login: jest.fn(),
       findById: jest.fn(async (id) => ({ ...user, id })),
       authorize: jest.fn(),
       generateAuthTokens: jest.fn(async () => ({
@@ -663,6 +664,135 @@ describe('oauth-routes', () => {
       });
       expect(twoFactorService.sendChallenge).not.toHaveBeenCalled();
       expect((await postStep('any', { code: '1' })).statusCode).toBe(404);
+    });
+
+    test('fails the sign-in forms while the rate limiter fails', async () => {
+      const routes: { url: string; config?: any }[] = [];
+      const app = await startMcpApp(undefined, (instance) => {
+        instance.register(fastifyJwt, { secret: 'jwt-secret' });
+        instance.addHook('onRoute', (route) => {
+          routes.push(route);
+        });
+      });
+      server = app.server;
+
+      expect(
+        routes.find((route) => route.url === '/oauth/sign-in')!.config.rateLimit
+      ).toEqual({ max: 12, secure: true });
+    });
+
+    test('signs a user in with the password form beside the providers', async () => {
+      configOverrides.MCP_OAUTH2_PASSWORD_ENABLED = true;
+      await start();
+      const clientId = await register();
+
+      const page = await authorize(authorizeParams(clientId));
+      expect(page.body).toContain('Continue with Google</a>');
+      expect(page.body).toContain('<p>or</p>');
+      expect(page.body).toContain('name="username" autocomplete="username"');
+
+      authService.login.mockResolvedValueOnce({
+        accessToken: sign(AuthScope.Auth)
+      });
+      const state = stateOf(page.body);
+      const back = await postStep(state, {
+        username: 'user@test.com',
+        password: 'secret'
+      });
+
+      expect(authService.login).toHaveBeenCalledWith('user@test.com', 'secret');
+      expect(Object.fromEntries(location(back))).toMatchObject({
+        state: 'xyz',
+        code: expect.any(String)
+      });
+      // The state of a form is used once
+      expect((await postStep(state, { password: 'secret' })).statusCode).toBe(
+        400
+      );
+    });
+
+    test('shows the password form again on a wrong password, up to the limit of the logins', async () => {
+      const now = Date.now();
+      jest.spyOn(Date, 'now').mockReturnValue(now - (now % 60000) + 30000);
+      configOverrides.MCP_OAUTH2_PASSWORD_ENABLED = true;
+      await start();
+      const clientId = await register();
+      authService.login.mockRejectedValue(
+        new AuthError(ErrorCode.AuthInvalidCredentials, 'Invalid')
+      );
+
+      let page = await authorize(authorizeParams(clientId));
+      for (let i = 0; i < 12; i++) {
+        page = await postStep(stateOf(page.body), {
+          username: 'user@test.com',
+          password: 'wrong'
+        });
+        expect(page.statusCode).toBe(401);
+        expect(page.body).toContain('The email or the password is not valid.');
+        expect(page.body).toContain('Agent of localhost:3333 asks to act');
+      }
+      const limited = await postStep(stateOf(page.body), {
+        username: 'user@test.com',
+        password: 'wrong'
+      });
+
+      expect(limited.statusCode).toBe(429);
+      expect(limited.headers['retry-after']).toBe('30');
+      expect(limited.body).toContain('Too many sign-in attempts.');
+      expect(authService.login).toHaveBeenCalledTimes(12);
+    });
+
+    test('asks for the 2FA code after a password sign-in, or sends a refused user back', async () => {
+      configOverrides.MCP_OAUTH2_PASSWORD_ENABLED = true;
+      await start();
+      const clientId = await register();
+      const credentials = { username: 'user@test.com', password: 'secret' };
+
+      authService.login.mockResolvedValueOnce({
+        accessToken: sign(AuthScope.TwoFA)
+      });
+      const page = await authorize(authorizeParams(clientId));
+      const next = await postStep(stateOf(page.body), credentials);
+      expect(next.body).toContain('Two-factor authentication');
+
+      authService.login.mockRejectedValueOnce(
+        new AuthError(ErrorCode.AuthPasswordDisabled, 'No password')
+      );
+      const other = await authorize(authorizeParams(clientId));
+      const back = await postStep(stateOf(other.body), credentials);
+      expect(Object.fromEntries(location(back))).toMatchObject({
+        error: 'access_denied',
+        error_description: 'No password'
+      });
+    });
+
+    test('offers the password form alone without providers', async () => {
+      configOverrides.MCP_OAUTH2_PASSWORD_ENABLED = true;
+      await start([]);
+      const clientId = await register();
+
+      const page = await authorize(authorizeParams(clientId));
+
+      expect(page.statusCode).toBe(200);
+      expect(page.body).not.toContain('Continue with');
+      expect(page.body).not.toContain('<p>or</p>');
+      expect(page.body).toContain('name="password"');
+    });
+
+    test('leaves the password form out while the login requires a bot check', async () => {
+      configOverrides.MCP_OAUTH2_PASSWORD_ENABLED = true;
+      configOverrides.SECURITY_TURNSTILE_ENABLED = true;
+      configOverrides.SECURITY_TURNSTILE_AUTH_ROUTES = ['login'];
+      await start();
+      const clientId = await register();
+
+      const page = await authorize(authorizeParams(clientId));
+
+      expect(page.body).toContain('Continue with Google</a>');
+      expect(page.body).not.toContain('name="password"');
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('password sign-in')
+      );
     });
 
     test('renders the template of a page when the application has one', async () => {

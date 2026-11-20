@@ -1,4 +1,7 @@
+import { FastifyRequest } from 'fastify';
 import {
+  captchaErrorCodes,
+  captchaHeaderSchema,
   changePasswordSchema,
   createCurrentAuthUserSchema,
   exchangeTokenSchema,
@@ -6,12 +9,50 @@ import {
   logoutSchema,
   refreshSchema
 } from './auth-schema';
-import { AuthScope, AuthSource, AuthType } from '@appweaver/common';
+import {
+  AuthScope,
+  AuthSource,
+  AuthType,
+  CaptchaConfig
+} from '@appweaver/common';
 import { AuthService } from './auth-service';
 import { resourceAuthModel } from '@appweaver/data';
 import { inject, currentAuthSource } from '@appweaver/core';
+import { errorResponses } from '../errors';
 import { Server } from '../types/server';
-import { securityConfig } from './security-config';
+import { checkLoginRateLimit } from './login-rate-limit';
+import {
+  CaptchaAuthRoute,
+  recaptchaConfig,
+  securityConfig,
+  turnstileConfig
+} from './security-config';
+
+/** The action of the bot checks of each authentication route. */
+const CAPTCHA_ACTIONS: Record<CaptchaAuthRoute, string> = {
+  [CaptchaAuthRoute.Login]: 'login',
+  [CaptchaAuthRoute.Refresh]: 'refresh',
+  [CaptchaAuthRoute.ChangePassword]: 'change-password'
+};
+
+/**
+ * Returns the bot checks an authentication route requires: the reCAPTCHA and the Turnstile enabled with the route in
+ * their `authRoutes`, each for the action of the route.
+ *
+ * @param {CaptchaAuthRoute} route - The authentication route.
+ * @return {CaptchaConfig} The bot checks of the route, empty when it requires none.
+ */
+export function authRouteCaptcha(route: CaptchaAuthRoute): CaptchaConfig {
+  const action = CAPTCHA_ACTIONS[route];
+  return {
+    ...(recaptchaConfig.ENABLED && recaptchaConfig.AUTH_ROUTES.includes(route)
+      ? { recaptchaAction: action }
+      : {}),
+    ...(turnstileConfig.ENABLED && turnstileConfig.AUTH_ROUTES.includes(route)
+      ? { turnstileAction: action }
+      : {})
+  };
+}
 
 /**
  * Registers the route exchanging a one-time token for the tokens of the `auth` scope, once, by whichever of the
@@ -34,6 +75,7 @@ export function registerExchangeTokenRoute(server: Server): void {
       schema: exchangeTokenSchema,
       config: {
         rateLimit: {
+          secure: true,
           max: 12
         }
       }
@@ -58,16 +100,41 @@ export function authRoutes(server: Server): void {
 
   const authService = inject(AuthService);
 
+  /** The schema, the config and the bot check hooks of a route, with the bot checks it requires. */
+  const withCaptcha = <S extends { response: Record<number, unknown> }>(
+    route: CaptchaAuthRoute,
+    schema: S
+  ) => {
+    const captcha = authRouteCaptcha(route);
+    return {
+      schema: {
+        ...schema,
+        headers: captchaHeaderSchema(captcha),
+        response: {
+          ...schema.response,
+          ...errorResponses(...captchaErrorCodes(captcha))
+        }
+      },
+      captcha,
+      hooks: [
+        captcha.recaptchaAction ? server.recaptcha : undefined,
+        captcha.turnstileAction ? server.turnstile : undefined
+      ].filter((hook) => hook !== undefined)
+    };
+  };
+
+  const login = withCaptcha(CaptchaAuthRoute.Login, loginSchema);
+
   server.post(
     '/login',
     {
-      schema: loginSchema,
-      config: {
-        rateLimit: {
-          secure: true,
-          max: 12
-        }
-      }
+      schema: login.schema,
+      // Counted with the other password sign-ins, before the bot checks
+      onRequest: [
+        (request: FastifyRequest) => checkLoginRateLimit(request),
+        ...login.hooks
+      ],
+      config: login.captcha
     },
     async (request, reply) => {
       const { username, password } = request.body;
@@ -93,12 +160,14 @@ export function authRoutes(server: Server): void {
     }
   );
 
+  const refresh = withCaptcha(CaptchaAuthRoute.Refresh, refreshSchema);
   server.post(
     '/refresh',
     {
-      schema: refreshSchema,
-      onRequest: authenticate([AuthType.Jwt]),
+      schema: refresh.schema,
+      onRequest: [authenticate([AuthType.Jwt]), ...refresh.hooks],
       config: {
+        ...refresh.captcha,
         rateLimit: {
           max: 12
         }
@@ -117,12 +186,17 @@ export function authRoutes(server: Server): void {
     }
   );
 
+  const changePassword = withCaptcha(
+    CaptchaAuthRoute.ChangePassword,
+    changePasswordSchema
+  );
   server.post(
     '/change-password',
     {
-      schema: changePasswordSchema,
-      onRequest: authenticate(),
+      schema: changePassword.schema,
+      onRequest: [authenticate(), ...changePassword.hooks],
       config: {
+        ...changePassword.captcha,
         rateLimit: {
           secure: true,
           max: 12

@@ -49,7 +49,7 @@ export const mcpRateLimitConfig = defineConfig('mcp.rateLimit', {
 
 export const mcpOAuth2Config = defineConfig('mcp.oauth2', {
   /** Make the application the OAuth 2.1 authorization server of the MCP clients, signing the users in with the
-   * OAuth2 providers of `security.oauth2`. Default: `false`. */
+   * OAuth2 providers of `security.oauth2`, and with their password with `passwordEnabled`. Default: `false`. */
   ENABLED: Type.Boolean({ default: false }),
   /** Path of the authorization, token and registration endpoints. Default: `'/oauth'`. */
   ROUTE_PREFIX: Type.String({ default: '/oauth' }),
@@ -57,5 +57,9 @@ export const mcpOAuth2Config = defineConfig('mcp.oauth2', {
   PROVIDERS: Type.Array(Type.String(), { default: [] }),
   /** Ask for the password of an account to link and the 2FA code on the sign-in forms, otherwise refuse these users.
    * Default: `true`. */
-  FORMS_ENABLED: Type.Boolean({ default: true })
+  FORMS_ENABLED: Type.Boolean({ default: true }),
+  /** Offer a form signing the users in with their email and password on the sign-in page, counted with the logins of
+   * the API (`checkLoginRateLimit` of web). Needs `formsEnabled`, and is left out while the login requires a bot check
+   * (`authRoutes` of `security.recaptcha` or `security.turnstile`). Default: `false`. */
+  PASSWORD_ENABLED: Type.Boolean({ default: false })
 });

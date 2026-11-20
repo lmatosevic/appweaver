@@ -29,6 +29,7 @@ scheduled for publishing, static pages for the site menu, and comments open to g
 | Translated default value stored by a service hook                                     | [`resources/category/service.ts`](src/resources/category/service.ts)                     |
 | Fastify plugin logging every request                                                  | [`plugins/request-logger.ts`](src/plugins/request-logger.ts)                             |
 | MCP server for AI agents, with the resource tools and a custom tool                   | [`features/publisher/publish-tool.ts`](src/features/publisher/publish-tool.ts)           |
+| MCP sign-in pages with a password form, styled and translated to German               | [`templates/mcp/`](templates/mcp), [`locales/de.json`](locales/de.json)                  |
 | Basic, API key, Google OAuth2, and reCAPTCHA security, all in a single config file    | [`appweaver.json`](appweaver.json)                                                       |
 
 ## Getting started
@@ -129,6 +130,11 @@ the `destructiveHint` annotation, so the client asks before running them.
 
 3. Ask away: _"List the published posts in the Travel category"_, _"Draft a post about mountain huts tagged hiking"_,
    _"Approve the pending comments that are not spam"_.
+
+Without an API key, the agent signs its user in by itself (`mcp.oauth2` of [`appweaver.json`](appweaver.json)): add
+the server with `claude mcp add --transport http cms-api http://localhost:5001/mcp` alone, and the client opens the
+sign-in page, offering Google, Facebook, and the email and password of an account (`passwordEnabled`). The password
+sign-ins count against the same 12 per minute and IP address as `POST /auth/login`.
 
 ## Tests
 

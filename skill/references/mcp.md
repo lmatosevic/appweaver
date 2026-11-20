@@ -10,11 +10,11 @@ npm install @appweaver/mcp   # or: weaver module add mcp
 
 ## Endpoint and authentication
 
-`POST /mcp` (`mcp.routePrefix`, i.e. `/api/mcp` to put it under the API) is the Streamable HTTP transport without sessions: a JSON-RPC message (`initialize`,
-`ping`, `tools/list`, `tools/call`) answered with its JSON response, `202` for a notification, `405` for `GET` and
-`DELETE`. A request authenticates with the strategies of `mcp.auth` (JWT and API keys by default); without
-credentials it is refused with `401` unless `mcp.anonymousEnabled`, which shows only the `public` tools. A browser
-`Origin` not in `mcp.allowedOrigins` is refused with `MCP_ORIGIN_DENIED`.
+`POST /mcp` (`mcp.routePrefix`, i.e. `/api/mcp` to put it under the API) is the Streamable HTTP transport without
+sessions: a JSON-RPC message (`initialize`, `ping`, `tools/list`, `tools/call`) answered with its JSON response, `202`
+for a notification, `405` for `GET` and `DELETE`. A request authenticates with the strategies of `mcp.auth` (JWT and API
+keys by default); without credentials it is refused with `401` unless `mcp.anonymousEnabled`, which shows only the
+`public` tools. A browser `Origin` not in `mcp.allowedOrigins` is refused with `MCP_ORIGIN_DENIED`.
 
 ```sh
 claude mcp add --transport http my-api http://localhost:3000/mcp --header "X-Api-Key: <key>"
@@ -34,16 +34,31 @@ authorization spec), the application acting as the authorization server:
    `client_id` holds them, signed with the JWT secret or private key.
 3. `GET /oauth/authorize` (code flow, PKCE `S256`, `resource` checked) shows a page naming the client and its
    redirect host, with a link per OAuth2 provider of `security.oauth2` (`mcp.oauth2.providers` picks them), signing
-   in through `/auth/login/<provider>` like the API. Back at `/oauth/callback`, the user confirms the password of an
-   existing account the provider account links to, then passes 2FA when required, on the forms of
+   in through `/auth/login/<provider>` like the API, and with `mcp.oauth2.passwordEnabled` a form signing in with the
+   email and password (see [below](#password-sign-in)). Back at `/oauth/callback`, the user confirms the password of
+   an existing account the provider account links to, then passes 2FA when required, on the forms of
    `POST /oauth/sign-in`.
 4. `POST /oauth/token` exchanges the code, then the refresh token, for the JWTs of the API login.
 
 ```json
 {
-  "app": { "hostname": "https://api.example.com" },
-  "mcp": { "oauth2": { "enabled": true } },
-  "security": { "oauth2": { "google": { "enabled": true, "clientId": "...", "clientSecret": "..." } } }
+  "app": {
+    "hostname": "https://api.example.com"
+  },
+  "mcp": {
+    "oauth2": {
+      "enabled": true
+    }
+  },
+  "security": {
+    "oauth2": {
+      "google": {
+        "enabled": true,
+        "clientId": "...",
+        "clientSecret": "..."
+      }
+    }
+  }
 }
 ```
 
@@ -51,10 +66,26 @@ authorization spec), the application acting as the authorization server:
 - The tokens are valid for the whole API, like the login's, and a logout revokes them.
 - With `mcp.anonymousEnabled` there is no `401`, so no client starts the sign-in.
 
+### Password sign-in
+
+`mcp.oauth2.passwordEnabled` adds an email and password form to the sign-in page, below the provider links or alone
+without a provider, for the users without a provider account. It posts to `POST /oauth/sign-in`, signs in with
+`AuthService.login` like `POST /auth/login`, then asks for the 2FA code when the user must pass it.
+
+- It is counted with the logins of the API by `checkLoginRateLimit` of `@appweaver/web`: 12 sign-ins of an IP address
+  per minute across both, not 12 more ([security.md](./security.md#auth-routes)). A wrong password or the limit shows
+  the page again with the error (`401`, `429` with `Retry-After`, `503` while the store fails) and a new state.
+- It needs `formsEnabled`, and is left out with a warning while the login requires a bot check (`login` in the
+  `authRoutes` of `security.recaptcha` or `security.turnstile`), since the page cannot run the widget.
+- The page shows the client and the host of its redirect URI: since any client may register, a link of an
+  impersonating client is told apart only by that host, as with the providers.
+
 ### Sign-in pages
 
 The pages are `mcp/sign-in`, `mcp/password`, `mcp/two-factor` and `mcp/error`, never cached nor framed. A wrong
-password sends the user back to the client to start again (`access_denied`), like `/auth/exchange-token`. The 2FA form
+password of an account to link sends the user back to the client to start again (`access_denied`), like
+`/auth/exchange-token`. `POST /oauth/sign-in` has a secure rate limit, failing with `503` while its store fails. The 2FA
+form
 verifies a code of the default method of the user, sends a new code, or switches to another method of the user or to
 a recovery code; a wrong code is retried until `maxAttempts`, then the client gets `access_denied`.
 
@@ -64,14 +95,15 @@ framework and overridden by `locales/<locale>.json`, the provider names included
 provider without one shown by its name). A project with the `mcp` and `templates` modules starts with the
 four templates and their `layouts/page.html` layout, in the card style of the email layout.
 
-| Page         | Data                                                                                |
-|--------------|-------------------------------------------------------------------------------------|
-| `sign-in`    | `client`, `host`, `providers` (`{ name, label, url }`)                              |
-| `password`   | `action`, `state` (posted back as `state`), `error`                                 |
-| `two-factor` | `action`, `state`, `error`, `hint`, `methods` (`{ value, label, selected }`)        |
-| `error`      | `message`                                                                           |
+| Page         | Data                                                                                                        |
+|--------------|-------------------------------------------------------------------------------------------------------------|
+| `sign-in`    | `client`, `host`, `providers` (`{ name, label, url }`), `error`, and `action`, `state` of the password form |
+| `password`   | `action`, `state` (posted back as `state`), `error`                                                         |
+| `two-factor` | `action`, `state`, `error`, `hint`, `methods` (`{ value, label, selected }`)                                |
+| `error`      | `message`                                                                                                   |
 
-The forms post `state`, with `password`, or `code`, `method` and `action` (`verify` or `resend`).
+The forms post `state`, with `username` and `password` (the password form), `password`, or `code`, `method` and
+`action` (`verify` or `resend`).
 
 `mcp.oauth2.formsEnabled: false` removes the forms (`POST /oauth/sign-in` answers `404`) and refuses the users who
 must confirm a password or pass 2FA with `access_denied`. The consent page of `/oauth/authorize` always shows.
@@ -101,14 +133,14 @@ agents of a user can do what the user can do through the API. The `mcp` config o
 may be excluded, the tool still runs. The resource events of `@appweaver/realtime` default the same way to the access
 of the `find` route.
 
-| Tool             | Arguments                                                     | Kind        |
-|------------------|---------------------------------------------------------------|-------------|
-| `post_find`      | `{ id }`                                                      | read-only   |
-| `post_query`     | `{ filter?, sort?, page?, size?, cursor? }`                   | read-only   |
-| `post_aggregate` | `{ select, filter?, dateField?, from?, to?, step? }`          | read-only   |
-| `post_create`    | the create body of the model                                  | write       |
-| `post_update`    | `{ id, data }`                                                | destructive |
-| `post_delete`    | `{ id }`                                                      | destructive |
+| Tool             | Arguments                                            | Kind        |
+|------------------|------------------------------------------------------|-------------|
+| `post_find`      | `{ id }`                                             | read-only   |
+| `post_query`     | `{ filter?, sort?, page?, size?, cursor? }`          | read-only   |
+| `post_aggregate` | `{ select, filter?, dateField?, from?, to?, step? }` | read-only   |
+| `post_create`    | the create body of the model                         | write       |
+| `post_update`    | `{ id, data }`                                       | destructive |
+| `post_delete`    | `{ id }`                                             | destructive |
 
 - The tool names are the snake case of the model and the action (`blog_post_query`).
 - The query filter covers the visible scalar fields: a value, or the operators `_eq`, `_ne`, `_gt`, `_gte`, `_lt`,

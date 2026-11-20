@@ -159,12 +159,14 @@
         "secret": "8LcDc8AUBBBBNKcefrwaDdfDSFdsfaewf",
         "headerName": "x-recaptcha-token",
         "minScore": 0.4,
+        "authRoutes": [],
         "verifyUrl": "https://www.google.com/recaptcha/api/siteverify"
       },
       "turnstile": {
         "enabled": false,
         "secret": "0x4AAAAAAABBBBBCCCCCDDDDDEEEEEFFFFF",
         "headerName": "x-turnstile-token",
+        "authRoutes": [],
         "verifyUrl": "https://challenges.cloudflare.com/turnstile/v0/siteverify"
       },
       "basic": {
@@ -427,7 +429,8 @@
         "enabled": false,
         "routePrefix": "/oauth",
         "providers": [],
-        "formsEnabled": true
+        "formsEnabled": true,
+        "passwordEnabled": false
       }
     },
     "ai": {

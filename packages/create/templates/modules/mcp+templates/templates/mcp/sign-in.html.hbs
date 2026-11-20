@@ -3,4 +3,15 @@
 {{#each providers}}
 <a class="button provider-{{name}}" href="{{url}}">{{t "mcp.signIn.continue" provider=label}}</a>
 {{/each}}
+{{#if action}}
+{{#if providers.length}}<p class="or">{{t "mcp.signIn.or"}}</p>{{/if}}
+<form method="post" action="{{action}}">
+  <input type="hidden" name="state" value="{{state}}" />
+  <label for="username">{{t "mcp.signIn.username"}}</label>
+  <input id="username" type="email" name="username" autocomplete="username" required />
+  <label for="password">{{t "mcp.signIn.password"}}</label>
+  <input id="password" type="password" name="password" autocomplete="current-password" required />
+  <button>{{t "mcp.signIn.submit"}}</button>
+</form>
+{{/if}}
 {{/layouts/page.html}}

@@ -258,21 +258,21 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 | A provider name  | The provider of that name of any enabled module, i.e. `memory` or `json`. A name no enabled module provides fails the startup.  |
 | A module path    | A value with a `.`, `/` or `@` loads the class the file exports, i.e. `@/infra/my-storage` for a driver inside the application. |
 
-| Contract         | Key                       | Providers            | `auto` selects                                                                          |
-|------------------|---------------------------|----------------------|-----------------------------------------------------------------------------------------|
-| `Memory`         | `MEMORY_PROVIDER`         | `memory`, `redis`    | `redis` with `@appweaver/redis`, otherwise `memory`                                     |
-| `Cache`          | `CACHE_PROVIDER`          | `memory`             | `memory`, stored in the selected `Memory` (so in Redis with `redis`)                    |
-| `Events`         | `EVENTS_PROVIDER`         | `node`               | `node`                                                                                  |
-| `PubSub`         | `PUBSUB_PROVIDER`         | `memory`, `redis`    | `redis` with `@appweaver/redis`, otherwise `memory`                                     |
-| `Storage`        | `STORAGE_PROVIDER`        | `local`              | `local`, unless a module of another driver is enabled                                   |
-| `SecurityStore`  | `SECURITY_STORE_PROVIDER` | `database`, `memory` | `database` with the `@appweaver/data` module, otherwise none; `memory` only by its name |
-| `Queue`          | `QUEUE_PROVIDER`          | `memory`, `bullmq`   | `bullmq` with `@appweaver/bullmq` (it requires `@appweaver/redis`), otherwise `memory`  |
-| `Mailer`         | `MAILER_PROVIDER`         | `smtp`, `json`       | `smtp` with `@appweaver/nodemailer`, otherwise none; `json` only by its name            |
-| `SmsSender`      | `SMS_PROVIDER`            | `twilio`, `json`     | `twilio` with `@appweaver/twilio`, otherwise none; `json` only by its name              |
-| `TemplateEngine` | `TEMPLATE_PROVIDER`       | `handlebars`         | `handlebars` with `@appweaver/handlebars`, otherwise none                               |
-| `Scheduler`      | `SCHEDULER_PROVIDER`      | `cron`               | `cron` with `@appweaver/cron`, otherwise none                                           |
-| `Database`       | `DATABASE_PROVIDER`       | `prisma`             | `prisma` with `@appweaver/data`                                                         |
-| `ImageProcessor` | `IMAGE_PROVIDER`          | `sharp`              | `sharp` with `@appweaver/sharp`, otherwise none (images stored as uploaded)             |
+| Contract         | Key                       | Providers                         | `auto` selects                                                                                                                |
+|------------------|---------------------------|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `Memory`         | `MEMORY_PROVIDER`         | `memory`, `redis`                 | `redis` with `@appweaver/redis`, otherwise `memory`                                                                           |
+| `Cache`          | `CACHE_PROVIDER`          | `memory`                          | `memory`, stored in the selected `Memory` (so in Redis with `redis`)                                                          |
+| `Events`         | `EVENTS_PROVIDER`         | `node`                            | `node`                                                                                                                        |
+| `PubSub`         | `PUBSUB_PROVIDER`         | `memory`, `redis`                 | `redis` with `@appweaver/redis`, otherwise `memory`                                                                           |
+| `Storage`        | `STORAGE_PROVIDER`        | `local`                           | `local`, unless a module of another driver is enabled                                                                         |
+| `SecurityStore`  | `SECURITY_STORE_PROVIDER` | `database`, `memory`              | `database` with the `@appweaver/data` module, otherwise none; `memory` only by its name                                       |
+| `Queue`          | `QUEUE_PROVIDER`          | `memory`, `bullmq`                | `bullmq` with `@appweaver/bullmq` (it requires `@appweaver/redis`), otherwise `memory`                                        |
+| `Mailer`         | `MAILER_PROVIDER`         | `smtp`, `json`                    | `smtp` with `@appweaver/nodemailer`, otherwise none; `json` only by its name                                                  |
+| `SmsSender`      | `SMS_PROVIDER`            | `twilio`, `json`                  | `twilio` with `@appweaver/twilio`, otherwise none; `json` only by its name                                                    |
+| `TemplateEngine` | `TEMPLATE_PROVIDER`       | `handlebars`                      | `handlebars` with `@appweaver/handlebars`, otherwise none                                                                     |
+| `Scheduler`      | `SCHEDULER_PROVIDER`      | `cron`                            | `cron` with `@appweaver/cron`, otherwise none                                                                                 |
+| `Database`       | `DATABASE_PROVIDER`       | `prisma`                          | `prisma` with `@appweaver/data`                                                                                               |
+| `ImageProcessor` | `IMAGE_PROVIDER`          | `sharp`                           | `sharp` with `@appweaver/sharp`, otherwise none (images stored as uploaded)                                                   |
 | `TimeSeries`     | `TIMESERIES_PROVIDER`     | `database`, `timescale`, `memory` | `database` with `@appweaver/data`, unless a module of another driver is enabled; `timescale` and `memory` only by their names |
 
 - Each driver is the module of its package (see [modules](./modules.md)), enabled by installing the package, so
@@ -491,56 +491,59 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 
 #### Account management
 
-| Property                                            | Type     | Default                    | Description                                                                        |
-|-----------------------------------------------------|----------|----------------------------|------------------------------------------------------------------------------------|
-| `SECURITY_ACCOUNT_ROUTE_PREFIX`                     | string   | `'/auth/account'`          | Base path for account management routes.                                           |
-| `SECURITY_ACCOUNT_VERIFY_EMAIL_ENABLED`             | boolean  | `true`                     | Enable email verification flow, its routes registered only with a mailer.          |
-| `SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL`             | integer  | `7200000`                  | Email verification token TTL (ms, default 2 hours).                                |
-| `SECURITY_ACCOUNT_RESET_PASSWORD_ENABLED`           | boolean  | `true`                     | Enable password reset flow, its routes registered only with a mailer.              |
-| `SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL`           | integer  | `1800000`                  | Password reset token TTL (ms, default 30 min).                                     |
+| Property                                            | Type     | Default                    | Description                                                                              |
+|-----------------------------------------------------|----------|----------------------------|------------------------------------------------------------------------------------------|
+| `SECURITY_ACCOUNT_ROUTE_PREFIX`                     | string   | `'/auth/account'`          | Base path for account management routes.                                                 |
+| `SECURITY_ACCOUNT_VERIFY_EMAIL_ENABLED`             | boolean  | `true`                     | Enable email verification flow, its routes registered only with a mailer.                |
+| `SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL`             | integer  | `7200000`                  | Email verification token TTL (ms, default 2 hours).                                      |
+| `SECURITY_ACCOUNT_RESET_PASSWORD_ENABLED`           | boolean  | `true`                     | Enable password reset flow, its routes registered only with a mailer.                    |
+| `SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL`           | integer  | `1800000`                  | Password reset token TTL (ms, default 30 min).                                           |
 | `SECURITY_ACCOUNT_VERIFY_PHONE_ENABLED`             | boolean  | `true`                     | Enable phone verification by an SMS code, its routes registered only with an SMS sender. |
-| `SECURITY_ACCOUNT_VERIFY_PHONE_OTT_TTL`             | integer  | `600000`                   | Phone verification code TTL (ms, default 10 min).                                  |
-| `SECURITY_ACCOUNT_2FA_ENABLED`                      | boolean  | `false`                    | Enable two-factor authentication, its routes and its models.                       |
-| `SECURITY_ACCOUNT_2FA_FORCED`                       | boolean  | `false`                    | Force 2FA for all users, a user without a method verifying with the default one.   |
-| `SECURITY_ACCOUNT_2FA_OTT_TTL`                      | integer  | `300000`                   | 2FA challenge TTL (ms, default 5 min).                                             |
-| `SECURITY_ACCOUNT_2FA_METHODS`                      | string[] | `['Email', 'Sms', 'Totp']` | The methods users may enable, each available only with its service (see below).    |
-| `SECURITY_ACCOUNT_2FA_DEFAULT_METHOD`               | string   | `'Email'`                  | The method of a user without one when 2FA is forced.                               |
-| `SECURITY_ACCOUNT_2FA_CODE_LENGTH`                  | integer  | `6`                        | Digits of the codes sent by email and SMS (4-10).                                  |
-| `SECURITY_ACCOUNT_2FA_MAX_ATTEMPTS`                 | integer  | `5`                        | Wrong codes of a challenge, revoked on the last one.                               |
-| `SECURITY_ACCOUNT_2FA_KEEP_DATABASE_TABLE`          | boolean  | `false`                    | Keep the `TwoFactorMethod` table while 2FA is disabled.                            |
-| `SECURITY_ACCOUNT_2FA_TOTP_ISSUER`                  | string?  | `app.name`                 | Issuer the authenticator apps show the account under.                              |
-| `SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`          | string?  | -                          | Secret encrypting the TOTP secrets in the database, required by the `Totp` method. |
-| `SECURITY_ACCOUNT_2FA_TOTP_DIGITS`                  | integer  | `6`                        | Digits of a TOTP code (6-8), `6` for every authenticator app.                      |
-| `SECURITY_ACCOUNT_2FA_TOTP_PERIOD`                  | integer  | `30`                       | Seconds of a TOTP time step, `30` for every authenticator app.                     |
-| `SECURITY_ACCOUNT_2FA_TOTP_WINDOW`                  | integer  | `1`                        | Time steps around the current one whose codes are accepted.                        |
-| `SECURITY_ACCOUNT_2FA_TOTP_SETUP_TTL`               | integer  | `600000`                   | Time to confirm a TOTP setup with its first code (ms, default 10 min).             |
-| `SECURITY_ACCOUNT_2FA_RECOVERY_CODES_ENABLED`       | boolean  | `true`                     | Enable the recovery codes, used once each instead of a 2FA code.                   |
-| `SECURITY_ACCOUNT_2FA_RECOVERY_CODES_COUNT`         | integer  | `10`                       | Number of recovery codes generated at once (1-100).                                |
-| `SECURITY_ACCOUNT_2FA_RECOVERY_CODES_LENGTH`        | integer  | `16`                       | Characters of a recovery code (8-128), shown in groups of four.                    |
-| `SECURITY_ACCOUNT_2FA_RECOVERY_CODES_NOTIFY_ON_USE` | boolean  | `true`                     | Email the user when one of their recovery codes is used.                           |
+| `SECURITY_ACCOUNT_VERIFY_PHONE_OTT_TTL`             | integer  | `600000`                   | Phone verification code TTL (ms, default 10 min).                                        |
+| `SECURITY_ACCOUNT_2FA_ENABLED`                      | boolean  | `false`                    | Enable two-factor authentication, its routes and its models.                             |
+| `SECURITY_ACCOUNT_2FA_FORCED`                       | boolean  | `false`                    | Force 2FA for all users, a user without a method verifying with the default one.         |
+| `SECURITY_ACCOUNT_2FA_OTT_TTL`                      | integer  | `300000`                   | 2FA challenge TTL (ms, default 5 min).                                                   |
+| `SECURITY_ACCOUNT_2FA_METHODS`                      | string[] | `['Email', 'Sms', 'Totp']` | The methods users may enable, each available only with its service (see below).          |
+| `SECURITY_ACCOUNT_2FA_DEFAULT_METHOD`               | string   | `'Email'`                  | The method of a user without one when 2FA is forced.                                     |
+| `SECURITY_ACCOUNT_2FA_CODE_LENGTH`                  | integer  | `6`                        | Digits of the codes sent by email and SMS (4-10).                                        |
+| `SECURITY_ACCOUNT_2FA_MAX_ATTEMPTS`                 | integer  | `5`                        | Wrong codes of a challenge, revoked on the last one.                                     |
+| `SECURITY_ACCOUNT_2FA_KEEP_DATABASE_TABLE`          | boolean  | `false`                    | Keep the `TwoFactorMethod` table while 2FA is disabled.                                  |
+| `SECURITY_ACCOUNT_2FA_TOTP_ISSUER`                  | string?  | `app.name`                 | Issuer the authenticator apps show the account under.                                    |
+| `SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`          | string?  | -                          | Secret encrypting the TOTP secrets in the database, required by the `Totp` method.       |
+| `SECURITY_ACCOUNT_2FA_TOTP_DIGITS`                  | integer  | `6`                        | Digits of a TOTP code (6-8), `6` for every authenticator app.                            |
+| `SECURITY_ACCOUNT_2FA_TOTP_PERIOD`                  | integer  | `30`                       | Seconds of a TOTP time step, `30` for every authenticator app.                           |
+| `SECURITY_ACCOUNT_2FA_TOTP_WINDOW`                  | integer  | `1`                        | Time steps around the current one whose codes are accepted.                              |
+| `SECURITY_ACCOUNT_2FA_TOTP_SETUP_TTL`               | integer  | `600000`                   | Time to confirm a TOTP setup with its first code (ms, default 10 min).                   |
+| `SECURITY_ACCOUNT_2FA_RECOVERY_CODES_ENABLED`       | boolean  | `true`                     | Enable the recovery codes, used once each instead of a 2FA code.                         |
+| `SECURITY_ACCOUNT_2FA_RECOVERY_CODES_COUNT`         | integer  | `10`                       | Number of recovery codes generated at once (1-100).                                      |
+| `SECURITY_ACCOUNT_2FA_RECOVERY_CODES_LENGTH`        | integer  | `16`                       | Characters of a recovery code (8-128), shown in groups of four.                          |
+| `SECURITY_ACCOUNT_2FA_RECOVERY_CODES_NOTIFY_ON_USE` | boolean  | `true`                     | Email the user when one of their recovery codes is used.                                 |
 
 A method is available only with its service: `Email` with a mailer, `Sms` with an SMS sender (`@appweaver/twilio`, or
 `json`), and `Totp` with `SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`. Changing the encryption key makes the enabled TOTP
-methods unusable, so keep it with the other secrets of the deployment. See [security](./security.md#two-factor-authentication-2fa).
+methods unusable, so keep it with the other secrets of the deployment. 
+See [security](./security.md#two-factor-authentication-2fa).
 
 #### reCAPTCHA
 
-| Property                         | Type    | Default                                             | Description                                  |
-|----------------------------------|---------|-----------------------------------------------------|----------------------------------------------|
-| `SECURITY_RECAPTCHA_ENABLED`     | boolean | `false`                                             | Enable Google reCAPTCHA verification.        |
-| `SECURITY_RECAPTCHA_SECRET`      | string? | -                                                   | Google reCAPTCHA secret key.                 |
-| `SECURITY_RECAPTCHA_HEADER_NAME` | string  | `'x-recaptcha-token'`                               | Request header name for the reCAPTCHA token. |
-| `SECURITY_RECAPTCHA_MIN_SCORE`   | number  | `0.4`                                               | Minimum reCAPTCHA v3 score threshold (0-1).  |
-| `SECURITY_RECAPTCHA_VERIFY_URL`  | string  | `'https://www.google.com/recaptcha/api/siteverify'` | Google reCAPTCHA verification endpoint URL.  |
+| Property                         | Type     | Default                                             | Description                                                              |
+|----------------------------------|----------|-----------------------------------------------------|--------------------------------------------------------------------------|
+| `SECURITY_RECAPTCHA_ENABLED`     | boolean  | `false`                                             | Enable Google reCAPTCHA verification.                                    |
+| `SECURITY_RECAPTCHA_SECRET`      | string?  | -                                                   | Google reCAPTCHA secret key.                                             |
+| `SECURITY_RECAPTCHA_HEADER_NAME` | string   | `'x-recaptcha-token'`                               | Request header name for the reCAPTCHA token.                             |
+| `SECURITY_RECAPTCHA_MIN_SCORE`   | number   | `0.4`                                               | Minimum reCAPTCHA v3 score threshold (0-1).                              |
+| `SECURITY_RECAPTCHA_AUTH_ROUTES` | string[] | `[]`                                                | The auth routes requiring a token: `login`, `refresh`, `changePassword`. |
+| `SECURITY_RECAPTCHA_VERIFY_URL`  | string   | `'https://www.google.com/recaptcha/api/siteverify'` | Google reCAPTCHA verification endpoint URL.                              |
 
 #### Cloudflare Turnstile
 
-| Property                         | Type    | Default                                                       | Description                                  |
-|----------------------------------|---------|---------------------------------------------------------------|----------------------------------------------|
-| `SECURITY_TURNSTILE_ENABLED`     | boolean | `false`                                                       | Enable Cloudflare Turnstile verification.    |
-| `SECURITY_TURNSTILE_SECRET`      | string? | -                                                             | Cloudflare Turnstile secret key.             |
-| `SECURITY_TURNSTILE_HEADER_NAME` | string  | `'x-turnstile-token'`                                         | Request header name for the Turnstile token. |
-| `SECURITY_TURNSTILE_VERIFY_URL`  | string  | `'https://challenges.cloudflare.com/turnstile/v0/siteverify'` | Turnstile verification endpoint URL.         |
+| Property                         | Type     | Default                                                       | Description                                                              |
+|----------------------------------|----------|---------------------------------------------------------------|--------------------------------------------------------------------------|
+| `SECURITY_TURNSTILE_ENABLED`     | boolean  | `false`                                                       | Enable Cloudflare Turnstile verification.                                |
+| `SECURITY_TURNSTILE_SECRET`      | string?  | -                                                             | Cloudflare Turnstile secret key.                                         |
+| `SECURITY_TURNSTILE_HEADER_NAME` | string   | `'x-turnstile-token'`                                         | Request header name for the Turnstile token.                             |
+| `SECURITY_TURNSTILE_AUTH_ROUTES` | string[] | `[]`                                                          | The auth routes requiring a token: `login`, `refresh`, `changePassword`. |
+| `SECURITY_TURNSTILE_VERIFY_URL`  | string   | `'https://challenges.cloudflare.com/turnstile/v0/siteverify'` | Turnstile verification endpoint URL.                                     |
 
 #### HTTP Basic authentication
 
@@ -768,18 +771,18 @@ connections have neither the timeout nor the breaker, which would fail their blo
 
 The store of the `series` fields of the models, see [timeseries.md](./timeseries.md).
 
-| Property                             | Type    | Default        | Description                                                                                                         |
-|--------------------------------------|---------|----------------|---------------------------------------------------------------------------------------------------------------------|
+| Property                             | Type    | Default        | Description                                                                                                                                                      |
+|--------------------------------------|---------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `TIMESERIES_INGEST`                  | enum    | `'direct'`     | How the points are written: `direct`, `queue` (by a queue worker), or `auto` (queued on a durable queue only). A model overrides it with `seriesOptions.ingest`. |
-| `TIMESERIES_MAX_POINTS_PER_WRITE`    | integer | `5000`         | Maximum number of points a write accepts.                                                                           |
-| `TIMESERIES_MAX_POINTS_PER_QUERY`    | integer | `10000`        | Maximum number of points a query returns, and its default limit.                                                    |
-| `TIMESERIES_MAX_RESOURCES_PER_QUERY` | integer | `100`          | Maximum number of resources a query or a write of many resources covers.                                            |
-| `TIMESERIES_QUEUE_NAME`              | string  | `'timeseries'` | Name of the queue the queued points are sent to.                                                                    |
-| `TIMESERIES_QUEUE_BATCH_SIZE`        | integer | `1000`         | Maximum number of points of a queue job, a larger write is split into several jobs.                                 |
-| `TIMESERIES_QUEUE_CONCURRENCY`       | integer | `1`            | Number of jobs the worker writes at once.                                                                           |
-| `TIMESERIES_QUEUE_WORKER`            | boolean | `true`         | Run the worker writing the queued points in this instance, `false` for an instance only queueing them.              |
-| `TIMESERIES_ACCESS_CACHE_TTL`        | integer | `0`            | Milliseconds the routes keep an allowed access check of a resource, `0` to check every request.                     |
-| `TIMESERIES_PROVIDER`                | string  | `'auto'`       | `auto` (the driver of an enabled module, otherwise `database` with `@appweaver/data`), `database`, `timescale`, `memory`, `none`, or a module path. |
+| `TIMESERIES_MAX_POINTS_PER_WRITE`    | integer | `5000`         | Maximum number of points a write accepts.                                                                                                                        |
+| `TIMESERIES_MAX_POINTS_PER_QUERY`    | integer | `10000`        | Maximum number of points a query returns, and its default limit.                                                                                                 |
+| `TIMESERIES_MAX_RESOURCES_PER_QUERY` | integer | `100`          | Maximum number of resources a query or a write of many resources covers.                                                                                         |
+| `TIMESERIES_QUEUE_NAME`              | string  | `'timeseries'` | Name of the queue the queued points are sent to.                                                                                                                 |
+| `TIMESERIES_QUEUE_BATCH_SIZE`        | integer | `1000`         | Maximum number of points of a queue job, a larger write is split into several jobs.                                                                              |
+| `TIMESERIES_QUEUE_CONCURRENCY`       | integer | `1`            | Number of jobs the worker writes at once.                                                                                                                        |
+| `TIMESERIES_QUEUE_WORKER`            | boolean | `true`         | Run the worker writing the queued points in this instance, `false` for an instance only queueing them.                                                           |
+| `TIMESERIES_ACCESS_CACHE_TTL`        | integer | `0`            | Milliseconds the routes keep an allowed access check of a resource, `0` to check every request.                                                                  |
+| `TIMESERIES_PROVIDER`                | string  | `'auto'`       | `auto` (the driver of an enabled module, otherwise `database` with `@appweaver/data`), `database`, `timescale`, `memory`, `none`, or a module path.              |
 
 #### Database (TIMESERIES_DATABASE\_\*)
 
@@ -797,24 +800,24 @@ The `database` provider (`config.timeseries.database`), of `@appweaver/data`. Th
 The `timescale` provider (`config.timeseries.timescale`), of `@appweaver/data`. The durations are overridden by the
 `seriesOptions` of a model.
 
-| Property                              | Type    | Default  | Description                                                                         |
-|---------------------------------------|---------|----------|-------------------------------------------------------------------------------------|
-| `TIMESERIES_TIMESCALE_CHUNK_INTERVAL` | string  | `'7d'`   | Time range of a chunk of the hypertables, a duration.                               |
-| `TIMESERIES_TIMESCALE_COMPRESS_AFTER` | string  | `''`     | Age from which the chunks are compressed, a duration, empty to compress none.       |
-| `TIMESERIES_TIMESCALE_RETENTION`      | string  | `''`     | Age from which the chunks are dropped, a duration, empty to keep every point.       |
-| `TIMESERIES_TIMESCALE_SETUP_TIMEOUT`  | integer | `60000`  | Maximum milliseconds the hypertables and their policies take to set up at startup.  |
+| Property                              | Type    | Default | Description                                                                        |
+|---------------------------------------|---------|---------|------------------------------------------------------------------------------------|
+| `TIMESERIES_TIMESCALE_CHUNK_INTERVAL` | string  | `'7d'`  | Time range of a chunk of the hypertables, a duration.                              |
+| `TIMESERIES_TIMESCALE_COMPRESS_AFTER` | string  | `''`    | Age from which the chunks are compressed, a duration, empty to compress none.      |
+| `TIMESERIES_TIMESCALE_RETENTION`      | string  | `''`    | Age from which the chunks are dropped, a duration, empty to keep every point.      |
+| `TIMESERIES_TIMESCALE_SETUP_TIMEOUT`  | integer | `60000` | Maximum milliseconds the hypertables and their policies take to set up at startup. |
 
 ### Spatial (SPATIAL\_\*)
 
 How the `geo` fields of the models are queried, of `@appweaver/data`, see [spatial.md](./spatial.md). Changing the
 provider changes the generated schema.
 
-| Property                 | Type    | Default  | Description                                                                                                  |
-|--------------------------|---------|----------|--------------------------------------------------------------------------------------------------------------|
+| Property                 | Type    | Default  | Description                                                                                                                                                                       |
+|--------------------------|---------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `SPATIAL_PROVIDER`       | enum    | `'auto'` | How `_near`, `_within` and `_intersects` are matched: `auto` (`postgis` on PostgreSQL, `database` otherwise), `postgis` (PostgreSQL with PostGIS) or `database` (every database). |
-| `SPATIAL_MAX_CANDIDATES` | integer | `10000`  | Maximum number of records a `_near`, `_within` or `_intersects` filter matches, at most `2000` on SQL Server. |
-| `SPATIAL_MAX_VERTICES`   | integer | `10000`  | Maximum number of positions of a geometry, written or given to a spatial filter.                             |
-| `SPATIAL_SETUP_TIMEOUT`  | integer | `60000`  | Maximum milliseconds the `postgis` provider takes to create its triggers and write the geometries missing at startup. |
+| `SPATIAL_MAX_CANDIDATES` | integer | `10000`  | Maximum number of records a `_near`, `_within` or `_intersects` filter matches, at most `2000` on SQL Server.                                                                     |
+| `SPATIAL_MAX_VERTICES`   | integer | `10000`  | Maximum number of positions of a geometry, written or given to a spatial filter.                                                                                                  |
+| `SPATIAL_SETUP_TIMEOUT`  | integer | `60000`  | Maximum milliseconds the `postgis` provider takes to create its triggers and write the geometries missing at startup.                                                             |
 
 ### Job queue (QUEUE\_\*)
 
@@ -847,68 +850,69 @@ provider changes the generated schema.
 
 The publish/subscribe of the messages every instance receives, i.e. the events of the realtime connections.
 
-| Property                      | Type   | Default        | Description                                                                                                  |
-|-------------------------------|--------|----------------|--------------------------------------------------------------------------------------------------------------|
-| `PUBSUB_PROVIDER`             | string | `'auto'`       | `auto` (`redis` with `@appweaver/redis`, otherwise `memory`), `memory`, `redis`, `none`, or a module path.   |
-| `PUBSUB_REDIS_CHANNEL_PREFIX` | string | `'appweaver:'` | Prefix of the Redis channels the messages are published to, on the server of `MEMORY_REDIS_URL`. (redis)    |
+| Property                      | Type   | Default        | Description                                                                                                |
+|-------------------------------|--------|----------------|------------------------------------------------------------------------------------------------------------|
+| `PUBSUB_PROVIDER`             | string | `'auto'`       | `auto` (`redis` with `@appweaver/redis`, otherwise `memory`), `memory`, `redis`, `none`, or a module path. |
+| `PUBSUB_REDIS_CHANNEL_PREFIX` | string | `'appweaver:'` | Prefix of the Redis channels the messages are published to, on the server of `MEMORY_REDIS_URL`. (redis)   |
 
 ### Realtime (REALTIME\_\*)
 
 The realtime connections of `@appweaver/realtime` ([realtime.md](./realtime.md)).
 
-| Property                            | Type    | Default       | Description                                                                                                                                         |
-|-------------------------------------|---------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `REALTIME_ENABLED`                  | boolean | `true`        | Enable the realtime routes: the tickets, the event streams, the WebSocket and the actions.                                                          |
-| `REALTIME_ROUTE_PREFIX`             | string  | `'/realtime'` | Prefix of the realtime routes, under the API prefix.                                                                                                |
-| `REALTIME_SSE_ENABLED`              | boolean | `true`        | Enable the Server-Sent Events transport (`GET <prefix>/events`).                                                                                    |
-| `REALTIME_WEBSOCKET_ENABLED`        | boolean | `true`        | Enable the WebSocket transport (`GET <prefix>/ws`).                                                                                                 |
-| `REALTIME_ANONYMOUS_ENABLED`        | boolean | `false`       | Allow the anonymous clients: connections without a ticket and HTTP action calls without credentials, limited to the `public` channels and actions. |
-| `REALTIME_TICKET_TTL`               | integer | `30000`       | Milliseconds a connection ticket is valid for, used once.                                                                                           |
-| `REALTIME_HEARTBEAT_INTERVAL`       | integer | `25000`       | Milliseconds between the heartbeats of a connection, a WebSocket ping or an SSE comment.                                                           |
-| `REALTIME_CONNECTION_MAX_AGE`       | integer | `3600000`     | Milliseconds a connection stays open before the client reconnects with a new ticket, closed earlier when its token expires, `0` for no limit.      |
-| `REALTIME_MAX_CONNECTIONS`          | integer | `10000`       | Maximum number of open connections of the instance, `0` for no limit.                                                                              |
-| `REALTIME_MAX_CONNECTIONS_PER_USER` | integer | `10`          | Maximum number of open connections of a user on the instance, `0` for no limit.                                                                    |
-| `REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP` | integer | `10`  | Maximum number of open anonymous connections of an IP address on the instance, `0` for no limit (the IP of `SERVER_TRUST_PROXY`).                  |
-| `REALTIME_MAX_SUBSCRIPTIONS`        | integer | `50`          | Maximum number of subscriptions of a connection.                                                                                                    |
-| `REALTIME_MAX_MESSAGE_SIZE`         | string  | `'64KB'`      | Maximum size of a WebSocket message of a client.                                                                                                    |
-| `REALTIME_SEND_BUFFER_LIMIT`        | string  | `'1MB'`       | Bytes a connection may have waiting to be sent before it is closed as too slow.                                                                    |
-| `REALTIME_MESSAGE_RATE_LIMIT`       | integer | `20`          | Maximum number of WebSocket messages a client sends per second, `0` for no limit.                                                                  |
-| `REALTIME_STREAM_REPLAY_LIMIT`      | string  | `'256KB'`     | Bytes of the last chunks a stream keeps for the subscribers joining late or resuming, unless the stream sets its own `replay.maxBytes`.            |
-| `REALTIME_STREAM_HIGH_WATER_MARK`   | string  | `'64KB'`      | Bytes a subscriber of a stream may have waiting to be sent before `ready` of the writer waits, pausing the producer (a streaming action).          |
-| `REALTIME_STREAM_LINGER`            | integer | `10000`       | Milliseconds an ended stream, or a streaming action whose client disconnected, stays resumable.                                                    |
-| `REALTIME_STREAM_RELAY_FLUSH_INTERVAL` | integer | `20`       | Milliseconds the chunks of a stream are batched for before they are relayed to the other instances.                                               |
-| `REALTIME_STREAM_RELAY_MAX_BATCH`   | string  | `'64KB'`      | Bytes of chunks relayed to the other instances in one message at most, sent before the flush interval once reached.                                |
-| `REALTIME_STREAM_RELAY_HEARTBEAT`   | integer | `5000`        | Milliseconds between the messages keeping the relay of the streams alive, a relayed stream silent for three of them being lost.                    |
-| `REALTIME_STREAM_INPUT_WINDOW`      | string  | `'256KB'`     | Bytes a client may stream to an action ahead of its handler reading them, given back as the handler reads.                                        |
-| `REALTIME_STREAM_INPUT_MAX_BYTES`   | string  | `'10MB'`      | Bytes a client may stream to an action in all, unless the action sets its own `input.maxBytes`.                                                   |
-| `REALTIME_SHUTDOWN_GRACE_PERIOD`    | integer | `30000`       | Milliseconds a shutting down instance waits for its calls to end after moving its clients to the other instances (`1012`), `0` to end them at once. |
+| Property                                    | Type    | Default       | Description                                                                                                                                         |
+|---------------------------------------------|---------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `REALTIME_ENABLED`                          | boolean | `true`        | Enable the realtime routes: the tickets, the event streams, the WebSocket and the actions.                                                          |
+| `REALTIME_ROUTE_PREFIX`                     | string  | `'/realtime'` | Prefix of the realtime routes, under the API prefix.                                                                                                |
+| `REALTIME_SSE_ENABLED`                      | boolean | `true`        | Enable the Server-Sent Events transport (`GET <prefix>/events`).                                                                                    |
+| `REALTIME_WEBSOCKET_ENABLED`                | boolean | `true`        | Enable the WebSocket transport (`GET <prefix>/ws`).                                                                                                 |
+| `REALTIME_ANONYMOUS_ENABLED`                | boolean | `false`       | Allow the anonymous clients: connections without a ticket and HTTP action calls without credentials, limited to the `public` channels and actions.  |
+| `REALTIME_TICKET_TTL`                       | integer | `30000`       | Milliseconds a connection ticket is valid for, used once.                                                                                           |
+| `REALTIME_HEARTBEAT_INTERVAL`               | integer | `25000`       | Milliseconds between the heartbeats of a connection, a WebSocket ping or an SSE comment.                                                            |
+| `REALTIME_CONNECTION_MAX_AGE`               | integer | `3600000`     | Milliseconds a connection stays open before the client reconnects with a new ticket, closed earlier when its token expires, `0` for no limit.       |
+| `REALTIME_MAX_CONNECTIONS`                  | integer | `10000`       | Maximum number of open connections of the instance, `0` for no limit.                                                                               |
+| `REALTIME_MAX_CONNECTIONS_PER_USER`         | integer | `10`          | Maximum number of open connections of a user on the instance, `0` for no limit.                                                                     |
+| `REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP` | integer | `10`          | Maximum number of open anonymous connections of an IP address on the instance, `0` for no limit (the IP of `SERVER_TRUST_PROXY`).                   |
+| `REALTIME_MAX_SUBSCRIPTIONS`                | integer | `50`          | Maximum number of subscriptions of a connection.                                                                                                    |
+| `REALTIME_MAX_MESSAGE_SIZE`                 | string  | `'64KB'`      | Maximum size of a WebSocket message of a client.                                                                                                    |
+| `REALTIME_SEND_BUFFER_LIMIT`                | string  | `'1MB'`       | Bytes a connection may have waiting to be sent before it is closed as too slow.                                                                     |
+| `REALTIME_MESSAGE_RATE_LIMIT`               | integer | `20`          | Maximum number of WebSocket messages a client sends per second, `0` for no limit.                                                                   |
+| `REALTIME_STREAM_REPLAY_LIMIT`              | string  | `'256KB'`     | Bytes of the last chunks a stream keeps for the subscribers joining late or resuming, unless the stream sets its own `replay.maxBytes`.             |
+| `REALTIME_STREAM_HIGH_WATER_MARK`           | string  | `'64KB'`      | Bytes a subscriber of a stream may have waiting to be sent before `ready` of the writer waits, pausing the producer (a streaming action).           |
+| `REALTIME_STREAM_LINGER`                    | integer | `10000`       | Milliseconds an ended stream, or a streaming action whose client disconnected, stays resumable.                                                     |
+| `REALTIME_STREAM_RELAY_FLUSH_INTERVAL`      | integer | `20`          | Milliseconds the chunks of a stream are batched for before they are relayed to the other instances.                                                 |
+| `REALTIME_STREAM_RELAY_MAX_BATCH`           | string  | `'64KB'`      | Bytes of chunks relayed to the other instances in one message at most, sent before the flush interval once reached.                                 |
+| `REALTIME_STREAM_RELAY_HEARTBEAT`           | integer | `5000`        | Milliseconds between the messages keeping the relay of the streams alive, a relayed stream silent for three of them being lost.                     |
+| `REALTIME_STREAM_INPUT_WINDOW`              | string  | `'256KB'`     | Bytes a client may stream to an action ahead of its handler reading them, given back as the handler reads.                                          |
+| `REALTIME_STREAM_INPUT_MAX_BYTES`           | string  | `'10MB'`      | Bytes a client may stream to an action in all, unless the action sets its own `input.maxBytes`.                                                     |
+| `REALTIME_SHUTDOWN_GRACE_PERIOD`            | integer | `30000`       | Milliseconds a shutting down instance waits for its calls to end after moving its clients to the other instances (`1012`), `0` to end them at once. |
 
 ### MCP (MCP\_\*)
 
 The MCP server of `@appweaver/mcp` ([mcp.md](./mcp.md)).
 
-| Property                  | Type     | Default              | Description                                                                                          |
-|---------------------------|----------|----------------------|------------------------------------------------------------------------------------------------------|
-| `MCP_ENABLED`             | boolean  | `true`               | Enable the MCP endpoint.                                                                             |
-| `MCP_ROUTE_PREFIX`        | string   | `'/mcp'`             | Path of the MCP endpoint, at the root (`'/api/mcp'` under the API).                                  |
-| `MCP_AUTH`                | string[] | `['jwt', 'apiKey']`  | The authentication strategies of the endpoint.                                                       |
-| `MCP_ANONYMOUS_ENABLED`   | boolean  | `false`              | Allow the anonymous clients, which see only the `public` tools.                                     |
-| `MCP_DESTRUCTIVE_ENABLED` | boolean  | `false`              | Expose the destructive tools: the `update` and `delete` resource actions and the `destructive` tools. |
-| `MCP_SERVER_NAME`         | string?  | `app.name`           | The name of the server shown to the agents.                                                          |
-| `MCP_INSTRUCTIONS`        | string?  | -                    | Instructions for the agents, i.e. what the application is for.                                       |
-| `MCP_MAX_LIMIT`           | integer  | `50`                 | The maximum records a query tool returns, unless its resource sets `maxLimit`.                      |
-| `MCP_MAX_RESULT_SIZE`     | string   | `'256KB'`            | The maximum size of a tool result.                                                                   |
-| `MCP_ALLOWED_ORIGINS`     | string[] | `[]`                 | Browser origins allowed to call the endpoint (`*` for any); requests without `Origin` always pass.   |
-| `MCP_LOG_CALLS`           | boolean  | `true`               | Log every tool call at the info level.                                                               |
-| `MCP_CACHE_ENABLED`       | boolean  | `false`              | Cache the results of the read-only tools (the read resource actions, the tools setting `cache`).     |
-| `MCP_CACHE_TTL`           | integer  | `5000`               | Time-to-live of a cached result in ms, unless the tool sets its own.                                 |
-| `MCP_RATE_LIMIT_ENABLED`  | boolean  | `false`              | Limit the tool calls of each authenticated user, counted in the `Memory` provider.                   |
-| `MCP_RATE_LIMIT_MAX`      | integer  | `60`                 | Maximum tool calls of a user per window.                                                             |
-| `MCP_RATE_LIMIT_WINDOW`   | integer  | `60000`              | The window of the rate limit in ms.                                                                  |
-| `MCP_OAUTH2_ENABLED`      | boolean  | `false`              | Make the application the OAuth 2.1 authorization server of the MCP clients (discovery, DCR, PKCE).   |
-| `MCP_OAUTH2_ROUTE_PREFIX` | string   | `'/oauth'`           | Path of the authorization, token and registration endpoints.                                         |
-| `MCP_OAUTH2_PROVIDERS`    | string[] | `[]`                 | The `security.oauth2` providers offered to sign in (`google`, `github`, ...), every enabled one by default. |
-| `MCP_OAUTH2_FORMS_ENABLED` | boolean | `true`             | Ask for the password of an account to link and the 2FA code, otherwise refuse these users.           |
+| Property                      | Type     | Default             | Description                                                                                                                                         |
+|-------------------------------|----------|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `MCP_ENABLED`                 | boolean  | `true`              | Enable the MCP endpoint.                                                                                                                            |
+| `MCP_ROUTE_PREFIX`            | string   | `'/mcp'`            | Path of the MCP endpoint, at the root (`'/api/mcp'` under the API).                                                                                 |
+| `MCP_AUTH`                    | string[] | `['jwt', 'apiKey']` | The authentication strategies of the endpoint.                                                                                                      |
+| `MCP_ANONYMOUS_ENABLED`       | boolean  | `false`             | Allow the anonymous clients, which see only the `public` tools.                                                                                     |
+| `MCP_DESTRUCTIVE_ENABLED`     | boolean  | `false`             | Expose the destructive tools: the `update` and `delete` resource actions and the `destructive` tools.                                               |
+| `MCP_SERVER_NAME`             | string?  | `app.name`          | The name of the server shown to the agents.                                                                                                         |
+| `MCP_INSTRUCTIONS`            | string?  | -                   | Instructions for the agents, i.e. what the application is for.                                                                                      |
+| `MCP_MAX_LIMIT`               | integer  | `50`                | The maximum records a query tool returns, unless its resource sets `maxLimit`.                                                                      |
+| `MCP_MAX_RESULT_SIZE`         | string   | `'256KB'`           | The maximum size of a tool result.                                                                                                                  |
+| `MCP_ALLOWED_ORIGINS`         | string[] | `[]`                | Browser origins allowed to call the endpoint (`*` for any); requests without `Origin` always pass.                                                  |
+| `MCP_LOG_CALLS`               | boolean  | `true`              | Log every tool call at the info level.                                                                                                              |
+| `MCP_CACHE_ENABLED`           | boolean  | `false`             | Cache the results of the read-only tools (the read resource actions, the tools setting `cache`).                                                    |
+| `MCP_CACHE_TTL`               | integer  | `5000`              | Time-to-live of a cached result in ms, unless the tool sets its own.                                                                                |
+| `MCP_RATE_LIMIT_ENABLED`      | boolean  | `false`             | Limit the tool calls of each authenticated user, counted in the `Memory` provider.                                                                  |
+| `MCP_RATE_LIMIT_MAX`          | integer  | `60`                | Maximum tool calls of a user per window.                                                                                                            |
+| `MCP_RATE_LIMIT_WINDOW`       | integer  | `60000`             | The window of the rate limit in ms.                                                                                                                 |
+| `MCP_OAUTH2_ENABLED`          | boolean  | `false`             | Make the application the OAuth 2.1 authorization server of the MCP clients (discovery, DCR, PKCE).                                                  |
+| `MCP_OAUTH2_ROUTE_PREFIX`     | string   | `'/oauth'`          | Path of the authorization, token and registration endpoints.                                                                                        |
+| `MCP_OAUTH2_PROVIDERS`        | string[] | `[]`                | The `security.oauth2` providers offered to sign in (`google`, `github`, ...), every enabled one by default.                                         |
+| `MCP_OAUTH2_FORMS_ENABLED`    | boolean  | `true`              | Ask for the password of an account to link and the 2FA code, otherwise refuse these users.                                                          |
+| `MCP_OAUTH2_PASSWORD_ENABLED` | boolean  | `false`             | Offer the email and password form on the sign-in page, counted with the API logins; needs the forms, left out while the login requires a bot check. |
 
 ### AI (AI\_\*)
 
@@ -916,22 +920,22 @@ The AI models of `@appweaver/ai` ([ai.md](./ai.md)): the endpoints by their name
 the code calls the models by. A model reference is `<endpoint>:<model>` (`local:qwen3:8b`), the built-in `mock`
 endpoint answering without a server.
 
-| Property                     | Type     | Default  | Description                                                                                                                                                                                                                       |
-|------------------------------|----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Property                     | Type     | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+|------------------------------|----------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `AI_ENDPOINTS`               | record   | `{}`     | The endpoints by name, each with `preset` (`openai`, `openrouter`, `ollama`, `lmstudio`, `vllm`, `llamacpp`, `litellm`, `groq`, `together`, `fireworks`, `deepseek`, `mistral`, `xai`, `gemini`, `huggingface`, `mock`), `driver`, `baseUrl`, `apiKey`, `headers` (`Name: value`), `capabilities`, `timeout` and `maxRetries`. Each property is also its own variable, `AI_ENDPOINTS_<NAME>_<PROPERTY>` (`AI_ENDPOINTS_OPENROUTER_API_KEY`). |
-| `AI_DEFAULT_MODEL`           | string?  | -        | The model of a call naming none, a model reference or an alias.                                                                                                                                                                   |
-| `AI_DEFAULT_EMBEDDING_MODEL` | string?  | -        | The embedding model of a call naming none, a model reference or an alias.                                                                                                                                                         |
-| `AI_ALIASES`                 | record   | `{}`     | The names the code calls the models by (`fast`, `smart`, any name without `:`), each a model reference or a list of them tried in turn on a rate limit, a timeout or an unavailable provider (comma-separated in a variable).    |
-| `AI_MAX_TOKENS`              | integer? | -        | The maximum output tokens of a call setting none.                                                                                                                                                                                 |
-| `AI_TEMPERATURE`             | number?  | -        | The temperature of a call setting none.                                                                                                                                                                                           |
-| `AI_TIMEOUT`                 | integer  | `120000` | Timeout of a request to a model in milliseconds, unless the endpoint sets its own.                                                                                                                                               |
-| `AI_MAX_RETRIES`             | integer  | `2`      | Retries of a request failing with a rate limit, a timeout or a server error, unless the endpoint sets its own.                                                                                                                   |
-| `AI_MAX_STEPS`               | integer  | `5`      | Maximum model calls of a call with tools, the model being called again with the results of the tools it called.                                                                                                                  |
-| `AI_REPAIR_ATTEMPTS`         | integer  | `1`      | Calls repairing an object not matching its schema (`generateObject`), sent the validation errors.                                                                                                                                 |
-| `AI_LOG_PROMPTS`             | boolean  | `false`  | Log the prompts and the responses at the `debug` level.                                                                                                                                                                           |
-| `AI_HEALTH_CHECK_ENDPOINTS`  | string[] | `[]`     | The endpoints the `ai` health check checks, by listing their models.                                                                                                                                                              |
-| `AI_QUEUE_CONCURRENCY`       | integer  | `4`      | Jobs of the `ai` queue a worker runs at once.                                                                                                                                                                                     |
-| `AI_STREAM_FLUSH_INTERVAL`   | integer  | `50`     | Milliseconds the parts of a queued stream (`streamQueued`) are batched for before they are published.                                                                                                                            |
+| `AI_DEFAULT_MODEL`           | string?  | -        | The model of a call naming none, a model reference or an alias.                                                                                                                                                                                                                                                                                                                                                                              |
+| `AI_DEFAULT_EMBEDDING_MODEL` | string?  | -        | The embedding model of a call naming none, a model reference or an alias.                                                                                                                                                                                                                                                                                                                                                                    |
+| `AI_ALIASES`                 | record   | `{}`     | The names the code calls the models by (`fast`, `smart`, any name without `:`), each a model reference or a list of them tried in turn on a rate limit, a timeout or an unavailable provider (comma-separated in a variable).                                                                                                                                                                                                                |
+| `AI_MAX_TOKENS`              | integer? | -        | The maximum output tokens of a call setting none.                                                                                                                                                                                                                                                                                                                                                                                            |
+| `AI_TEMPERATURE`             | number?  | -        | The temperature of a call setting none.                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `AI_TIMEOUT`                 | integer  | `120000` | Timeout of a request to a model in milliseconds, unless the endpoint sets its own.                                                                                                                                                                                                                                                                                                                                                           |
+| `AI_MAX_RETRIES`             | integer  | `2`      | Retries of a request failing with a rate limit, a timeout or a server error, unless the endpoint sets its own.                                                                                                                                                                                                                                                                                                                               |
+| `AI_MAX_STEPS`               | integer  | `5`      | Maximum model calls of a call with tools, the model being called again with the results of the tools it called.                                                                                                                                                                                                                                                                                                                              |
+| `AI_REPAIR_ATTEMPTS`         | integer  | `1`      | Calls repairing an object not matching its schema (`generateObject`), sent the validation errors.                                                                                                                                                                                                                                                                                                                                            |
+| `AI_LOG_PROMPTS`             | boolean  | `false`  | Log the prompts and the responses at the `debug` level.                                                                                                                                                                                                                                                                                                                                                                                      |
+| `AI_HEALTH_CHECK_ENDPOINTS`  | string[] | `[]`     | The endpoints the `ai` health check checks, by listing their models.                                                                                                                                                                                                                                                                                                                                                                         |
+| `AI_QUEUE_CONCURRENCY`       | integer  | `4`      | Jobs of the `ai` queue a worker runs at once.                                                                                                                                                                                                                                                                                                                                                                                                |
+| `AI_STREAM_FLUSH_INTERVAL`   | integer  | `50`     | Milliseconds the parts of a queued stream (`streamQueued`) are batched for before they are published.                                                                                                                                                                                                                                                                                                                                        |
 
 ### Mailer (MAILER\_\*)
 

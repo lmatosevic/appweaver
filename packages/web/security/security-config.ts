@@ -1,6 +1,16 @@
 import { Type } from '@sinclair/typebox';
 import { defineConfig, TwoFactorMethodType } from '@appweaver/common';
 
+/** The authentication routes a bot check can be required on, opted in by `authRoutes` of reCAPTCHA or Turnstile. */
+export enum CaptchaAuthRoute {
+  /** `POST /auth/login`, the action `login` */
+  Login = 'login',
+  /** `POST /auth/refresh`, the action `refresh` */
+  Refresh = 'refresh',
+  /** `POST /auth/change-password`, the action `change-password` */
+  ChangePassword = 'changePassword'
+}
+
 export const securityConfig = defineConfig('security', {
   /** Base path for authentication routes. Default: `'/auth'`. */
   ROUTE_PREFIX: Type.String({ default: '/auth' }),
@@ -94,6 +104,9 @@ export const recaptchaConfig = defineConfig('security.recaptcha', {
   HEADER_NAME: Type.String({ default: 'x-recaptcha-token' }),
   /** Minimum reCAPTCHA v3 score threshold (0–1). Default: `0.4`. */
   MIN_SCORE: Type.Number({ default: 0.4 }),
+  /** The authentication routes requiring a reCAPTCHA token (`login`, `refresh`, `changePassword`), each for the
+   * action of its name in kebab-case. Default: `[]`. */
+  AUTH_ROUTES: Type.Array(Type.Enum(CaptchaAuthRoute), { default: [] }),
   /** Google reCAPTCHA verification endpoint URL. Default: `'https://www.google.com/recaptcha/api/siteverify'`. */
   VERIFY_URL: Type.String({
     default: 'https://www.google.com/recaptcha/api/siteverify'
@@ -107,6 +120,9 @@ export const turnstileConfig = defineConfig('security.turnstile', {
   SECRET: Type.Optional(Type.String()),
   /** Request header name for the Turnstile token. Default: `'x-turnstile-token'`. */
   HEADER_NAME: Type.String({ default: 'x-turnstile-token' }),
+  /** The authentication routes requiring a Turnstile token (`login`, `refresh`, `changePassword`), each for the
+   * action of its name in kebab-case. Default: `[]`. */
+  AUTH_ROUTES: Type.Array(Type.Enum(CaptchaAuthRoute), { default: [] }),
   /** Cloudflare Turnstile verification endpoint URL. Default: `'https://challenges.cloudflare.com/turnstile/v0/siteverify'`. */
   VERIFY_URL: Type.String({
     default: 'https://challenges.cloudflare.com/turnstile/v0/siteverify'

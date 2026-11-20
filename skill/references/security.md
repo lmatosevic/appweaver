@@ -97,12 +97,25 @@ On every authenticated request, the server:
 
 | Method | Path                    | Auth                | Description                                                                                                 |
 |--------|-------------------------|---------------------|-------------------------------------------------------------------------------------------------------------|
-| `POST` | `/auth/login`           | Public              | Login with email and password. Returns access + refresh tokens. Rate limited: 12/window.                    |
+| `POST` | `/auth/login`           | Public              | Login with email and password. Returns access + refresh tokens. Rate limited: 12/min per IP, shared.        |
 | `POST` | `/auth/refresh`         | JWT (Refresh scope) | Exchange a refresh token for a new access token. Rate limited: 12/window.                                   |
 | `POST` | `/auth/logout`          | JWT                 | Logout. Sets `logoutAt` timestamp to invalidate all existing tokens.                                        |
 | `GET`  | `/auth/me`              | JWT                 | Get the current authenticated user's profile.                                                               |
 | `POST` | `/auth/change-password` | Any                 | Change password. Requires current password + new password. Invalidates all tokens. Rate limited: 12/window. |
 | `POST` | `/auth/exchange-token`  | Public              | Exchange a one-time token (OTT) for JWT access + refresh tokens. Rate limited: 12/window.                   |
+
+The routes taking a password (`/auth/change-password`, `/auth/exchange-token`) have a secure rate limit: while its
+store fails (Redis down), they answer `503` `MEMORY_UNAVAILABLE` instead of letting the requests through, unless
+`rateLimit.secureSkipOnError`. The login is counted by `checkLoginRateLimit` of `@appweaver/web` instead, 12 sign-ins
+of an IP address per minute (`LOGIN_RATE_LIMIT`) in the `Memory` provider, shared by every route signing a user in with
+a password, the password form of the MCP clients included ([mcp.md](./mcp.md#password-sign-in)), so a second way in
+never doubles the guesses. It fails the same way while the store fails, and counts nothing without `rateLimit.enabled`
+or for an address of `rateLimit.allowList`. A route of the application signing a user in with a password calls it before
+`AuthService.login`:
+
+```ts
+await checkLoginRateLimit(request); // RATE_LIMITED (429) past the limit
+```
 
 `/auth/exchange-token` exchanges the one-time tokens of the OAuth2 sign-in and of the 2FA verification, so it is
 registered only with an enabled OAuth2 provider or 2FA, by `registerExchangeTokenRoute` of `@appweaver/web` (once,
@@ -784,6 +797,40 @@ createRoutes({
 - `POST /auth/account/send-reset-password` (action: `send-reset-password`)
 - `POST /auth/account/reset-password` (action: `reset-password`)
 
+### Auth routes with a bot check
+
+The login, the token refresh and the password change require a token only once opted in, each by its name in the
+`authRoutes` of `security.recaptcha` or `security.turnstile` while that one is enabled, for the action of its name in
+kebab-case: `login`, `refresh` and `change-password`. The route then documents the header and the `RECAPTCHA_*` or
+`TURNSTILE_*` errors in its OpenAPI schema, and the login counts the attempt before verifying the token.
+
+```json
+{
+  "security": {
+    "recaptcha": {
+      "enabled": true,
+      "secret": "...",
+      "authRoutes": [
+        "login",
+        "changePassword"
+      ]
+    },
+    "turnstile": {
+      "enabled": true,
+      "secret": "...",
+      "authRoutes": [
+        "login"
+      ]
+    }
+  }
+}
+```
+
+The client passes the token with the request options, i.e. `client.auth.login(credentials, { headers:
+{ 'x-recaptcha-token': token } })`, and calls `refresh` with a new token each time. While the login requires a bot
+check, the password form of the MCP sign-in is left out, since its page cannot run the widget.
+`authRouteCaptcha(route)` of `@appweaver/web` returns the checks a route requires.
+
 ---
 
 ## Cloudflare Turnstile
@@ -814,7 +861,8 @@ createRoutes({ modelName: 'Comment', create: { turnstile: true } });
 ```
 
 A rejected token fails with `TURNSTILE_INVALID` (Cloudflare `error-codes` in `details.errorCodes`), and a bad secret
-or unreachable API with `TURNSTILE_UNAVAILABLE`. The password reset routes also verify it while Turnstile is enabled.
+or unreachable API with `TURNSTILE_UNAVAILABLE`. The password reset routes also verify it while Turnstile is enabled,
+and the auth routes of its `authRoutes` (see [above](#auth-routes-with-a-bot-check)).
 
 ---
 

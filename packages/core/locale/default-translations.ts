@@ -41,6 +41,13 @@ export const defaultTranslations: Translations = {
       client: 'An MCP client',
       message: '{client} of {host} asks to act as you.',
       continue: 'Continue with {provider}',
+      or: 'or',
+      username: 'Email',
+      password: 'Password',
+      submit: 'Sign in',
+      invalid: 'The email or the password is not valid.',
+      rateLimited: 'Too many sign-in attempts. Try again in a minute.',
+      unavailable: 'The sign-in is unavailable at the moment. Try again later.',
       providers: {
         apple: 'Apple',
         custom: 'single sign-on',

@@ -17,5 +17,11 @@
       "message": "{sender} thinks you might enjoy reading this post:",
       "action": "Read the post"
     }
+  },
+  "mcp": {
+    "footer": "Signing in to {appName} on behalf of your AI agent.",
+    "twoFactor": {
+      "other": "or use another method"
+    }
   }
 }

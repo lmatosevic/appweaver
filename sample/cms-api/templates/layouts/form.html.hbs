@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="{{@locale}}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{{title}} · {{@app.name}}</title>
+    <style>
+      :root {
+        --page: #f6f3ee; --card: #fffdf9; --ink: #1f2933; --muted: #616e7c; --line: #e4ddd2;
+        --accent: #2f6f4f; --accent-hover: #255a40; --on-accent: #fff; --soft: #efe9df;
+        --danger-bg: #fbeaea; --danger: #9b1c1c; --focus: rgba(47, 111, 79, 0.25);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --page: #15181b; --card: #1e2226; --ink: #e9e5de; --muted: #9aa5b1; --line: #343a40;
+          --accent: #5fae86; --accent-hover: #74c19a; --on-accent: #0f1a14; --soft: #2a2f34;
+          --danger-bg: #3a1f1f; --danger: #f5a3a3; --focus: rgba(95, 174, 134, 0.3);
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 32px 16px; background: var(--page); color: var(--ink);
+        font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      .brand { margin: 0 0 20px; font: italic 20px Georgia, serif; color: var(--muted); }
+      main {
+        width: 100%; max-width: 400px; padding: 32px; background: var(--card);
+        border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      }
+      h1 { margin: 0 0 12px; font: 600 26px/1.25 Georgia, serif; }
+      p { margin: 0 0 16px; color: var(--muted); }
+      label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+      input, select {
+        width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px;
+        background: var(--card); color: var(--ink); font: inherit;
+      }
+      input:focus, select:focus, button:focus-visible, .button:focus-visible {
+        outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus);
+      }
+      input[autocomplete="one-time-code"] { font: 600 22px/1.2 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.3em; text-align: center; }
+      button, .button {
+        display: block; width: 100%; margin-top: 12px; padding: 12px; border: 1px solid transparent; border-radius: 8px;
+        background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 600;
+        text-align: center; text-decoration: none; cursor: pointer; transition: background 0.15s;
+      }
+      button:hover, .button:hover { background: var(--accent-hover); }
+      .button.outline { background: var(--card); border-color: var(--line); color: var(--ink); }
+      .button.outline:hover { background: var(--soft); }
+      .secondary { background: var(--soft); color: var(--ink); }
+      .secondary:hover { background: var(--line); }
+      .error { padding: 12px 14px; border-radius: 8px; background: var(--danger-bg); color: var(--danger); }
+      label + input + label { margin-top: 14px; }
+      .divider { display: flex; align-items: center; gap: 12px; margin: 24px 0 16px; font-size: 13px; color: var(--muted); }
+      .divider::before, .divider::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+      footer { margin-top: 20px; font-size: 13px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <p class="brand">{{@app.name}}</p>
+    <main>
+      <h1>{{title}}</h1>
+      {{#if error}}<p class="error" role="alert">{{error}}</p>{{/if}}
+      {{> @partial-block}}
+    </main>
+    <footer>{{t "mcp.footer" appName=@app.name}}</footer>
+  </body>
+</html>

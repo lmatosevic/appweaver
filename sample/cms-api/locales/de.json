@@ -36,5 +36,53 @@
       "message": "Bitte geben Sie den folgenden Code ein, um fortzufahren:",
       "expires": "Der Code läuft in {count, plural, one {# Minute} other {# Minuten}} ab."
     }
+  },
+  "mcp": {
+    "footer": "Anmeldung bei {appName} für Ihren KI-Agenten.",
+    "signIn": {
+      "title": "Anmelden",
+      "client": "Ein MCP-Client",
+      "message": "{client} von {host} möchte in Ihrem Namen handeln.",
+      "continue": "Weiter mit {provider}",
+      "or": "oder",
+      "username": "E-Mail",
+      "password": "Passwort",
+      "submit": "Anmelden",
+      "invalid": "Die E-Mail-Adresse oder das Passwort ist ungültig.",
+      "rateLimited": "Zu viele Anmeldeversuche. Versuchen Sie es in einer Minute erneut.",
+      "unavailable": "Die Anmeldung ist derzeit nicht verfügbar. Versuchen Sie es später erneut.",
+      "providers": {
+        "custom": "Single Sign-on"
+      }
+    },
+    "password": {
+      "title": "Passwort bestätigen",
+      "message": "Es gibt bereits ein Konto mit Ihrer E-Mail-Adresse. Geben Sie dessen Passwort ein, um diese Anmeldung damit zu verknüpfen.",
+      "label": "Passwort",
+      "submit": "Weiter"
+    },
+    "twoFactor": {
+      "title": "Zwei-Faktor-Authentifizierung",
+      "sent": "Geben Sie den Code ein, den wir an {destination} gesendet haben.",
+      "app": "Geben Sie den Code Ihrer Authenticator-App ein.",
+      "recovery": "Geben Sie einen Ihrer Wiederherstellungscodes ein.",
+      "label": "Code",
+      "submit": "Bestätigen",
+      "method": "Bestätigen mit",
+      "other": "oder eine andere Methode verwenden",
+      "resend": "Neuen Code senden",
+      "invalid": "Der Code ist ungültig, bitte versuchen Sie es erneut.",
+      "methods": {
+        "Email": "E-Mail",
+        "Sms": "SMS",
+        "Totp": "Authenticator-App",
+        "Recovery": "Wiederherstellungscode"
+      }
+    },
+    "error": {
+      "title": "Anmeldung fehlgeschlagen",
+      "invalid": "Der Client ist unbekannt oder seine Weiterleitungs-URI ist nicht registriert.",
+      "expired": "Die Anmeldung ist abgelaufen oder wurde bereits abgeschlossen. Beginnen Sie erneut in Ihrem Client."
+    }
   }
 }

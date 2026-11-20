@@ -12,7 +12,7 @@ export type OAuthPageData = {
   host?: string;
   /** `sign-in`: the links of the OAuth2 providers, with their translated names */
   providers?: { name: string; label: string; url: string }[];
-  /** The URL the form posts to, and its single-use state */
+  /** The URL the form posts to, and its single-use state; on `sign-in`, only with the password form */
   action?: string;
   state?: string;
   /** `two-factor`: the methods of the user, and what to enter for the selected one */
@@ -95,14 +95,25 @@ function plainPage(
   switch (page) {
     case 'sign-in':
       body =
-        `<p>${t('mcp.signIn.message', { client: data.client!, host: data.host! })}</p><ul>` +
-        (data.providers ?? [])
-          .map(
-            ({ label, url }) =>
-              `<li><a href="${e(url)}">${t('mcp.signIn.continue', { provider: label })}</a></li>`
-          )
-          .join('') +
-        '</ul>';
+        `<p>${t('mcp.signIn.message', { client: data.client!, host: data.host! })}</p>` +
+        (data.providers?.length
+          ? '<ul>' +
+            data.providers
+              .map(
+                ({ label, url }) =>
+                  `<li><a href="${e(url)}">${t('mcp.signIn.continue', { provider: label })}</a></li>`
+              )
+              .join('') +
+            '</ul>'
+          : '') +
+        (data.action
+          ? (data.providers?.length ? `<p>${t('mcp.signIn.or')}</p>` : '') +
+            form(
+              `<p><label>${t('mcp.signIn.username')} <input type="email" name="username" autocomplete="username" required></label></p>` +
+                `<p><label>${t('mcp.signIn.password')} <input type="password" name="password" autocomplete="current-password" required></label></p>` +
+                `<button>${t('mcp.signIn.submit')}</button>`
+            )
+          : '');
       break;
     case 'password':
       body =

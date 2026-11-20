@@ -13,11 +13,17 @@ import { define, inject, LocaleService } from '@appweaver/core';
 import {
   AuthService,
   AuthTokens,
+  authRouteCaptcha,
+  checkLoginRateLimit,
   JwtPayload,
   Server,
   TwoFactorService
 } from '@appweaver/web';
-import { oauth2Config, securityConfig } from '@appweaver/web/config';
+import {
+  CaptchaAuthRoute,
+  oauth2Config,
+  securityConfig
+} from '@appweaver/web/config';
 import { mcpConfig, mcpOAuth2Config } from '../config';
 import {
   authorizationServerMetadata,
@@ -38,7 +44,7 @@ const logger = createLogger('mcp');
 const AUTHORIZATION_PURPOSE = 'mcpAuthorization';
 /** The one-time token of an authorization code. */
 const CODE_PURPOSE = 'mcpAuthorizationCode';
-/** The one-time token of the password or the 2FA step of a sign-in, the state of its form. */
+/** The one-time token of the password form, the password or the 2FA step of a sign-in, the state of its form. */
 const SIGN_IN_PURPOSE = 'mcpSignIn';
 /** The challenge method of the recovery codes. */
 const RECOVERY = 'Recovery';
@@ -64,10 +70,12 @@ type AuthorizationCode = AuthorizationRequest & {
   authSource: AuthSource;
 };
 
-/** The password or the 2FA step of a sign-in. */
+/** The password form of the sign-in page, or the password or the 2FA step of a sign-in. */
 type SignInState = {
   request: AuthorizationRequest;
-  step: 'password' | 'twoFactor';
+  step: 'login' | 'password' | 'twoFactor';
+  /** The name of the client, shown again with the error of the password form */
+  client?: string;
   /** The token of the provider sign-in, exchanged with the password */
   token?: string;
   authUserId?: string | number;
@@ -100,7 +108,7 @@ type Jwt = {
  * Registers the OAuth 2.1 authorization server of the MCP clients with `mcp.oauth2.enabled`: the protected resource
  * metadata of the MCP endpoint (RFC 9728), the authorization server metadata (RFC 8414), the dynamic client
  * registration (RFC 7591), and the authorization code flow with PKCE, signing the user in with an OAuth2 provider of
- * `security.oauth2` and issuing the JWTs of `AuthService`.
+ * `security.oauth2` or their password (`mcp.oauth2.passwordEnabled`) and issuing the JWTs of `AuthService`.
  */
 export function registerOAuthRoutes(): void {
   if (!mcpOAuth2Config.ENABLED) {
@@ -122,14 +130,14 @@ export function registerOAuthRoutes(): void {
       method: 'GET' | 'POST',
       url: string,
       handler: (request: FastifyRequest, reply: FastifyReply) => unknown,
-      rateLimit?: number
+      rateLimit?: { max: number; secure?: boolean }
     ) =>
       server.route({
         method,
         url,
         handler,
         schema: { hide: true },
-        ...(rateLimit ? { config: { rateLimit: { max: rateLimit } } } : {})
+        ...(rateLimit ? { config: { rateLimit } } : {})
       } as RouteOptions);
 
     route('GET', '/.well-known/oauth-protected-resource', resourceMetadata);
@@ -147,23 +155,32 @@ export function registerOAuthRoutes(): void {
       'POST',
       `${prefix}/register`,
       (request, reply) => oauthReply(reply, () => register(request, reply)),
-      12
+      { max: 12 }
     );
     route('GET', `${prefix}/authorize`, (request, reply) =>
       authorize(server, request, reply)
     );
     route('GET', `${prefix}/callback`, callback);
     if (mcpOAuth2Config.FORMS_ENABLED) {
-      route('POST', `${prefix}/sign-in`, signInStep, 12);
+      // Failing while the rate limiter fails, since it takes passwords and 2FA codes
+      route('POST', `${prefix}/sign-in`, signInStep, {
+        max: 12,
+        secure: true
+      });
     }
     route(
       'POST',
       `${prefix}/token`,
       (request, reply) =>
         oauthReply(reply, () => token(server, request.body as Query, reply)),
-      30
+      { max: 30 }
     );
   };
+  if (mcpOAuth2Config.PASSWORD_ENABLED && !passwordSignIn()) {
+    logger.warn(
+      'The password sign-in of the MCP clients needs mcp.oauth2.formsEnabled, and no bot check on the login'
+    );
+  }
   define(Object.assign(routes, { apiPrefix: false }), ROUTE, 'append');
 }
 
@@ -207,7 +224,7 @@ async function register(request: FastifyRequest, reply: FastifyReply) {
   });
 }
 
-/** Checks an authorization request, then asks the user to sign in with an OAuth2 provider for the named client. */
+/** Checks an authorization request, then asks the user to sign in with an OAuth2 provider or their password. */
 async function authorize(
   server: Server,
   request: FastifyRequest,
@@ -242,45 +259,82 @@ async function authorize(
   if (query.resource && query.resource !== mcpResource()) {
     return fail('invalid_target', `The resource is not ${mcpResource()}`);
   }
-  const providers = signInProviders(server);
-  if (!providers.length) {
+  if (!signInProviders(server).length && !passwordSignIn()) {
     logger.warn(
-      'No OAuth2 provider of security.oauth2 to sign the MCP users in'
+      'No OAuth2 provider of security.oauth2 nor the password sign-in to sign the MCP users in'
     );
     return fail('temporarily_unavailable', 'No sign-in provider is enabled');
   }
-
-  const pending = await inject(SecurityStore).generateOneTimeToken(
-    AUTHORIZATION_PURPOSE,
+  // Always asked, so a link of a registered client never signs the user in unseen
+  return sendSignIn(
+    request,
+    reply,
     {
       clientId: query.client_id!,
       redirectUri,
       codeChallenge: query.code_challenge,
       state: query.state
-    } satisfies AuthorizationRequest,
-    oauth2Config.STATE_TTL
+    },
+    client.name
   );
-  const callbackUrl = `${oauthIssuer()}${routePath(mcpOAuth2Config.ROUTE_PREFIX)}/callback?request=${encodeURIComponent(pending)}`;
+}
+
+/**
+ * Asks the user to sign in for a client, with the links of the OAuth2 providers and the password form, each with the
+ * single-use token of the authorization request.
+ */
+async function sendSignIn(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  pending: AuthorizationRequest,
+  client?: string,
+  error?: string,
+  status: number = 200
+) {
+  const store = inject(SecurityStore);
+  const locale = requestLocale(request);
+  const prefix = routePath(mcpOAuth2Config.ROUTE_PREFIX);
+  const providers = signInProviders(request.server);
+  let callbackUrl = '';
+  if (providers.length) {
+    const token = await store.generateOneTimeToken(
+      AUTHORIZATION_PURPOSE,
+      pending,
+      oauth2Config.STATE_TTL
+    );
+    callbackUrl = `${oauthIssuer()}${prefix}/callback?request=${encodeURIComponent(token)}`;
+  }
   const loginUrl = (provider: string) =>
     `${routePath(securityConfig.ROUTE_PREFIX)}/login/${provider}?redirectToUrl=${encodeURIComponent(callbackUrl)}`;
+  const form = passwordSignIn()
+    ? {
+        action: `${prefix}/sign-in`,
+        state: await store.generateOneTimeToken(
+          SIGN_IN_PURPOSE,
+          { request: pending, step: 'login', client } satisfies SignInState,
+          oauth2Config.STATE_TTL
+        )
+      }
+    : {};
 
-  // Always asked, so a link of a registered client never signs the user in unseen
-  const locale = requestLocale(request);
   return sendPage(
     reply,
     'sign-in',
     {
-      client: client.name ?? translate('mcp.signIn.client', locale),
-      host: new URL(redirectUri).host,
+      client: client ?? translate('mcp.signIn.client', locale),
+      host: new URL(pending.redirectUri).host,
       providers: providers.map((name) => {
         const key = `mcp.signIn.providers.${name}`;
         const label = inject(LocaleService).hasTranslation(key, locale)
           ? translate(key, locale)
           : name;
         return { name, label, url: loginUrl(name) };
-      })
+      }),
+      ...form,
+      error
     },
-    locale
+    locale,
+    status
   );
 }
 
@@ -322,6 +376,9 @@ async function signInStep(request: FastifyRequest, reply: FastifyReply) {
     );
   } catch {
     return sendExpired(reply, locale);
+  }
+  if (state.step === 'login') {
+    return passwordLogin(request, reply, state, body);
   }
   if (state.step === 'password') {
     // A wrong password uses the token up, so the user starts again
@@ -365,6 +422,60 @@ async function signInStep(request: FastifyRequest, reply: FastifyReply) {
     }
     return deny(reply, state.request, e.message);
   }
+}
+
+/**
+ * Signs a user in with the password form of the sign-in page, counted with the logins of the API. A wrong password,
+ * or too many sign-ins, shows the page again with a new state.
+ */
+async function passwordLogin(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  state: SignInState,
+  body: Query
+) {
+  const locale = requestLocale(request);
+  if (!passwordSignIn()) {
+    return sendExpired(reply, locale);
+  }
+  let tokens: AuthTokens;
+  try {
+    await checkLoginRateLimit(request);
+    tokens = await inject(AuthService).login(
+      body.username ?? '',
+      body.password ?? ''
+    );
+  } catch (e) {
+    if (!isAppweaverError(e)) {
+      throw e;
+    }
+    const again = (key: string, status: number) => {
+      const retryAfter = (e.details as { retryAfter?: number } | undefined)
+        ?.retryAfter;
+      if (retryAfter) {
+        reply.header('retry-after', retryAfter);
+      }
+      return sendSignIn(
+        request,
+        reply,
+        state.request,
+        state.client,
+        translate(key, locale),
+        status
+      );
+    };
+    switch (e.code as ErrorCode) {
+      case ErrorCode.AuthInvalidCredentials:
+        return again('mcp.signIn.invalid', 401);
+      case ErrorCode.RateLimited:
+        return again('mcp.signIn.rateLimited', 429);
+      case ErrorCode.MemoryUnavailable:
+        return again('mcp.signIn.unavailable', 503);
+      default:
+        return deny(reply, state.request, e.message);
+    }
+  }
+  return signIn(request, reply, state.request, async () => tokens);
 }
 
 /**
@@ -588,6 +699,17 @@ async function token(server: Server, body: Query = {}, reply: FastifyReply) {
 
 function jwt(server: unknown): Jwt {
   return (server as { jwt: Jwt }).jwt;
+}
+
+/** Whether the sign-in page offers the password form: it posts to the forms, and the login requires no bot check. */
+function passwordSignIn(): boolean {
+  const captcha = authRouteCaptcha(CaptchaAuthRoute.Login);
+  return (
+    mcpOAuth2Config.PASSWORD_ENABLED &&
+    mcpOAuth2Config.FORMS_ENABLED &&
+    !captcha.recaptchaAction &&
+    !captcha.turnstileAction
+  );
 }
 
 /** The enabled OAuth2 providers the users may sign in with, by name. */
