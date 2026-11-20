@@ -952,7 +952,10 @@ describe('resource-service', () => {
       );
       linkModels();
 
-      await new PostService().create({ title: 'First', tags: ['fresh'] });
+      await new PostService().create({
+        title: 'First',
+        tags: [{ name: 'fresh' }]
+      });
 
       expect(db.lastQuery('create').args.data.tags).toEqual({
         connectOrCreate: [
@@ -960,6 +963,36 @@ describe('resource-service', () => {
             where: { name: 'fresh' },
             create: { name: 'fresh' }
           }
+        ]
+      });
+    });
+
+    test('connects the bare ids of a relation with a unique key, mixed with inline records', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', allowCreate: true, uniqueKey: 'name' }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+
+      await new PostService().create({
+        title: 'First',
+        tags: [5, { id: 6 }, { name: 'fresh' }]
+      });
+
+      expect(db.lastQuery('create').args.data.tags).toEqual({
+        connect: [{ id: 5 }, { id: 6 }],
+        connectOrCreate: [
+          { where: { name: 'fresh' }, create: { name: 'fresh' } }
         ]
       });
     });
@@ -1217,6 +1250,41 @@ describe('resource-service', () => {
       expect(db.lastQuery('update').args.data.tags).toEqual({
         disconnect: [{ id: 2 }],
         connect: [{ id: 1 }]
+      });
+    });
+
+    test('keeps the relations a unique key relation names by id or by unique key', async () => {
+      createModel(
+        {
+          name: 'Post',
+          scalars: { title: { type: 'string' } },
+          relations: {
+            tags: {
+              model: 'Tag',
+              type: 'manyToMany',
+              input: { type: 'all', allowCreate: true, uniqueKey: 'name' }
+            }
+          }
+        },
+        true
+      );
+      linkModels();
+      db.setResult('Post', 'findFirst', {
+        id: 1,
+        title: 'First',
+        tags: [
+          { id: 1, name: 'one' },
+          { id: 2, name: 'two' },
+          { id: 3, name: 'three' }
+        ]
+      });
+
+      await new PostService().update(1, { tags: [1, { name: 'two' }] });
+
+      expect(db.lastQuery('update').args.data.tags).toEqual({
+        disconnect: [{ id: 3 }],
+        connect: [{ id: 1 }],
+        connectOrCreate: [{ where: { name: 'two' }, create: { name: 'two' } }]
       });
     });
 

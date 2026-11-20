@@ -636,7 +636,9 @@ Connect, create, and update inputs can be mixed within one list relation request
 Records without an `id` require `allowCreate: true`. Otherwise, the request fails with a `400` error and the related
 record has to be created through its own endpoint first. With `allowCreate` set, a `uniqueKey` matches an existing
 record by that field before creating a new one, so the inline create becomes a connect-or-create. Without
-`allowCreate` the `uniqueKey` has no effect. Plain connect and inline update always match related records by `id`.
+`allowCreate` the `uniqueKey` has no effect. Plain connect and inline update always match related records by `id`,
+so a bare value is an id on a relation with a `uniqueKey` too (`tags: [1, { name: 'Forests', slug: 'forests' }]`), and
+an update keeps the current records the new value names by id or by unique key.
 
 #### Relation output
 

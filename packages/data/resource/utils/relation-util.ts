@@ -78,12 +78,13 @@ export function mapRelationInclusions(
 }
 
 /**
- * Maps the relation and file fields of a write payload to the Prisma nested write actions. Bare key values and arrays
- * of them are normalized to objects first, then every item is classified: items with an id and additional data become
- * inline updates when the parent action is an update and inline updates are enabled for the relation, items with only
- * an id are connected, and items without an id are created inline or matched through a connect-or-create when
- * `input.uniqueKey` is configured. On an update action, the items of the current record that are absent from the new
- * value, as well as the relations set to null, are disconnected, or deleted when `orphanRemoval` is configured.
+ * Maps the relation and file fields of a write payload to the Prisma nested write actions. Bare values are ids,
+ * normalized to `{ id }` objects item by item first, then every item is classified: items with an id and additional
+ * data become inline updates when the parent action is an update and inline updates are enabled for the relation, items
+ * with only an id are connected, and items without an id are created inline or matched through a connect-or-create
+ * when `input.uniqueKey` is configured. On an update action, the items of the current record the new value names
+ * neither by id nor by unique key, as well as the relations set to null, are disconnected by id, or deleted when
+ * `orphanRemoval` is configured.
  * Relations that were not loaded on the current record are left untouched.
  *
  * @param {string} resourceName - The name of the model the write payload belongs to.
@@ -152,17 +153,17 @@ export function mapRelationActions(
       continue;
     }
 
-    // Normalize plain key values or arrays to object values
+    // Normalize the bare id values to id objects, item by item, since a list
+    // mixes them with the inline records. A bare value is always an id, the
+    // unique key matching only the inline creates
     if (isArrayType) {
-      if (isArray(value) && !isPlainObject(value[0])) {
-        value = value.map((v: any) => ({
-          [uniqueKey]: v
-        }));
+      if (isArray(value)) {
+        value = value.map((v: any) => (isPlainObject(v) ? v : { id: v }));
       }
     } else if (!isObject(value)) {
-      // Only bare key values are wrapped. The loose object check keeps
-      // null values untouched, so they still map to a disconnect action.
-      value = { [uniqueKey]: value };
+      // The loose object check keeps null values untouched, so they still map
+      // to a disconnect action
+      value = { id: value };
     }
 
     // Classify every relation input item into its relation write action:
@@ -271,12 +272,19 @@ export function mapRelationActions(
       const currentValue = currentData[key];
       const removalMethod = config?.orphanRemoval ? 'delete' : 'disconnect';
       if (currentValue && isArrayType) {
-        const newValueKeys = value?.map((v: any) => v[uniqueKey]) ?? [];
+        // A current record stays when the new value names it by its id, or by
+        // its unique key in an inline create matching it
+        const kept = (record: any) =>
+          (value ?? []).some(
+            (v: any) =>
+              (v.id !== undefined && v.id !== null && v.id === record.id) ||
+              (uniqueKey !== 'id' &&
+                v[uniqueKey] !== undefined &&
+                v[uniqueKey] === record[uniqueKey])
+          );
         const currentValueKeys = currentValue
-          .filter((v: any) => newValueKeys.indexOf(v[uniqueKey]) === -1)
-          .map((v: any) => ({
-            [uniqueKey]: v[uniqueKey]
-          }));
+          .filter((record: any) => !kept(record))
+          .map((record: any) => ({ id: record.id }));
         if (currentValueKeys.length > 0) {
           relations[key] = {
             [removalMethod]: currentValueKeys,
@@ -285,7 +293,7 @@ export function mapRelationActions(
         }
       } else if (currentValue && value === null) {
         relations[key] = {
-          [removalMethod]: { [uniqueKey]: currentValue[uniqueKey] },
+          [removalMethod]: { id: currentValue.id },
           ...(relations[key] ?? {})
         };
       } else if (currentValue === undefined) {
