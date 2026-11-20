@@ -77,9 +77,12 @@ export function usePosts(
 
 /**
  * Builds a server with the MCP routes, authenticating the `Authorization: Bearer <user JSON>` header, and a client of
- * it sending the given user.
+ * it sending the given user. `setup` prepares the server before the routes are registered.
  */
-export async function startMcpApp(authUser?: object) {
+export async function startMcpApp(
+  authUser?: object,
+  setup?: (server: Server) => void
+) {
   registerMcpRoutes();
   const server = fastify() as unknown as Server;
   server.register(fastifyRequestContext, {
@@ -103,6 +106,7 @@ export async function startMcpApp(authUser?: object) {
       done();
     }
   );
+  setup?.(server);
   for (const route of injectAll<any>(ROUTE)) {
     server.register(route, {
       prefix: route.apiPrefix === false ? '' : '/api/'

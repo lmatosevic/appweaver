@@ -46,3 +46,13 @@ export const mcpRateLimitConfig = defineConfig('mcp.rateLimit', {
   /** The window in milliseconds. Default: `60000` (1 min). */
   WINDOW: Type.Integer({ default: 60000, minimum: 1 })
 });
+
+export const mcpOAuth2Config = defineConfig('mcp.oauth2', {
+  /** Make the application the OAuth 2.1 authorization server of the MCP clients, signing the users in with the
+   * OAuth2 providers of `security.oauth2`. Default: `false`. */
+  ENABLED: Type.Boolean({ default: false }),
+  /** Path of the authorization, token and registration endpoints. Default: `'/oauth'`. */
+  ROUTE_PREFIX: Type.String({ default: '/oauth' }),
+  /** The OAuth2 providers offered to sign in, by name (`google`, `github`, ...). Default: every enabled one. */
+  PROVIDERS: Type.Array(Type.String(), { default: [] })
+});

@@ -422,6 +422,11 @@
         "enabled": false,
         "max": 60,
         "window": 60000
+      },
+      "oauth2": {
+        "enabled": false,
+        "routePrefix": "/oauth",
+        "providers": []
       }
     },
     "ai": {
