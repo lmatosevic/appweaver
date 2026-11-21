@@ -720,6 +720,15 @@ fail until it is reachable again.
 | `STORAGE_FILES_ROUTE_PREFIX` | string  | `/files`                      | URL prefix for file access routes.                                                                                                                                                                                                                                                        |
 | `STORAGE_PROVIDER`           | string  | `'auto'`                      | `auto` (`local` unless another storage driver is enabled), `local`, `none`, or a module path.                                                                                                                                                                                             |
 
+### File versions (STORAGE_VERSIONS\_\*)
+
+| Property                          | Type    | Default | Description                                                                                                                                                                                                        |
+|-----------------------------------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `STORAGE_VERSIONS_ENABLED`        | boolean | `false` | Keep the previous versions of the files when a file is uploaded again, and register the routes listing and deleting them. The `versions` of a file field overrides the limits, `false` turns it off for the field. |
+| `STORAGE_VERSIONS_MAX_COUNT`      | integer | `10`    | The most versions of a file kept, the current one included, `0` for no limit.                                                                                                                                      |
+| `STORAGE_VERSIONS_MAX_AGE`        | string  | `''`    | How long a version is kept once replaced, a duration (`30d`), empty to keep it until `STORAGE_VERSIONS_MAX_COUNT` drops it.                                                                                        |
+| `STORAGE_VERSIONS_PRUNE_INTERVAL` | string  | `'1h'`  | How often the versions older than their max age are deleted, a duration.                                                                                                                                           |
+
 ### Image processing (IMAGE\_\*)
 
 | Property         | Type   | Default  | Description                                                                                                                                                  |

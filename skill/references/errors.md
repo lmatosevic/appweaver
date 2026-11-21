@@ -218,6 +218,9 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `FILE_UPLOAD_FAILED`                 | 400    | File upload failed                    |
 | `FILE_DELETE_FAILED`                 | 400    | File delete failed                    |
 | `FILE_STORAGE_ERROR`                 | 500    | File storage error                    |
+| `FILE_VERSION_NOT_FOUND`             | 404    | File version not found                |
+| `FILE_VERSIONING_DISABLED`           | 400    | File versioning disabled              |
+| `FILE_REPLACE_TARGET_INVALID`        | 400    | Invalid file to replace               |
 | `EXPORT_FAILED`                      | 500    | Export failed                         |
 | `QUEUE_CLOSED`                       | 503    | Queue closed                          |
 | `QUEUE_UNAVAILABLE`                  | 503    | Queue unavailable                     |

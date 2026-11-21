@@ -428,6 +428,13 @@ fails to start. Stored files are removed on a regular delete but kept on a soft 
 file field with `onResourceDeleted` and `onResourceSoftDeleted`. A kept file stays in the storage, e.g. for audit, but
 is never served again.
 
+With `storage.versions.enabled` (off by default), uploading a file again keeps the replaced one as a previous version:
+a single file field always does, an array field for a file named by a `<field>:replace` multipart text part. A previous
+version is served only by the current file's name with `?version=<n>`, listed by `GET /:id/file-versions?name=` and
+deleted by `POST /:id/delete-file-versions` (deleting the `latest` one restores the previous one), kept up to
+`maxCount` (default `10`) and `maxAge` (unlimited by default), overridden per field by `versions` (`false` for none).
+See [storage.md](references/storage.md#file-versions).
+
 The `series` section declares fields measured over time (`float`, `int`, `boolean`), whose points belong to a resource
 and live apart from its record: in the `<Model>Series` table of the database (`database`, every database), or a
 TimescaleDB hypertable on PostgreSQL (`timescale`). They are written and queried through the

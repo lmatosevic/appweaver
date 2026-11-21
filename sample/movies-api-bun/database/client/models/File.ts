@@ -29,6 +29,7 @@ export type AggregateFile = {
 export type FileAvgAggregateOutputType = {
   id: number | null
   sizeBytes: number | null
+  version: number | null
   createdById: number | null
   deletedById: number | null
 }
@@ -36,6 +37,7 @@ export type FileAvgAggregateOutputType = {
 export type FileSumAggregateOutputType = {
   id: number | null
   sizeBytes: number | null
+  version: number | null
   createdById: number | null
   deletedById: number | null
 }
@@ -52,6 +54,9 @@ export type FileMinAggregateOutputType = {
   resourceField: string | null
   resourceName: string | null
   resourceId: string | null
+  version: number | null
+  lineageId: string | null
+  supersededAt: Date | null
   updatedAt: Date | null
   createdAt: Date | null
   createdById: number | null
@@ -71,6 +76,9 @@ export type FileMaxAggregateOutputType = {
   resourceField: string | null
   resourceName: string | null
   resourceId: string | null
+  version: number | null
+  lineageId: string | null
+  supersededAt: Date | null
   updatedAt: Date | null
   createdAt: Date | null
   createdById: number | null
@@ -90,6 +98,9 @@ export type FileCountAggregateOutputType = {
   resourceField: number
   resourceName: number
   resourceId: number
+  version: number
+  lineageId: number
+  supersededAt: number
   updatedAt: number
   createdAt: number
   createdById: number
@@ -102,6 +113,7 @@ export type FileCountAggregateOutputType = {
 export type FileAvgAggregateInputType = {
   id?: true
   sizeBytes?: true
+  version?: true
   createdById?: true
   deletedById?: true
 }
@@ -109,6 +121,7 @@ export type FileAvgAggregateInputType = {
 export type FileSumAggregateInputType = {
   id?: true
   sizeBytes?: true
+  version?: true
   createdById?: true
   deletedById?: true
 }
@@ -125,6 +138,9 @@ export type FileMinAggregateInputType = {
   resourceField?: true
   resourceName?: true
   resourceId?: true
+  version?: true
+  lineageId?: true
+  supersededAt?: true
   updatedAt?: true
   createdAt?: true
   createdById?: true
@@ -144,6 +160,9 @@ export type FileMaxAggregateInputType = {
   resourceField?: true
   resourceName?: true
   resourceId?: true
+  version?: true
+  lineageId?: true
+  supersededAt?: true
   updatedAt?: true
   createdAt?: true
   createdById?: true
@@ -163,6 +182,9 @@ export type FileCountAggregateInputType = {
   resourceField?: true
   resourceName?: true
   resourceId?: true
+  version?: true
+  lineageId?: true
+  supersededAt?: true
   updatedAt?: true
   createdAt?: true
   createdById?: true
@@ -269,6 +291,9 @@ export type FileGroupByOutputType = {
   resourceField: string | null
   resourceName: string | null
   resourceId: string | null
+  version: number
+  lineageId: string | null
+  supersededAt: Date | null
   updatedAt: Date
   createdAt: Date
   createdById: number | null
@@ -311,6 +336,9 @@ export type FileWhereInput = {
   resourceField?: Prisma.StringNullableFilter<"File"> | string | null
   resourceName?: Prisma.StringNullableFilter<"File"> | string | null
   resourceId?: Prisma.StringNullableFilter<"File"> | string | null
+  version?: Prisma.IntFilter<"File"> | number
+  lineageId?: Prisma.StringNullableFilter<"File"> | string | null
+  supersededAt?: Prisma.DateTimeNullableFilter<"File"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdById?: Prisma.IntNullableFilter<"File"> | number | null
@@ -336,6 +364,9 @@ export type FileOrderByWithRelationInput = {
   resourceField?: Prisma.SortOrderInput | Prisma.SortOrder
   resourceName?: Prisma.SortOrderInput | Prisma.SortOrder
   resourceId?: Prisma.SortOrderInput | Prisma.SortOrder
+  version?: Prisma.SortOrder
+  lineageId?: Prisma.SortOrderInput | Prisma.SortOrder
+  supersededAt?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -364,6 +395,9 @@ export type FileWhereUniqueInput = Prisma.AtLeast<{
   resourceField?: Prisma.StringNullableFilter<"File"> | string | null
   resourceName?: Prisma.StringNullableFilter<"File"> | string | null
   resourceId?: Prisma.StringNullableFilter<"File"> | string | null
+  version?: Prisma.IntFilter<"File"> | number
+  lineageId?: Prisma.StringNullableFilter<"File"> | string | null
+  supersededAt?: Prisma.DateTimeNullableFilter<"File"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdById?: Prisma.IntNullableFilter<"File"> | number | null
@@ -389,6 +423,9 @@ export type FileOrderByWithAggregationInput = {
   resourceField?: Prisma.SortOrderInput | Prisma.SortOrder
   resourceName?: Prisma.SortOrderInput | Prisma.SortOrder
   resourceId?: Prisma.SortOrderInput | Prisma.SortOrder
+  version?: Prisma.SortOrder
+  lineageId?: Prisma.SortOrderInput | Prisma.SortOrder
+  supersededAt?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -416,6 +453,9 @@ export type FileScalarWhereWithAggregatesInput = {
   resourceField?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
   resourceName?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
   resourceId?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
+  version?: Prisma.IntWithAggregatesFilter<"File"> | number
+  lineageId?: Prisma.StringNullableWithAggregatesFilter<"File"> | string | null
+  supersededAt?: Prisma.DateTimeNullableWithAggregatesFilter<"File"> | Date | string | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"File"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"File"> | Date | string
   createdById?: Prisma.IntNullableWithAggregatesFilter<"File"> | number | null
@@ -434,6 +474,9 @@ export type FileCreateInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -457,6 +500,9 @@ export type FileUncheckedCreateInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
@@ -479,6 +525,9 @@ export type FileUpdateInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -502,6 +551,9 @@ export type FileUncheckedUpdateInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -525,6 +577,9 @@ export type FileCreateManyInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
@@ -543,6 +598,9 @@ export type FileUpdateManyMutationInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -560,6 +618,9 @@ export type FileUncheckedUpdateManyInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -594,6 +655,9 @@ export type FileCountOrderByAggregateInput = {
   resourceField?: Prisma.SortOrder
   resourceName?: Prisma.SortOrder
   resourceId?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  lineageId?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -604,6 +668,7 @@ export type FileCountOrderByAggregateInput = {
 export type FileAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   deletedById?: Prisma.SortOrder
 }
@@ -620,6 +685,9 @@ export type FileMaxOrderByAggregateInput = {
   resourceField?: Prisma.SortOrder
   resourceName?: Prisma.SortOrder
   resourceId?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  lineageId?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -639,6 +707,9 @@ export type FileMinOrderByAggregateInput = {
   resourceField?: Prisma.SortOrder
   resourceName?: Prisma.SortOrder
   resourceId?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  lineageId?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -649,6 +720,7 @@ export type FileMinOrderByAggregateInput = {
 export type FileSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   sizeBytes?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   deletedById?: Prisma.SortOrder
 }
@@ -834,6 +906,9 @@ export type FileCreateWithoutPosterMoviesInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -856,6 +931,9 @@ export type FileUncheckedCreateWithoutPosterMoviesInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
@@ -882,6 +960,9 @@ export type FileCreateWithoutStillsMoviesInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -904,6 +985,9 @@ export type FileUncheckedCreateWithoutStillsMoviesInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
@@ -941,6 +1025,9 @@ export type FileUpdateWithoutPosterMoviesInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -963,6 +1050,9 @@ export type FileUncheckedUpdateWithoutPosterMoviesInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1004,6 +1094,9 @@ export type FileScalarWhereInput = {
   resourceField?: Prisma.StringNullableFilter<"File"> | string | null
   resourceName?: Prisma.StringNullableFilter<"File"> | string | null
   resourceId?: Prisma.StringNullableFilter<"File"> | string | null
+  version?: Prisma.IntFilter<"File"> | number
+  lineageId?: Prisma.StringNullableFilter<"File"> | string | null
+  supersededAt?: Prisma.DateTimeNullableFilter<"File"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"File"> | Date | string
   createdById?: Prisma.IntNullableFilter<"File"> | number | null
@@ -1022,6 +1115,9 @@ export type FileCreateWithoutPhotoPeopleInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -1044,6 +1140,9 @@ export type FileUncheckedCreateWithoutPhotoPeopleInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
@@ -1081,6 +1180,9 @@ export type FileUpdateWithoutPhotoPeopleInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1103,6 +1205,9 @@ export type FileUncheckedUpdateWithoutPhotoPeopleInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1124,6 +1229,9 @@ export type FileCreateWithoutAvatarUsersInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -1146,6 +1254,9 @@ export type FileUncheckedCreateWithoutAvatarUsersInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
@@ -1172,6 +1283,9 @@ export type FileCreateWithoutCreatedByInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -1194,6 +1308,9 @@ export type FileUncheckedCreateWithoutCreatedByInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -1224,6 +1341,9 @@ export type FileCreateWithoutDeletedByInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -1246,6 +1366,9 @@ export type FileUncheckedCreateWithoutDeletedByInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
@@ -1287,6 +1410,9 @@ export type FileUpdateWithoutAvatarUsersInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1309,6 +1435,9 @@ export type FileUncheckedUpdateWithoutAvatarUsersInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1362,6 +1491,9 @@ export type FileUpdateWithoutStillsMoviesInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1384,6 +1516,9 @@ export type FileUncheckedUpdateWithoutStillsMoviesInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1406,6 +1541,9 @@ export type FileUncheckedUpdateManyWithoutStillsMoviesInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1425,6 +1563,9 @@ export type FileCreateManyCreatedByInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -1443,6 +1584,9 @@ export type FileCreateManyDeletedByInput = {
   resourceField?: string | null
   resourceName?: string | null
   resourceId?: string | null
+  version?: number
+  lineageId?: string | null
+  supersededAt?: Date | string | null
   updatedAt?: Date | string
   createdAt?: Date | string
   createdById?: number | null
@@ -1460,6 +1604,9 @@ export type FileUpdateWithoutCreatedByInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1482,6 +1629,9 @@ export type FileUncheckedUpdateWithoutCreatedByInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1504,6 +1654,9 @@ export type FileUncheckedUpdateManyWithoutCreatedByInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1521,6 +1674,9 @@ export type FileUpdateWithoutDeletedByInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1543,6 +1699,9 @@ export type FileUncheckedUpdateWithoutDeletedByInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1565,6 +1724,9 @@ export type FileUncheckedUpdateManyWithoutDeletedByInput = {
   resourceField?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resourceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  lineageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1641,6 +1803,9 @@ export type FileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   resourceField?: boolean
   resourceName?: boolean
   resourceId?: boolean
+  version?: boolean
+  lineageId?: boolean
+  supersededAt?: boolean
   updatedAt?: boolean
   createdAt?: boolean
   createdById?: boolean
@@ -1667,6 +1832,9 @@ export type FileSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   resourceField?: boolean
   resourceName?: boolean
   resourceId?: boolean
+  version?: boolean
+  lineageId?: boolean
+  supersededAt?: boolean
   updatedAt?: boolean
   createdAt?: boolean
   createdById?: boolean
@@ -1688,6 +1856,9 @@ export type FileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   resourceField?: boolean
   resourceName?: boolean
   resourceId?: boolean
+  version?: boolean
+  lineageId?: boolean
+  supersededAt?: boolean
   updatedAt?: boolean
   createdAt?: boolean
   createdById?: boolean
@@ -1709,6 +1880,9 @@ export type FileSelectScalar = {
   resourceField?: boolean
   resourceName?: boolean
   resourceId?: boolean
+  version?: boolean
+  lineageId?: boolean
+  supersededAt?: boolean
   updatedAt?: boolean
   createdAt?: boolean
   createdById?: boolean
@@ -1716,7 +1890,7 @@ export type FileSelectScalar = {
   deletedById?: boolean
 }
 
-export type FileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "originalName" | "mimeType" | "sizeBytes" | "checksum" | "title" | "description" | "resourceField" | "resourceName" | "resourceId" | "updatedAt" | "createdAt" | "createdById" | "deletedAt" | "deletedById", ExtArgs["result"]["file"]>
+export type FileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "originalName" | "mimeType" | "sizeBytes" | "checksum" | "title" | "description" | "resourceField" | "resourceName" | "resourceId" | "version" | "lineageId" | "supersededAt" | "updatedAt" | "createdAt" | "createdById" | "deletedAt" | "deletedById", ExtArgs["result"]["file"]>
 export type FileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   posterMovies?: boolean | Prisma.File$posterMoviesArgs<ExtArgs>
   stillsMovies?: boolean | Prisma.File$stillsMoviesArgs<ExtArgs>
@@ -1760,6 +1934,9 @@ export type $FilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     resourceField: string | null
     resourceName: string | null
     resourceId: string | null
+    version: number
+    lineageId: string | null
+    supersededAt: Date | null
     /**
      * Audit columns
      */
@@ -2208,6 +2385,9 @@ export interface FileFieldRefs {
   readonly resourceField: Prisma.FieldRef<"File", 'String'>
   readonly resourceName: Prisma.FieldRef<"File", 'String'>
   readonly resourceId: Prisma.FieldRef<"File", 'String'>
+  readonly version: Prisma.FieldRef<"File", 'Int'>
+  readonly lineageId: Prisma.FieldRef<"File", 'String'>
+  readonly supersededAt: Prisma.FieldRef<"File", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"File", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"File", 'DateTime'>
   readonly createdById: Prisma.FieldRef<"File", 'Int'>

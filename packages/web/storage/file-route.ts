@@ -3,7 +3,11 @@ import { Static } from '@sinclair/typebox';
 
 import { storageConfig, inject } from '@appweaver/core';
 import { FileService, FileStream } from '@appweaver/data';
-import { createFileAccessSchema, FileName } from './file-schema';
+import {
+  createFileAccessSchema,
+  FileName,
+  FileVersionQuery
+} from './file-schema';
 import { Server } from '../types/server';
 
 /**
@@ -52,7 +56,10 @@ export function files(server: Server): void {
     return hasRange ? 206 : 200;
   };
 
-  server.get<{ Params: Static<typeof FileName> }>(
+  server.get<{
+    Params: Static<typeof FileName>;
+    Querystring: Static<typeof FileVersionQuery>;
+  }>(
     '/public/*',
     {
       schema: createFileAccessSchema(true)
@@ -60,7 +67,8 @@ export function files(server: Server): void {
     async (request, reply) => {
       const data = await fileService.download(
         request.params['*'],
-        request.headers.range
+        request.headers.range,
+        requestedVersion(request.query)
       );
       if ('url' in data) {
         return reply.redirect(data.url, 302);
@@ -72,7 +80,10 @@ export function files(server: Server): void {
     }
   );
 
-  server.get<{ Params: Static<typeof FileName> }>(
+  server.get<{
+    Params: Static<typeof FileName>;
+    Querystring: Static<typeof FileVersionQuery>;
+  }>(
     '/protected/*',
     {
       schema: createFileAccessSchema(false),
@@ -81,7 +92,8 @@ export function files(server: Server): void {
     async (request, reply) => {
       const data = await fileService.download(
         request.params['*'],
-        request.headers.range
+        request.headers.range,
+        requestedVersion(request.query)
       );
       if ('url' in data) {
         return reply.redirect(data.url, 302);
@@ -92,4 +104,14 @@ export function files(server: Server): void {
       return reply.status(code).send(data.content.stream);
     }
   );
+}
+
+/**
+ * The version a file request asks for. Without file versions the query is not validated, so a version is passed on
+ * as it is, for the file service to reject it.
+ */
+function requestedVersion(query?: {
+  version?: number | string;
+}): number | undefined {
+  return query?.version === undefined ? undefined : Number(query.version);
 }

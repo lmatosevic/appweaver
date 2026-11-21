@@ -183,6 +183,9 @@ export const FileScalarFieldEnum = {
   resourceField: 'resourceField',
   resourceName: 'resourceName',
   resourceId: 'resourceId',
+  version: 'version',
+  lineageId: 'lineageId',
+  supersededAt: 'supersededAt',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt',
   deletedAt: 'deletedAt'

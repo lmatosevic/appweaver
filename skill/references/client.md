@@ -369,27 +369,29 @@ const client = createClient({
 Exposes CRUD and file operations for a single resource endpoint. The `filter` and `sort` of `query`, `aggregate` and
 `export` take the syntax of [resources.md](./resources.md#query-filters).
 
-| Method                            | HTTP                                 | Description                                              |
-|-----------------------------------|--------------------------------------|----------------------------------------------------------|
-| `find(id, options?)`              | `GET /{resource}/{id}`               | Fetch a single record by ID                              |
-| `query(request, options?)`        | `POST /{resource}/query`             | Filter, sort, and paginate the collection                |
-| `aggregate(request, options?)`    | `POST /{resource}/aggregate`         | Aggregation query (count, sum, avg, etc.)                |
-| `create(resource, options?)`      | `POST /{resource}`                   | Create a new record                                      |
-| `update(resource, options?)`      | `PATCH /{resource}/{id}`             | Update an existing record (`resource` must include `id`) |
-| `replace(resource, options?)`     | `PUT /{resource}/{id}`               | Replace a whole record (`resource` must include `id`)    |
-| `delete(id, options?)`            | `DELETE /{resource}/{id}`            | Delete a record by ID                                    |
-| `export(request, options?)`       | `POST /{resource}/export`            | Export collection as a file; returns `FileDataResponse`  |
-| `uploadFiles(files, options?)`    | `POST /{resource}/{id}/files`        | Upload files to a record                                 |
-| `deleteFiles(files, options?)`    | `POST /{resource}/{id}/delete-files` | Remove files from a record                               |
-| `bulkCreate(resources, options?)` | `POST /{resource}/bulk`              | Create many records (all or none)                        |
-| `bulkUpdate(items, options?)`     | `PATCH /{resource}/bulk`             | Update many `{ id, data }` items                         |
-| `bulkReplace(items, options?)`    | `PUT /{resource}/bulk`               | Replace many `{ id, data }` items                        |
-| `bulkDelete(ids, options?)`       | `DELETE /{resource}/bulk`            | Delete many records by ID                                |
-| `writeSeries(id, points, options?)` | `POST /{resource}/{id}/series`     | Write time series points, `{ direct: true }` skips the queue |
-| `writeManySeries(points, options?)` | `POST /{resource}/series`          | Write the points of many records, each with `resourceId` |
-| `querySeries(id, query?, options?)` | `GET /{resource}/{id}/series`      | Query the points, `fields` an array, by `bucket` and `aggregate` |
-| `queryManySeries(request, options?)` | `POST /{resource}/series/query`   | Query the points of the records of `ids` and `filter`    |
-| `deleteSeries(id, range?, options?)` | `POST /{resource}/{id}/delete-series` | Delete the points of a `{ from, to }` range          |
+| Method                                       | HTTP                                         | Description                                                      |
+|----------------------------------------------|----------------------------------------------|------------------------------------------------------------------|
+| `find(id, options?)`                         | `GET /{resource}/{id}`                       | Fetch a single record by ID                                      |
+| `query(request, options?)`                   | `POST /{resource}/query`                     | Filter, sort, and paginate the collection                        |
+| `aggregate(request, options?)`               | `POST /{resource}/aggregate`                 | Aggregation query (count, sum, avg, etc.)                        |
+| `create(resource, options?)`                 | `POST /{resource}`                           | Create a new record                                              |
+| `update(resource, options?)`                 | `PATCH /{resource}/{id}`                     | Update an existing record (`resource` must include `id`)         |
+| `replace(resource, options?)`                | `PUT /{resource}/{id}`                       | Replace a whole record (`resource` must include `id`)            |
+| `delete(id, options?)`                       | `DELETE /{resource}/{id}`                    | Delete a record by ID                                            |
+| `export(request, options?)`                  | `POST /{resource}/export`                    | Export collection as a file; returns `FileDataResponse`          |
+| `uploadFiles(files, options?)`               | `POST /{resource}/{id}/files`                | Upload files to a record                                         |
+| `deleteFiles(files, options?)`               | `POST /{resource}/{id}/delete-files`         | Remove files from a record                                       |
+| `fileVersions(id, name, options?)`           | `GET /{resource}/{id}/file-versions`         | List the versions of a file, newest first                        |
+| `deleteFileVersions(id, versions, options?)` | `POST /{resource}/{id}/delete-file-versions` | Delete versions of files                                         |
+| `bulkCreate(resources, options?)`            | `POST /{resource}/bulk`                      | Create many records (all or none)                                |
+| `bulkUpdate(items, options?)`                | `PATCH /{resource}/bulk`                     | Update many `{ id, data }` items                                 |
+| `bulkReplace(items, options?)`               | `PUT /{resource}/bulk`                       | Replace many `{ id, data }` items                                |
+| `bulkDelete(ids, options?)`                  | `DELETE /{resource}/bulk`                    | Delete many records by ID                                        |
+| `writeSeries(id, points, options?)`          | `POST /{resource}/{id}/series`               | Write time series points, `{ direct: true }` skips the queue     |
+| `writeManySeries(points, options?)`          | `POST /{resource}/series`                    | Write the points of many records, each with `resourceId`         |
+| `querySeries(id, query?, options?)`          | `GET /{resource}/{id}/series`                | Query the points, `fields` an array, by `bucket` and `aggregate` |
+| `queryManySeries(request, options?)`         | `POST /{resource}/series/query`              | Query the points of the records of `ids` and `filter`            |
+| `deleteSeries(id, range?, options?)`         | `POST /{resource}/{id}/delete-series`        | Delete the points of a `{ from, to }` range                      |
 
 ```ts
 // Find a single record
@@ -446,6 +448,13 @@ const files = await client.post.uploadFiles({ cover: new File([], 'cover.jpg') }
 
 // Delete files
 await client.post.deleteFiles({ fileIds: [42, 43] });
+
+// Upload a new version of a file (with `storage.versions.enabled`)
+await client.post.uploadFiles(1, { gallery: [{ file: newImage, replace: 'gallery/a-1f2e.png' }] });
+
+// List the versions, read a previous one from its URL (`?version=2`), delete the latest one
+const versions = await client.post.fileVersions(1, 'gallery/a-9c8d.png');
+await client.post.deleteFileVersions(1, { gallery: { name: 'gallery/a-9c8d.png', version: 'latest' } });
 ```
 
 ### `AuthClient`

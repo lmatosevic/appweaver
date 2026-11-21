@@ -111,8 +111,8 @@ model Seeder {
 }
 
 model File {
-  id            Int     @id @default(autoincrement())
-  name          String  @unique
+  id            Int       @id @default(autoincrement())
+  name          String    @unique
   originalName  String
   mimeType      String
   sizeBytes     Int
@@ -122,6 +122,9 @@ model File {
   resourceField String?
   resourceName  String?
   resourceId    String?
+  version       Int       @default(1)
+  lineageId     String?
+  supersededAt  DateTime?
 
   /// Audit columns
   updatedAt DateTime  @updatedAt
@@ -129,6 +132,7 @@ model File {
   deletedAt DateTime?
 
   @@index([resourceName, resourceId, resourceField])
+  @@index([lineageId])
 }
 
 enum TwoFactorMethodType {

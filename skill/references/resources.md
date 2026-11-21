@@ -753,6 +753,7 @@ const config = {
 | `onResourceDeleted`     | `'delete'` \| `'keep'` | When the owning resource is removed from the database, also by a cascade or an orphan removal. `'delete'` (default) removes files from storage, `'keep'` retains them without serving them. |
 | `onResourceSoftDeleted` | `'delete'` \| `'keep'` | When the owning resource is soft deleted (see `softDelete`). `'keep'` (default) retains files for a manual restore without serving them, `'delete'` removes them from storage.              |
 | `image`                 | ImageConfig            | Image compression and resize settings. Only applies to image MIME types (excluding GIF).                                                                                                    |
+| `versions`              | false \| object        | Previous versions kept with `storage.versions.enabled`, `false` for none, `{ maxCount, maxAge }` overriding the config ([File versions](./storage.md#file-versions)).                       |
 
 #### Available namePattern variables
 
@@ -1003,22 +1004,23 @@ generated as a unique index of its values instead, `@@unique([coverId], where: {
 
 `createModel` produces the following TypeBox schema models used internally by routes and services:
 
-| Model                  | Purpose                                        |
-|------------------------|------------------------------------------------|
-| `readModel`            | Full model with all visible fields             |
-| `createModel`          | Request body for create operations             |
-| `updateModel`          | Request body for update operations             |
-| `relationsModel`       | Relations-only subset                          |
-| `virtualModel`         | Virtual fields-only subset                     |
-| `filesModel`           | File fields-only subset                        |
-| `readOneModel`         | Response for single-item reads                 |
-| `readManyModel`        | Response for list reads                        |
-| `readOneNullableModel` | `readOneModel` or null, for optional relations |
-| `createOneModel`       | Request for create endpoint                    |
-| `updateOneModel`       | Request for update endpoint                    |
-| `fileUploadModel`      | Request for file upload endpoint               |
-| `fileDeleteModel`      | Request for file delete endpoint               |
-| `seriesModel`          | The values of the series fields                |
+| Model                    | Purpose                                        |
+|--------------------------|------------------------------------------------|
+| `readModel`              | Full model with all visible fields             |
+| `createModel`            | Request body for create operations             |
+| `updateModel`            | Request body for update operations             |
+| `relationsModel`         | Relations-only subset                          |
+| `virtualModel`           | Virtual fields-only subset                     |
+| `filesModel`             | File fields-only subset                        |
+| `readOneModel`           | Response for single-item reads                 |
+| `readManyModel`          | Response for list reads                        |
+| `readOneNullableModel`   | `readOneModel` or null, for optional relations |
+| `createOneModel`         | Request for create endpoint                    |
+| `updateOneModel`         | Request for update endpoint                    |
+| `fileUploadModel`        | Request for file upload endpoint               |
+| `fileDeleteModel`        | Request for file delete endpoint               |
+| `fileVersionDeleteModel` | Request for file version delete endpoint       |
+| `seriesModel`            | The values of the series fields                |
 
 ---
 
@@ -1495,30 +1497,32 @@ function createRoutes(config: ResourceRoutesConfig, override ?: Partial<Resource
 }
 ```
 
-| Property       | Type                   | Description                                                                                                                                                                                                                                                                            |
-|----------------|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `modelName`    | string                 | Model name to bind routes to (required).                                                                                                                                                                                                                                               |
-| `path`         | string                 | Custom base URL path (default: derived from model name).                                                                                                                                                                                                                               |
-| `defaults`     | QueryRouteConfig       | Config applied to every route (see [Route defaults](#route-defaults)).                                                                                                                                                                                                                 |
-| `find`         | ReadRouteConfig        | `GET /:id` - Find single resource by ID.                                                                                                                                                                                                                                               |
-| `query`        | QueryRouteConfig       | `POST /query` - Query resources with filters.                                                                                                                                                                                                                                          |
-| `aggregate`    | QueryRouteConfig       | `POST /aggregate` - Aggregate resources.                                                                                                                                                                                                                                               |
-| `create`       | RouteConfig            | `POST /` - Create a new resource.                                                                                                                                                                                                                                                      |
-| `update`       | RouteConfig            | `PATCH /:id` - Update a resource (inherited by `replace`).                                                                                                                                                                                                                             |
-| `replace`      | RouteConfig            | `PUT /:id` - Replace a resource (inherits `update`).                                                                                                                                                                                                                                   |
-| `delete`       | RouteConfig            | `DELETE /:id` - Delete a resource.                                                                                                                                                                                                                                                     |
-| `export`       | RouteConfig            | `POST /export` - Export resources to CSV.                                                                                                                                                                                                                                              |
-| `fileUpload`   | RouteConfig            | `POST /:id/files` - Upload files to a resource.                                                                                                                                                                                                                                        |
-| `fileDelete`   | RouteConfig            | `POST /:id/delete-files` - Delete files from a resource.                                                                                                                                                                                                                               |
-| `seriesWrite`  | SeriesWriteRouteConfig | `POST /:id/series`, `POST /series` - Write time series points ([timeseries.md](./timeseries.md)).                                                                                                                                                                                      |
-| `seriesQuery`  | RouteConfig            | `GET /:id/series`, `POST /series/query` - Query time series points.                                                                                                                                                                                                                    |
-| `seriesDelete` | RouteConfig            | `POST /:id/delete-series` - Delete the time series points of a range.                                                                                                                                                                                                                  |
-| `bulkCreate`   | BulkRouteConfig        | `POST /bulk` - Create many (disabled by default).                                                                                                                                                                                                                                      |
-| `bulkUpdate`   | BulkRouteConfig        | `PATCH /bulk` - Update many (disabled by default).                                                                                                                                                                                                                                     |
-| `bulkReplace`  | BulkRouteConfig        | `PUT /bulk` - Replace many (enabled along with `bulkUpdate`).                                                                                                                                                                                                                          |
-| `bulkDelete`   | BulkRouteConfig        | `DELETE /bulk` - Delete many (disabled by default).                                                                                                                                                                                                                                    |
-| `events`       | ResourceEventsConfig   | The `create`, `update` and `delete` events exposed to the realtime connections (`{ actions, public?, roles?, permissions? }`, an action as an object `{ action, public?, roles?, permissions? }` with its own access), none unless set ([realtime.md](./realtime.md#resource-events)). |
-| `mcp`          | ResourceMcpConfig      | The actions exposed as tools of the MCP server of `@appweaver/mcp` (`{ actions, description?, exclude?, maxLimit?, public?, roles?, permissions? }`, `update` and `delete` only with `mcp.destructiveEnabled`), none unless set ([mcp.md](./mcp.md)).                                  |
+| Property            | Type                   | Description                                                                                                                                                                                                                                                                            |
+|---------------------|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `modelName`         | string                 | Model name to bind routes to (required).                                                                                                                                                                                                                                               |
+| `path`              | string                 | Custom base URL path (default: derived from model name).                                                                                                                                                                                                                               |
+| `defaults`          | QueryRouteConfig       | Config applied to every route (see [Route defaults](#route-defaults)).                                                                                                                                                                                                                 |
+| `find`              | ReadRouteConfig        | `GET /:id` - Find single resource by ID.                                                                                                                                                                                                                                               |
+| `query`             | QueryRouteConfig       | `POST /query` - Query resources with filters.                                                                                                                                                                                                                                          |
+| `aggregate`         | QueryRouteConfig       | `POST /aggregate` - Aggregate resources.                                                                                                                                                                                                                                               |
+| `create`            | RouteConfig            | `POST /` - Create a new resource.                                                                                                                                                                                                                                                      |
+| `update`            | RouteConfig            | `PATCH /:id` - Update a resource (inherited by `replace`).                                                                                                                                                                                                                             |
+| `replace`           | RouteConfig            | `PUT /:id` - Replace a resource (inherits `update`).                                                                                                                                                                                                                                   |
+| `delete`            | RouteConfig            | `DELETE /:id` - Delete a resource.                                                                                                                                                                                                                                                     |
+| `export`            | RouteConfig            | `POST /export` - Export resources to CSV.                                                                                                                                                                                                                                              |
+| `fileUpload`        | RouteConfig            | `POST /:id/files` - Upload files to a resource.                                                                                                                                                                                                                                        |
+| `fileDelete`        | RouteConfig            | `POST /:id/delete-files` - Delete files from a resource.                                                                                                                                                                                                                               |
+| `fileVersions`      | RouteConfig            | `GET /:id/file-versions?name=` - List the versions of a file. Registered with `storage.versions.enabled` for a model with a field keeping versions.                                                                                                                                    |
+| `fileVersionDelete` | RouteConfig            | `POST /:id/delete-file-versions` - Delete versions of files, `latest` restoring the previous version (inherits `fileDelete`). Registered like `fileVersions`.                                                                                                                          |
+| `seriesWrite`       | SeriesWriteRouteConfig | `POST /:id/series`, `POST /series` - Write time series points ([timeseries.md](./timeseries.md)).                                                                                                                                                                                      |
+| `seriesQuery`       | RouteConfig            | `GET /:id/series`, `POST /series/query` - Query time series points.                                                                                                                                                                                                                    |
+| `seriesDelete`      | RouteConfig            | `POST /:id/delete-series` - Delete the time series points of a range.                                                                                                                                                                                                                  |
+| `bulkCreate`        | BulkRouteConfig        | `POST /bulk` - Create many (disabled by default).                                                                                                                                                                                                                                      |
+| `bulkUpdate`        | BulkRouteConfig        | `PATCH /bulk` - Update many (disabled by default).                                                                                                                                                                                                                                     |
+| `bulkReplace`       | BulkRouteConfig        | `PUT /bulk` - Replace many (enabled along with `bulkUpdate`).                                                                                                                                                                                                                          |
+| `bulkDelete`        | BulkRouteConfig        | `DELETE /bulk` - Delete many (disabled by default).                                                                                                                                                                                                                                    |
+| `events`            | ResourceEventsConfig   | The `create`, `update` and `delete` events exposed to the realtime connections (`{ actions, public?, roles?, permissions? }`, an action as an object `{ action, public?, roles?, permissions? }` with its own access), none unless set ([realtime.md](./realtime.md#resource-events)). |
+| `mcp`               | ResourceMcpConfig      | The actions exposed as tools of the MCP server of `@appweaver/mcp` (`{ actions, description?, exclude?, maxLimit?, public?, roles?, permissions? }`, `update` and `delete` only with `mcp.destructiveEnabled`), none unless set ([mcp.md](./mcp.md)).                                  |
 
 ### Route defaults
 

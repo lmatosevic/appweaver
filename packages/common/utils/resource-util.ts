@@ -48,7 +48,8 @@ export const resourceModelProps: Record<
   Virtual: 'virtualModel',
   Files: 'filesModel',
   FileUpload: 'fileUploadModel',
-  FileDelete: 'fileDeleteModel'
+  FileDelete: 'fileDeleteModel',
+  FileVersionDelete: 'fileVersionDeleteModel'
 };
 
 /**

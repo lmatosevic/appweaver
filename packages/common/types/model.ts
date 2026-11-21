@@ -292,6 +292,17 @@ export type FileField<T = any> = {
   /** Image compression and resizing configuration. Only applies to image files
    * (JPEG, PNG, WebP, AVIF, TIFF). GIF files are passed through unchanged. */
   image?: ImageConfig;
+  /** The previous versions of the files kept with `storage.versions.enabled`: `false` keeps none for this field, an
+   * object overrides the `maxCount` and `maxAge` of the config */
+  versions?: false | FileVersionsConfig;
+};
+
+/** The history of the versions of the files of a file field. */
+export type FileVersionsConfig = {
+  /** The most versions of a file kept, the current one included, `0` for no limit */
+  maxCount?: number;
+  /** How long a version is kept once replaced, a duration (`30d`), empty to keep it until `maxCount` drops it */
+  maxAge?: string;
 };
 
 /** The value type of a time series field. */

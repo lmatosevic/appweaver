@@ -13,6 +13,11 @@
     "database": {
       "url": "file:./data/cms-api.db"
     },
+    "storage": {
+      "versions": {
+        "enabled": true
+      }
+    },
     "memory": {
       "redis": {
         "url": "redis://${REDIS_HOST:-localhost}:6379/0"

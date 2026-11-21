@@ -63,6 +63,25 @@ export default createModel({
       maxLength: 36,
       required: false,
       hidden: true
+    },
+    // The versions of a file, numbered from 1, the current one having no
+    // `supersededAt`. Every version after the first one refers to the first
+    // version by its id, stored as text like the owning resource id
+    version: {
+      type: 'int',
+      minimum: 1,
+      default: 1,
+      example: 1
+    },
+    lineageId: {
+      type: 'string',
+      maxLength: 36,
+      required: false,
+      hidden: true
+    },
+    supersededAt: {
+      type: 'dateTime',
+      required: false
     }
   },
   virtual: {
@@ -77,5 +96,5 @@ export default createModel({
     }
   },
   // Leads with the exact match columns, so the prefix also serves lookups
-  index: [['resourceName', 'resourceId', 'resourceField']]
+  index: [['resourceName', 'resourceId', 'resourceField'], ['lineageId']]
 });

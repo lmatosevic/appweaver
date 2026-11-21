@@ -335,17 +335,20 @@ model Seeder {
 }
 
 model File {
-  id            Int     @id @default(autoincrement())
-  name          String  @unique @db.VarChar(1023)
-  originalName  String  @db.VarChar(255)
-  mimeType      String  @db.VarChar(127)
+  id            Int       @id @default(autoincrement())
+  name          String    @unique @db.VarChar(1023)
+  originalName  String    @db.VarChar(255)
+  mimeType      String    @db.VarChar(127)
   sizeBytes     Int
-  checksum      String  @db.VarChar(127)
-  title         String? @db.VarChar(511)
-  description   String? @db.VarChar(4095)
-  resourceField String? @db.VarChar(255)
-  resourceName  String? @db.VarChar(255)
-  resourceId    String? @db.VarChar(36)
+  checksum      String    @db.VarChar(127)
+  title         String?   @db.VarChar(511)
+  description   String?   @db.VarChar(4095)
+  resourceField String?   @db.VarChar(255)
+  resourceName  String?   @db.VarChar(255)
+  resourceId    String?   @db.VarChar(36)
+  version       Int       @default(1)
+  lineageId     String?   @db.VarChar(36)
+  supersededAt  DateTime?
 
   /// Related models with file columns
   attachmentsTicketMessages TicketMessage[] @relation("TicketMessageAttachmentsFile")
@@ -360,6 +363,7 @@ model File {
   deletedById Int?
 
   @@index([resourceName, resourceId, resourceField])
+  @@index([lineageId])
   @@index([createdById])
   @@index([deletedById])
 }

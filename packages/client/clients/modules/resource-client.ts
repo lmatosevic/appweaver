@@ -7,11 +7,37 @@ import { BulkItem, BulkResponse, ResourceId } from '../../types';
 /** The resource types added after the first release, optional so that a client generated before them still compiles. */
 type OptionalResourceTypes =
   | 'replace'
+  | 'fileVersionDelete'
   | 'seriesWrite'
   | 'seriesBulkWrite'
   | 'seriesQuery'
   | 'seriesPoints'
   | 'seriesBulkPoints';
+
+/** A file uploaded as a new version of a current file of its field, named by `replace`. */
+export type FileReplace = {
+  /** The new content */
+  file: File | Blob;
+  /** The name of the current file the new content replaces */
+  replace: string;
+};
+
+/** The files of an upload by field, each a file, or a {@link FileReplace} uploading a new version of a file. */
+export type FileUploadInput<Resource extends ResourceType> = {
+  [K in keyof Resource['fileUpload']]?: Resource['fileUpload'][K] extends
+    | unknown[]
+    | undefined
+    ? (File | Blob | FileReplace)[]
+    : File | Blob | FileReplace;
+};
+
+/** A file record of a resource, the type of the items of its file fields. */
+export type ResourceFile<Resource extends ResourceType> =
+  NonNullable<Resource['files'][keyof Resource['files']]> extends infer F
+    ? F extends (infer E)[]
+      ? E
+      : F
+    : never;
 
 /** The points of a write of the time series of a resource. */
 type SeriesWritePoints<Resource extends ResourceType> =
@@ -264,7 +290,9 @@ export class ResourceClient<Resource extends ResourceType>
   /**
    * Uploads one or more files to the resource record.
    *
-   * Each entry in `files` maps a field name to a single `File` or an array of `File` objects.
+   * Each entry in `files` maps a field name to a single `File` or an array of `File` objects. With file versions, a
+   * `{ file, replace }` entry uploads a new version of the current file named by `replace`, sent as the
+   * `<field>:replace` part before the file.
    *
    * @param {ResourceId} id - The ID of the resource for which to upload files.
    * @param {Object} files - A map of field names to the file(s) to upload.
@@ -273,20 +301,21 @@ export class ResourceClient<Resource extends ResourceType>
    */
   public async uploadFiles(
     id: ResourceId,
-    files: Resource['fileUpload'],
+    files: FileUploadInput<Resource>,
     options: RequestOptions = {}
   ): Promise<Resource['files']> {
     const formData = new FormData();
 
     for (const [fieldName, fileData] of Object.entries(
-      files as Record<string, File | File[]>
+      files as Record<string, Blob | FileReplace | (Blob | FileReplace)[]>
     )) {
-      if (Array.isArray(fileData)) {
-        for (const file of fileData) {
+      for (const file of Array.isArray(fileData) ? fileData : [fileData]) {
+        if (file instanceof Blob) {
           formData.append(fieldName, file);
+        } else {
+          formData.append(`${fieldName}:replace`, file.replace);
+          formData.append(fieldName, file.file);
         }
-      } else {
-        formData.append(fieldName, fileData);
       }
     }
 
@@ -325,6 +354,62 @@ export class ResourceClient<Resource extends ResourceType>
         }
       }
     });
+  }
+
+  /**
+   * Lists the versions of a current file of the resource record, newest first (`GET /{id}/file-versions`). A previous
+   * version is read from its `url`, the URL of the current file with its `version`.
+   *
+   * @param {ResourceId} id - The ID of the resource owning the file.
+   * @param {string} name - The name of the current file.
+   * @param {RequestOptions} options - Additional request options.
+   * @return The versions of the file, the current one first.
+   */
+  public async fileVersions<FileRecord = ResourceFile<Resource>>(
+    id: ResourceId,
+    name: string,
+    options: RequestOptions = {}
+  ): Promise<FileRecord[]> {
+    return this.sendRequest('get', `${this.basePath}/{id}/file-versions`, {
+      ...options,
+      params: {
+        ...(options.params ?? {}),
+        path: {
+          id
+        },
+        query: { ...(options.params?.query ?? {}), name }
+      }
+    });
+  }
+
+  /**
+   * Deletes versions of the files of the resource record (`POST /{id}/delete-file-versions`), by the name of the
+   * current file and the version number. Deleting the current version (`latest`) makes the previous one current.
+   *
+   * @param {ResourceId} id - The ID of the resource owning the files.
+   * @param {Object} versions - The versions to delete by file field.
+   * @param {RequestOptions} options - Additional request options.
+   * @return The deleted versions.
+   */
+  public async deleteFileVersions<FileRecord = ResourceFile<Resource>>(
+    id: ResourceId,
+    versions: Resource['fileVersionDelete'],
+    options: RequestOptions = {}
+  ): Promise<FileRecord[]> {
+    return this.sendRequest(
+      'post',
+      `${this.basePath}/{id}/delete-file-versions`,
+      {
+        ...options,
+        body: versions,
+        params: {
+          ...(options.params ?? {}),
+          path: {
+            id
+          }
+        }
+      }
+    );
   }
 
   /**

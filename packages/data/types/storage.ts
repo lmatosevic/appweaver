@@ -28,5 +28,15 @@ export type UploadedFile = {
   file: Readable & { bytesRead: number; truncated: boolean };
 };
 
-/** A part of a multipart upload: a file, or a field the file services skip. */
-export type UploadPart = UploadedFile | { type: 'field'; fieldname: string };
+/** A part of a multipart upload: a file, or a field, of which the file services read the `<field>:replace` ones. */
+export type UploadPart =
+  | UploadedFile
+  | { type: 'field'; fieldname: string; value?: unknown };
+
+/** A version of a file to delete: the name of the current file, and the version number or `latest`. */
+export type FileVersionDelete = {
+  /** The name of the current file */
+  name: string;
+  /** The version to delete, `latest` for the current one, whose previous version becomes the current one */
+  version: number | 'latest';
+};

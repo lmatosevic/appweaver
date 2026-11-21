@@ -131,8 +131,8 @@ model Seeder {
 }
 
 model File {
-  id            Int     @id @default(autoincrement())
-  name          String  @unique
+  id            Int       @id @default(autoincrement())
+  name          String    @unique
   originalName  String
   mimeType      String
   sizeBytes     Int
@@ -142,6 +142,9 @@ model File {
   resourceField String?
   resourceName  String?
   resourceId    String?
+  version       Int       @default(1)
+  lineageId     String?
+  supersededAt  DateTime?
 
   /// Related models with file columns
   avatarUsers User[] @relation("UserAvatarFile")
@@ -156,6 +159,7 @@ model File {
   deletedById Int?
 
   @@index([resourceName, resourceId, resourceField])
+  @@index([lineageId])
   @@index([createdById])
   @@index([deletedById])
 }

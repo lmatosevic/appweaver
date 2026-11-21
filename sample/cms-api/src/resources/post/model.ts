@@ -146,7 +146,9 @@ export default createModel({
       image: {
         quality: 80,
         maxWidth: 1920
-      }
+      },
+      // A new cover image replaces the previous one without keeping it
+      versions: false
     },
     galleryImages: {
       output: {
@@ -156,7 +158,9 @@ export default createModel({
       array: true,
       mimeType: 'image/*',
       maxSize: '5 MB',
-      maxCount: 10
+      maxCount: 10,
+      // A gallery image replaced by a new one keeps its last two versions
+      versions: { maxCount: 3 }
     }
   },
   create: {

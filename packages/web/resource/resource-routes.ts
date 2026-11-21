@@ -16,8 +16,10 @@ import {
 import {
   resourceConfig,
   FileService,
+  FileVersionDelete,
   ExportService,
   aggregateFiles,
+  hasFileVersioning,
   maxFileSize
 } from '@appweaver/data';
 import { createSchema } from './resource-schema';
@@ -83,6 +85,8 @@ export function resourceRoutes(
     'export',
     'fileUpload',
     'fileDelete',
+    'fileVersions',
+    'fileVersionDelete',
     'seriesWrite',
     'seriesQuery',
     'seriesDelete',
@@ -413,6 +417,59 @@ export function resourceRoutes(
           );
 
           return reply.send(aggregateFiles(files, config));
+        }
+      );
+    }
+
+    // Registered only while a file field keeps versions
+    const hasVersions =
+      hasFiles && hasFileVersioning(resourceModel.config.files);
+
+    const fileVersionsConfig = routeConfig('fileVersions');
+    if (hasVersions && !fileVersionsConfig?.exclude) {
+      server.get<{ Params: IdParams; Querystring: { name: string } }>(
+        '/:id/file-versions',
+        {
+          schema: schema.fileVersionsSchema,
+          onRequest: routeAuth(fileVersionsConfig),
+          config: fileVersionsConfig
+        },
+        async (request, reply) => {
+          const resource = await service.find(request.params.id);
+
+          const versions = await inject(FileService).listVersions(
+            request.query.name,
+            resource,
+            service.client
+          );
+
+          return reply.send(versions);
+        }
+      );
+    }
+
+    const fileVersionDeleteConfig = routeConfig('fileVersionDelete');
+    if (hasVersions && !fileVersionDeleteConfig?.exclude) {
+      server.post<{
+        Params: IdParams;
+        Body: Record<string, FileVersionDelete | FileVersionDelete[]>;
+      }>(
+        '/:id/delete-file-versions',
+        {
+          schema: schema.fileVersionDeleteSchema,
+          onRequest: routeAuth(fileVersionDeleteConfig),
+          config: fileVersionDeleteConfig
+        },
+        async (request, reply) => {
+          const resource = await service.find(request.params.id);
+
+          const versions = await inject(FileService).deleteVersions(
+            request.body,
+            resource,
+            service.client
+          );
+
+          return reply.send(versions);
         }
       );
     }

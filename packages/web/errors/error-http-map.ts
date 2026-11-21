@@ -268,6 +268,18 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
   [ErrorCode.FileUploadFailed]: { status: 400, title: 'File upload failed' },
   [ErrorCode.FileDeleteFailed]: { status: 400, title: 'File delete failed' },
   [ErrorCode.FileStorageError]: { status: 500, title: 'File storage error' },
+  [ErrorCode.FileVersionNotFound]: {
+    status: 404,
+    title: 'File version not found'
+  },
+  [ErrorCode.FileVersioningDisabled]: {
+    status: 400,
+    title: 'File versioning disabled'
+  },
+  [ErrorCode.FileReplaceTargetInvalid]: {
+    status: 400,
+    title: 'Invalid file to replace'
+  },
 
   [ErrorCode.ExportFailed]: { status: 500, title: 'Export failed' },
 

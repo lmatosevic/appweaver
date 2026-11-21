@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { ErrorCode, RouteSchema } from '@appweaver/common';
+import { fileVersionsConfig } from '@appweaver/data';
 import { errorResponses } from '../errors';
 
 export const FileName = Type.Object({
@@ -12,14 +13,25 @@ export const FileRangeHeader = Type.Object({
 
 export const FileResponse = Type.String({ format: 'binary' });
 
+export const FileVersionQuery = Type.Object({
+  version: Type.Optional(
+    Type.Integer({
+      minimum: 1,
+      description: 'The version of the file, the current one by default'
+    })
+  )
+});
+
 /**
  * Builds the route schema of the public or protected file access route, responding with the full or a partial
- * binary content of a file.
+ * binary content of a file. With `storage.versions.enabled`, the `version` query parameter selects a previous version.
  *
  * @param {boolean} isPublic - Whether the route serves public files, without authentication.
  * @return {RouteSchema} The route schema.
  */
 export function createFileAccessSchema(isPublic: boolean): RouteSchema {
+  const versions = fileVersionsConfig.ENABLED;
+
   return {
     tags: ['Files'],
     security: isPublic ? [] : [{ bearer: [] }],
@@ -47,10 +59,14 @@ export function createFileAccessSchema(isPublic: boolean): RouteSchema {
         ErrorCode.AuthTokenExpired,
         ErrorCode.FileNotFound,
         ErrorCode.FileForbidden,
+        ...(versions
+          ? [ErrorCode.FileVersioningDisabled, ErrorCode.FileVersionNotFound]
+          : []),
         ErrorCode.FileStorageError
       )
     },
     params: FileName,
-    headers: FileRangeHeader
+    headers: FileRangeHeader,
+    ...(versions ? { querystring: FileVersionQuery } : {})
   };
 }

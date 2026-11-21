@@ -310,6 +310,9 @@ export const FileScalarFieldEnum = {
   resourceField: 'resourceField',
   resourceName: 'resourceName',
   resourceId: 'resourceId',
+  version: 'version',
+  lineageId: 'lineageId',
+  supersededAt: 'supersededAt',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt',
   createdById: 'createdById',
@@ -499,7 +502,8 @@ export const FileOrderByRelevanceFieldEnum = {
   description: 'description',
   resourceField: 'resourceField',
   resourceName: 'resourceName',
-  resourceId: 'resourceId'
+  resourceId: 'resourceId',
+  lineageId: 'lineageId'
 } as const
 
 export type FileOrderByRelevanceFieldEnum = (typeof FileOrderByRelevanceFieldEnum)[keyof typeof FileOrderByRelevanceFieldEnum]

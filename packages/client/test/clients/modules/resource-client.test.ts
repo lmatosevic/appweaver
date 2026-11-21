@@ -386,6 +386,67 @@ describe('resource-client', () => {
     });
   });
 
+  describe('uploadFiles with replace', () => {
+    test('sends the replace part before the new version of a file', async () => {
+      const { stub, resource } = createResource();
+      const image = new File(['v2'], 'image.png', { type: 'image/png' });
+      const extra = new File(['b'], 'b.png', { type: 'image/png' });
+
+      await resource.uploadFiles(4, {
+        gallery: [{ file: image, replace: 'a-1.png' }, extra]
+      });
+
+      const formData = stub.lastCall().params.body as FormData;
+      expect([...formData.keys()]).toEqual([
+        'gallery:replace',
+        'gallery',
+        'gallery'
+      ]);
+      expect(formData.get('gallery:replace')).toBe('a-1.png');
+      expect((formData.getAll('gallery') as File[]).map((f) => f.name)).toEqual(
+        ['image.png', 'b.png']
+      );
+    });
+  });
+
+  describe('fileVersions', () => {
+    test('gets the versions of a file by its name', async () => {
+      const { stub, resource } = createResource({ data: [] });
+
+      await resource.fileVersions(4, 'image.png', {
+        params: { query: { extra: 1 } }
+      });
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'get',
+        path: '/api/posts/{id}/file-versions'
+      });
+      expect(stub.lastCall().params.params).toEqual({
+        path: { id: 4 },
+        query: { extra: 1, name: 'image.png' }
+      });
+    });
+  });
+
+  describe('deleteFileVersions', () => {
+    test('posts the versions to delete', async () => {
+      const { stub, resource } = createResource({ data: [] });
+
+      await resource.deleteFileVersions(4, {
+        image: { name: 'image.png', version: 'latest' }
+      });
+
+      expect(stub.lastCall()).toMatchObject({
+        method: 'post',
+        path: '/api/posts/{id}/delete-file-versions'
+      });
+      expect(stub.lastCall().params.params.path).toEqual({ id: 4 });
+      expect(stub.lastCall().params.body).toEqual({
+        image: { name: 'image.png', version: 'latest' }
+      });
+    });
+  });
+
   describe('deleteFiles', () => {
     test('posts the file deletion payload', async () => {
       const { stub, resource } = createResource();

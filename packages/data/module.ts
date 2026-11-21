@@ -17,6 +17,7 @@ import {
   twoFactorModelConfig
 } from './security/auth-config';
 import { spatialConfig } from './spatial/spatial-config';
+import { fileVersionsConfig } from './storage/file-versions-config';
 import { imageConfig } from './storage/image-config';
 import { databaseSeriesConfig } from './timeseries/database-series-config';
 import { timescaleConfig } from './timeseries/timescale-config';
@@ -29,6 +30,7 @@ export default defineModule({
     resourceConfig,
     exportConfig,
     imageConfig,
+    fileVersionsConfig,
     passwordConfig,
     apiKeyConfig,
     connectedAccountConfig,

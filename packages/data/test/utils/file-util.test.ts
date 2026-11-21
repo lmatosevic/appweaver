@@ -1,7 +1,9 @@
-import { ResourceModel } from '@appweaver/common';
+import { configOverrides, ResourceModel } from '@appweaver/common';
 import {
   deletedResourceFileFields,
+  fileVersioning,
   generateFileName,
+  hasFileVersioning,
   sanitizeFilename,
   sanitizeFileSegment,
   validateFileNamePatterns
@@ -178,6 +180,55 @@ describe('file-util', () => {
         deleted: [],
         kept: []
       });
+    });
+  });
+
+  describe('fileVersioning', () => {
+    afterEach(() => {
+      for (const key of Object.keys(configOverrides)) {
+        delete configOverrides[key];
+      }
+    });
+
+    test('keeps no versions unless enabled', () => {
+      expect(fileVersioning({})).toBeUndefined();
+      expect(hasFileVersioning({ image: {} })).toBe(false);
+    });
+
+    test('takes the limits of the config, overridden by the field', () => {
+      configOverrides.STORAGE_VERSIONS_ENABLED = true;
+      configOverrides.STORAGE_VERSIONS_MAX_AGE = '1d';
+
+      expect(fileVersioning({})).toEqual({ maxCount: 10, maxAge: 86_400 });
+      expect(
+        fileVersioning({ versions: { maxCount: 3, maxAge: '1h' } })
+      ).toEqual({ maxCount: 3, maxAge: 3_600 });
+      expect(fileVersioning({ versions: false })).toBeUndefined();
+      expect(fileVersioning(undefined)).toBeUndefined();
+    });
+
+    test('keeps a version without a max age by default', () => {
+      configOverrides.STORAGE_VERSIONS_ENABLED = true;
+
+      expect(fileVersioning({})).toEqual({ maxCount: 10, maxAge: undefined });
+    });
+
+    test('rejects a max age that is not a duration', () => {
+      configOverrides.STORAGE_VERSIONS_ENABLED = true;
+
+      expect(() => fileVersioning({ versions: { maxAge: 'a week' } })).toThrow(
+        'not a duration'
+      );
+    });
+
+    test('finds a field keeping versions', () => {
+      configOverrides.STORAGE_VERSIONS_ENABLED = true;
+
+      expect(
+        hasFileVersioning({ image: { versions: false }, document: {} })
+      ).toBe(true);
+      expect(hasFileVersioning({ image: { versions: false } })).toBe(false);
+      expect(hasFileVersioning(undefined)).toBe(false);
     });
   });
 });

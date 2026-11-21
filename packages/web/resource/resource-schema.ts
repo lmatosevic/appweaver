@@ -455,7 +455,11 @@ export function createSchema(
       security: authSchema(routeAuthTypes['fileUpload']),
       headers: captchaHeaderSchema(routeCaptcha['fileUpload']),
       summary: `Upload ${resourceName} files`,
-      description: `Upload ${resourceName} files`,
+      description:
+        `Upload ${resourceName} files. With file versions, a text part ` +
+        '`<field>:replace` holding the name of a current file makes the next ' +
+        'file of the field its new version, and a file of a single file field ' +
+        'always replaces the current one as its new version',
       consumes: ['multipart/form-data'],
       response: {
         200: resourceModel.filesModel,
@@ -470,6 +474,8 @@ export function createSchema(
           ErrorCode.FileInvalidPath,
           ErrorCode.FileForbidden,
           ErrorCode.FileUploadFailed,
+          ErrorCode.FileVersioningDisabled,
+          ErrorCode.FileReplaceTargetInvalid,
           ErrorCode.FileStorageError
         )
       },
@@ -496,6 +502,61 @@ export function createSchema(
         )
       },
       body: resourceModel.fileDeleteModel,
+      params: idParams
+    },
+    fileVersionsSchema: {
+      tags: [tag],
+      security: authSchema(routeAuthTypes['fileVersions']),
+      headers: captchaHeaderSchema(routeCaptcha['fileVersions']),
+      summary: `List ${resourceName} file versions`,
+      description:
+        `List the versions of a current ${resourceName} file, newest first, ` +
+        'the URL of a previous version being the URL of the current file with ' +
+        'its `version`',
+      response: {
+        200: Type.Array(Type.Ref('FileSingle')),
+        ...routeErrors(
+          'fileVersions',
+          ErrorCode.ResourceNotFound,
+          ErrorCode.ResourceForbidden,
+          ErrorCode.FileNotFound,
+          ErrorCode.FileForbidden,
+          ErrorCode.FileVersioningDisabled
+        )
+      },
+      querystring: Type.Object({
+        name: Type.String({
+          description: 'The name of the current file',
+          example: 'image_123.png'
+        })
+      }),
+      params: idParams
+    },
+    fileVersionDeleteSchema: {
+      tags: [tag],
+      security: authSchema(routeAuthTypes['fileVersionDelete']),
+      headers: captchaHeaderSchema(routeCaptcha['fileVersionDelete']),
+      summary: `Delete ${resourceName} file versions`,
+      description:
+        `Delete versions of ${resourceName} files, by the name of the current ` +
+        'file and the version number. Deleting the current version (`latest`) ' +
+        'makes the previous version the current one',
+      response: {
+        200: Type.Array(Type.Ref('FileSingle')),
+        ...routeErrors(
+          'fileVersionDelete',
+          ErrorCode.ResourceNotFound,
+          ErrorCode.ResourceForbidden,
+          ErrorCode.FileNotFound,
+          ErrorCode.FileForbidden,
+          ErrorCode.FileNoneProvided,
+          ErrorCode.FileDeleteFailed,
+          ErrorCode.FileVersioningDisabled,
+          ErrorCode.FileVersionNotFound,
+          ErrorCode.FileStorageError
+        )
+      },
+      body: resourceModel.fileVersionDeleteModel,
       params: idParams
     },
     bulkCreateSchema: {
