@@ -214,6 +214,45 @@ CREATE TABLE "_seeders" (
 );
 
 -- CreateTable
+CREATE TABLE "AuditLog" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "category" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "action" TEXT,
+    "method" TEXT,
+    "route" TEXT,
+    "path" TEXT,
+    "query" JSONB,
+    "body" JSONB,
+    "status" INTEGER,
+    "errorCode" TEXT,
+    "duration" REAL,
+    "userId" TEXT,
+    "authType" TEXT,
+    "apiKeyId" TEXT,
+    "ip" TEXT,
+    "userAgent" TEXT,
+    "requestId" TEXT,
+    "traceId" TEXT,
+    "model" TEXT,
+    "resourceId" TEXT,
+    "metadata" JSONB,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "AuditChange" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "model" TEXT NOT NULL,
+    "resourceId" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "diff" JSONB NOT NULL,
+    "auditLogId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AuditChange_auditLogId_fkey" FOREIGN KEY ("auditLogId") REFERENCES "AuditLog" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "File" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
@@ -414,6 +453,24 @@ CREATE INDEX "Permission_createdById_idx" ON "Permission"("createdById");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_seeders_seederName_key" ON "_seeders"("seederName");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_createdAt_idx" ON "AuditLog"("createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "AuditLog_category_createdAt_idx" ON "AuditLog"("category", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "AuditLog_userId_createdAt_idx" ON "AuditLog"("userId", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "AuditLog_model_resourceId_idx" ON "AuditLog"("model", "resourceId");
+
+-- CreateIndex
+CREATE INDEX "AuditChange_model_resourceId_createdAt_idx" ON "AuditChange"("model", "resourceId", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "AuditChange_auditLogId_idx" ON "AuditChange"("auditLogId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "File_name_key" ON "File"("name");

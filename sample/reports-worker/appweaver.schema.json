@@ -134,6 +134,142 @@
             }
           }
         },
+        "audit": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "default": false,
+              "type": "boolean"
+            },
+            "keepDatabaseTable": {
+              "default": false,
+              "type": "boolean"
+            },
+            "retention": {
+              "default": "90d",
+              "type": "string"
+            },
+            "retentionInterval": {
+              "default": "1h",
+              "type": "string"
+            },
+            "retentionWorker": {
+              "default": true,
+              "type": "boolean"
+            },
+            "flushInterval": {
+              "default": "1s",
+              "type": "string"
+            },
+            "batchSize": {
+              "minimum": 1,
+              "default": 100,
+              "type": "integer"
+            },
+            "maxBuffer": {
+              "minimum": 1,
+              "default": 10000,
+              "type": "integer"
+            },
+            "excludeModels": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "excludeActions": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "redactKeys": {
+              "default": [
+                "code"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "anonymizeIp": {
+              "default": false,
+              "type": "boolean"
+            },
+            "maxValueSize": {
+              "minimum": 16,
+              "default": 2048,
+              "type": "integer"
+            },
+            "auth": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "retention": {
+                  "default": "",
+                  "type": "string"
+                }
+              }
+            },
+            "changes": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "retention": {
+                  "default": "",
+                  "type": "string"
+                }
+              }
+            },
+            "custom": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "retention": {
+                  "default": "",
+                  "type": "string"
+                }
+              }
+            },
+            "read": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "retention": {
+                  "default": "",
+                  "type": "string"
+                }
+              }
+            },
+            "write": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "retention": {
+                  "default": "",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
         "cache": {
           "type": "object",
           "properties": {
@@ -441,6 +577,9 @@
               },
               "properties": {
                 "app": {
+                  "$ref": "#/definitions/logLevel"
+                },
+                "audit": {
                   "$ref": "#/definitions/logLevel"
                 },
                 "cache": {

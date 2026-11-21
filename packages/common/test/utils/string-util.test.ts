@@ -18,7 +18,8 @@ import {
   textToBytes,
   toText,
   uncapitalize,
-  uuid
+  uuidv4,
+  uuidv7
 } from '../../utils/string-util';
 
 const UUID_PATTERN =
@@ -121,13 +122,35 @@ describe('string-util', () => {
     });
   });
 
-  describe('uuid', () => {
+  describe('uuidv4', () => {
     test('generates a v4 uuid', () => {
-      expect(uuid()).toMatch(UUID_PATTERN);
+      expect(uuidv4()).toMatch(UUID_PATTERN);
     });
 
     test('generates unique values', () => {
-      expect(uuid()).not.toBe(uuid());
+      expect(uuidv4()).not.toBe(uuidv4());
+    });
+  });
+
+  describe('uuidv7', () => {
+    test('generates a v7 uuid', () => {
+      expect(uuidv7()).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+      );
+    });
+
+    test('starts with the milliseconds of its time', () => {
+      const time = Date.UTC(2026, 10, 21, 12);
+
+      const id = uuidv7(time);
+
+      expect(parseInt(id.replace('-', '').slice(0, 12), 16)).toBe(time);
+    });
+
+    test('sorts by the time it was generated at', () => {
+      const ids = [uuidv7(3000), uuidv7(1000), uuidv7(2000)];
+
+      expect([...ids].sort()).toEqual([ids[1], ids[2], ids[0]]);
     });
   });
 

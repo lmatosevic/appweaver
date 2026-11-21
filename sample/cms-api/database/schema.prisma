@@ -349,6 +349,60 @@ model Seeder {
   @@map("_seeders")
 }
 
+model AuditLog {
+  id         String  @id @default(uuid(7))
+  category   String
+  source     String
+  action     String?
+  method     String?
+  route      String?
+  path       String?
+  query      Json?
+  body       Json?
+  status     Int?
+  errorCode  String?
+  duration   Float?
+  userId     String?
+  authType   String?
+  apiKeyId   String?
+  ip         String?
+  userAgent  String?
+  requestId  String?
+  traceId    String?
+  model      String?
+  resourceId String?
+  metadata   Json?
+
+  /// Related columns
+  changes AuditChange[] @relation("AuditLogChangesAuditChange")
+
+  /// Audit columns
+  createdAt DateTime @default(now())
+
+  @@index(createdAt(sort: Desc))
+  @@index([category, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([model, resourceId])
+}
+
+model AuditChange {
+  id         String @id @default(uuid(7))
+  model      String
+  resourceId String
+  action     String
+  diff       Json
+
+  /// Related columns
+  auditLog   AuditLog @relation("AuditLogChangesAuditChange", fields: [auditLogId], references: [id], onDelete: Cascade)
+  auditLogId String
+
+  /// Audit columns
+  createdAt DateTime @default(now())
+
+  @@index([model, resourceId, createdAt(sort: Desc)])
+  @@index([auditLogId])
+}
+
 model File {
   id            Int       @id @default(autoincrement())
   name          String    @unique

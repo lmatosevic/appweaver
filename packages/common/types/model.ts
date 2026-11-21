@@ -108,6 +108,9 @@ type BaseScalarField<T, G = never, IsArray extends boolean = boolean> = {
   unique?: boolean;
   /** Exclude field from API output */
   hidden?: boolean;
+  /** Keep the value out of the audit log: a change of the field is recorded, its values replaced with `[Redacted]`.
+   * The hidden fields and the fields named like a secret (`password`, `token`, ...) are redacted without it */
+  redact?: boolean;
   /** Example value used in the generated OpenAPI (Swagger) schema documentation */
   example?: PrimitiveType;
 };

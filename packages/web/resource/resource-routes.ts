@@ -42,6 +42,7 @@ type FullRouteConfig = RouteConfig &
   RouteCacheConfig &
   Pick<QueryRouteConfig, 'method'> & {
     resourceRouteName: ResourceRouteName;
+    resourceModelName: string;
     maxItems?: number;
     returnRecords?: boolean;
     maxPoints?: number;
@@ -69,6 +70,7 @@ export function resourceRoutes(
   ): FullRouteConfig | undefined => ({
     ...resolveRouteConfig(configName, routesConfig),
     resourceRouteName: configName,
+    resourceModelName: name,
     cacheModelName: ['find', 'query', 'aggregate'].includes(configName)
       ? name
       : undefined

@@ -8,7 +8,7 @@ import {
   spanErrorType,
   telemetryEnabled,
   telemetryHistogram,
-  uuid,
+  uuidv4,
   withSpan
 } from '@appweaver/common';
 import { schedulerConfig } from '@appweaver/core';
@@ -55,7 +55,7 @@ export class CronScheduler extends Scheduler<CronJob> {
 
   public addJob(jobParams: JobParams): string {
     const { cronTime, onTick, timeZone, name, providerOptions } = jobParams;
-    const jobId = uuid();
+    const jobId = uuidv4();
     this._jobs[jobId] = CronJob.from({
       start: schedulerConfig.AUTO_START_JOB,
       waitForCompletion: true,

@@ -1,4 +1,4 @@
-import { createLogger, PubSub, PubSubHandler, uuid } from '@appweaver/common';
+import { createLogger, PubSub, PubSubHandler, uuidv4 } from '@appweaver/common';
 
 const logger = createLogger('pubsub');
 
@@ -31,7 +31,7 @@ export class MemoryPubSub extends PubSub {
     channel: string,
     handler: PubSubHandler<T>
   ): Promise<string> {
-    const subscriptionId = uuid();
+    const subscriptionId = uuidv4();
     this._subscriptions.set(subscriptionId, { channel, handler });
     return subscriptionId;
   }

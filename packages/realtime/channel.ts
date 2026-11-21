@@ -1,5 +1,5 @@
 import { TSchema } from '@sinclair/typebox';
-import { PubSub, uuid } from '@appweaver/common';
+import { PubSub, uuidv4 } from '@appweaver/common';
 import { inject } from '@appweaver/core';
 import { Channel, ChannelConfig } from './types';
 import { createRegistry } from './utils/registry';
@@ -51,7 +51,7 @@ export function createChannel<P extends TSchema, Q extends TSchema = TSchema>(
     config,
     publish: async (payload) => {
       validatePayload(config.payload, payload);
-      const message: ChannelMessage = { eventId: uuid(), payload };
+      const message: ChannelMessage = { eventId: uuidv4(), payload };
       await inject(PubSub).publish(
         PUBSUB_CHANNEL_PREFIX + config.name,
         message

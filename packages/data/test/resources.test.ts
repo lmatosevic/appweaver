@@ -16,7 +16,8 @@ describe('core resources barrel', () => {
       SECURITY_API_KEY_ENABLED: 'true',
       SECURITY_STORE_KEEP_DATABASE_TABLE: 'true',
       SECURITY_OAUTH2_GOOGLE_ENABLED: 'true',
-      SECURITY_ACCOUNT_2FA_ENABLED: 'true'
+      SECURITY_ACCOUNT_2FA_ENABLED: 'true',
+      AUDIT_ENABLED: 'true'
     });
     jest.resetModules();
 
@@ -47,6 +48,8 @@ describe('core resources barrel', () => {
   test('should export every framework model', () => {
     expect(modelNames.sort()).toEqual([
       'ApiKey',
+      'AuditChange',
+      'AuditLog',
       'ConnectedAccount',
       'File',
       'OneTimeToken',

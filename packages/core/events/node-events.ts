@@ -4,7 +4,7 @@ import {
   EventListener,
   Events,
   createLogger,
-  uuid
+  uuidv4
 } from '@appweaver/common';
 import { eventsConfig } from './events-config';
 import { afterCommit, currentTransaction } from '../context';
@@ -31,7 +31,7 @@ export class NodeEvents extends Events {
     event: ActionType,
     listener: EventListener<T>
   ): string {
-    const listenerId = uuid();
+    const listenerId = uuidv4();
     const eventName = this.resourceEventName(resourceName, event);
     this._eventListeners[listenerId] = { eventName, listener };
     this.on(eventName, listener);

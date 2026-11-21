@@ -12,7 +12,7 @@ import {
   startSpan,
   telemetryEnabled,
   textToBytes,
-  uuid
+  uuidv4
 } from '@appweaver/common';
 import { inject } from '@appweaver/core';
 import { realtimeConfig } from '../config';
@@ -125,7 +125,7 @@ export class StreamHub implements OnReady, OnDestroy {
   static [LIFECYCLE] = true;
 
   /** The ID of this instance in the relay */
-  public readonly instanceId: string = uuid();
+  public readonly instanceId: string = uuidv4();
 
   /** @internal */
   private readonly _pubsub = inject(PubSub);
@@ -210,7 +210,7 @@ export class StreamHub implements OnReady, OnDestroy {
     const topic = this.topic(stream, key);
     const instance = new StreamInstance(
       ++this._sid,
-      uuid(),
+      uuidv4(),
       stream.name,
       key,
       topic.settings,
@@ -248,7 +248,7 @@ export class StreamHub implements OnReady, OnDestroy {
     settings: StreamSettings,
     owner: string | null
   ): StreamInstance {
-    const streamId = uuid();
+    const streamId = uuidv4();
     const topic = this.topicFor(ACTION_TOPIC, streamId, settings);
     const instance = new StreamInstance(
       ++this._sid,

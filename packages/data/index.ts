@@ -1,3 +1,4 @@
+export * from './audit/audit-service';
 export * from './config';
 export * from './database';
 export * from './export/export-service';

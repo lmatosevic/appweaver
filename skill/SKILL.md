@@ -609,9 +609,10 @@ relation (while 2FA is enabled, managed by the 2FA routes only); and an optional
 `SECURITY_API_KEY_ENABLED` is set). An API key acts as its owner, or within the `roles` and `permissions` it
 lists,
 a subset of its owner's (`AUTH_API_KEY_PERMISSION_DENIED` otherwise), narrowed on every request; see
-[security.md](references/security.md#api-key-scope). A declared `email` overrides only its `hidden`, `example`,
-`minLength`, `maxLength` and `pattern` (it stays the required unique address the sign-in looks the user up by), a
-declared `phone` only its `unique`, `hidden` and `example` (the routes never write it, the phone verification does),
+[security.md](references/security.md#api-key-scope). A declared `email` overrides only its `hidden`, `redact`,
+`example`, `minLength`, `maxLength` and `pattern` (it stays the required unique address the sign-in looks the user up
+by), a declared `phone` only its `unique`, `hidden`, `redact` and `example` (the routes never write it, the phone
+verification does),
 and any other auth field replaces a declared one of the same name.
 
 `createAuthService` extends the config with automatic password hashing on create/update, an optional
@@ -914,6 +915,16 @@ invoices().add(1);
 
 See [telemetry.md](references/telemetry.md) for what is recorded, the config, the backends (`configureTelemetry`) and
 `recordTelemetry` of `@appweaver/testing`.
+
+### Audit log
+
+`audit.enabled` records every request (the user, the client address, the status, the error code) in the `AuditLog`
+table and the changed fields of every record the resource services write in `AuditChange`, the passwords and secrets
+redacted, both kept for `audit.retention`. The `auth`, `read`, `write`, `changes` and `custom` categories are switched
+and kept on their own, the reads off by default. Leave out paths, models and actions with `audit.excludePaths`,
+`audit.excludeModels` and `audit.excludeActions`, or a route with `audit: false`, and keep a field's values out with
+`redact: true`. Code writing through Prisma directly records its changes with `AuditService.recordChange`. See
+[audit.md](references/audit.md).
 
 ### Realtime events
 
@@ -1352,4 +1363,5 @@ npm run lint  # eslint "./**/*.ts"
 - Errors & error responses: [errors.md](references/errors.md)
 - Time series fields, stores & routes: [timeseries.md](references/timeseries.md)
 - OpenTelemetry traces, metrics & logs: [telemetry.md](references/telemetry.md)
+- Audit log of the requests and the changes: [audit.md](references/audit.md)
 - Geo fields & spatial queries: [spatial.md](references/spatial.md)

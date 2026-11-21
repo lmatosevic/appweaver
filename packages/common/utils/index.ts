@@ -4,6 +4,7 @@ export * from './format-util';
 export * from './module-util';
 export * from './object-util';
 export * from './path-util';
+export * from './redact-util';
 export * from './referential-util';
 export * from './resource-util';
 export * from './schema-util';

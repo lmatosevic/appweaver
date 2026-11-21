@@ -51,6 +51,8 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  AuditChange: 'AuditChange',
+  AuditLog: 'AuditLog',
   ApiKey: 'ApiKey',
   ConnectedAccount: 'ConnectedAccount',
   OneTimeToken: 'OneTimeToken',
@@ -73,6 +75,48 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const AuditChangeScalarFieldEnum = {
+  id: 'id',
+  model: 'model',
+  resourceId: 'resourceId',
+  action: 'action',
+  diff: 'diff',
+  auditLogId: 'auditLogId',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditChangeScalarFieldEnum = (typeof AuditChangeScalarFieldEnum)[keyof typeof AuditChangeScalarFieldEnum]
+
+
+export const AuditLogScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  source: 'source',
+  action: 'action',
+  method: 'method',
+  route: 'route',
+  path: 'path',
+  query: 'query',
+  body: 'body',
+  status: 'status',
+  errorCode: 'errorCode',
+  duration: 'duration',
+  userId: 'userId',
+  authType: 'authType',
+  apiKeyId: 'apiKeyId',
+  ip: 'ip',
+  userAgent: 'userAgent',
+  requestId: 'requestId',
+  traceId: 'traceId',
+  model: 'model',
+  resourceId: 'resourceId',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
 export const ApiKeyScalarFieldEnum = {
@@ -209,12 +253,12 @@ export const JsonNullValueInput = {
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
 } as const
 
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const JsonNullValueFilter = {
@@ -232,4 +276,12 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 

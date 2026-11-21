@@ -5,7 +5,7 @@ import {
   HealthCheckResult,
   Memory,
   textToBytes,
-  uuid,
+  uuidv4,
   LockError
 } from '@appweaver/common';
 import { memoryConfig } from './memory-config';
@@ -167,7 +167,7 @@ export class InMemory extends Memory {
     const retryDelay = lockConfig.retryDelay ?? 200;
 
     const resourceKey = `lock:${resource}`;
-    const lockValue = uuid();
+    const lockValue = uuidv4();
     let retries = 0;
 
     do {

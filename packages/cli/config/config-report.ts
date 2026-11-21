@@ -1,9 +1,9 @@
 import { TSchema } from '@sinclair/typebox';
 import {
-  camelToSnakeCase,
   ConfigSectionDefinition,
   configSource,
-  ConfigSource
+  ConfigSource,
+  isSecretName
 } from '@appweaver/common';
 
 /** A key of the config, with its value and where the value comes from. */
@@ -12,9 +12,6 @@ export type ConfigRow = {
   value: unknown;
   source: ConfigSource;
 };
-
-/** The keys whose values are hidden, i.e. passwords, secrets and private keys. */
-const SECRET_KEY = /(PASSWORD|SECRET|TOKEN|PRIVATE_KEY|CREDENTIALS|API_KEY)$/;
 
 /**
  * Reads every key of the config sections, hiding the secret values.
@@ -44,8 +41,7 @@ export function readConfigReport(sections: Iterable<ConfigSectionDefinition>): {
         continue;
       }
       const secret =
-        (property as { secret?: boolean }).secret === true ||
-        SECRET_KEY.test(key);
+        (property as { secret?: boolean }).secret === true || isSecretName(key);
       rows.push({
         key,
         value:
@@ -80,7 +76,7 @@ export function redactRecordSecrets(
   }
   const secret = (name: string) =>
     (fields.properties[name] as { secret?: boolean } | undefined)?.secret ===
-      true || SECRET_KEY.test(camelToSnakeCase(name).toUpperCase());
+      true || isSecretName(name);
   return Object.fromEntries(
     Object.entries(value).map(([entry, object]) => [
       entry,

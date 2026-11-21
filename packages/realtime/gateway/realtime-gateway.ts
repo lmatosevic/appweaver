@@ -14,7 +14,7 @@ import {
   SpanKind,
   textToBytes,
   telemetryEnabled,
-  uuid,
+  uuidv4,
   withSpan
 } from '@appweaver/common';
 import { injectService, inject, runAs } from '@appweaver/core';
@@ -1466,7 +1466,7 @@ export class RealtimeGateway implements OnReady, OnDestroy {
           action,
           ({ current, previous }) => {
             const message: ResourceChannelMessage = {
-              eventId: uuid(),
+              eventId: uuidv4(),
               payload: {
                 model,
                 action,

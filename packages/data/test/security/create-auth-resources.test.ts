@@ -19,7 +19,7 @@ describe('createAuthModel', () => {
     expect(model.config.update.omit).toContain('phone');
   });
 
-  test('overrides only the hidden, example, lengths and pattern of a configured email', () => {
+  test('overrides only the hidden, redact, example, lengths and pattern of a configured email', () => {
     const model: any = createAuthModel({
       name: 'User',
       scalars: {
@@ -28,6 +28,7 @@ describe('createAuthModel', () => {
           required: false,
           unique: false,
           hidden: true,
+          redact: true,
           minLength: 6,
           maxLength: 120,
           format: 'uri',
@@ -42,6 +43,7 @@ describe('createAuthModel', () => {
       type: 'string',
       unique: true,
       hidden: true,
+      redact: true,
       minLength: 6,
       maxLength: 120,
       format: 'email',
@@ -64,7 +66,7 @@ describe('createAuthModel', () => {
     });
   });
 
-  test('overrides only the unique, hidden and example of a configured phone', () => {
+  test('overrides only the unique, hidden, redact and example of a configured phone', () => {
     const model: any = createAuthModel({
       name: 'User',
       scalars: {
@@ -73,6 +75,7 @@ describe('createAuthModel', () => {
           required: true,
           unique: true,
           hidden: true,
+          redact: true,
           maxLength: 32,
           pattern: '^\\d+$',
           example: '+15035550123'
@@ -85,6 +88,7 @@ describe('createAuthModel', () => {
       required: false,
       unique: true,
       hidden: true,
+      redact: true,
       maxLength: 16,
       pattern: '^\\+[1-9]\\d{6,14}$',
       example: '+15035550123'

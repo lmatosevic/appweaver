@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { DefaultGenerationOptions, generateApiKey } from 'generate-api-key';
 import { plural as pluralize, singular as singularize } from 'pluralize';
@@ -120,8 +120,24 @@ export function generateToken(
  * @return {string} A randomly generated UUID in version 4 format, consisting of 36 characters
  * separated by hyphens in the format 8-4-4-4-12.
  */
-export function uuid(): string {
+export function uuidv4(): string {
   return randomUUID();
+}
+
+/**
+ * Generates a UUID in version 7 format: the milliseconds of the given time, then random bits, so the ids sort by the
+ * time they were generated at.
+ *
+ * @param {number} [time=Date.now()] - The time of the id, in milliseconds since the epoch.
+ * @return {string} The UUID in the format 8-4-4-4-12.
+ */
+export function uuidv7(time: number = Date.now()): string {
+  const bytes = randomBytes(16);
+  bytes.writeUIntBE(time, 0, 6);
+  bytes[6] = (bytes[6] & 0x0f) | 0x70;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = bytes.toString('hex');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 /**
@@ -439,7 +455,7 @@ export function replacePatternVariables(
     milliseconds: now.getUTCMilliseconds(),
     timestamp: now.getTime(),
     date: now.toISOString().replace(/[:.]/g, '-'),
-    uuid: uuid(),
+    uuid: uuidv4(),
     hash: generateToken('bytes', 32)
   };
 

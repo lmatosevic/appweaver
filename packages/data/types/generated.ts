@@ -7,6 +7,301 @@ import {
   QuerySort
 } from '@appweaver/common';
 
+export type AuditChange = {
+  id: string;
+  model: string;
+  resourceId: string;
+  action: string;
+  diff: any;
+  auditLog: AuditLogSingle;
+  createdAt: Date;
+};
+
+export type AuditChangeSingle = {
+  id: string;
+  model: string;
+  resourceId: string;
+  action: string;
+  diff: any;
+  createdAt: Date;
+};
+
+export type AuditChangeMultiple = {
+  id: string;
+  model: string;
+  resourceId: string;
+  action: string;
+  diff: any;
+  createdAt: Date;
+};
+
+export type AuditChangeCreate = {
+  model: string;
+  resourceId: string;
+  action: string;
+  diff: any;
+};
+
+export type AuditChangeUpdate = {
+  model?: string;
+  resourceId?: string;
+  action?: string;
+  diff?: any;
+};
+
+export type AuditChangeReplace = {
+  model: string;
+  resourceId: string;
+  action: string;
+  diff: any;
+};
+
+export type AuditChangeRelationCreate = {
+  model: string;
+  resourceId: string;
+  action: string;
+  diff: any;
+};
+
+export type AuditChangeRelationUpdate = {
+  id: string;
+  model?: string;
+  resourceId?: string;
+  action?: string;
+  diff?: any;
+};
+
+export type AuditChangeQuery = QueryFilter<AuditChange>;
+
+export type AuditChangeSort = QuerySort<AuditChangeMultiple>;
+
+export type AuditChangeAggregate = AggregateSelect<AuditChange>;
+
+export type AuditChangeResourceService = IResourceService<
+  AuditChange,
+  AuditChangeMultiple,
+  AuditChangeCreate,
+  AuditChangeUpdate,
+  AuditChangeQuery,
+  AuditChangeReplace
+>;
+
+export type AuditLog = {
+  id: string;
+  category: string;
+  source: string;
+  action?: string | null;
+  method?: string | null;
+  route?: string | null;
+  path?: string | null;
+  query?: any | null;
+  body?: any | null;
+  status?: number | null;
+  errorCode?: string | null;
+  duration?: number | null;
+  userId?: string | null;
+  authType?: string | null;
+  apiKeyId?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  traceId?: string | null;
+  model?: string | null;
+  resourceId?: string | null;
+  metadata?: any | null;
+  changes?: Array<AuditChangeSingle>;
+  createdAt: Date;
+};
+
+export type AuditLogSingle = {
+  id: string;
+  category: string;
+  source: string;
+  action?: string | null;
+  method?: string | null;
+  route?: string | null;
+  path?: string | null;
+  query?: any | null;
+  body?: any | null;
+  status?: number | null;
+  errorCode?: string | null;
+  duration?: number | null;
+  userId?: string | null;
+  authType?: string | null;
+  apiKeyId?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  traceId?: string | null;
+  model?: string | null;
+  resourceId?: string | null;
+  metadata?: any | null;
+  createdAt: Date;
+  changes?: Array<AuditChangeSingle>;
+};
+
+export type AuditLogMultiple = {
+  id: string;
+  category: string;
+  source: string;
+  action?: string | null;
+  method?: string | null;
+  route?: string | null;
+  path?: string | null;
+  query?: any | null;
+  body?: any | null;
+  status?: number | null;
+  errorCode?: string | null;
+  duration?: number | null;
+  userId?: string | null;
+  authType?: string | null;
+  apiKeyId?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  traceId?: string | null;
+  model?: string | null;
+  resourceId?: string | null;
+  metadata?: any | null;
+  createdAt: Date;
+};
+
+export type AuditLogCreate = {
+  category: string;
+  source: string;
+  action?: string | null;
+  method?: string | null;
+  route?: string | null;
+  path?: string | null;
+  query?: any | null;
+  body?: any | null;
+  status?: number | null;
+  errorCode?: string | null;
+  duration?: number | null;
+  userId?: string | null;
+  authType?: string | null;
+  apiKeyId?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  traceId?: string | null;
+  model?: string | null;
+  resourceId?: string | null;
+  metadata?: any | null;
+};
+
+export type AuditLogUpdate = {
+  category?: string;
+  source?: string;
+  action?: string | null;
+  method?: string | null;
+  route?: string | null;
+  path?: string | null;
+  query?: any | null;
+  body?: any | null;
+  status?: number | null;
+  errorCode?: string | null;
+  duration?: number | null;
+  userId?: string | null;
+  authType?: string | null;
+  apiKeyId?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  traceId?: string | null;
+  model?: string | null;
+  resourceId?: string | null;
+  metadata?: any | null;
+};
+
+export type AuditLogReplace = {
+  category: string;
+  source: string;
+  action?: string | null;
+  method?: string | null;
+  route?: string | null;
+  path?: string | null;
+  query?: any | null;
+  body?: any | null;
+  status?: number | null;
+  errorCode?: string | null;
+  duration?: number | null;
+  userId?: string | null;
+  authType?: string | null;
+  apiKeyId?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  traceId?: string | null;
+  model?: string | null;
+  resourceId?: string | null;
+  metadata?: any | null;
+};
+
+export type AuditLogRelationCreate = {
+  category: string;
+  source: string;
+  action?: string | null;
+  method?: string | null;
+  route?: string | null;
+  path?: string | null;
+  query?: any | null;
+  body?: any | null;
+  status?: number | null;
+  errorCode?: string | null;
+  duration?: number | null;
+  userId?: string | null;
+  authType?: string | null;
+  apiKeyId?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  traceId?: string | null;
+  model?: string | null;
+  resourceId?: string | null;
+  metadata?: any | null;
+};
+
+export type AuditLogRelationUpdate = {
+  id: string;
+  category?: string;
+  source?: string;
+  action?: string | null;
+  method?: string | null;
+  route?: string | null;
+  path?: string | null;
+  query?: any | null;
+  body?: any | null;
+  status?: number | null;
+  errorCode?: string | null;
+  duration?: number | null;
+  userId?: string | null;
+  authType?: string | null;
+  apiKeyId?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  traceId?: string | null;
+  model?: string | null;
+  resourceId?: string | null;
+  metadata?: any | null;
+};
+
+export type AuditLogQuery = QueryFilter<AuditLog>;
+
+export type AuditLogSort = QuerySort<AuditLogMultiple>;
+
+export type AuditLogAggregate = AggregateSelect<AuditLog>;
+
+export type AuditLogResourceService = IResourceService<
+  AuditLog,
+  AuditLogMultiple,
+  AuditLogCreate,
+  AuditLogUpdate,
+  AuditLogQuery,
+  AuditLogReplace
+>;
+
 export type ApiKey = {
   id: number;
   key: string;

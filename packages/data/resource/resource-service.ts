@@ -80,6 +80,7 @@ import { mapQueryFilter } from './utils/filter-util';
 import { mapStableSortValues, sortEntries } from './utils/sort-util';
 import { matchesWhere } from './utils/where-util';
 import { SpatialDistances, SpatialService } from '../spatial/spatial-service';
+import { AuditService } from '../audit/audit-service';
 
 const logger = createLogger('resource');
 
@@ -624,6 +625,7 @@ export abstract class ResourceService<
     this._events.emitResourceEvent(this._client.name, 'create', {
       current: projected
     });
+    this.auditChange('create', undefined, resource);
 
     logger.debug(
       { model: this._client.name, id: (resource as Resource).id },
@@ -785,6 +787,7 @@ export abstract class ResourceService<
     this._events.emitResourceEvent(this._client.name, 'delete', {
       current: projected
     });
+    this.auditChange('delete', resource, undefined);
 
     logger.debug(
       { model: this._client.name, id, softDelete },
@@ -1008,6 +1011,7 @@ export abstract class ResourceService<
       current: this.projectResource(resource)
     };
     this._events.emitResourceEvent(this._client.name, 'update', projected);
+    this.auditChange('update', updateResource, resource);
 
     logger.debug({ model: this._client.name, id }, 'Resource updated');
 
@@ -1446,6 +1450,29 @@ export abstract class ResourceService<
       return searchQuery;
     }
     return {};
+  }
+
+  /**
+   * Records the change of a record in the audit log, when it is enabled.
+   *
+   * @param {string} action The action changing the record.
+   * @param {Object} previous The record before the change, none for a create.
+   * @param {Object} current The record after the change, none for a delete.
+   */
+  private auditChange(
+    action: 'create' | 'update' | 'delete',
+    previous: unknown,
+    current: unknown
+  ): void {
+    const audit = inject(AuditService, false);
+    if (audit?.enabled) {
+      audit.recordChange(
+        this._client.name,
+        action,
+        previous as Record<string, any> | undefined,
+        current as Record<string, any> | undefined
+      );
+    }
   }
 
   /**

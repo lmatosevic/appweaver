@@ -308,6 +308,43 @@
     "image": {
       "provider": "auto"
     },
+    "audit": {
+      "enabled": false,
+      "keepDatabaseTable": false,
+      "retention": "90d",
+      "retentionInterval": "1h",
+      "retentionWorker": true,
+      "flushInterval": "1s",
+      "batchSize": 100,
+      "maxBuffer": 10000,
+      "excludeModels": [],
+      "excludeActions": [],
+      "excludePaths": [],
+      "redactKeys": ["code"],
+      "anonymizeIp": false,
+      "maxValueSize": 2048,
+      "requestBody": false,
+      "changes": {
+        "enabled": true,
+        "retention": ""
+      },
+      "auth": {
+        "enabled": true,
+        "retention": ""
+      },
+      "read": {
+        "enabled": false,
+        "retention": ""
+      },
+      "write": {
+        "enabled": true,
+        "retention": ""
+      },
+      "custom": {
+        "enabled": true,
+        "retention": ""
+      }
+    },
     "memory": {
       "maxSize": "100M",
       "provider": "auto",

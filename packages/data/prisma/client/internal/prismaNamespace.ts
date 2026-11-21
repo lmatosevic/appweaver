@@ -397,6 +397,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
+  AuditChange: 'AuditChange',
+  AuditLog: 'AuditLog',
   ApiKey: 'ApiKey',
   ConnectedAccount: 'ConnectedAccount',
   OneTimeToken: 'OneTimeToken',
@@ -421,10 +423,158 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "apiKey" | "connectedAccount" | "oneTimeToken" | "permission" | "role" | "twoFactorMethod" | "twoFactorRecoveryCode" | "seeder" | "file"
+    modelProps: "auditChange" | "auditLog" | "apiKey" | "connectedAccount" | "oneTimeToken" | "permission" | "role" | "twoFactorMethod" | "twoFactorRecoveryCode" | "seeder" | "file"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
+    AuditChange: {
+      payload: Prisma.$AuditChangePayload<ExtArgs>
+      fields: Prisma.AuditChangeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AuditChangeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AuditChangeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload>
+        }
+        findFirst: {
+          args: Prisma.AuditChangeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AuditChangeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload>
+        }
+        findMany: {
+          args: Prisma.AuditChangeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload>[]
+        }
+        create: {
+          args: Prisma.AuditChangeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload>
+        }
+        createMany: {
+          args: Prisma.AuditChangeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AuditChangeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload>[]
+        }
+        delete: {
+          args: Prisma.AuditChangeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload>
+        }
+        update: {
+          args: Prisma.AuditChangeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload>
+        }
+        deleteMany: {
+          args: Prisma.AuditChangeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AuditChangeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AuditChangeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload>[]
+        }
+        upsert: {
+          args: Prisma.AuditChangeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditChangePayload>
+        }
+        aggregate: {
+          args: Prisma.AuditChangeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAuditChange>
+        }
+        groupBy: {
+          args: Prisma.AuditChangeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditChangeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AuditChangeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditChangeCountAggregateOutputType> | number
+        }
+      }
+    }
+    AuditLog: {
+      payload: Prisma.$AuditLogPayload<ExtArgs>
+      fields: Prisma.AuditLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AuditLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AuditLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload>
+        }
+        findFirst: {
+          args: Prisma.AuditLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AuditLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload>
+        }
+        findMany: {
+          args: Prisma.AuditLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload>[]
+        }
+        create: {
+          args: Prisma.AuditLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload>
+        }
+        createMany: {
+          args: Prisma.AuditLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AuditLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload>[]
+        }
+        delete: {
+          args: Prisma.AuditLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload>
+        }
+        update: {
+          args: Prisma.AuditLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.AuditLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AuditLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AuditLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.AuditLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditLogPayload>
+        }
+        aggregate: {
+          args: Prisma.AuditLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAuditLog>
+        }
+        groupBy: {
+          args: Prisma.AuditLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AuditLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditLogCountAggregateOutputType> | number
+        }
+      }
+    }
     ApiKey: {
       payload: Prisma.$ApiKeyPayload<ExtArgs>
       fields: Prisma.ApiKeyFieldRefs
@@ -1127,6 +1277,48 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const AuditChangeScalarFieldEnum = {
+  id: 'id',
+  model: 'model',
+  resourceId: 'resourceId',
+  action: 'action',
+  diff: 'diff',
+  auditLogId: 'auditLogId',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditChangeScalarFieldEnum = (typeof AuditChangeScalarFieldEnum)[keyof typeof AuditChangeScalarFieldEnum]
+
+
+export const AuditLogScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  source: 'source',
+  action: 'action',
+  method: 'method',
+  route: 'route',
+  path: 'path',
+  query: 'query',
+  body: 'body',
+  status: 'status',
+  errorCode: 'errorCode',
+  duration: 'duration',
+  userId: 'userId',
+  authType: 'authType',
+  apiKeyId: 'apiKeyId',
+  ip: 'ip',
+  userAgent: 'userAgent',
+  requestId: 'requestId',
+  traceId: 'traceId',
+  model: 'model',
+  resourceId: 'resourceId',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
 export const ApiKeyScalarFieldEnum = {
   id: 'id',
   key: 'key',
@@ -1261,12 +1453,12 @@ export const JsonNullValueInput = {
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
 } as const
 
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const JsonNullValueFilter = {
@@ -1286,6 +1478,14 @@ export const QueryMode = {
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
 
 /**
  * Field references
@@ -1293,30 +1493,9 @@ export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
 /**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
  * Reference to a field of type 'String'
  */
 export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-/**
- * Reference to a field of type 'DateTime'
- */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
     
 
 
@@ -1335,9 +1514,16 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
- * Reference to a field of type 'TwoFactorMethodType'
+ * Reference to a field of type 'DateTime'
  */
-export type EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TwoFactorMethodType'>
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+/**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
 
 
@@ -1345,6 +1531,20 @@ export type EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel> = FieldRefInputTy
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'TwoFactorMethodType'
+ */
+export type EnumTwoFactorMethodTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TwoFactorMethodType'>
     
 
 /**
@@ -1498,6 +1698,8 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
  */
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
+  auditChange?: Prisma.AuditChangeOmit
+  auditLog?: Prisma.AuditLogOmit
   apiKey?: Prisma.ApiKeyOmit
   connectedAccount?: Prisma.ConnectedAccountOmit
   oneTimeToken?: Prisma.OneTimeTokenOmit

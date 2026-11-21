@@ -13,7 +13,7 @@ import {
   QueueProcessor,
   QueueWorkerOptions,
   Memory,
-  uuid,
+  uuidv4,
   QueueError,
   ConfigurationError,
   TraceCarrier,
@@ -217,7 +217,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       ...(options.concurrency ? { concurrency: options.concurrency } : {}),
       connection: this._connection as any, // Needed because of different ioredis types
       skipVersionCheck: true,
-      name: `${this.name}_${uuid()}`
+      name: `${this.name}_${uuidv4()}`
     });
 
     for (const event of [
@@ -431,7 +431,7 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
   /** @internal */
   private addListener(event: EventName, listener: QueueListener): string {
-    const listenerId = uuid();
+    const listenerId = uuidv4();
     this._listeners[listenerId] = { event, listener };
     return listenerId;
   }

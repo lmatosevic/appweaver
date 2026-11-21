@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { configOverrides, telemetryEnabled, withSpan } from '@appweaver/common';
-import { createApp } from '@appweaver/core';
+import { createApp, runInRequestScope } from '@appweaver/core';
 import {
   TaskList,
   appTasksDir,
@@ -33,14 +33,19 @@ export async function runTask(target: string, argv: string[]): Promise<number> {
 
   await app.start();
   try {
+    // The changes of the task are audited under its name
+    const run = () =>
+      runInRequestScope({ source: 'task', action: `task.${name}` }, () =>
+        task.run(parsed.context)
+      );
     // The root span of the trace of the task, exported when the application stops
     const result = telemetryEnabled('task')
       ? await withSpan(
           `task ${name}`,
           { root: true, attributes: { 'appweaver.task.name': name } },
-          async () => task.run(parsed.context)
+          run
         )
-      : await task.run(parsed.context);
+      : await run();
     return typeof result === 'number' ? result : 0;
   } finally {
     await app.stop();

@@ -1,4 +1,4 @@
-import { AuthUser, uuid } from '@appweaver/common';
+import { AuthUser, uuidv4 } from '@appweaver/common';
 import { InputStream } from '../stream/input-stream';
 import { StreamInstance } from '../stream/stream-instance';
 import { RealtimeAction } from '../types';
@@ -31,7 +31,7 @@ export class ActionCall {
     public readonly output?: StreamInstance,
     public readonly input?: InputStream
   ) {
-    this.id = output?.streamId ?? uuid();
+    this.id = output?.streamId ?? uuidv4();
     output?.signal.addEventListener('abort', () => this.abort(), {
       once: true
     });

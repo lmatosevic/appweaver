@@ -1,4 +1,43 @@
 -- CreateTable
+CREATE TABLE "AuditChange" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "model" TEXT NOT NULL,
+    "resourceId" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "diff" JSONB NOT NULL,
+    "auditLogId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AuditChange_auditLogId_fkey" FOREIGN KEY ("auditLogId") REFERENCES "AuditLog" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "AuditLog" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "category" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "action" TEXT,
+    "method" TEXT,
+    "route" TEXT,
+    "path" TEXT,
+    "query" JSONB,
+    "body" JSONB,
+    "status" INTEGER,
+    "errorCode" TEXT,
+    "duration" REAL,
+    "userId" TEXT,
+    "authType" TEXT,
+    "apiKeyId" TEXT,
+    "ip" TEXT,
+    "userAgent" TEXT,
+    "requestId" TEXT,
+    "traceId" TEXT,
+    "model" TEXT,
+    "resourceId" TEXT,
+    "metadata" JSONB,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
 CREATE TABLE "ApiKey" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "key" TEXT NOT NULL,
@@ -106,6 +145,24 @@ CREATE TABLE "_RolePermissionsPermission" (
     CONSTRAINT "_RolePermissionsPermission_A_fkey" FOREIGN KEY ("A") REFERENCES "Permission" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "_RolePermissionsPermission_B_fkey" FOREIGN KEY ("B") REFERENCES "Role" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- CreateIndex
+CREATE INDEX "AuditChange_model_resourceId_createdAt_idx" ON "AuditChange"("model", "resourceId", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "AuditChange_auditLogId_idx" ON "AuditChange"("auditLogId");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_createdAt_idx" ON "AuditLog"("createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "AuditLog_category_createdAt_idx" ON "AuditLog"("category", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "AuditLog_userId_createdAt_idx" ON "AuditLog"("userId", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "AuditLog_model_resourceId_idx" ON "AuditLog"("model", "resourceId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ApiKey_keyHash_key" ON "ApiKey"("keyHash");

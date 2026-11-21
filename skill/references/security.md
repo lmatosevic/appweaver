@@ -964,10 +964,10 @@ The security module automatically adds the following fields to the user model. `
 | `enabled`       | boolean          | `true`  | Whether the account is active.                                      |
 | `logoutAt`      | dateTime?        | -       | Timestamp used to invalidate tokens issued before this time.        |
 
-A model declaring `email` overrides only its `hidden`, `example`, `minLength`, `maxLength` and `pattern` (i.e. the
-addresses of a company domain), so it stays a required unique address in the email format, the one the sign-in, the
+A model declaring `email` overrides only its `hidden`, `redact` (its values kept out of the audit log), `example`,
+`minLength`, `maxLength` and `pattern` (i.e. the addresses of a company domain), so it stays a required unique address in the email format, the one the sign-in, the
 password reset and the OAuth2 accounts look the user up by. A model declaring `phone` overrides only its `unique`,
-`hidden` and `example`, so it stays an optional E.164 number the routes never write, the one the SMS 2FA and the phone
+`hidden`, `redact` and `example`, so it stays an optional E.164 number the routes never write, the one the SMS 2FA and the phone
 verification rely on. Any other field of the table replaces a declared one of the same name, so a contact phone the
 users edit themselves is a field of another name.
 

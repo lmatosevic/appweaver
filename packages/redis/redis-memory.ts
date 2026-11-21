@@ -7,7 +7,7 @@ import {
   HealthCheckResult,
   createLogger,
   Memory,
-  uuid,
+  uuidv4,
   LockError
 } from '@appweaver/common';
 import { CircuitBreaker } from './circuit-breaker';
@@ -252,7 +252,7 @@ class RedisLock {
 
   public async lock(): Promise<{ release: () => Promise<boolean> }> {
     const resourceKey = `lock:${this.resource}`;
-    const lockValue = uuid();
+    const lockValue = uuidv4();
     let retries = 0;
 
     do {

@@ -173,6 +173,21 @@ the standard every backend ingests, and `configureTelemetry` covers the rest. Wh
 - name the spans and the attributes by the OpenTelemetry semantic conventions, the framework ones with `appweaver.`
 - test it with `recordTelemetry` of `@appweaver/testing`, and document it in `skill/references/telemetry.md`
 
+### Audit log
+
+The audit log (`audit.enabled`) records every request and the changed fields of the records in the `AuditLog` and
+`AuditChange` framework models, kept by `audit.keepDatabaseTable` like the API keys. `AuditService` of
+`packages/data/audit` buffers the entries and writes them in batches, deletes them after the retention of their
+category (`audit.auth`, `.read`, `.write`, `.changes`, `.custom`), and records the diff of every `create`, `update` and
+`delete` of `ResourceService` once its transaction commits. `web/audit/audit-hooks.ts` starts the entry of a request in
+the request scope of core (`runInRequestScope`, created with the auth context of the request) and records it once it
+responds, so a change belongs to the entry of its request. A write through Prisma directly records its change with
+`AuditService.recordChange`. The framework manages the models only, never their routes, services or policies, which the
+application declares for who may read them. The values of the `hidden` and `redact` fields and the names of secrets (`isSecretName` of
+`common/utils/redact-util.ts`, shared with the logger and `weaver config print`) never reach it. When adding a route
+whose requests should not be recorded, set its `audit: false`, and document a new category or key in
+`skill/references/audit.md`.
+
 ### Errors
 
 Code outside the API layer never throws an HTTP error. Every module throws a subclass of the abstract `AppweaverError`
@@ -237,7 +252,7 @@ The runtime every application has, with neither a server nor a database. Organiz
 |---------------|--------------------------------------------------------------------------------------------------------------------------------------|
 | `app/`        | `createApp`, `Application`, module discovery (`discover-modules.ts`), provider selection (`load-providers.ts`), app files, lifecycle |
 | `modules/`    | The manifest of the core module (`core.ts`): every contract and its in-process driver, always enabled first                          |
-| `context/`    | Dependency injection container (`define`, `inject`, `injectService`, ...), the auth user context (`runAs`) and the transaction scope |
+| `context/`    | Dependency injection container (`define`, `inject`, `injectService`, ...), the auth user context (`runAs`), the transaction scope and the request scope of the audit log (`runInRequestScope`) |
 | `cache/`      | The `Cache` stored in the `Memory` provider, its eviction indexes and `CacheService`                                                 |
 | `memory/`     | The in-process `memory` driver of `Memory`                                                                                           |
 | `events/`     | The `node` driver of `Events`                                                                                                        |
@@ -294,6 +309,7 @@ loads the resources of the application, then the `resources` of the modules.
 | `export/`     | `ExportService` (CSV)                                                                                                                                                                      |
 | `timeseries/` | The `database` and `timescale` drivers of `TimeSeries` (the `<Model>Series` tables, SQL per database, the retention deletes, the hypertables) and their config                             |
 | `spatial/`    | The `geo` fields: `SpatialService` (the spatial filters), the `postgis` and `database` engines, the Prisma extension writing the geometries and their bounding boxes, the `spatial` config |
+| `audit/`      | The audit log: its config sections, `AuditService` (the buffered writes, the diffs of the records, the retention deletes), the `AuditLog` and `AuditChange` models (`resources/`)          |
 | `types/`      | The auth and storage types, and the generated types of the framework models (`generated.ts`)                                                                                               |
 | `utils/`      | Helpers shared by the modules or meant for library users: export, file, model, policy, record and virtual field utilities, the write data mapping of the Prisma extensions                 |
 | `prisma/`     | The generated Prisma schema, client and migration of the framework models                                                                                                                  |
@@ -333,8 +349,8 @@ A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown ar
 stale types, it still emits: run
 `node tools/copy-packages.js`, generate, then build again).
 
-Downstream sample projects need the same refresh; in `sample/cms-api` use `npm run generate` then
-`weaver migration new <name>`, since it keeps a real migration history.
+When a framework package changes the database structure, recreate the databases of every sample: `npm run build`,
+`npm run samples:manage -- run generate`, then `npm run samples:manage -- regenerate:db` (the containers running).
 
 ### `packages/web`
 
@@ -355,6 +371,7 @@ the resource routes of the application (`RESOURCE_ROUTES_PATTERN`), then the `we
 | `timeseries/` | The time series routes of the models with `series` fields and their schemas                                                                                                                   |
 | `template/`   | The template preview route of development                                                                                                                                                     |
 | `telemetry/`  | The OpenTelemetry server spans and metrics of the requests (`registerHttpTelemetry`, `requestSpan`) and their `telemetry.http` config                                                         |
+| `audit/`      | The audit log of the requests (`registerAuditHooks`, `auditRequestScope`) and its `audit` keys, the application exposing the audit models with routes of its own                             |
 | `types/`      | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                                                               |
 
 ### Driver packages

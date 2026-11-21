@@ -18,7 +18,7 @@ import {
   QueueJobOptions,
   TemplateEngine,
   TemplateError,
-  uuid
+  uuidv4
 } from '@appweaver/common';
 import { inject, JobErrorData, JobResults } from '@appweaver/core';
 import { aiConfig } from '../config';
@@ -390,7 +390,7 @@ export class AiService implements OnInit, IHealthCheck {
     options: Omit<QueueJobOptions, 'attempts'> & { signal?: AbortSignal } = {}
   ): AiStream {
     const { signal: abortSignal, ...jobOptions } = options;
-    const data = { prompt: queuedPrompt(prompt), stream: uuid() };
+    const data = { prompt: queuedPrompt(prompt), stream: uuidv4() };
     const channel = `ai:stream:${data.stream}`;
     return new AiStream(
       async function* (this: AiService, signal) {

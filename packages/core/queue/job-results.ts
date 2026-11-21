@@ -4,7 +4,7 @@ import {
   PubSub,
   QueueJob,
   QueueProcessor,
-  uuid
+  uuidv4
 } from '@appweaver/common';
 import { inject } from '../context';
 
@@ -95,7 +95,7 @@ export class JobResults<Data = any, Response = any> {
       await this._subscription;
     }
 
-    const jobId = `${WAITED_PREFIX}${uuid()}`;
+    const jobId = `${WAITED_PREFIX}${uuidv4()}`;
     const result = new Promise<Response>((resolve, reject) =>
       this._waiting.set(jobId, { resolve, reject })
     );

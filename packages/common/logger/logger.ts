@@ -12,6 +12,7 @@ import { LogLevel } from '../enums';
 import { appConfig, logConfig } from '../config/app-config';
 import { telemetryConfig } from '../telemetry/telemetry-config';
 import { traceLogFields } from '../telemetry/telemetry';
+import { REDACTED, SECRET_NAMES } from '../utils/redact-util';
 
 const cli = !!process.env.WEAVER_CLI;
 
@@ -74,15 +75,7 @@ const stream = multistream(
 );
 
 // The credentials a record may carry, replaced before it is written
-const redactedKeys = [
-  'password',
-  'passwordHash',
-  'token',
-  'accessToken',
-  'refreshToken',
-  'apiKey',
-  'secret'
-];
+const redactedKeys = SECRET_NAMES;
 
 // The trace and span ids of the active span, in every record written in it
 const correlated = telemetryConfig.ENABLED && telemetryConfig.LOG_CORRELATION;
@@ -99,7 +92,7 @@ const commonConfig = {
       ...redactedKeys,
       ...redactedKeys.map((key) => `*.${key}`)
     ],
-    censor: '[Redacted]'
+    censor: REDACTED
   }
 };
 

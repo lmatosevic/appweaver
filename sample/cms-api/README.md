@@ -32,6 +32,7 @@ scheduled for publishing, static pages for the site menu, and comments open to g
 | MCP server for AI agents, with the resource tools and a custom tool                   | [`features/publisher/publish-tool.ts`](src/features/publisher/publish-tool.ts)           |
 | MCP sign-in pages with a password form, styled and translated to German               | [`templates/mcp/`](templates/mcp), [`locales/de.json`](locales/de.json)                  |
 | Basic, API key, Google OAuth2, and reCAPTCHA security, all in a single config file    | [`appweaver.json`](appweaver.json)                                                       |
+| Audit log of the requests and the changes, read-only routes of the admins             | `audit` of [`appweaver.json`](appweaver.json), [`resources/audit-log/`](src/resources/audit-log/routes.ts) |
 
 ## Getting started
 

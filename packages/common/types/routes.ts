@@ -1,5 +1,6 @@
 import { AuthType, QueryMethod } from '../enums';
 import { ErrorCode } from '../errors/error-code';
+import { AuditCategory } from './audit';
 import { ResourceEventAction } from './policy';
 import { ModelName } from './registry';
 
@@ -77,7 +78,18 @@ export type RouteConfig = {
   auth?: (string | AuthType)[];
   /** Rate limit configuration for this route */
   rateLimit?: RateLimitConfig;
+  /** The audit log of the route: `false` leaves its requests and the changes they make out, an object sets the
+   * category and the action of its entries (default: from the route and its method) */
+  audit?: boolean | RouteAuditConfig;
 } & CaptchaConfig;
+
+/** The audit log entries of the requests of a route. */
+export type RouteAuditConfig = {
+  /** The category of the entries, i.e. `auth` for a sign-in route of the application */
+  category?: AuditCategory;
+  /** The action of the entries, i.e. `invoice.send` */
+  action?: string;
+};
 
 export type RouteCacheConfig = {
   /** Enable or disable response caching. Caching for this route can also be

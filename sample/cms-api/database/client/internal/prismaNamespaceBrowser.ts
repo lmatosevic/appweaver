@@ -65,6 +65,8 @@ export const ModelName = {
   Role: 'Role',
   Permission: 'Permission',
   Seeder: 'Seeder',
+  AuditLog: 'AuditLog',
+  AuditChange: 'AuditChange',
   File: 'File'
 } as const
 
@@ -297,6 +299,48 @@ export const SeederScalarFieldEnum = {
 } as const
 
 export type SeederScalarFieldEnum = (typeof SeederScalarFieldEnum)[keyof typeof SeederScalarFieldEnum]
+
+
+export const AuditLogScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  source: 'source',
+  action: 'action',
+  method: 'method',
+  route: 'route',
+  path: 'path',
+  query: 'query',
+  body: 'body',
+  status: 'status',
+  errorCode: 'errorCode',
+  duration: 'duration',
+  userId: 'userId',
+  authType: 'authType',
+  apiKeyId: 'apiKeyId',
+  ip: 'ip',
+  userAgent: 'userAgent',
+  requestId: 'requestId',
+  traceId: 'traceId',
+  model: 'model',
+  resourceId: 'resourceId',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const AuditChangeScalarFieldEnum = {
+  id: 'id',
+  model: 'model',
+  resourceId: 'resourceId',
+  action: 'action',
+  diff: 'diff',
+  auditLogId: 'auditLogId',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditChangeScalarFieldEnum = (typeof AuditChangeScalarFieldEnum)[keyof typeof AuditChangeScalarFieldEnum]
 
 
 export const FileScalarFieldEnum = {

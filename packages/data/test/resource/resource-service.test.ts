@@ -10,6 +10,7 @@ import { NodeEvents } from '@appweaver/core/drivers';
 import { ErrorCode } from '@appweaver/common';
 import { createModel } from '../../factory/create-model';
 import { ResourceService } from '../../resource/resource-service';
+import { AuditService } from '../../audit/audit-service';
 import { FileService } from '../../storage/file-service';
 import { DatabaseSpatialEngine } from '../../spatial/spatial-engine';
 import { SpatialService } from '../../spatial/spatial-service';
@@ -2739,5 +2740,76 @@ describe('resource-service with geo fields', () => {
     await expect(
       service.query({ filter: { location: near } as any, sort: 'location' })
     ).rejects.toBeInstanceOf(DatabaseError);
+  });
+});
+
+describe('resource-service audit', () => {
+  let db: DatabaseStub;
+  let recordChange: jest.Mock;
+  let service: PostService;
+
+  beforeEach(() => {
+    resetContext();
+    db = createDatabaseStub(['Post']);
+    define(db.database, Database as any);
+    define(new NodeEvents(), Events as any);
+    define({ invalidateCache: jest.fn() }, CacheService);
+    recordChange = jest.fn();
+    define({ enabled: true, recordChange }, AuditService);
+    createModel({ name: 'Post', scalars: { title: { type: 'string' } } });
+    linkModels();
+    service = new PostService();
+  });
+
+  afterAll(() => {
+    resetContext();
+  });
+
+  test('records the created record', async () => {
+    db.setResult('Post', 'create', { id: 1, title: 'First' });
+
+    await service.create({ title: 'First' });
+
+    expect(recordChange).toHaveBeenCalledWith('Post', 'create', undefined, {
+      id: 1,
+      title: 'First'
+    });
+  });
+
+  test('records the record before and after an update', async () => {
+    db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+    db.setResult('Post', 'update', { id: 1, title: 'Second' });
+
+    await service.update(1, { title: 'Second' });
+
+    expect(recordChange).toHaveBeenCalledWith(
+      'Post',
+      'update',
+      { id: 1, title: 'First' },
+      { id: 1, title: 'Second' }
+    );
+  });
+
+  test('records the deleted record', async () => {
+    db.setResult('Post', 'findFirst', { id: 1, title: 'First' });
+    db.setResult('Post', 'delete', { id: 1, title: 'First' });
+
+    await service.delete(1);
+
+    expect(recordChange).toHaveBeenCalledWith(
+      'Post',
+      'delete',
+      { id: 1, title: 'First' },
+      undefined
+    );
+  });
+
+  test('records nothing with the audit log disabled', async () => {
+    define({ enabled: false, recordChange }, AuditService, 'override');
+    db.setResult('Post', 'create', { id: 1, title: 'First' });
+
+    await service.create({ title: 'First' });
+
+    expect(recordChange).not.toHaveBeenCalled();
   });
 });

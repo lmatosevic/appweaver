@@ -6,6 +6,14 @@ import {
   Storage,
   TimeSeries
 } from '@appweaver/common';
+import {
+  auditAuthConfig,
+  auditChangesConfig,
+  auditConfig,
+  auditCustomConfig,
+  auditReadConfig,
+  auditWriteConfig
+} from './audit/audit-config';
 import { databaseConfig } from './database/database-config';
 import { exportConfig } from './export/export-config';
 import { resourceConfig } from './resource/resource-config';
@@ -38,9 +46,22 @@ export default defineModule({
     systemConfig,
     databaseSeriesConfig,
     timescaleConfig,
-    spatialConfig
+    spatialConfig,
+    auditConfig,
+    auditChangesConfig,
+    auditAuthConfig,
+    auditReadConfig,
+    auditWriteConfig,
+    auditCustomConfig
   ],
-  loggers: ['database', 'resource', 'storage', 'timeseries', 'spatial'],
+  loggers: [
+    'database',
+    'resource',
+    'storage',
+    'timeseries',
+    'spatial',
+    'audit'
+  ],
   contracts: [
     { contract: Database, provider: () => databaseConfig.PROVIDER },
     { contract: ImageProcessor, provider: () => imageConfig.PROVIDER }
@@ -76,7 +97,8 @@ export default defineModule({
       requires: [Database, Storage]
     },
     { load: () => import('./export/export-service'), requires: [Database] },
-    { load: () => import('./spatial/spatial-service'), requires: [Database] }
+    { load: () => import('./spatial/spatial-service'), requires: [Database] },
+    { load: () => import('./audit/audit-service'), requires: [Database] }
   ],
   setup: async (context) =>
     (await import('./resource/load-data-resources')).loadDataResources(context),

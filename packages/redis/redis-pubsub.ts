@@ -1,5 +1,5 @@
 import { Redis as RedisClient } from 'ioredis';
-import { createLogger, PubSub, PubSubHandler, uuid } from '@appweaver/common';
+import { createLogger, PubSub, PubSubHandler, uuidv4 } from '@appweaver/common';
 import { redisConfig, redisPubSubConfig } from './config';
 
 const logger = createLogger('pubsub');
@@ -45,7 +45,7 @@ export class RedisPubSub extends PubSub {
     handler: PubSubHandler<T>
   ): Promise<string> {
     const subscriber = this.subscriber();
-    const subscriptionId = uuid();
+    const subscriptionId = uuidv4();
     const subscribed = this.isSubscribed(channel);
 
     this._subscriptions.set(subscriptionId, { channel, handler });

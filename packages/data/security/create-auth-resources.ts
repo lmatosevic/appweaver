@@ -48,15 +48,15 @@ type AuthFieldName =
  * sign-in looks the user up by, and the phone an optional E.164 number the phone verification and the SMS 2FA use.
  */
 const overridableProperties: Record<string, string[]> = {
-  email: ['hidden', 'example', 'minLength', 'maxLength', 'pattern'],
-  phone: ['unique', 'hidden', 'example']
+  email: ['hidden', 'redact', 'example', 'minLength', 'maxLength', 'pattern'],
+  phone: ['unique', 'hidden', 'redact', 'example']
 };
 
 /**
  * Creates the resource model of an authenticatable user, adding the email, password, verification, phone, two-factor
- * method, and role fields to the configured ones. A configured `email` overrides only its `hidden`, `example`,
- * `minLength`, `maxLength` and `pattern`, a configured `phone` only its `unique`, `hidden` and `example`, and any other
- * auth field replaces a configured one.
+ * method, and role fields to the configured ones. A configured `email` overrides only its `hidden`, `redact`,
+ * `example`, `minLength`, `maxLength` and `pattern`, a configured `phone` only its `unique`, `hidden`, `redact` and
+ * `example`, and any other auth field replaces a configured one.
  *
  * @param {ResourceModelConfig} modelConfig - The model configuration.
  * @return {ResourceModel} The created auth resource model.

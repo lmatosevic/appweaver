@@ -1,4 +1,4 @@
-import { AuthSource, AuthType, AuthUser, uuid } from '@appweaver/common';
+import { AuthSource, AuthType, AuthUser, uuidv4 } from '@appweaver/common';
 import { StreamFrameLike } from '../stream/types';
 import { RealtimeCloseCode, RealtimeServerMessage } from '../types';
 import { ActiveSubscription } from './subscription';
@@ -21,7 +21,7 @@ export type ConnectionAuth = {
  */
 export abstract class RealtimeConnection {
   /** The ID of the connection */
-  public readonly id: string = uuid();
+  public readonly id: string = uuidv4();
   /** The subscriptions of the connection, by their IDs */
   public readonly subscriptions = new Map<string, ActiveSubscription>();
   /** The epoch milliseconds the connection was opened at */

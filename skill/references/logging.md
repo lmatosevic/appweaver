@@ -102,6 +102,7 @@ LOG_LEVELS=database:trace,cache:error
 | `locale`    | The loaded translations and the missing keys                                                                                 |
 | `storage`   | `FileService`, the `local` storage driver and the processed images                                                           |
 | `health`    | Each check going down (warn) and up again (info), once per change, and the health listener                                   |
+| `audit`     | Audit log entries failing to be written (error), dropped while the buffer is full (warn), and the expired ones deleted       |
 
 ### Database queries
 

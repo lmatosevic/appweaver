@@ -13,6 +13,7 @@
     "migrate": "weaver migrate",
     "seed": "weaver seed --build-project",
     "test": "jest --coverage",
+    "pree2e": "weaver build",
     "e2e": "jest --config ./test/e2e/jest.e2e-config.json",
     "format": "prettier --write \"./**/*.ts\"",
     "lint": "eslint \"./**/*.ts\""

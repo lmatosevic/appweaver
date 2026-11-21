@@ -1,4 +1,5 @@
 export * from './aggregate';
+export * from './audit';
 export * from './auth';
 export * from './file';
 export * from './filter';

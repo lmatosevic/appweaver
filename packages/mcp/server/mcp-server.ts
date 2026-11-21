@@ -10,6 +10,7 @@ import {
   registerSchemaFormats,
   textToBytes
 } from '@appweaver/common';
+import { setRequestScope } from '@appweaver/core';
 import { hasPermissions, hasRoles } from '@appweaver/data';
 import { mcpConfig } from '../config';
 import { mcpTools } from '../tools/create-tool';
@@ -100,6 +101,8 @@ export async function handleMcpMessage(
       if (!tool) {
         return error(id, INVALID_PARAMS, `Unknown tool: ${String(name)}`);
       }
+      // The audit log entry of the request, and the changes the tool makes, name the tool
+      setRequestScope({ source: 'mcp', action: `mcp.${tool.name}` });
       return result(
         id,
         await callTool(tool, request.params?.arguments ?? {}, user, signal)

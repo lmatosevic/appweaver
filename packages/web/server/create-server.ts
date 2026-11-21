@@ -20,8 +20,10 @@ import {
   injectAll,
   injectModel,
   isDefined,
-  runInAuthContext
+  runInAuthContext,
+  runInRequestScope
 } from '@appweaver/core';
+import { auditRequestScope, registerAuditHooks } from '../audit/audit-hooks';
 import { templatePreviewConfig } from '../template/template-preview-config';
 import {
   registerHttpTelemetry,
@@ -93,6 +95,9 @@ export function createServer(): Server {
   // Trace the requests, from before the hooks of any plugin
   registerHttpTelemetry(server);
 
+  // Record the requests in the audit log, the ones every plugin rejects too
+  registerAuditHooks(server);
+
   // Register CORS rules
   server.register(fastifyCors, {
     // @fastify/cors matches a '*' inside a list literally, so it goes alone
@@ -147,12 +152,18 @@ export function createServer(): Server {
   // The async resource of each request is created in a new auth context, so
   // the authenticated user is kept through the whole request, and in the
   // trace context of the request, so its span is the parent of the spans of
-  // its hooks and its handler
+  // its hooks and its handler, and in its request scope, so the changes it
+  // makes belong to its audit log entry
   server.register(fastifyRequestContext, {
     defaultStoreValues: { cached: undefined },
     createAsyncResource: (request) =>
-      runInAuthContext(() =>
-        runInRequestTrace(request, () => new AsyncResource('appweaver-request'))
+      runInRequestScope(auditRequestScope(request), () =>
+        runInAuthContext(() =>
+          runInRequestTrace(
+            request,
+            () => new AsyncResource('appweaver-request')
+          )
+        )
       )
   });
 

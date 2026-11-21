@@ -1,4 +1,5 @@
 import { Database, defineModule } from '@appweaver/common';
+import { auditRequestConfig } from './audit/audit-config';
 import { healthCheckConfig } from './health/health-check-config';
 import {
   accountConfig,
@@ -62,7 +63,8 @@ export default defineModule({
     oauth2MicrosoftConfig,
     oauth2CustomConfig,
     templatePreviewConfig,
-    httpTelemetryConfig
+    httpTelemetryConfig,
+    auditRequestConfig
   ],
   loggers: ['resource', 'security', 'server', 'template'],
   services: [

@@ -88,6 +88,16 @@ export type Permission = Prisma.PermissionModel
  */
 export type Seeder = Prisma.SeederModel
 /**
+ * Model AuditLog
+ * 
+ */
+export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model AuditChange
+ * 
+ */
+export type AuditChange = Prisma.AuditChangeModel
+/**
  * Model File
  * 
  */

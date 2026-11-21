@@ -9,7 +9,7 @@ import {
   QueueJobOptions,
   QueueProcessor,
   QueueWorkerOptions,
-  uuid,
+  uuidv4,
   QueueError,
   TraceCarrier,
   traceQueueProcess,
@@ -146,7 +146,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       );
     }
 
-    const jobId = options.jobId ?? uuid();
+    const jobId = options.jobId ?? uuidv4();
     const existing = this._jobs.get(jobId);
     if (existing && existing.status !== 'completed') {
       logger.debug(
@@ -223,7 +223,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     _options?: QueueWorkerOptions
   ): MemoryWorker<Data, Response> {
     const worker: MemoryWorker<Data, Response> = {
-      id: uuid(),
+      id: uuidv4(),
       processor,
       active: true
     };
@@ -364,7 +364,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
   /** @internal */
   private addListener(event: EventName, listener: QueueListener): string {
-    const listenerId = uuid();
+    const listenerId = uuidv4();
     this._listeners[listenerId] = { event, listener };
     return listenerId;
   }

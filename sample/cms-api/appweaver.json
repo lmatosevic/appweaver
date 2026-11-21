@@ -18,6 +18,13 @@
         "enabled": true
       }
     },
+    "audit": {
+      "enabled": true,
+      "retention": "30d",
+      "auth": {
+        "retention": "365d"
+      }
+    },
     "memory": {
       "redis": {
         "url": "redis://${REDIS_HOST:-localhost}:6379/0"
