@@ -105,13 +105,13 @@ describe('generate-client', () => {
       const generated = await generateClient(schema);
 
       expect(generated).toContain(
-        `public post = this.resourceClient<PostResourceModuleType, ['aggregate', 'export', 'deleteFiles', 'bulkUpdate', 'bulkReplace']>('/api/posts')`
+        `public post = this.resourceClient<PostResourceModuleType, ['aggregate', 'export', 'deleteFiles', 'fileVersions', 'deleteFileVersions', 'bulkUpdate', 'bulkReplace']>('/api/posts')`
       );
     });
 
     test('adds a resource client for every resource path', () => {
       expect(client).toContain(
-        `public post = this.resourceClient<PostResourceModuleType, ['aggregate', 'export', 'deleteFiles', 'bulkUpdate', 'bulkReplace', 'writeSeries', 'writeManySeries', 'querySeries', 'queryManySeries', 'deleteSeries']>('/api/posts')`
+        `public post = this.resourceClient<PostResourceModuleType, ['aggregate', 'export', 'deleteFiles', 'fileVersions', 'deleteFileVersions', 'bulkUpdate', 'bulkReplace', 'writeSeries', 'writeManySeries', 'querySeries', 'queryManySeries', 'deleteSeries']>('/api/posts')`
       );
       expect(client).toContain(`public user = this.resourceClient<`);
       expect(client).toContain(`>('/api/users')`);

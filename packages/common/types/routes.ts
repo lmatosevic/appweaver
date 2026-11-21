@@ -210,6 +210,12 @@ export type ResourceRoutesConfig = {
   fileUpload?: RouteConfig;
   /** Config for the file delete route */
   fileDelete?: RouteConfig;
+  /** Config for the route listing the versions of a file (`GET /:id/file-versions`), registered with
+   * `storage.versions.enabled` for a model with a versioned file field */
+  fileVersions?: RouteConfig;
+  /** Config for the route deleting versions of files (`POST /:id/delete-file-versions`), registered with
+   * `storage.versions.enabled` for a model with a versioned file field. Inherits the `fileDelete` config */
+  fileVersionDelete?: RouteConfig;
   /** Config for the time series write routes, of one resource (`POST /:id/series`) and of many (`POST /series`).
    * Registered for a model with `series` fields */
   seriesWrite?: SeriesWriteRouteConfig;
@@ -263,6 +269,10 @@ export type ResourceSchemaConfig = {
   fileUploadSchema: RouteSchema;
   /** Schema for handling file deletions related to a resource */
   fileDeleteSchema: RouteSchema;
+  /** Schema for listing the versions of a file of a resource */
+  fileVersionsSchema: RouteSchema;
+  /** Schema for deleting versions of the files of a resource */
+  fileVersionDeleteSchema: RouteSchema;
   /** Schema for writing the time series points of a resource, for a model with series fields */
   seriesWriteSchema?: RouteSchema;
   /** Schema for writing the time series points of many resources */

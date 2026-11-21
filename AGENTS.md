@@ -308,7 +308,7 @@ npm run generate
 
 # Completely reset and recreate the development database
 # Use whenever the schema has changed substantially and you want a clean slate.
-npm run db:recreate
+npm run regenerate:db
 ```
 
 **IMPORTANT**: whenever a resource schema in `packages/data` changes — any `model.ts` under `security/resources/`,
@@ -318,7 +318,7 @@ index) — you must regenerate the types and the Prisma directory contents, then
 ```bash
 cd packages/data
 npm run generate      # refresh types/generated.ts, prisma/schema.prisma and prisma/client
-npm run db:recreate   # drop dev.db and prisma/migrations, then recreate the init migration from the new schema
+npm run regenerate:db # drop dev.db and prisma/migrations, then recreate the init migration from the new schema
 ```
 
 The `appweaver.json` of `packages/data` (never published) turns on the `KEEP_DATABASE_TABLE` keys of the API keys,

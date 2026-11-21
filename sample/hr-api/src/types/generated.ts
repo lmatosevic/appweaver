@@ -1243,6 +1243,9 @@ export type File = {
   resourceField?: string | null;
   resourceName?: string | null;
   resourceId?: string | null;
+  version: number;
+  lineageId?: string | null;
+  supersededAt?: Date | null;
   url: string;
   updatedAt: Date;
   createdAt: Date;
@@ -1260,6 +1263,8 @@ export type FileSingle = {
   checksum: string;
   title?: string | null;
   description?: string | null;
+  version: number;
+  supersededAt?: Date | null;
   url: string;
   updatedAt: Date;
   createdAt: Date;
@@ -1275,6 +1280,8 @@ export type FileMultiple = {
   checksum: string;
   title?: string | null;
   description?: string | null;
+  version: number;
+  supersededAt?: Date | null;
   url: string;
   updatedAt: Date;
   createdAt: Date;
@@ -1289,6 +1296,8 @@ export type FileCreate = {
   checksum: string;
   title?: string | null;
   description?: string | null;
+  version?: number;
+  supersededAt?: Date | null;
 };
 
 export type FileUpdate = {
@@ -1299,6 +1308,8 @@ export type FileUpdate = {
   checksum?: string;
   title?: string | null;
   description?: string | null;
+  version?: number;
+  supersededAt?: Date | null;
 };
 
 export type FileReplace = {
@@ -1309,6 +1320,8 @@ export type FileReplace = {
   checksum: string;
   title?: string | null;
   description?: string | null;
+  version?: number;
+  supersededAt?: Date | null;
 };
 
 export type FileRelationCreate = {
@@ -1319,6 +1332,8 @@ export type FileRelationCreate = {
   checksum: string;
   title?: string | null;
   description?: string | null;
+  version?: number;
+  supersededAt?: Date | null;
 };
 
 export type FileRelationUpdate = {
@@ -1330,6 +1345,8 @@ export type FileRelationUpdate = {
   checksum?: string;
   title?: string | null;
   description?: string | null;
+  version?: number;
+  supersededAt?: Date | null;
 };
 
 export type FileQuery = QueryFilter<File>;

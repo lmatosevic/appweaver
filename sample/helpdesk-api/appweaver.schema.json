@@ -1444,6 +1444,26 @@
                   "default": 0.4,
                   "type": "number"
                 },
+                "authRoutes": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "const": "login",
+                        "type": "string"
+                      },
+                      {
+                        "const": "refresh",
+                        "type": "string"
+                      },
+                      {
+                        "const": "changePassword",
+                        "type": "string"
+                      }
+                    ]
+                  }
+                },
                 "verifyUrl": {
                   "default": "https://www.google.com/recaptcha/api/siteverify",
                   "type": "string"
@@ -1476,6 +1496,26 @@
                 "headerName": {
                   "default": "x-turnstile-token",
                   "type": "string"
+                },
+                "authRoutes": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "const": "login",
+                        "type": "string"
+                      },
+                      {
+                        "const": "refresh",
+                        "type": "string"
+                      },
+                      {
+                        "const": "changePassword",
+                        "type": "string"
+                      }
+                    ]
+                  }
                 },
                 "verifyUrl": {
                   "default": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
@@ -1663,6 +1703,28 @@
             "provider": {
               "default": "auto",
               "type": "string"
+            },
+            "versions": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "maxCount": {
+                  "minimum": 0,
+                  "default": 10,
+                  "type": "integer"
+                },
+                "maxAge": {
+                  "default": "",
+                  "type": "string"
+                },
+                "pruneInterval": {
+                  "default": "1h",
+                  "type": "string"
+                }
+              }
             }
           }
         },

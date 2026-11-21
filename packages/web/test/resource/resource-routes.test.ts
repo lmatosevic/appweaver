@@ -11,7 +11,7 @@ import {
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { define } from '@appweaver/core';
-import { createModel } from '@appweaver/data';
+import { createModel, FileService } from '@appweaver/data';
 import { resourceRoutes } from '../../resource/resource-routes';
 import { errorHandler } from '../../errors/error-handler';
 import { ERROR_CODES_EXTENSION, ProblemDetailsSchema } from '../../errors';
@@ -1210,6 +1210,128 @@ describe('resource-routes', () => {
         expect(Object.keys(document.paths['/posts/query'])).toEqual(
           expect.arrayContaining(['get', 'post'])
         );
+      });
+    });
+
+    describe('file version routes', () => {
+      const fileService = {
+        listVersions: jest.fn().mockResolvedValue([]),
+        deleteVersions: jest.fn().mockResolvedValue([])
+      };
+      const resource = { id: 1 };
+      const client = { name: 'Post' };
+
+      const filesModel = (files: Record<string, any>) => {
+        resetContext();
+        createModel({ name: 'File', scalars: { name: { type: 'string' } } });
+        createModel({ name: 'Post', files });
+        linkModels();
+        context.resource.services.set('Post', {
+          find: jest.fn().mockResolvedValue(resource),
+          client
+        } as any);
+        define(fileService, FileService as any);
+      };
+
+      beforeEach(() => {
+        (common as any).configOverrides.STORAGE_VERSIONS_ENABLED = true;
+        filesModel({ cover: {}, gallery: { array: true } });
+      });
+
+      afterEach(() => {
+        delete (common as any).configOverrides.STORAGE_VERSIONS_ENABLED;
+        jest.clearAllMocks();
+      });
+
+      test('lists the versions of a file', async () => {
+        app = await server();
+
+        const response = await request(
+          'GET',
+          '/posts/1/file-versions?name=cover.png'
+        );
+
+        expect(response.status).toBe(200);
+        expect(fileService.listVersions).toHaveBeenCalledWith(
+          'cover.png',
+          resource,
+          client
+        );
+      });
+
+      test('deletes versions of the files', async () => {
+        app = await server();
+        const versions = {
+          cover: { name: 'cover.png', version: 'latest' },
+          gallery: [{ name: 'a.png', version: 2 }]
+        };
+
+        const response = await request(
+          'POST',
+          '/posts/1/delete-file-versions',
+          versions
+        );
+
+        expect(response.status).toBe(200);
+        expect(fileService.deleteVersions).toHaveBeenCalledWith(
+          versions,
+          resource,
+          client
+        );
+      });
+
+      test('rejects a version that is neither a number nor latest', async () => {
+        app = await server();
+
+        const response = await request(
+          'POST',
+          '/posts/1/delete-file-versions',
+          {
+            cover: { name: 'cover.png', version: 'first' }
+          }
+        );
+
+        expect(response.status).toBe(400);
+      });
+
+      test('inherits the config of the file delete route', async () => {
+        app = await server({ fileDelete: { public: true } }, false, true);
+
+        expect(
+          (await request('POST', '/posts/1/delete-file-versions', {})).status
+        ).toBe(200);
+        expect(
+          (await request('GET', '/posts/1/file-versions?name=a')).status
+        ).toBe(401);
+      });
+
+      test('registers no routes with file versions disabled', async () => {
+        delete (common as any).configOverrides.STORAGE_VERSIONS_ENABLED;
+        app = await server();
+
+        expect(
+          (await request('POST', '/posts/1/delete-file-versions', {})).status
+        ).toBe(404);
+      });
+
+      test('registers no routes without a field keeping versions', async () => {
+        filesModel({ cover: { versions: false } });
+        app = await server();
+
+        expect(
+          (await request('POST', '/posts/1/delete-file-versions', {})).status
+        ).toBe(404);
+      });
+
+      test('excludes a route on its own', async () => {
+        app = await server({ fileVersions: { exclude: true } });
+
+        expect(
+          (await request('GET', '/posts/1/file-versions?name=a')).status
+        ).not.toBe(200);
+        expect(
+          (await request('POST', '/posts/1/delete-file-versions', {})).status
+        ).toBe(200);
       });
     });
   });

@@ -698,6 +698,7 @@ function resourceOperation(
       '{id}': 'find',
       query: 'query',
       aggregate: 'aggregate',
+      '{id}/file-versions': 'fileVersions',
       '{id}/series': 'querySeries'
     },
     post: {
@@ -707,6 +708,7 @@ function resourceOperation(
       export: 'export',
       '{id}/files': 'uploadFiles',
       '{id}/delete-files': 'deleteFiles',
+      '{id}/delete-file-versions': 'deleteFileVersions',
       bulk: 'bulkCreate',
       '{id}/series': 'writeSeries',
       series: 'writeManySeries',

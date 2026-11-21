@@ -1,11 +1,13 @@
 import {
   ConfigurationError,
   ErrorCode,
+  FileField,
   FilesConfig,
   findReservedStoragePath,
   generateToken,
   isString,
   normalizeStoragePath,
+  parseDuration,
   replacePatternVariables,
   ResourceModel,
   textToBytes,
@@ -14,6 +16,53 @@ import {
 } from '@appweaver/common';
 import { storageConfig, injectPolicy } from '@appweaver/core';
 import { File } from '../types/generated';
+import { fileVersionsConfig } from '../storage/file-versions-config';
+
+/** The versions kept of the files of a file field. */
+export type FileVersioning = {
+  /** The most versions of a file kept, the current one included, `0` for no limit */
+  maxCount: number;
+  /** How long a version is kept once replaced, in seconds, without a limit when undefined */
+  maxAge?: number;
+};
+
+/**
+ * Resolves the versions kept of the files of a file field, from its `versions` and the `storage.versions` config.
+ *
+ * @param {FileField} [file] - The file field.
+ * @return {FileVersioning | undefined} The versioning, undefined when the field keeps no versions.
+ * @throws {ConfigurationError} `CONFIGURATION_INVALID` for a `maxAge` that is not a duration.
+ */
+export function fileVersioning(file?: FileField): FileVersioning | undefined {
+  if (!file || !fileVersionsConfig.ENABLED || file.versions === false) {
+    return undefined;
+  }
+
+  const options = file.versions ?? {};
+  const maxAge = options.maxAge ?? fileVersionsConfig.MAX_AGE;
+  const seconds = maxAge ? parseDuration(maxAge) : undefined;
+  if (maxAge && !seconds) {
+    throw new ConfigurationError(
+      ErrorCode.ConfigurationInvalid,
+      `File versions max age '${maxAge}' is not a duration, i.e. 30d`
+    );
+  }
+
+  return {
+    maxCount: options.maxCount ?? fileVersionsConfig.MAX_COUNT,
+    maxAge: seconds
+  };
+}
+
+/**
+ * Checks if any file field keeps versions of its files.
+ *
+ * @param {FilesConfig} [files] - The file fields of a model.
+ * @return {boolean} `true` when versions are enabled and a field keeps them.
+ */
+export function hasFileVersioning(files?: FilesConfig): boolean {
+  return Object.values(files ?? {}).some((file) => !!fileVersioning(file));
+}
 
 /**
  * Builds the access URL for a stored file. The `public` or `protected` path prefix is resolved from the access type

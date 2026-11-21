@@ -70,6 +70,7 @@ export function createModel<
   const config = normalizeRelations(modelConfig);
   validateSeries(config);
   validateGeo(config);
+  validateFileVersions(config);
   const resourceModel = buildModel(config);
 
   logger.debug({ modelName: resourceModel.name }, 'Created resource model');
@@ -166,6 +167,32 @@ function validateSeries(config: ResourceModelConfig): void {
       ErrorCode.ConfigurationInvalid,
       `Series option '${config.name}.ingest' is '${options.ingest}', not one of ${SERIES_INGESTS.join(', ')}`
     );
+  }
+}
+
+/**
+ * Checks the `versions` of the file fields of a model: a `maxCount` of zero or more, and a `maxAge` duration.
+ *
+ * @throws {ConfigurationError} For an invalid `maxCount` or `maxAge`.
+ */
+function validateFileVersions(config: ResourceModelConfig): void {
+  for (const [field, file] of Object.entries(config.files ?? {})) {
+    const { maxCount, maxAge } = file.versions || {};
+    if (
+      maxCount !== undefined &&
+      (!Number.isInteger(maxCount) || maxCount < 0)
+    ) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `File versions of '${config.name}.${field}' have the maxCount ${maxCount}, not a whole number of 0 or more`
+      );
+    }
+    if (maxAge && !parseDuration(maxAge)) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `File versions of '${config.name}.${field}' have the maxAge '${maxAge}', not a duration, i.e. 30d`
+      );
+    }
   }
 }
 
@@ -369,7 +396,8 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     idSchema,
     config
   );
-  const { fileUploadModel, fileDeleteModel } = buildFileInputModels(config);
+  const { fileUploadModel, fileDeleteModel, fileVersionDeleteModel } =
+    buildFileInputModels(config);
   const seriesModel = buildSeriesModel(config.series);
 
   const resourceModel: ResourceModel = {
@@ -392,6 +420,7 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     relationUpdateModel,
     fileUploadModel,
     fileDeleteModel,
+    fileVersionDeleteModel,
     seriesModel
   };
 
@@ -752,6 +781,7 @@ function buildInputModels(
 function buildFileInputModels(config: ResourceModelConfig): {
   fileUploadModel: TObject;
   fileDeleteModel: TObject;
+  fileVersionDeleteModel: TObject;
 } {
   const fileConfig = config.files ?? {};
   const FileUpload = Type.Unsafe({
@@ -781,7 +811,28 @@ function buildFileInputModels(config: ResourceModelConfig): {
     { $id: `${config.name}FileDelete` }
   );
 
-  return { fileUploadModel, fileDeleteModel };
+  const FileVersionDelete = Type.Object({
+    name: Type.String({ example: 'image_123.png' }),
+    version: Type.Union([Type.Integer({ minimum: 1 }), Type.Literal('latest')])
+  });
+
+  // Every field that may keep versions, whether `storage.versions` is enabled
+  // or not, since the routes deleting them are registered only once it is
+  const fileVersionDeleteModel = Type.Object(
+    Object.fromEntries(
+      Object.entries(fileConfig)
+        .filter(([, conf]) => conf.versions !== false)
+        .map(([key]) => [
+          key,
+          Type.Optional(
+            Type.Union([FileVersionDelete, Type.Array(FileVersionDelete)])
+          )
+        ])
+    ),
+    { $id: `${config.name}FileVersionDelete` }
+  );
+
+  return { fileUploadModel, fileDeleteModel, fileVersionDeleteModel };
 }
 
 function relationInputProperties<T extends TObject>(

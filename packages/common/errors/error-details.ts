@@ -100,6 +100,9 @@ export interface ErrorDetailsMap {
   [ErrorCode.FileInvalidPath]: FileDetails;
   [ErrorCode.FileUploadFailed]: { errors: string[] };
   [ErrorCode.FileDeleteFailed]: { errors: string[] };
+  [ErrorCode.FileVersionNotFound]: FileDetails & { version: number | 'latest' };
+  [ErrorCode.FileVersioningDisabled]: ModelDetails & { field?: string };
+  [ErrorCode.FileReplaceTargetInvalid]: FileDetails & { field: string };
 
   [ErrorCode.ExportFailed]: ModelDetails;
 

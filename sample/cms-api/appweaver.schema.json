@@ -1833,6 +1833,28 @@
             "provider": {
               "default": "auto",
               "type": "string"
+            },
+            "versions": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "maxCount": {
+                  "minimum": 0,
+                  "default": 10,
+                  "type": "integer"
+                },
+                "maxAge": {
+                  "default": "",
+                  "type": "string"
+                },
+                "pruneInterval": {
+                  "default": "1h",
+                  "type": "string"
+                }
+              }
             }
           }
         },

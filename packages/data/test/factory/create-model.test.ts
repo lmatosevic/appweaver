@@ -273,6 +273,38 @@ describe('create-model', () => {
       );
     });
 
+    test.each([
+      [{ maxCount: -1 }],
+      [{ maxCount: 1.5 }],
+      [{ maxAge: 'a week' }]
+    ])('rejects the file versions %j', (versions) => {
+      expect(() =>
+        createModel({
+          name: 'Document',
+          files: { content: { versions: versions as any } }
+        })
+      ).toThrow(
+        expect.objectContaining({ code: ErrorCode.ConfigurationInvalid })
+      );
+    });
+
+    test('builds the version delete input of the fields keeping versions', () => {
+      const model = createModel({
+        name: 'Document',
+        files: {
+          content: { versions: { maxCount: 0, maxAge: '30d' } },
+          preview: { versions: false }
+        }
+      });
+
+      expect(model.fileVersionDeleteModel.$id).toBe(
+        'DocumentFileVersionDelete'
+      );
+      expect(Object.keys(model.fileVersionDeleteModel.properties)).toEqual([
+        'content'
+      ]);
+    });
+
     test('accepts the series options of whole durations', () => {
       expect(() =>
         createModel({

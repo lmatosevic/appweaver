@@ -90,6 +90,9 @@ CREATE TABLE "File" (
     "resourceField" TEXT,
     "resourceName" TEXT,
     "resourceId" TEXT,
+    "version" INTEGER NOT NULL DEFAULT 1,
+    "lineageId" TEXT,
+    "supersededAt" DATETIME,
     "updatedAt" DATETIME NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdById" INTEGER,
@@ -156,6 +159,9 @@ CREATE UNIQUE INDEX "File_name_key" ON "File"("name");
 
 -- CreateIndex
 CREATE INDEX "File_resourceName_resourceId_resourceField_idx" ON "File"("resourceName", "resourceId", "resourceField");
+
+-- CreateIndex
+CREATE INDEX "File_lineageId_idx" ON "File"("lineageId");
 
 -- CreateIndex
 CREATE INDEX "File_createdById_idx" ON "File"("createdById");

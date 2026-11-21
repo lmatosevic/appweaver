@@ -400,6 +400,66 @@ await fileService.deleteResourceFiles('Post', postId);
 await fileService.deleteResourcesFiles('Post', [firstId, secondId]);
 ```
 
+### File versions
+
+With `storage.versions.enabled` (off by default, see the `STORAGE_VERSIONS_*` keys of
+[configuration.md](./configuration.md)), uploading a file again keeps the replaced file as a previous version instead of
+deleting it. Each version is a `File` row and a stored object of its own: `version` numbers them from 1, `supersededAt`
+is set on the previous ones, and `lineageId` refers every later version to the first one. The current version is always
+the newest one, the one linked to the resource.
+
+```ts
+const config = {
+  files: {
+    contract: { mimeType: 'application/pdf' },                    // the config: 10 versions, kept forever
+    gallery: { array: true, versions: { maxCount: 3, maxAge: '30d' } },
+    avatar: { versions: false }                                    // replaced and deleted as without versions
+  }
+};
+```
+
+- **Upload**: a single file field always creates a new version. An array field creates one only for a file named by a
+  `<field>:replace` text part sent before the file (`{ file, replace }` in `uploadFiles` of the client), any other
+  file being a new file of its own. A replace naming no current file of the field fails with
+  `FILE_REPLACE_TARGET_INVALID`, and with `FILE_VERSIONING_DISABLED` on a field without versions. A replace does not
+  count against `maxCount` of an array field. A failed upload restores the files it replaced.
+  ```
+  --boundary
+  Content-Disposition: form-data; name="gallery:replace"
+
+  gallery/a-1f2e.png
+  --boundary
+  Content-Disposition: form-data; name="gallery"; filename="a.png"
+  ```
+- **Download**: a previous version is served only by the name of the current file and its number,
+  `GET /files/public/<current name>?version=2`. The name of a previous version answers `FILE_NOT_FOUND`, so an old URL
+  stops working once its file is replaced, as without versions. The file policy applies to every version. A version
+  that does not exist answers `FILE_VERSION_NOT_FOUND`, and a version of a field without versions
+  `FILE_VERSIONING_DISABLED`.
+- **List**: `GET /<resource>/:id/file-versions?name=<current name>` lists the versions newest first, the `url` of a
+  previous version being the URL of the current file with its `version`.
+- **Delete a version**: `POST /<resource>/:id/delete-file-versions` with
+  `{ "<field>": { "name": "<current name>", "version": 2 } }` (or a list of them). Deleting the current version
+  (`"latest"`, or its number) makes the previous version current again, linked to the resource, or deletes the file
+  without one. The route inherits the config of `fileDelete`, and runs the `canDelete` of the file policy on the version.
+- **Delete the file**: `delete-files`, `deleteFile` and the deletion of the resource delete the file with all its
+  versions.
+- **Retention**: `maxCount` (default `10`, the current version included, `0` for no limit) is applied after every
+  upload, and `maxAge` (a duration since the version was replaced, unlimited by default) hides the older versions and
+  deletes them after an upload and every `storage.versions.pruneInterval` (`FileService.pruneExpiredVersions`).
+
+Without `storage.versions.enabled` the routes listing and deleting the versions are not registered, the `version` query
+parameter is rejected with `FILE_VERSIONING_DISABLED`, and replacing a file deletes it as before, with any version it
+kept. The columns stay in the database.
+
+```ts
+const current = await fileService.findByName('gallery/a-9c8d.png');
+const previous = await fileService.findVersion(current, 2);
+const versions = await fileService.listVersions(current.name, post, postClient);
+await fileService.saveBuffer('gallery', buffer, post, postClient, current.name); // a new version of the file
+await fileService.deleteVersions({ gallery: { name: current.name, version: 'latest' } }, post, postClient);
+```
+
 ### Owning resource reference
 
 The `File` model records its owner through the `resourceName`, `resourceField` and `resourceId` columns. `resourceId`

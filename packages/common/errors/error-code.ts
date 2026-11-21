@@ -120,6 +120,9 @@ export enum ErrorCode {
   FileUploadFailed = 'FILE_UPLOAD_FAILED',
   FileDeleteFailed = 'FILE_DELETE_FAILED',
   FileStorageError = 'FILE_STORAGE_ERROR',
+  FileVersionNotFound = 'FILE_VERSION_NOT_FOUND',
+  FileVersioningDisabled = 'FILE_VERSIONING_DISABLED',
+  FileReplaceTargetInvalid = 'FILE_REPLACE_TARGET_INVALID',
 
   // Export
   ExportFailed = 'EXPORT_FAILED',

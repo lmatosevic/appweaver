@@ -19,6 +19,8 @@ export type ResourceRouteName =
   | 'export'
   | 'fileUpload'
   | 'fileDelete'
+  | 'fileVersions'
+  | 'fileVersionDelete'
   | 'seriesWrite'
   | 'seriesQuery'
   | 'seriesDelete'
@@ -45,6 +47,7 @@ const isBulkRoute = (route: ResourceRouteName): route is BulkRouteName =>
 // The routes each route inherits its config from, the most generic one first
 const ROUTE_PARENTS: Partial<Record<ResourceRouteName, ResourceRouteName[]>> = {
   replace: ['update'],
+  fileVersionDelete: ['fileDelete'],
   bulkCreate: ['create'],
   bulkUpdate: ['update'],
   bulkReplace: ['update', 'replace', 'bulkUpdate'],

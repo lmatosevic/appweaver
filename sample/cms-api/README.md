@@ -15,6 +15,7 @@ scheduled for publishing, static pages for the site menu, and comments open to g
 | One-to-one pinned comment, comments with `cuid(2)` ids                                | [`resources/comment/model.ts`](src/resources/comment/model.ts)                           |
 | Soft delete of posts and comments                                                     | `softDelete` on the post and comment models                                              |
 | File uploads: public cover, gallery and hero images, resized on upload                | post, page, and user models and policies                                                 |
+| File versions: a comment attachment keeps 10, a gallery image 3, the cover none       | `storage.versions` of `appweaver.json`, the post model                                   |
 | Write restrictions assigning the signed-in author on create                           | [`resources/post/policy.ts`](src/resources/post/policy.ts)                               |
 | Service hooks: publish date on publishing, view counter, self-parent check            | [`resources/post/service.ts`](src/resources/post/service.ts)                             |
 | Text search over several fields of a resource                                         | `textSearch` of the services                                                             |

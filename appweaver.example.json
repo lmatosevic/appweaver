@@ -297,7 +297,13 @@
       "cacheTtl": 86400000,
       "urlTtl": 900000,
       "filesRoutePrefix": "/files",
-      "provider": "auto"
+      "provider": "auto",
+      "versions": {
+        "enabled": false,
+        "maxCount": 10,
+        "maxAge": "",
+        "pruneInterval": "1h"
+      }
     },
     "image": {
       "provider": "auto"
