@@ -62,6 +62,17 @@ describe('Audit log', () => {
 
   afterAll(resetTestData, 10_000);
 
+  test('records a successful login with the user it signed in', async () => {
+    await flush();
+
+    const { body } = await request('POST', '/api/audit-logs/query', {
+      filter: { action: 'auth.login', status: 200 }
+    });
+    expect(body.items).toEqual([
+      expect.objectContaining({ category: 'auth', userId: String(adminId) })
+    ]);
+  });
+
   test('records a failed login as anonymous, without the password', async () => {
     const login = await request(
       'POST',

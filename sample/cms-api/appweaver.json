@@ -23,6 +23,10 @@
       "retention": "30d",
       "auth": {
         "retention": "365d"
+      },
+      "read": {
+        "enabled": true,
+        "retention": "7d"
       }
     },
     "memory": {

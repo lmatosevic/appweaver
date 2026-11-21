@@ -139,6 +139,18 @@ describe('audit-service', () => {
       expect(row).not.toHaveProperty('authType');
     });
 
+    test('takes the user a sign-in named in the scope without an authenticated one', async () => {
+      runInRequestScope({ source: 'http', userId: 3 }, () =>
+        service.record({ category: 'custom' })
+      );
+      runInRequestScope({ source: 'http', userId: 3 }, () =>
+        runAs(user, () => service.record({ category: 'custom' }))
+      );
+      await service.flush();
+
+      expect(written('AuditLog').map((row) => row.userId)).toEqual(['3', '7']);
+    });
+
     test('records the source system outside of a scope', async () => {
       service.record({ category: 'custom', action: 'cleanup' });
       await service.flush();

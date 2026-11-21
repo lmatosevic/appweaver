@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { AuditSource } from '@appweaver/common';
+import { AuditSource, ResourceId } from '@appweaver/common';
 
 /** What the audit log records of the call a change is made in, i.e. of an HTTP request. */
 export type RequestScope = {
@@ -12,6 +12,8 @@ export type RequestScope = {
   userAgent?: string;
   /** The action of the call, i.e. `mcp.post_create` for a tool of the MCP server. */
   action?: string;
+  /** The user the call signs in, recorded while no user is authenticated, i.e. by a login. */
+  userId?: ResourceId;
   /** Leave the call out of the audit log, its changes included. */
   excluded?: boolean;
 };

@@ -398,7 +398,7 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
     const user = currentAuthUser();
     const apiKey = currentApiKey<{ id?: ResourceId }>();
     return {
-      userId: user?.id ?? null,
+      userId: user?.id ?? scope?.userId ?? null,
       authType: currentAuthType() ?? null,
       apiKeyId: apiKey?.id ?? null,
       ip: scope?.ip,

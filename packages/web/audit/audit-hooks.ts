@@ -110,7 +110,7 @@ export function registerAuditHooks(server: Server): void {
     const audited = requests.get(request);
     if (audited) {
       audited.caller = {
-        userId: currentAuthUser()?.id ?? null,
+        userId: currentAuthUser()?.id ?? audited.scope.userId ?? null,
         authType: currentAuthType() ?? null,
         apiKeyId: currentApiKey<{ id?: ResourceId }>()?.id ?? null,
         traceId: currentTraceId()

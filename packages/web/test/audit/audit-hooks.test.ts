@@ -91,6 +91,11 @@ describe('audit-hooks', () => {
       });
     });
     server.post('/auth/account/2fa/verify', async () => ({}));
+    server.post('/auth/token', async () => {
+      // As a successful sign-in does
+      setRequestScope({ userId: 7 });
+      return {};
+    });
     server.post('/api/reports/:id', async (request) => request.body);
     server.post('/api/skip', { config: { audit: false } }, async () => {
       inject(AuditService).recordChange('Post', 'create', undefined, {
@@ -231,6 +236,18 @@ describe('audit-hooks', () => {
     });
     expect(logs[0]).not.toHaveProperty('userId');
     expect(logs[1]).toMatchObject({ action: 'auth.account.2fa.verify' });
+  });
+
+  test('records the user a sign-in names, the request being anonymous', async () => {
+    await createServer();
+
+    await server.inject({ method: 'POST', url: '/auth/token' });
+
+    expect((await written('AuditLog'))[0]).toMatchObject({
+      category: 'auth',
+      action: 'auth.token',
+      userId: '7'
+    });
   });
 
   test('records the redacted bodies with audit.requestBody', async () => {

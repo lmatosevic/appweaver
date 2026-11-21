@@ -17,7 +17,13 @@ import {
 import { jwtConfig, securityConfig } from '../../security/security-config';
 import { configOverrides } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
-import { define, inject, CacheService } from '@appweaver/core';
+import {
+  define,
+  inject,
+  CacheService,
+  RequestScope,
+  runInRequestScope
+} from '@appweaver/core';
 import {
   FileService,
   checkPassword,
@@ -588,6 +594,16 @@ describe('auth-service', () => {
       );
 
       expect(signedTokens[0].payload.source).toBe(AuthSource.OAuth2Google);
+    });
+
+    test('names the signed-in user in the request scope, for the audit log', async () => {
+      const scope: RequestScope = { source: 'http' };
+
+      await runInRequestScope(scope, () =>
+        service.generateAuthTokens(user({ id: 5 }))
+      );
+
+      expect(scope.userId).toBe(5);
     });
 
     test('throws when the server is not initialized', async () => {

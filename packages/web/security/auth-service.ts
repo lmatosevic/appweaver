@@ -41,6 +41,7 @@ import {
   inject,
   injectCreated,
   injectService,
+  setRequestScope,
   CacheService
 } from '@appweaver/core';
 import { checkScopeAccess } from './access-util';
@@ -527,6 +528,9 @@ export class AuthService {
     );
 
     logger.debug({ id: authUser.id }, 'Access tokens generated');
+
+    // The request signing the user in is theirs in the audit log, though it was not authenticated
+    setRequestScope({ userId: authUser.id });
 
     const tokens = { accessToken, refreshToken, expiresIn, refreshExpiresIn };
 

@@ -32,7 +32,7 @@ add_audit_log` afterwards. `audit.keepDatabaseTable` keeps both tables while the
 | `method`, `route`, `path`, `query`        | The request: its route template (`/api/posts/:id`) and its redacted query.                    |
 | `body`                                    | The redacted JSON body, with `audit.requestBody` only.                                        |
 | `status`, `errorCode`, `duration`         | The response status, the error code of a failed request, the duration in milliseconds.       |
-| `userId`, `authType`, `apiKeyId`          | The user, empty for an anonymous request. A plain value without a relation, kept on deletion. |
+| `userId`, `authType`, `apiKeyId`          | The authenticated user, or the one a sign-in signs in, empty for an anonymous request. A plain value without a relation, kept on deletion. |
 | `ip`, `userAgent`, `requestId`, `traceId` | The client and the request, the trace of the telemetry.                                       |
 | `model`, `resourceId`                     | The record of a resource route, or the one record a request changed (i.e. created).           |
 | `metadata`                                | Free JSON of the entries of the application.                                                  |
@@ -140,6 +140,11 @@ await runInRequestScope({ source: 'job', action: 'import.products' }, () => impo
 
 setRequestScope({ action: 'report.publish' }); // the action of the entry of the current request
 ```
+
+A request is recorded with the user it authenticates. A route without authentication, i.e. a `public` route, reads no
+credentials, so its entries are anonymous even when the client sends a token. A sign-in (the password login, OAuth2,
+the token exchange ending the 2FA challenge) names the user it issues the tokens to in the scope (`userId`), so its
+entry is theirs, and a failed one stays anonymous.
 
 `weaver run` runs every task in a scope of the `task` source (`task.<name>`), and the MCP server names the tool of a
 call (`source: 'mcp'`, `mcp.<tool>`). The actions of the realtime connections are not recorded yet, only the request
