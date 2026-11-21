@@ -1,3 +1,14 @@
+## [2.10.0](https://github.com/lmatosevic/appweaver/compare/v2.9.0...v2.10.0) (2026-11-21)
+
+### Features
+
+* add support for storage file versioning ([178a23b](https://github.com/lmatosevic/appweaver/commit/178a23b9b48c00f79102dcee98efc4d1f58efab7))
+* add the audit log of the requests and the record changes ([dce8d2f](https://github.com/lmatosevic/appweaver/commit/dce8d2f11374281ba277bb7354172c35a89b7b90))
+
+### Bug Fixes
+
+* add missing audit userId on auth routes ([8a17e3f](https://github.com/lmatosevic/appweaver/commit/8a17e3fbf1711ae43c9c0eb5a297327b9a3a705f))
+
 ## [2.9.0](https://github.com/lmatosevic/appweaver/compare/v2.8.0...v2.9.0) (2026-11-20)
 
 ### Features
