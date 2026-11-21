@@ -259,6 +259,9 @@ CREATE TABLE `File` (
     `resourceField` VARCHAR(255) NULL,
     `resourceName` VARCHAR(255) NULL,
     `resourceId` VARCHAR(36) NULL,
+    `version` INTEGER NOT NULL DEFAULT 1,
+    `lineageId` VARCHAR(36) NULL,
+    `supersededAt` DATETIME(3) NULL,
     `updatedAt` DATETIME(3) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `createdById` INTEGER NULL,
@@ -267,6 +270,7 @@ CREATE TABLE `File` (
 
     UNIQUE INDEX `File_name_key`(`name`),
     INDEX `File_resourceName_resourceId_resourceField_idx`(`resourceName`, `resourceId`, `resourceField`),
+    INDEX `File_lineageId_idx`(`lineageId`),
     INDEX `File_createdById_idx`(`createdById`),
     INDEX `File_deletedById_idx`(`deletedById`),
     PRIMARY KEY (`id`)

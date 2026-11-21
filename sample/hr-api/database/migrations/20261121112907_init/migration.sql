@@ -217,6 +217,9 @@ CREATE TABLE [dbo].[File] (
     [resourceField] NVARCHAR(255),
     [resourceName] NVARCHAR(255),
     [resourceId] NVARCHAR(36),
+    [version] INT NOT NULL CONSTRAINT [File_version_df] DEFAULT 1,
+    [lineageId] NVARCHAR(36),
+    [supersededAt] DATETIME2,
     [updatedAt] DATETIME2 NOT NULL,
     [createdAt] DATETIME2 NOT NULL CONSTRAINT [File_createdAt_df] DEFAULT CURRENT_TIMESTAMP,
     [createdById] UNIQUEIDENTIFIER,
@@ -338,6 +341,9 @@ CREATE NONCLUSTERED INDEX [Permission_createdById_idx] ON [dbo].[Permission]([cr
 
 -- CreateIndex
 CREATE NONCLUSTERED INDEX [File_resourceName_resourceId_resourceField_idx] ON [dbo].[File]([resourceName], [resourceId], [resourceField]);
+
+-- CreateIndex
+CREATE NONCLUSTERED INDEX [File_lineageId_idx] ON [dbo].[File]([lineageId]);
 
 -- CreateIndex
 CREATE NONCLUSTERED INDEX [File_createdById_idx] ON [dbo].[File]([createdById]);
