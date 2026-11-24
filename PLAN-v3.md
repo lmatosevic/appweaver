@@ -1,6 +1,7 @@
 # Appweaver v3.0.0 Plan
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`).
+> **Revision 3**: v3 waits for TypeScript 7.1 and Prisma 8.0.0 stable before its toolchain phase (D12, D16, phase 2).
 > **Revision 2**: every claim below was checked in the code or measured (section 3). Each decision of section 5 states
 > the evidence it rests on, the alternatives rejected, and what it breaks. Nothing is implemented before its phase plan
 > is reviewed and its change requests are approved.
@@ -586,28 +587,35 @@ and bytes in the code. The units leave the key names (`keepCompletedSeconds` -> 
 change meaning: a bare integer becomes milliseconds, so `weaver upgrade` rewrites them as strings (`604800` ->
 `'7d'`). The TOTP `period` stays an integer of seconds: RFC 6238 defines it so, and authenticator apps only take 30.
 
-### D12. TypeScript — **decided: TypeScript 6 now, TypeScript 7 for the build only, full TypeScript 7 later**
+### D12. TypeScript — **decided: wait for TypeScript 7.1, then move everything to it**
 
-**Evidence**: E6. TypeScript 6 costs one config line; TypeScript 7 builds 4.7 times faster but has no compiler API, and
-four of our runtime tools need one (`ts-node`, `typebox-codegen`, `openapi-typescript`, typescript-eslint).
+**Evidence**: E6. TypeScript 7.0 builds 4.7 times faster but ships no compiler API, and four of our runtime tools need
+one (`ts-node`, `typebox-codegen`, `openapi-typescript`, typescript-eslint). TypeScript 7.1, which ships the API, is
+scheduled for the coming weeks (`7.1.0-beta` is on npm, and typescript-eslint 8.74 already accepts it through
+`@typescript/native`).
 
 **Decision**:
 
-1. v3 depends on `typescript@6` (the API used by the CLI, the client generator and the lint), with `baseUrl` removed,
-   `types` listed, the decorator flags removed and `noImplicitAny: true` (108 fixes).
-2. The monorepo builds and type-checks with TypeScript 7 installed under an npm alias (`"tsgo": "npm:typescript@7"`,
-   its binary run by path), so CI and the build get the x4.7, while the published packages and the scaffolded
-   projects stay on TypeScript 6.
-3. `ts-node` is replaced by `tsx` (its `register` API) for loading the project's models.
-4. Full TypeScript 7 (projects included) once 7.1 stabilizes its API and typescript-eslint and `openapi-typescript`
-   support it: a v3 minor, not a blocker.
+1. No intermediate step on TypeScript 6 or a split build: v3 moves from 5.9 straight to **TypeScript 7.1 once it is
+   stable**, for the monorepo, the published packages and the scaffolded projects alike. Phase 2 starts only then
+   (section 6).
+2. The config changes E6 found are made with it: `baseUrl` removed (the `paths` relative to the config), `types` and
+   `typeRoots` listed explicitly, the decorator flags removed, the client's CommonJS build off `moduleResolution:
+   node10`, the `WebSocket.send` typing fixed, and `noImplicitAny: true` (108 fixes). The config cleanup that is
+   valid on 5.9 too (decorator flags, `noImplicitAny`) may land earlier, in phase 1b.
+3. `ts-node` is replaced by `tsx` (its `register` API) for loading the project's models: `ts-node` will not follow
+   TypeScript 7.
+4. On the 7.1 release, a check of every tool needing the API: typescript-eslint, `openapi-typescript` (the client
+   generator), `typebox-codegen` (`weaver generate --types`, replaced in V3-TOOL-06 if it does not follow) and madge.
+   A tool that does not support 7.1 yet keeps `typescript@6` as its own aliased dependency (`"typescript-api":
+   "npm:typescript@6"`) until it does, so it never holds the migration back.
 5. CommonJS output stays (see D13).
 
 ### D13. ESM — **decided: not in v3**
 
 ESM-only would touch the runtime `require` of providers and modules (`common/utils/module-util.ts`), the Prisma client
 output, the Jest setup and every scaffolded project, while nothing in E1-E12 shows a user-facing gain. The client
-package already ships ESM and CommonJS. Revisited after Prisma 8 and full TypeScript 7.
+package already ships ESM and CommonJS. Revisited in a v3 minor, once the project runs on Prisma 8 and TypeScript 7.1.
 
 ### D14. Test runner — **decided: stay on Jest with SWC**
 
@@ -622,18 +630,21 @@ that installs packages (V3-QA-02).
 Not inside `@appweaver/cli`: it would make the CLI heavy and pin every project's lint versions to ours. A
 `@appweaver/tooling` dev dependency carries the configs (ESLint 10 flat config, Prettier, Jest with SWC) and the tools as
 its own dependencies, replacing the 17 packages of `scaffoldDependencies.tooling` in a project. `weaver lint`,
-`weaver format` and `weaver test` resolve the tools from the project. Biome or oxlint: re-evaluated with full
-TypeScript 7 (type-aware rules are the deciding factor). ESLint 10 regardless.
+`weaver format` and `weaver test` resolve the tools from the project. Biome or oxlint: re-evaluated on TypeScript 7.1
+(type-aware rules are the deciding factor). ESLint 10 regardless.
 
-### D16. Prisma 8 — **decided: prepare now, ship after GA**
+### D16. Prisma 8 — **decided: wait for 8.0.0 stable, v3 ships on it**
 
-Prisma 8 is still a release candidate (E12). A spike branch tracks the RCs and their upgrade recipes: `take`/`skip` to
-`limit`/`offset` (5 places), `@db.*` (9 in the schema generator), the date types, the 29 raw SQL calls, the 5 error
-codes, the five adapters, the `$extends` extensions (telemetry, spatial), the samples' databases. v3 ships on Prisma 8
-if it is GA before phase 8, else on Prisma 7.10 with Prisma 8 in a v3 minor. The CLI restructuring does not wait:
+Prisma 8 is still a release candidate (E12), and 8.0.0 stable is scheduled for the coming weeks. v3 ships on Prisma 8;
+there is no fallback to Prisma 7.10. The migration starts on 8.0.0 stable (phase 2), not on the RCs, whose upgrade
+recipes change from one RC to the next. Its scope, measured in E12: `take`/`skip` to `limit`/`offset` (5 places),
+`@db.*` (9 in the schema generator), the date types, the 29 raw SQL calls, the 5 error codes, the five adapters, the
+`$extends` extensions (telemetry, spatial), the migrations and databases of every sample and the scaffold templates.
+
+The CLI is restructured together with it, on the commands Prisma 8 actually has:
 `weaver db migrate|status|plan|new|check|reset|seed`, replacing `migrate`, `migration` and `seed`, with the old names as
-aliases for one major. `migrate/plan-migrations.ts` stops parsing the debug log of `prisma migrate status` when Prisma 8
-offers a structured output.
+aliases for one major. `migrate/plan-migrations.ts` stops parsing the debug log of `prisma migrate status` where Prisma
+8 offers a structured output.
 
 ### D17. TypeBox 1.x — **decided: yes, in v3**
 
@@ -687,7 +698,7 @@ nothing we use (we implement neither Roots, Sampling nor Logging).
 |-------|-------------------------------|---------------------------------------------------------------------------|-------------------------------------------------------|
 | 0     | Preparation                   | Release channel, migration guide, load-test harness, baselines            | Baselines of every sample recorded                    |
 | 1     | Security fixes and audit      | 2.10.x patches for F1-F4, F7; per-module findings                         | Register reviewed, CRs ordered                        |
-| 2     | Toolchain and platform        | TypeScript 6 + `tsgo`, `tsx`, tooling package, TypeBox 1, skill package, Prisma 8 spike | CI green, samples and scaffolds build |
+| 2     | Toolchain and platform        | TypeScript 7.1, Prisma 8, `tsx`, tooling package, TypeBox 1, skill package | CI green, samples and scaffolds build      |
 | 3     | Conventions and defaults      | Durations, exposure, maintenance jobs, secure defaults, query defaults    | Conventions applied in every package                  |
 | 4     | Data model and API design     | Views, `extend*`, cache scopes, audit, forced 2FA                         | Each RFC approved before its code                     |
 | 5     | Module-by-module              | The remaining approved CRs, in the order of section 7                     | Per module                                            |
@@ -697,6 +708,12 @@ nothing we use (we implement neither Roots, Sampling nor Logging).
 
 **Order**: security first (it ships to 2.x users), then the toolchain (every later pull request runs on it), then the
 conventions (the features adopt them), then the design work, then performance against the final design.
+
+**Waiting on upstream**: phase 2 starts once **TypeScript 7.1** (the release shipping the compiler API) and **Prisma
+8.0.0** are both stable, both scheduled for the coming weeks. Phases 0 and 1 (the harness, the baselines, the 2.10.x
+security patches, the read-only review) and the RFCs of phase 4 depend on neither, so they fill the wait. No CR of
+phases 3 to 8 is merged before phase 2, so nothing is written twice against the old toolchain. If either release slips
+far, this section is revisited, not the order.
 
 ### Phase 0: Preparation (no behavior change)
 
@@ -754,17 +771,22 @@ register (section 4) and become CRs. Specific items:
 
 | Step | CR          | Work                                                                                                    |
 |------|-------------|---------------------------------------------------------------------------------------------------------|
-| 2.1  | V3-TOOL-01  | TypeScript 6; `baseUrl` removed, `types` listed, decorator flags removed, `noImplicitAny: true` (108 fixes) |
-| 2.2  | V3-TOOL-02  | `tsgo` for the monorepo build and type-check; the client's CommonJS build off `node10`; the `WebSocket.send` typing |
-| 2.3  | V3-TOOL-03  | `ts-node` replaced by `tsx` in `cli/utils/loader-util.ts`                                               |
-| 2.4  | V3-TOOL-05  | `@appweaver/tooling` (ESLint 10, Prettier, Jest + SWC configs), `weaver lint|format|test`, the scaffold templates on it |
-| 2.5  | V3-TOOL-06  | TypeBox 1.x everywhere, one copy; `typebox-codegen` replaced if it cannot follow                        |
-| 2.6  | V3-TOOL-07  | Prisma 8 spike branch on the latest RC, tracking the upgrade recipes; merged at GA                      |
-| 2.7  | V3-TOOL-08  | `@appweaver/skill` and `weaver skill sync`                                                              |
-| 2.8  | V3-SEC-06   | `generate-api-key` replaced; `npm audit` triaged                                                        |
+**Entry**: TypeScript 7.1 and Prisma 8.0.0 stable released (see "Waiting on upstream" above).
 
-**Gate 2**: CI green on the new toolchain, its duration compared to E1, every sample and every scaffold combination
-building.
+| Step | CR          | Work                                                                                                    |
+|------|-------------|---------------------------------------------------------------------------------------------------------|
+| 2.1  | V3-TOOL-02  | Tool check on TypeScript 7.1: typescript-eslint, `openapi-typescript`, `typebox-codegen`, madge; a tool not ready keeps an aliased `typescript@6` (D12) |
+| 2.2  | V3-TOOL-01  | TypeScript 7.1 everywhere: `baseUrl` removed, `types` and `typeRoots` listed, decorator flags removed, the client's CommonJS build off `node10`, the `WebSocket.send` typing, `noImplicitAny: true` (108 fixes) |
+| 2.3  | V3-TOOL-03  | `ts-node` replaced by `tsx` in `cli/utils/loader-util.ts`                                               |
+| 2.4  | V3-TOOL-07  | Prisma 8.0.0: the API renames, `@db.*`, date types, raw SQL, error codes, adapters, extensions, the migrations of every sample and the scaffold templates |
+| 2.5  | V3-CLI-05   | `weaver db *` on the commands of Prisma 8 (D16)                                                         |
+| 2.6  | V3-TOOL-06  | TypeBox 1.x everywhere, one copy; `typebox-codegen` replaced if it cannot follow                        |
+| 2.7  | V3-TOOL-05  | `@appweaver/tooling` (ESLint 10, Prettier, Jest + SWC configs), `weaver lint|format|test`, the scaffold templates on it |
+| 2.8  | V3-TOOL-08  | `@appweaver/skill` and `weaver skill sync`                                                              |
+| 2.9  | V3-SEC-06   | `generate-api-key` replaced; `npm audit` triaged (the `effect` advisory comes with Prisma 7's `@prisma/config`) |
+
+**Gate 2**: CI green on TypeScript 7.1 and Prisma 8, its duration compared to E1 (target: the x4.7 build of E6), every
+sample and every scaffold combination building and passing its e2e tests on its database.
 
 ### Phase 3: Conventions and defaults
 
@@ -945,7 +967,7 @@ ticked.
 ### Tools and CI
 
 - CI duration compared at gate 2; nightly load tests (never per pull request); the 4 GB lint heap of `tools/lint.js`
-  re-measured under ESLint 10 and TypeScript 6; `tools/copy-packages.js` and the sample lockfiles under the new
+  re-measured under ESLint 10 and TypeScript 7.1; `tools/copy-packages.js` and the sample lockfiles under the new
   toolchain.
 
 ---
@@ -971,12 +993,12 @@ All `proposed` until approved. Effort: S < 1 day, M days, L a week, XL more.
 | V3-SEC-07     | Findings of the security checklist, one CR each                          | 1     | -    | -      | Per finding    |
 | V3-QA-01      | Edge case suite                                                          | 1     | P1   | L      | Per finding    |
 | V3-QA-02      | Tests never install packages in the repository (F32)                     | 1     | P1   | S      | No             |
-| V3-TOOL-01    | TypeScript 6, config cleanup, `noImplicitAny` (F30, F31)                 | 2     | P1   | M      | No             |
-| V3-TOOL-02    | `tsgo` build and type-check                                              | 2     | P2   | S      | No             |
+| V3-TOOL-01    | TypeScript 7.1, config cleanup, `noImplicitAny` (F30, F31)               | 2     | P1   | M      | Projects       |
+| V3-TOOL-02    | Tool check on TypeScript 7.1, aliased `typescript@6` where needed        | 2     | P1   | S      | No             |
 | V3-TOOL-03    | `tsx` instead of `ts-node` (F29)                                         | 2     | P1   | S      | No             |
 | V3-TOOL-05    | `@appweaver/tooling`, `weaver lint|format|test`, ESLint 10               | 2     | P1   | M      | Projects       |
 | V3-TOOL-06    | TypeBox 1.x (F27)                                                        | 2     | P1   | L      | Yes            |
-| V3-TOOL-07    | Prisma 8 (at GA)                                                         | 2     | P1   | L      | Yes            |
+| V3-TOOL-07    | Prisma 8.0.0 stable                                                      | 2     | P1   | L      | Yes            |
 | V3-TOOL-08    | `@appweaver/skill`, `weaver skill sync`                                  | 2     | P1   | M      | No             |
 | V3-SEC-06     | `generate-api-key` replaced, audit triage (F35)                          | 2     | P2   | S      | No             |
 | V3-CONV-01    | `Duration` and `Size` (F17)                                              | 3     | P1   | L      | Yes            |
@@ -999,7 +1021,7 @@ All `proposed` until approved. Effort: S < 1 day, M days, L a week, XL more.
 | V3-CLI-02     | `weaver doctor`                                                          | 7     | P2   | M      | No             |
 | V3-CLI-03     | `weaver resource new`                                                    | 7     | P2   | M      | No             |
 | V3-CLI-04     | `--json` output                                                          | 7     | P2   | S      | No             |
-| V3-CLI-05     | `weaver db *` commands                                                   | 5     | P1   | M      | Aliases kept   |
+| V3-CLI-05     | `weaver db *` commands                                                   | 2     | P1   | M      | Aliases kept   |
 | V3-CLIENT-01  | Types in their own file by default                                       | 5     | P1   | S      | Yes            |
 | V3-CLIENT-02  | Used or omitted operations, inapplicable ones dropped                    | 5     | P1   | S      | No             |
 | V3-CLIENT-03  | Generic resource types, comments opt-in, < 3,500 lines                   | 5     | P1   | M      | Maybe          |
@@ -1025,7 +1047,8 @@ The experiments settled most questions of revision 1. These remain:
 1. **2.x support**: how long `2.x` keeps receiving security fixes after 3.0.0 (proposed: 6 months).
 2. **Defaults of D5** that change behavior for existing deployments: the 15-minute access token, Swagger off in
    production, `totalCount: false`. Each is a one-line config to restore; confirm they are worth the migration note.
-3. **Prisma 8 timing**: ship v3 on Prisma 7.10 if Prisma 8 is not GA at phase 8, or wait?
+3. **Upstream slip**: decided to wait for TypeScript 7.1 and Prisma 8.0.0 stable before phase 2. If either slips by
+   more than a few weeks, start the phase 4 implementation behind it, or keep waiting?
 4. **Samples**: all nine stay in v3 (proposed); any to retire?
 5. **Angular client and untyped client** (`--no-types`): keep, or drop without usage data?
 6. **Views naming**: `views` and `view`, or `variants`?
