@@ -1,19 +1,22 @@
 # Appweaver v3.0.0 Plan
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`).
-> Nothing is implemented before its phase plan is reviewed and its change requests are approved.
+> **Revision 2**: every claim below was checked in the code or measured (section 3). Each decision of section 5 states
+> the evidence it rests on, the alternatives rejected, and what it breaks. Nothing is implemented before its phase plan
+> is reviewed and its change requests are approved.
 
 ## Contents
 
 1. [Goals and principles](#1-goals-and-principles)
 2. [Process](#2-process)
-3. [Baseline: what we already know](#3-baseline-what-we-already-know)
-4. [Phases](#4-phases)
-5. [Themes](#5-themes)
-6. [Module-by-module review](#6-module-by-module-review)
-7. [Change request register](#7-change-request-register)
-8. [Open decisions](#8-open-decisions)
-9. [Release plan](#9-release-plan)
+3. [Evidence: experiments run for this plan](#3-evidence-experiments-run-for-this-plan)
+4. [Findings register](#4-findings-register)
+5. [Decisions](#5-decisions)
+6. [Phases and stages](#6-phases-and-stages)
+7. [Module-by-module plan](#7-module-by-module-plan)
+8. [Change request register](#8-change-request-register)
+9. [Decisions left to the maintainer](#9-decisions-left-to-the-maintainer)
+10. [Release plan](#10-release-plan)
 
 ---
 
@@ -22,7 +25,7 @@
 **Goals**
 
 - **Sanity check** every package, feature, interface and use case: does it make sense, is it complete, is it needed.
-- **Consistency**: one way to do each thing (defaults, units, config, naming, extension points).
+- **Consistency**: one way to do each thing (exposure, projection, extension, units, config, naming).
 - **Performance**: fast on realistic data (10k to 100k records), cheap when idle, no memory growth.
 - **Security**: secure by default, every module reviewed.
 - **AI agent workflow**: fewer tokens, fewer steps and fewer wrong turns for an agent building an application.
@@ -30,12 +33,13 @@
 **Principles**
 
 - **Brutal honesty**: every proposal states its cost, its risk and the "leave it as is" option. A change has to beat
-  doing nothing, and a proposal can be rejected.
+  doing nothing. Section 5 rejects several ideas of the original task list, with the reason.
 - **Remove and simplify first**: adding an option needs a use case from a sample or a real application.
 - **Breaking changes are allowed**, but each one gets a migration note, and a `weaver upgrade` step or codemod when it
   is mechanical.
-- **Measure before optimizing**: the v2.10.0 numbers are recorded before any performance change.
-- **Small steps**: one concern per change request, reviewed and merged one at a time.
+- **Measure before optimizing**: the numbers of section 3 are the v2.10.0 baseline every later change is compared to.
+- **Small steps**: one concern per change request (CR), reviewed and merged one at a time.
+- **Security fixes do not wait for v3**: a confirmed vulnerability ships as a 2.10.x patch first (section 6, phase 1).
 
 ---
 
@@ -43,8 +47,8 @@
 
 Every phase runs in three stages, each ending with a review:
 
-1. **Phase plan**: the phase is detailed module by module in this file, every finding with its evidence
-   (`file:line`) and a proposed change request (CR). Each CR is approved, rejected or deferred.
+1. **Phase plan**: the phase is detailed in this file, its CRs listed with their evidence. Each CR is approved,
+   rejected or deferred by the maintainer.
 2. **Implementation**: one branch and pull request per CR (or per small group of tightly related CRs), named after the
    work (`refactor/duration-config`), with conventional commits (`feat!:` or a `BREAKING CHANGE` footer when breaking).
 3. **Phase review**: tests, lint, circular check and the load-test baseline rerun; skill, docs and migration guide
@@ -54,542 +58,985 @@ Every phase runs in three stages, each ending with a review:
 
 | Field      | Content                                                                    |
 |------------|----------------------------------------------------------------------------|
-| ID         | `V3-<AREA>-<nn>`, e.g. `V3-CORE-03`                                        |
-| Problem    | What is wrong or missing, with evidence                                    |
+| ID         | `V3-<AREA>-<nn>`, e.g. `V3-DATA-03`                                        |
+| Problem    | What is wrong or missing, with the evidence (section 3 or `file:line`)     |
 | Proposal   | The change, and the alternatives considered                                |
 | Do nothing | What happens if we skip it                                                 |
 | Breaking   | Yes or no, who is affected, the migration step                             |
-| Effort     | S, M or L                                                                  |
+| Priority   | P0 (security or data loss), P1 (v3 scope), P2 (nice to have)              |
+| Effort     | S (< 1 day), M (days), L (a week), XL (more)                               |
 | Status     | `proposed`, `approved`, `rejected`, `deferred`, `in progress` or `done`    |
 
-**Definition of done** of a CR: branch coverage kept at 80% or more, `format:check`, `lint` and `check:circular`
-passing, `skill/` updated, config examples updated (`appweaver.example.json`, `.env.example`, `configuration.md`),
-samples and scaffold templates updated, a note in `MIGRATION-v3.md` when breaking, docs.appweaver.co updated.
+**Definition of done** of a CR: branch coverage kept at 80% or more (today 89%), `format:check`, `lint` and
+`check:circular` passing, `skill/` updated, config examples updated (`appweaver.example.json`, `.env.example`,
+`configuration.md`), samples and scaffold templates updated, a note in `MIGRATION-v3.md` when breaking, the load-test
+scenarios it touches rerun, docs.appweaver.co updated.
+
+**Branches and releases**: `release.config.js` releases `main` only (`branches: ['main']`), so breaking commits would
+reach a stable release one by one. v3 work goes to a `next` branch released as `3.0.0-next.N` on the `next` dist-tag
+(`branches: ['main', { name: 'next', prerelease: true }]`). 2.x fixes stay on `main` and are merged forward into `next`.
 
 ---
 
-## 3. Baseline: what we already know
+## 3. Evidence: experiments run for this plan
 
-**Size** (source lines without tests, comments included / test files):
+**Environment**: 4 vCPU, 15 GB RAM, Node 24.22.3, npm 12.2.3, the `cms-api` sample built and started with
+`NODE_ENV=prod` on SQLite (`@prisma/adapter-better-sqlite3`) and a local Redis 7, the rate limiter off
+(`RATE_LIMIT_ENABLED=false`, it answers `429` after 1,000 requests a minute otherwise). Load generated with autocannon 8,
+20 connections for 10 s per scenario unless noted. The posts were inserted with a seeder writing directly into SQLite
+(10k, then 100k posts, two tags each, ISO dates like Prisma writes them). The scripts become the harness of `V3-PERF-01`.
 
-| Package    | Lines  | Tests | Package         | Lines | Tests |
-|------------|--------|-------|-----------------|-------|-------|
-| `data`     | 17,594 | 55    | `testing`       | 1,588 | 2     |
-| `web`      | 14,252 | 65    | `opentelemetry` | 780   | 6     |
-| `common`   | 9,790  | 27    | `redis`         | 606   | 7     |
-| `core`     | 7,374  | 38    | `bullmq`        | 557   | 2     |
-| `client`   | 7,320  | 19    | `handlebars`    | 532   | 3     |
-| `realtime` | 6,024  | 21    | `openai`        | 522   | 2     |
-| `cli`      | 5,621  | 24    | `twilio`        | 202   | 2     |
-| `create`   | 3,513  | 13    | `cron`          | 183   | 2     |
-| `ai`       | 2,985  | 11    | `nodemailer`    | 106   | 2     |
-| `mcp`      | 2,356  | 10    | `sharp`         | 87    | 1     |
+### E1. Build and test baseline
 
-About 82k source lines and 312 test files in total.
+| Measure                                  | Result                                                    |
+|------------------------------------------|-----------------------------------------------------------|
+| `npm ci`                                 | 34 s                                                      |
+| `npm run build` (TypeScript 5.9.3)       | 15 s, of which `tsc -b packages` 13.6 s                   |
+| `npm test` (Jest 30 + SWC, coverage)     | 60 s; 312 suites, 4,872 tests (5 skipped), all passing    |
+| `jest` without coverage                  | 33 s                                                      |
+| Coverage                                 | 93.1% statements, 89.0% branches                          |
+| `tsc --noEmit` of the whole repository   | 11.8 s                                                    |
 
-**Findings so far**, checked while writing this plan. Each one becomes a CR or is rejected in its phase.
+### E2. Load test of the `cms-api` posts at 10k and 100k records
 
-| #  | Finding                                                                                                                                                                         | Evidence                                                                                                                                                                                                                                          |
-|----|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1  | Three time-unit conventions in the config: integer milliseconds (most TTLs), integer seconds, and duration strings                                                              | `core/cache/cache-config.ts:20` (`DEFAULT_TTL: 5000` ms), `web/security/security-config.ts:161` (`EXPIRES_IN: 604800` s), `core/queue/queue-config.ts:8` (`KEEP_COMPLETED_SECONDS`), `data/audit/audit-config.ts:12` (`RETENTION: '90d'`), `web/server/server-config.ts:33` (`STATIC_MAX_AGE: '30d'`) |
-| 2  | The maintenance jobs are `setInterval` timers in every instance, outside the scheduler, without a lock: N instances run N purges                                                | `data/audit/audit-service.ts:111,129`, `data/timeseries/database-time-series.ts:116`, `data/storage/file-service.ts:140`                                                                                                                          |
-| 3  | Each surface has its own exposure default: CRUD routes on (opt out with `exclude`), bulk routes off (env flags `RESOURCE_BULK_*_ENABLED` or `exclude: false`), realtime events and MCP tools off (opt in) | `common/types/routes.ts:238-256`                                                                                                                                                                                                                  |
-| 4  | The response cache of an authenticated route is keyed per user: a cached read is shared only by `public` routes                                                                 | `web/cache/caching.ts:31`                                                                                                                                                                                                                         |
-| 5  | The audit fields `createdAt`, `updatedAt` and `createdById` are in every response by default, so `createdById` exposes user IDs                                                 | `data/factory/create-model.ts` (`buildAuditSchema`)                                                                                                                                                                                               |
-| 6  | The access token lives 7 days by default (`604800` s), the refresh token 60 days                                                                                                | `web/security/security-config.ts:161-163`                                                                                                                                                                                                         |
-| 7  | Forced 2FA is one global switch falling back to `Email`: no per-role enforcement, no enrolment grace period                                                                     | `web/security/security-config.ts:49`                                                                                                                                                                                                              |
-| 8  | Field visibility is static per model (`hidden`, the `omit` of `create` and `update`). Policies restrict rows (`readRestrictions`), never fields per role or permission        | `common/types/model.ts`, `common/types/policy.ts`                                                                                                                                                                                                 |
-| 9  | Two patterns for the framework models: `ApiKey` ships its model, service, policy and routes (switched by config), `AuditLog` and `AuditChange` only their models              | `web/security/resources/api-key/routes.ts`, `skill/references/audit.md`                                                                                                                                                                           |
-| 10 | Four separate `KEEP_DATABASE_TABLE` keys (API keys, connected accounts, 2FA, security store) plus the audit one                                                                 | `data/security/auth-config.ts:25,43,49`, `core/security/security-store-config.ts:9`, `data/audit/audit-config.ts:9`                                                                                                                               |
-| 11 | The audit diff is computed in the request (`recordChange`), only the write is deferred; the flush timer wakes every second, idle or not                                        | `data/audit/audit-service.ts:111,209-247`                                                                                                                                                                                                         |
-| 12 | The generated client of `movies-api-bun` is 7,425 lines, and every resource client lists its omitted operations, never the used ones                                           | `client/generators/generate-client.ts:171`                                                                                                                                                                                                        |
-| 13 | `experimentalDecorators` and `emitDecoratorMetadata` are on, while no package uses decorators; the `paths` rely on `baseUrl`, deprecated by TypeScript 6                        | `tsconfig.json`                                                                                                                                                                                                                                   |
-| 14 | The tests run on Jest 30 through `@swc/jest`, the only use of SWC; scaffolded projects ship the same setup                                                                      | `jest.config.json`, `scaffoldDependencies.tooling`                                                                                                                                                                                                |
-| 15 | The CLI carries `ts-node`, `tsc-watch` and `tsc-alias` as runtime dependencies                                                                                                  | `packages/cli/package.json`                                                                                                                                                                                                                       |
-| 16 | About 15k of the 82k source lines are comment lines (~18%)                                                                                                                      | line count over `packages/**/*.ts` without tests                                                                                                                                                                                                  |
-| 17 | The skill is ~12.8k lines (`SKILL.md`, `GUIDELINES.md`, 25 references), copied into projects by `weaver upgrade`                                                                | `cli/upgrade/upgrade-skill.ts`                                                                                                                                                                                                                    |
-| 18 | Releases come from `main` only, so breaking commits cannot be staged in prereleases                                                                                             | `release.config.js:30`                                                                                                                                                                                                                            |
-| 19 | A realtime resource event costs one access query per event and distinct subscribed user                                                                                         | `AGENTS.md` (`packages/realtime`)                                                                                                                                                                                                                 |
+Every request carries a random value in its filter (`title: { _ne: <random> }`), so the response cache of the public
+routes never answers, except in `queryCached`. `find` reads a random post.
+
+**100k posts, one connection (the latency of a single request)**
+
+| Scenario                                    | Req/s | p50     | p97.5  |
+|---------------------------------------------|-------|---------|--------|
+| `find` by ID                                | 188   | 4 ms    | 10 ms  |
+| `query`, first page, with the total count   | 15    | 64 ms   | 112 ms |
+| `query`, first page, `totalCount: false`    | 175   | 4 ms    | 12 ms  |
+| `query`, random deep page (offset)          | 6     | 176 ms  | 264 ms |
+| `query`, `status` + `category`, `-publishedAt` | 23 | 41 ms   | 53 ms  |
+| `query`, `searchText` (`contains` on 3 text columns) | 2 | 448 ms | 536 ms |
+| `query`, `tags: { _some: { id } }`          | 9     | 106 ms  | 137 ms |
+| `query`, cached                             | 1,003 | 0 ms    | 1 ms   |
+| `aggregate`, one year (13 periods)          | 2     | 380 ms  | 485 ms |
+
+**20 connections**
+
+| Scenario                     | 10k: req/s, p50, p99   | 100k: req/s, p50, p99           |
+|------------------------------|------------------------|---------------------------------|
+| `find`                       | 299, 59 ms, 147 ms     | 281, 64 ms, 129 ms              |
+| `query` with the count       | 97, 190 ms, 424 ms     | 14, 1,119 ms, 3,983 ms          |
+| `query` without the count    | 277, 64 ms, 137 ms     | 211, 66 ms, 153 ms              |
+| Deep page                    | 69, 274 ms, 614 ms     | 6, 2,692 ms, 9,847 ms           |
+| Filter and sort              | 159, 117 ms, 248 ms    | 23, 611 ms, 2,277 ms            |
+| Text search                  | 31, 591 ms, 1,671 ms   | 2, 4,169 ms, 10 timeouts        |
+| Relation filter              | 71, 264 ms, 559 ms     | 0, 16 timeouts (> 10 s)         |
+| Cached                       | 1,719, 7 ms, 41 ms     | 10, 1,083 ms (see below)        |
+| `aggregate`, one year        | n/a                    | 2, 4,886 ms, 9 timeouts         |
+
+**What it shows**
+
+- **The total count is the cost of a query**: 4 ms without it, 64 ms with it at 100k, 16 times more. It is on by
+  default (`totalCount = true`, `data/resource/resource-service.ts:244`).
+- **SQLite blocks the server**: better-sqlite3 runs every statement synchronously on the event loop, so throughput does
+  not grow with connections (15 req/s at 1 and 14 at 20), and one slow query stalls every other request. The cached
+  scenario fell from 1,719 to 10 req/s at 100k because the abandoned text-search and relation-filter queries kept
+  running server-side after the clients timed out: there is no server-side query timeout.
+- **Offset pagination degrades linearly** (176 ms for a deep page), cursors exist but are not the default.
+- **`contains` text search scans** (448 ms), and the relation filter on a many-to-many relation costs 106 ms.
+- **`aggregate` runs one query per period** (`data/resource/resource-service.ts:535`, `Promise.all` over the ranges),
+  so a daily aggregate over a year is ~365 queries plus the `first`/`last` ones. Without `from` and `to` it silently
+  covers the **last 7 days only**: the first run returned a `total` of 3 posts out of 100k.
+- **The sample writes on every read**: the `afterFind` hook of `cms-api` (`sample/cms-api/src/resources/post/service.ts`)
+  increments `viewCount` with a direct update; 9,216 of the 100k posts were rewritten by the `find` load test, every
+  uncached read became a write, and the 60 s route cache makes the count wrong anyway.
+
+### E3. CPU profile of the query path (10k posts, `query` with and without the count)
+
+| Share of the samples | Where                                                                                  |
+|----------------------|----------------------------------------------------------------------------------------|
+| 33%                  | SQLite I/O (`performIO` of the adapter 26.8%, `prepare` 4.8%, better-sqlite3)          |
+| 17%                  | Idle                                                                                   |
+| 10.6%                | `@prisma/client` (the query compiler and interpreter)                                  |
+| ~11%                 | Appweaver: `data` 5.7%, `common` 2.8%, `web` 1.6%, `core` 1.0%                          |
+| ~6%                  | `projectVirtualFields` alone (`data/utils/virtual-util.ts:21`), re-resolving the schema properties of every key of every record with `extractSchemaProperties`, recursively; ~8% with `hideDeletedRelations` and `projectResource` |
+| ~3%                  | `flatted.stringify` in `RedisMemory.set`, serializing every cached response, although the payload is already a string |
+| ~3%                  | `fast-json-stringify`, Ajv compilation at startup                                       |
+
+The framework itself is not the bottleneck on SQLite (the database is), but the projection is the largest framework
+cost, and it is avoidable: the projection plan of a model can be compiled once.
+
+### E4. Audit log overhead (`cms-api`, which also audits the reads; 10 connections, 8 s, 100k posts)
+
+| Scenario       | Audit off: req/s, p99 | Audit on: req/s, p99 | Difference            |
+|----------------|-----------------------|----------------------|-----------------------|
+| `find`         | 299, 60 ms            | 240, 108 ms          | -20% throughput, p99 x1.8 |
+| `query`        | 362, 51 ms            | 250, 90 ms           | -31% throughput, p99 x1.8 |
+| `create`       | 251, 66 ms            | 204, 118 ms          | -19% throughput, p99 x1.8 |
+
+The hooks of `web/audit/audit-hooks.ts` cost ~3% of the CPU; the rest is the batched inserts of the flush, which on
+SQLite run synchronously on the event loop and show as p99 spikes. A second profiled run gave 295 req/s for `query`
+with the audit on, so the variance is high; the real target is measured on PostgreSQL in phase 6.
+
+### E5. Idle cost and memory
+
+| Measure                                        | Result                                                     |
+|------------------------------------------------|------------------------------------------------------------|
+| RSS after startup                              | 443 MB                                                     |
+| Heap used / total after startup                | 119 MB / 289 MB                                            |
+| Heap and RSS of the packages alone (`require`) | 32 MB / 120 MB (`@appweaver/common` takes 285 ms to load)   |
+| RSS under load                                 | ~990 MB, flat over three consecutive runs (high-water mark, no leak) |
+| Timer wake-ups in 60 s of idle                 | 60 from the audit flush (`data/audit/audit-service.ts:111`, every second), 8 BullMQ lock extender, 2 BullMQ worker, 1 cron |
+
+So ~87 MB of the idle heap is built at setup (the TypeBox module of every model, the Ajv validators and
+fast-json-stringify serializers of every route, the OpenAPI document, the Prisma client). To be broken down with a heap
+snapshot in phase 6.
+
+### E6. TypeScript 6 and 7
+
+| Run                                          | Result                                                                          |
+|----------------------------------------------|---------------------------------------------------------------------------------|
+| TypeScript 6.0.3, `tsc --noEmit`             | 1 error: `baseUrl` is deprecated (TS5101)                                       |
+| TypeScript 7.0.2, `tsc --noEmit`             | 3.3 s (TS 5.9: 11.8 s), after 3 config changes: remove `baseUrl`, list `types` explicitly (`["node", "jest", "bun"]`), set `typeRoots`; then 2 errors |
+| TypeScript 7.0.2, `tsc -b packages`          | 2.9 s (TS 5.9: 13.6 s, x4.7), the same errors plus `moduleResolution: node10` removed (`packages/client/tsconfig.cjs.json`) |
+| The 2 errors                                 | `openapi-typescript` has no `astToString` (it needs the compiler API), `WebSocket.send` typing in `client/clients/modules/realtime-client.ts:722` |
+| `require('typescript')` of 7.0.2             | exports only `version`, `versionMajorMinor` and `unstable/*`: **no compiler API** |
+| `noImplicitAny: true` (currently `false`)    | 108 errors in the sources (data 67, common 13, client 13, web 11, core 2, redis 1, ai 1), 11 in tests |
+
+Consequence: with TypeScript 7 as the `typescript` package, these break: `ts-node` (`cli/utils/loader-util.ts:5`,
+which `weaver generate` uses to load the models), `@sinclair/typebox-codegen` (`cli/generate/generate-types.ts`), the
+client generator (`openapi-typescript` and the TypeScript AST in `client/generators` and `client/utils`),
+typescript-eslint 8.74 (`typescript >=4.8.4 <6.1.0`, or the 7.1 beta through `@typescript/native`) and madge.
+
+### E7. Vitest instead of Jest
+
+| Run                                                  | Result                                                         |
+|------------------------------------------------------|----------------------------------------------------------------|
+| Usage of Jest APIs in tests                          | `jest.fn` 447, `jest.spyOn` 151, `jest.mock` 72, `jest.requireActual` 55, `jest.resetModules` 34, `jest.isolateModules` 4 |
+| Vitest 5.1.1, `core` only, `globalThis.jest = vi`    | 567 / 570 pass; 7.4 s isolated (Jest: 4.0 s), 2.4 s with `isolate: false` |
+| The 3 failures                                       | the framework `require()`s provider and module files at runtime (`common/utils/module-util.ts`), which Vitest does not transform |
+| Whole suite                                          | 45 to 47 of 312 files fail (`jest.isolateModules`, `process.chdir` unsupported in worker threads, runtime `require` of `.ts`, mock differences); 126 s isolated, 73 s not isolated, against **33 s for Jest** |
+| Incident                                             | tests relying on `process.chdir()` into a temporary project (`cli` module and upgrade tests) ran a real `npm install` **in the repository root** under Vitest, changing `package.json` and the lockfile (restored) |
+
+### E8. Generated client (`sample/movies-api-bun/client/generated/movies-client.ts`, 7,425 lines)
+
+| Part                                             | Lines  | Share |
+|--------------------------------------------------|--------|-------|
+| `paths` (from `openapi-typescript`)              | 3,117  | 42%   |
+| Exported aliases (`GenreQueryFilter`, `GenreSingle`, ... 136 types) | 3,372 | 45% |
+| `components`                                     | 753    | 10%   |
+| The client class and helpers                     | 169    | 2%    |
+| Of all of it, doc comment lines                  | 2,156  | 29%   |
+
+`genre` (no files, no series) lists 13 omitted operations, `writeSeries` and `uploadFiles` among them
+(`client/generators/generate-client.ts:171`), where its 6 used ones would be shorter, and the inapplicable ones should
+not be listed at all.
+
+### E9. An application model named like a framework model
+
+A test defined an application `Seeder` model with an extra field, then loaded the framework `Seeder` model like
+`loadResources` does. Result: the context keeps the **application** model (`define` keeps the first definition,
+`core/context/dependency-injection.ts:72`), but the loader's map keeps the **framework** one (the last export wins,
+`data/resource/resource-loader.ts` `loadModels`), so the relinking, the validations and the `Type.Module` import are
+applied to the framework model, while the application model in the context keeps its raw schemas. No error, no warning.
+
+### E10. The response cache replays the headers of another request
+
+With `CORS_ORIGIN=https://a.example,https://b.example`, the same cached query requested from `https://b.example`
+answered `Access-Control-Allow-Origin: https://a.example`: `web/cache/caching.ts` stores `reply.getHeaders()` and
+replays them, so the CORS check of the second origin fails in the browser. Any per-request header would be replayed the
+same way. Also: `CORS_ORIGIN='["https://a.example","https://b.example"]'` (a JSON array) is silently taken as one
+origin string, and CORS stopped matching at all.
+
+### E11. Security probes (anonymous requests to the running sample)
+
+| Probe                                                                                     | Result                                       |
+|-------------------------------------------------------------------------------------------|----------------------------------------------|
+| `POST /api/posts/query` with no credentials                                               | returns `Draft` posts with their `content`: the public routes of the reference sample have no read restriction |
+| The same response                                                                         | carries `createdById` and the `updatedAt`, `createdAt` and `createdById` of the author |
+| Filter `author.passwordHash` (a `hidden` field)                                           | rejected (`VALIDATION_FAILED`), correct      |
+| Filter `author.email _like 'admin@%'`, a field the relation `output.omit`s                | 103,666 results; `'nobody@%'` gives 0: **the omitted email is an oracle**, guessable character by character |
+| One 7.9 MB body: `filter._or` with 300k conditions (the body limit is `100M`)             | the **whole server froze for 19.5 s** (other requests waited 19.5 s), then answered `500 DATABASE_OPERATION_FAILED` |
+| Code review                                                                               | `security.allowedRedirectHosts` defaults to `['*']` (open redirect, `web/security/security-config.ts:22`); JWT keys are generated per instance when missing, in every environment (`AUTO_GENERATE_KEYS: true`), so instances without a shared volume reject each other's tokens and every redeploy logs everyone out; Swagger UI on by default in production; CSV export without formula escaping (`data/utils/export-util.ts`); the `ApiKey` policy dereferences `user!` (`data/security/resources/api-key/policy.ts`) |
+
+### E12. Ecosystem status (npm registry and specifications, 2026-11-24)
+
+| Item                      | Status                                                                                                      |
+|---------------------------|-------------------------------------------------------------------------------------------------------------|
+| TypeScript                | `latest` 7.0.2 (2026-07-08), 6.0.3 (2026-04-16), `beta` 7.1.0-beta                                          |
+| Prisma                    | **8.0.0-rc.35** carries the `latest` tag of `prisma` (2026-11-23), `@prisma/client` `latest` is 7.10.1. GA was expected in October 2026 and slipped. Needs Node 22.18+ and TypeScript 5.9+; `.take`/`.skip` become `.limit`/`.offset`, the legacy `@db.*` attributes are removed, the date types change, each RC ships an upgrade recipe. Our surface: 5 `take`/`skip`, 9 `@db.*` in the schema generator, 29 raw SQL calls, 5 Prisma error codes |
+| Vitest                    | 5.1.1                                                                                                       |
+| TypeBox                   | `typebox` 1.4.7; **the repository holds two copies**: `typebox@1.3.0`, pulled by `@fastify/type-provider-typebox` 6.x (peer `typebox ^1.1.14`), and `@sinclair/typebox@0.34.49`, which builds every schema of the framework |
+| ESLint                    | 10.15.0 (`typescript-eslint` 8.74 supports it)                                                              |
+| Fastify                   | 5.12.8, 6.0.0-alpha.6                                                                                       |
+| MCP                       | **2026-07-28** is the current specification: stateless core, no `initialize` handshake, no `Mcp-Session-Id`, the protocol version and capabilities in `_meta` of every request, `iss` validation in the OAuth flow, Roots, Sampling and Logging deprecated. `@appweaver/mcp` supports `2025-11-25` and older (`mcp/server/mcp-server.ts:27`) |
+| `npm audit --omit=dev`    | 5 (3 high: `prisma` -> `@prisma/config` -> `effect` ReDoS; 2 moderate: `generate-api-key` -> `uuid`)        |
+
+### E13. Sizes and debt
+
+| Package       | Lines  | Comment lines | `any` | Largest file                                     |
+|---------------|--------|---------------|-------|--------------------------------------------------|
+| `data`        | 17,594 | 18%           | 211   | `resource/resource-service.ts` (1,723)           |
+| `web`         | 14,252 | 14%           | 69    | `security/two-factor/two-factor-service.ts` (1,111) |
+| `common`      | 9,790  | 32%           | 58    | `utils/geo-util.ts` (720)                        |
+| `core`        | 7,374  | 17%           | 9     | `timeseries/time-series-service.ts` (659)        |
+| `client`      | 7,320  | 22%           | 56    | `clients/modules/realtime-client.ts` (1,612)     |
+| `realtime`    | 6,024  | 17%           | 1     | `gateway/realtime-gateway.ts` (1,795)            |
+| `cli`         | 5,621  | 15%           | 11    | `generate/generate-prisma-schema.ts` (1,388)     |
+| `create`      | 3,513  | 12%           | 2     | `scaffold/apply-modules.ts` (998)                |
+| `ai`          | 2,985  | 19%           | 1     | `service/ai-service.ts` (1,045)                  |
+| `mcp`         | 2,356  | 11%           | 4     | `web/oauth-routes.ts` (754)                      |
+| Others        | 5,163  | 2-16%         | 27    | `testing/contracts/time-series-contract.ts` (300) |
+
+Agent context: `AGENTS.md` ~28k tokens (loaded in every session in this repository), `skill/SKILL.md` ~18k,
+`skill/GUIDELINES.md` ~4k, `skill/references/*` ~169k (`configuration.md` alone ~34k, `resources.md` ~26k).
+
+Config units, counted: ~40 time keys in integer milliseconds, 7 in integer seconds
+(`security.jwt.expiresIn`, `refreshExpiresIn`, `cors.maxAge`, `security.account.2fa.totp.period`,
+`queue.keepCompletedSeconds`, `keepFailedSeconds`, `oauth2.apple.clientSecretExpiresIn`) and 9 duration strings
+(`audit.retention`, `flushInterval`, `retentionInterval`, `storage.versions.pruneInterval`, `timescale.chunkInterval`,
+`server.staticMaxAge`, `log.rotateInterval`, ...). Sizes mix `'100M'`, `'64KB'` and `'5 MB'`.
 
 ---
 
-## 4. Phases
+## 4. Findings register
 
-| Phase | Name                          | Output                                                                   | Gate                                              |
-|-------|-------------------------------|--------------------------------------------------------------------------|---------------------------------------------------|
-| 0     | Preparation                   | Release channel, migration guide skeleton, load-test harness, baselines  | Baseline numbers recorded                         |
-| 1     | Audit (read-only)             | Findings and CRs per module: security, edge cases, API, comments         | CR register reviewed and ordered                  |
-| 2     | Toolchain and platform        | TypeScript, test runner, lint tooling, Prisma 8, skill package           | CI green, samples and scaffolds build             |
-| 3     | Conventions and foundations   | Durations, exposure defaults, maintenance jobs, secure defaults          | Conventions applied in every package              |
-| 4     | Data model and API design     | Model extension, model views, auth by extension, caching, audit          | Each RFC approved before its code                 |
-| 5     | Module-by-module refactoring  | The remaining approved CRs, in the order of section 6                    | Per module                                        |
-| 6     | Performance                   | Load tests at 10k and 100k records, every sample, idle and memory        | Budgets met or explained                          |
-| 7     | AI workflow, docs, migration  | Skill, AGENTS.md, CLI aids, docs site, migration guide, codemods         | Docs and samples on v3                            |
-| 8     | Release                       | `3.0.0-next.N` prereleases, then `3.0.0`                                 | Samples and a scaffolded project run on the release |
+Every finding is confirmed (C) by a test or a measurement of section 3, or read (R) in the code. Severity: critical,
+high, medium, low, or a design or performance finding.
 
-**Why this order**: the audit is cheap and feeds every later phase. The toolchain goes early so every later pull
-request runs on it. Conventions come before features, so the features adopt them. Performance is optimized after the
-design changes, but measured in phase 0, so the comparison is fair.
+| #   | Finding                                                                                                   | Kind        | Sev.   | Evidence | CR          |
+|-----|-----------------------------------------------------------------------------------------------------------|-------------|--------|----------|-------------|
+| F1  | Unbounded filters and a 100 MB JSON body: one anonymous request freezes the server                        | Security    | High   | C, E11   | V3-SEC-01   |
+| F2  | A field omitted by a relation's `output.omit` can still be filtered on: an oracle                         | Security    | High   | C, E11   | V3-SEC-02   |
+| F3  | The response cache replays per-request headers (CORS origin)                                              | Bug         | Medium | C, E10   | V3-SEC-03   |
+| F4  | Reference sample: drafts readable anonymously, a write on every read                                      | Sample      | Medium | C, E2, E11 | V3-SAMPLE-01 |
+| F5  | `allowedRedirectHosts` defaults to `['*']`                                                                | Security    | Medium | R        | V3-CONV-04  |
+| F6  | JWT keys generated per instance in production                                                             | Security    | Medium | R        | V3-CONV-04  |
+| F7  | CSV export without formula escaping; arrays never joined (`isArray && isString` cannot hold)              | Security, bug | Medium | R      | V3-SEC-04   |
+| F8  | An OAuth-only account can be linked by another provider reporting the same, possibly unverified, email    | Security    | To verify | R     | V3-SEC-05   |
+| F9  | App model named like a framework model: silently inconsistent                                             | Bug         | Medium | C, E9    | V3-DATA-01  |
+| F10 | Audit fields (`createdById`) in every response, anonymous ones included                                   | Default     | Medium | C, E11   | V3-CONV-04  |
+| F11 | Access token valid 7 days by default                                                                      | Default     | Medium | R        | V3-CONV-04  |
+| F12 | Forced 2FA without enrolment: an unverified email or a missing phone locks the user out or adds nothing   | Design      | Medium | R        | V3-WEB-02   |
+| F13 | Field visibility is static per model; per-audience projection is spread over `read`, relation `output.omit`, `mcp.exclude` and `export` | Design | - | R | V3-DATA-02 |
+| F14 | Exposure defaults differ per surface; `export` and `aggregate` on for every model                         | Design      | -      | R        | V3-CONV-02  |
+| F15 | Authenticated cached reads are keyed per user                                                             | Design      | -      | R        | V3-WEB-01   |
+| F16 | Maintenance jobs are timers in every instance, no lock, no scheduler                                      | Design      | -      | R, E5    | V3-CONV-03  |
+| F17 | Three time units and three size formats in the config                                                     | Consistency | -      | R, E13   | V3-CONV-01  |
+| F18 | Five `KEEP_DATABASE_TABLE` keys                                                                           | Consistency | -      | R        | V3-CONV-05  |
+| F19 | The total count is on by default and costs x16 at 100k                                                    | Performance | -      | C, E2    | V3-CONV-06  |
+| F20 | `aggregate` runs one query per period, and covers 7 days without `from`/`to`                              | Performance, default | - | C, E2 | V3-CONV-07 |
+| F21 | Projection walks the schemas for every record (~6-8% CPU)                                                 | Performance | -      | C, E3    | V3-PERF-03  |
+| F22 | `flatted` serializes every cached response (~3% CPU)                                                      | Performance | -      | C, E3    | V3-WEB-01   |
+| F23 | SQLite statements block the event loop; no server-side query timeout                                      | Performance | -      | C, E2    | V3-PERF-07  |
+| F24 | `contains` text search scans (448 ms at 100k), relation filters 106 ms                                    | Performance | -      | C, E2    | V3-PERF-05  |
+| F25 | Audit costs 19-31% throughput on SQLite and doubles p99                                                   | Performance | -      | C, E4    | V3-DATA-05  |
+| F26 | The audit flush timer wakes every second while idle                                                       | Idle        | -      | C, E5    | V3-DATA-05  |
+| F27 | Two TypeBox copies; the Fastify type provider infers with TypeBox 1 over 0.34 schemas                     | Dependency  | -      | C, E12   | V3-TOOL-06  |
+| F28 | MCP server behind the current specification (2026-07-28)                                                  | Protocol    | -      | R, E12   | V3-MCP-01   |
+| F29 | `ts-node` (unmaintained since 2023) loads the models; it and other tools need the TypeScript API          | Toolchain   | -      | C, E6    | V3-TOOL-03  |
+| F30 | `noImplicitAny: false` despite `strict`; 108 implicit `any`                                               | Type safety | -      | C, E6    | V3-TOOL-01  |
+| F31 | Decorator compiler flags without decorators; `baseUrl` deprecated                                         | Toolchain   | -      | C, E6    | V3-TOOL-01  |
+| F32 | Tests changing the process directory can run `npm install` in the repository                              | Test safety | -      | C, E7    | V3-QA-02    |
+| F33 | Generated client: 45% aliases, 42% `paths`, 29% comments; inapplicable operations listed                  | Size        | -      | C, E8    | V3-CLIENT-01..03 |
+| F34 | `SKILL.md` ~18k tokens, `configuration.md` ~34k, `AGENTS.md` ~28k                                          | AI workflow | -      | C, E13   | V3-DOC-02, 03 |
+| F35 | `generate-api-key` pulls a vulnerable `uuid`; `prisma` pulls a vulnerable `effect`                        | Dependency  | Low    | C, E12   | V3-SEC-06   |
+| F36 | A JSON array in an array env variable is silently one string                                              | Config      | Low    | C, E10   | V3-COMMON-01 |
+| F37 | `data/utils/file-util.ts:145` reads the `SERVER_BODY_MAX_SIZE` of web from data                          | Layering    | Low    | R        | V3-SEC-01   |
+| F38 | Swagger UI on in production by default                                                                    | Default     | Low    | R        | V3-CONV-04  |
+
+---
+
+## 5. Decisions
+
+Each decision answers one item of the original task list. **Decided** means the recommendation of this plan after the
+experiments; it is still subject to the approval of its CR.
+
+### D1. Model views: input and output per audience — **decided: add, as an extension of the model**
+
+**Problem**: F13. Today one model has one output, one create and one update shape. The reference sample needs three
+audiences already: the public reads a post without its drafts and audit fields, the author edits it, the admin sees
+everything; and it hand-writes the public shape of `User` as an `output.omit` list on the `author` relation, which is
+also what made the email filterable (F2). The `viewCount` increment had to bypass the service (F4).
+
+**Decision**: a model declares named views. A view is a static projection: the fields it reads, the fields it writes,
+the write operations allowed per field. Routes, policies, MCP tools, realtime events, exports and relations bind to a
+view. The schemas stay static, so the OpenAPI document, the clients, the serializers and the cache stay precise.
+
+```ts
+export default createModel({
+  name: 'Post',
+  scalars: { /* defined once */ },
+  views: {
+    public: {
+      read: { omit: ['status', 'seo'], audit: false },   // no audit fields
+      write: { pick: ['viewCount'], operations: { viewCount: ['increment'] } }
+    },
+    author: { read: { omit: ['seo'] }, write: { omit: ['uid', 'viewCount'] } }
+    // the model itself is the full view, as today
+  }
+});
+
+// routes: one createRoutes per view and path
+export const publicPosts = createRoutes({ modelName: 'Post', view: 'public', path: '/posts', actions: ['find', 'query'] });
+export const adminPosts = createRoutes({ modelName: 'Post', path: '/admin/posts', defaults: { roles: ['Admin'] } });
+
+// policy of a view, composed with the model policy (both must allow)
+export default createPolicy({ modelName: 'Post', view: 'public', readRestrictions: () => ({ status: 'Published' }) });
+
+// relation output bound to a view of the related model, replacing the omit list
+author: { model: 'User', type: 'manyToOne', output: { type: 'always', view: 'public' } }
+```
+
+**Rules**: a view only removes fields from the model, never adds them; the filters and sorts of a route accept only the
+fields readable through its view, recursively through the views of its relations (this closes F2 by construction);
+the cache key includes the view; `mcp` and `events` take a `view`, so an agent reads the slim shape (fewer tokens).
+
+**Rejected**: (A) a per-user field mask in the policy at runtime: the OpenAPI document cannot show it, clients lose
+their types, the cache key must include the mask; (C) one route switching shapes per role: a union response schema,
+bad for clients, serialization and caching.
+
+**Evidence of feasibility**: `buildModel` (`data/factory/create-model.ts:299`) already builds every schema from the
+`read`, `create` and `update` pick/omit of the config, and `projectRecord` (`data/utils/record-util.ts:17`) projects by
+schema. A view is `buildModel` over the view's config with its own `$id` (`PostPublic`, ...). Two blockers to solve:
+the route registry is keyed by model name (`define` of routes, `core/context/dependency-injection.ts:80`), so it must
+be keyed by model and view; and the generated types and client need one type set per view.
+
+**Breaking**: no, additive. The relation `output.omit` and `mcp.exclude` stay for one major, deprecated.
+
+### D2. Extending and overriding framework models, services, policies and routes — **decided: `extend*`, and duplicates fail**
+
+**Problem**: an application cannot add a field, an index or an export config to `ApiKey`, `File`, `Role`, `AuditLog`
+or any module model, and redefining one by name is silently inconsistent (F9).
+
+**Decision**:
+
+```ts
+// src/resources/api-key/model.ts
+export default extendModel('ApiKey', {
+  scalars: { label: { type: 'string', required: false } },
+  indexes: [{ fields: ['label'] }],
+  read: { omit: ['createdById'] }
+});
+export const apiKeyService = extendService('ApiKey', { afterCreate: async (key) => { /* ... */ } });
+export const apiKeyRoutes = extendRoutes('ApiKey', { defaults: { roles: ['Admin', 'User'] } });
+```
+
+- Merge field by field: an extension adds fields and overrides the options of existing ones; it cannot remove a field
+  the framework uses, and an added field must be optional or have a default, since the framework creates these records.
+- A policy of the application for a framework model **composes** with the framework one (both must allow), so an
+  extension cannot loosen a framework guard by accident.
+- Service hooks compose: the framework hooks run first.
+- A second model, service, policy or routes under a taken name without `extend*` **fails at startup**, naming both
+  files. This alone is a 2.x patch (a warning) and a v3 error.
+
+**Auth model**: `createAuthModel` already merges the application config into the framework fields with an allow list
+(`data/security/create-auth-resources.ts:64`, `overridableProperties`). Rewriting it as `extendModel('User', ...)` would
+be churn without a benefit: **rejected**. It keeps its API and moves onto the same merge engine, and `createAuthService`
+gets the same composition rule.
+
+### D3. Framework-owned models: ApiKey versus the audit log — **decided: keep ApiKey in the framework**
+
+**Question of the task**: hand the ApiKey routes, service and policy over to the application, like the audit log?
+
+**Decision**: no. Its invariants (a key never grants more than its owner holds, only a JWT session manages keys) are
+security-critical; moving them out turns a framework guarantee into documentation. The inconsistency is resolved the
+other way: every framework model ships its model, service, policy and routes; the audit routes become optional
+(`audit.routes.enabled`, read-only, admin only, off by default); the application customizes through D2. The five
+`KEEP_DATABASE_TABLE` keys (F18) become one list, `database.keepTables: ['ApiKey', 'AuditLog', ...]`.
+
+### D4. Exposure: one rule and one syntax for REST, bulk, events and MCP — **decided**
+
+**Problem**: F14. CRUD on and opt-out, bulk off through env flags, events and MCP opt-in, each with its own syntax;
+`export` (a CSV of everything readable) and `aggregate` are on for every model.
+
+**Decision**: one `actions` list on every surface, the same names everywhere:
+
+```ts
+createRoutes({
+  modelName: 'Post',
+  path: '/posts',
+  actions: ['find', 'query', 'create', 'update', 'delete', 'export'],  // REST; default: 'crud'
+  find: { public: true },
+  events: { actions: ['create', 'update'] },                          // none unless listed
+  mcp: { actions: ['find', 'query'], view: 'public' }                  // none unless listed
+});
+```
+
+- REST defaults to `crud` (`find`, `query`, `create`, `update`, `replace`, `delete`); `aggregate`, `export` and the bulk
+  routes are listed when wanted; file and series routes follow the model (on when it has file or series fields).
+- Events and MCP stay opt-in: they expose data to new channels and agents.
+- The `RESOURCE_BULK_*_ENABLED` flags are removed: exposure is code, never config.
+- `weaver routes` prints every route, event and tool per model, with its auth, view and cache, for humans and agents.
+
+**Rejected**: everything opt-in (every model would need a list for the common case); per-surface defaults as today.
+
+### D5. Secure and realistic defaults — **decided, the table below**
+
+| Key                                                | Today           | v3                                            | Why                     |
+|----------------------------------------------------|-----------------|-----------------------------------------------|-------------------------|
+| Audit fields in responses                          | shown           | hidden, shown per model or view (`read.audit`) | F10                    |
+| `security.jwt.expiresIn` / `refreshExpiresIn`      | 7 d / 60 d      | 15 min / 30 d, refresh rotation with reuse detection | F11              |
+| `security.jwt.autoGenerateKeys`                    | `true`          | `true` in `dev` and `test` only; otherwise fail at startup without keys or a secret | F6 |
+| `security.allowedRedirectHosts`                    | `['*']`         | the host of `app.hostname`                     | F5                     |
+| `cors.origin`                                      | `['*']`         | `['*']` in `dev` and `test`; a warning at startup in production while `*` | Realistic |
+| `swagger.enabled`                                  | `true`          | `true` in `dev` and `test`                     | F38                    |
+| `server.bodyMaxSize`                               | `100M`, every route | `1M` for JSON; uploads by the file fields' `maxSize` | F1          |
+| Filter complexity                                  | unbounded       | `resource.filter.maxConditions: 100`, `maxDepth: 5`, `maxListValues: 1000` (SQL Server takes 2,100 parameters) | F1 |
+| `query` `totalCount`                               | `true`          | `false`, and bounded (D10)                     | F19                    |
+| `aggregate` without `from`/`to`                    | last 7 days     | the whole range of the filter, `interval` required for periods | F20     |
+| `export`, `aggregate`, bulk routes                 | on / env flags  | listed in `actions`                            | D4                     |
+| `security.account.2fa.forced`                      | boolean, `Email` fallback | see D6                               | F12                    |
+| Password `minLength`                               | 8               | 8, documenting 15 when the password is the only factor (NIST SP 800-63B-4), plus a breached-password hook | Realistic |
+
+### D6. Forced 2FA lifecycle — **decided: an enrolment step instead of a silent fallback**
+
+**Problem**: F12. With `forced: true`, a user without a method is challenged with the `defaultMethod` (`Email`,
+`web/security/two-factor/utils/method-util.ts:23`), even when their email is unverified; with `Sms` and no phone the
+user is locked out; and an email code on the same address that resets the password adds little against a compromised
+mailbox.
+
+**Decision**:
+
+1. `forced` becomes `forced: false | true | { roles: string[] }` (per role).
+2. First sign-in of a forced user without a confirmed method: the tokens get an `enroll` scope, valid only for the 2FA
+   setup routes (like the `2fa` scope today), until a method is confirmed; then full tokens.
+3. `gracePeriod` (a duration): during it, a forced user may still sign in fully and is told to enrol (`enrollBy` in the
+   response); after it, the `enroll` scope applies.
+4. The default method only serves users who already have a **verified** channel for it; nobody gets a code on an
+   unverified address.
+5. Recovery codes are issued when the first method is confirmed; an admin route resets the methods of a user.
+6. Startup fails when `forced` names a method without its service (no mailer for `Email`, no SMS sender for `Sms`, no
+   `totp.encryptionKey` for `Totp`).
+7. API keys stay outside 2FA (documented); the MCP sign-in and OAuth2 sign-ins follow the same steps.
+
+### D7. Caching of resource reads — **decided: explicit scopes, enforced at startup**
+
+**Problem**: F15 (per-user keys on authenticated routes), F3 (replayed headers), F22 (flatted), and the key is built
+twice per request (`preHandler` and `onSend` of `web/cache/caching.ts`).
+
+**Decision**: `cache: { scope: 'public' | 'user' | 'shared', ttl }`.
+
+- `public`: routes without authentication, as today.
+- `user`: authenticated, keyed by user (today's behavior).
+- `shared`: authenticated, one entry for every user. Accepted only when the response cannot depend on the user: the
+  view and the policy of the action have no `readRestrictions`, no user-dependent virtual field, no `events` callback;
+  checked at startup, failing otherwise. The response is computed once and served to everyone allowed by the route.
+- A cache entry stores the status, the payload and an allow list of headers (`content-type`, `content-disposition`,
+  `etag`, `last-modified`), never CORS, rate-limit, cookie or request-ID headers.
+- The key is computed once per request; the stored value is plain JSON (the payload is already a string).
+
+**Rejected for now**: a scope keyed by the roles and permissions the policy reads: unsafe unless policies declare what
+they read, which they do not.
+
+### D8. Audit log off the hot path — **decided**
+
+**Problem**: F25, F26. The diff is computed in the request (`recordChange`, `data/audit/audit-service.ts:209`), the
+flush timer runs every second, and on SQLite the batched inserts run on the event loop.
+
+**Decision**:
+
+1. The request only appends to a bounded ring buffer (`audit.bufferSize`); the diff is computed at flush time from the
+   two snapshots. A full buffer drops the oldest entries and counts them in a metric and a warning.
+2. The flush timer starts with the first entry and stops when the buffer is empty.
+3. With a `Queue`, the flush sends one job per batch (`audit.writeVia: 'queue'`), so the API instances only enqueue.
+4. Reads are not audited unless enabled (already the default; the sample enables them).
+5. Acceptance: on PostgreSQL at 100k records, p95 within 5% and p99 within 10% of the audit off (phase 6).
+
+### D9. Maintenance jobs — **decided: one registry, run once per cluster**
+
+**Problem**: F16. Audit retention, time series retention (`database` driver), file version pruning, each a
+`setInterval` in every instance (`data/audit/audit-service.ts:129`, `data/timeseries/database-time-series.ts:116`,
+`data/storage/file-service.ts:140`).
+
+**Decision**: a `defineMaintenanceJob({ name, schedule, run })` registry in core.
+
+- With the `Scheduler` enabled, a job runs on its cron schedule; without it, on a timer started on the first run.
+- A job takes a lock in the `Memory` provider (`redis` across instances) for its run, or with a `Queue` it is enqueued
+  with a deduplication ID, so one instance runs it.
+- `weaver run maintenance:<job>` runs one once (a Kubernetes cron job, a worker process).
+- `maintenance.enabled: false` turns them off on API instances; `maintenance.jobs.<name>.schedule` and `.enabled`
+  replace `audit.retentionInterval`, `audit.retentionWorker`, `timeseries.database.retentionInterval`,
+  `retentionWorker` and `storage.versions.pruneInterval`.
+- Deletes run in batches of `maintenance.batchSize`, so a purge never holds a long lock.
+- Also registered: the expired one-time tokens and security store entries, and the soft-deleted records past a
+  `softDelete.purgeAfter`, when set.
+
+**Honest note**: with one instance today's timers work; the gain is multi-instance correctness and visibility.
+
+### D10. Query performance defaults — **decided**
+
+1. `totalCount` defaults to `false` (F19); when asked, the count is bounded by `resource.countLimit` (10,000) with
+   `count({ where, take })`, answering `totalCount: 10000, totalCountExact: false` beyond it.
+2. The batch `$transaction` around find and count (`data/resource/resource-service.ts:280`) is measured on its own
+   on every database: E2 shows the count costs 60 ms at 100k, not yet what the transaction adds. It is dropped where
+   it only adds cost.
+3. `aggregate` runs one `GROUP BY` per request with the date truncation of each database (`date_trunc`, `strftime`,
+   `DATE_FORMAT`, `DATETRUNC`), reusing the per-database SQL of the time series drivers; `first`/`last` with window
+   functions (F20).
+4. Cursor pagination becomes the documented default of list UIs; offset pages beyond `resource.maxOffset` (10,000)
+   are refused with a hint to use the cursor.
+5. Text search gets a full-text mode per database (`textSearch: { mode: 'fts' }`: FTS5, `tsvector`, `FULLTEXT`, SQL
+   Server full-text) generated by `weaver generate`; `contains` stays for small tables (F24).
+
+### D11. Durations and sizes — **decided: one `Duration` and one `Size` type**
+
+**Rejected**: seconds everywhere (sub-second keys exist: the 200 ms Redis command timeout, the 20 ms relay flush);
+milliseconds everywhere as integers only (`604800000` is unreadable).
+
+**Decision**: a duration key accepts an integer of milliseconds or a string with a unit (`'200ms'`, `'15m'`, `'7d'`);
+a size key accepts an integer of bytes or a string (`'64KB'`, `'5MB'`). Parsed once when the config loads; milliseconds
+and bytes in the code. The units leave the key names (`keepCompletedSeconds` -> `keepCompleted`). The 7 keys in seconds
+change meaning: a bare integer becomes milliseconds, so `weaver upgrade` rewrites them as strings (`604800` ->
+`'7d'`). The TOTP `period` stays an integer of seconds: RFC 6238 defines it so, and authenticator apps only take 30.
+
+### D12. TypeScript — **decided: TypeScript 6 now, TypeScript 7 for the build only, full TypeScript 7 later**
+
+**Evidence**: E6. TypeScript 6 costs one config line; TypeScript 7 builds 4.7 times faster but has no compiler API, and
+four of our runtime tools need one (`ts-node`, `typebox-codegen`, `openapi-typescript`, typescript-eslint).
+
+**Decision**:
+
+1. v3 depends on `typescript@6` (the API used by the CLI, the client generator and the lint), with `baseUrl` removed,
+   `types` listed, the decorator flags removed and `noImplicitAny: true` (108 fixes).
+2. The monorepo builds and type-checks with TypeScript 7 installed under an npm alias (`"tsgo": "npm:typescript@7"`,
+   its binary run by path), so CI and the build get the x4.7, while the published packages and the scaffolded
+   projects stay on TypeScript 6.
+3. `ts-node` is replaced by `tsx` (its `register` API) for loading the project's models.
+4. Full TypeScript 7 (projects included) once 7.1 stabilizes its API and typescript-eslint and `openapi-typescript`
+   support it: a v3 minor, not a blocker.
+5. CommonJS output stays (see D13).
+
+### D13. ESM — **decided: not in v3**
+
+ESM-only would touch the runtime `require` of providers and modules (`common/utils/module-util.ts`), the Prisma client
+output, the Jest setup and every scaffolded project, while nothing in E1-E12 shows a user-facing gain. The client
+package already ships ESM and CommonJS. Revisited after Prisma 8 and full TypeScript 7.
+
+### D14. Test runner — **decided: stay on Jest with SWC**
+
+**Evidence**: E7. Vitest is slower on this suite (73 s against 33 s at best), not a drop-in (45 to 47 failing files,
+the framework's runtime `require` of TypeScript sources), and its threads broke the directory isolation of tests that
+install packages. SWC stays as the Jest transformer: it is its only use and the fastest option. **Rejected for v3**;
+revisited with ESM. What the spike taught is applied anyway: tests never rely on `process.chdir` to isolate a command
+that installs packages (V3-QA-02).
+
+### D15. Lint, format and test tooling — **decided: `@appweaver/tooling`, thin CLI commands**
+
+Not inside `@appweaver/cli`: it would make the CLI heavy and pin every project's lint versions to ours. A
+`@appweaver/tooling` dev dependency carries the configs (ESLint 10 flat config, Prettier, Jest with SWC) and the tools as
+its own dependencies, replacing the 17 packages of `scaffoldDependencies.tooling` in a project. `weaver lint`,
+`weaver format` and `weaver test` resolve the tools from the project. Biome or oxlint: re-evaluated with full
+TypeScript 7 (type-aware rules are the deciding factor). ESLint 10 regardless.
+
+### D16. Prisma 8 — **decided: prepare now, ship after GA**
+
+Prisma 8 is still a release candidate (E12). A spike branch tracks the RCs and their upgrade recipes: `take`/`skip` to
+`limit`/`offset` (5 places), `@db.*` (9 in the schema generator), the date types, the 29 raw SQL calls, the 5 error
+codes, the five adapters, the `$extends` extensions (telemetry, spatial), the samples' databases. v3 ships on Prisma 8
+if it is GA before phase 8, else on Prisma 7.10 with Prisma 8 in a v3 minor. The CLI restructuring does not wait:
+`weaver db migrate|status|plan|new|check|reset|seed`, replacing `migrate`, `migration` and `seed`, with the old names as
+aliases for one major. `migrate/plan-migrations.ts` stops parsing the debug log of `prisma migrate status` when Prisma 8
+offers a structured output.
+
+### D17. TypeBox 1.x — **decided: yes, in v3**
+
+The repository already holds both (F27), and the Fastify type provider infers route types with TypeBox 1 over our 0.34
+schemas. TypeBox is public API (config sections, schemas), so a major is the moment. `typebox-codegen` (used by
+`weaver generate --types`) is checked for a TypeBox 1 path, else replaced by our own emitter of the registry types.
+
+### D18. Skill as a package — **decided: `@appweaver/skill`, and a smaller skill**
+
+A dev dependency released with the framework; `weaver skill sync` (also run by `weaver upgrade`) copies it into
+`.claude/skills`, `.agents`, ... The size matters more than the packaging (F34): `SKILL.md` goes under ~5k tokens as an
+index of the references; `configuration.md` (~34k tokens) is generated from the config schema per module; `AGENTS.md`
+of this repository goes under ~8k tokens, the details moved to `docs/contributing/*.md` read on demand.
+
+### D19. Generated client — **decided**
+
+1. Types and client in separate files by default (`client.ts`, `client.types.ts`).
+2. A resource client lists its used operations or its omitted ones, whichever is shorter, and never the operations its
+   model cannot have (files, series).
+3. The per-model aliases (`Single`, `Multiple`, `Create`, `Update`, `Replace`, `QueryFilter`, `QuerySort`,
+   `QueryRequest`, `QueryResponse`, `RelationCreate`) are derived by generic types of the runtime library from one
+   `ResourceTypes` map per model; `paths` keeps only the custom routes.
+4. Doc comments opt-in (`--comments`).
+5. Target: `movies-client.ts` from 7,425 to under 3,500 lines with the same type safety, and the type-check time of a
+   consumer measured before and after.
+
+### D20. MCP 2026-07-28 — **decided: support it, keep 2025-11-25**
+
+Our transport is already sessionless, so the stateless core fits: accept the protocol version and capabilities from
+`_meta` without `initialize`, keep answering `initialize` for older clients, validate `iss` in the OAuth flow, drop
+nothing we use (we implement neither Roots, Sampling nor Logging).
+
+### D21. Other decisions
+
+| Topic                                         | Decision                                                                                     |
+|-----------------------------------------------|----------------------------------------------------------------------------------------------|
+| OAuth2 providers as one record                | **Rejected**: nine near-identical sections, but each carries its URLs and defaults; churn without gain |
+| Merging the small driver packages             | **Rejected**: each isolates a heavy dependency (`sharp`, `nodemailer`, ...)                  |
+| Node engine                                   | Keep `>= 24.7` (Prisma 8 needs 22.18+)                                                       |
+| `generate-api-key`                            | Replace with `node:crypto` (F35)                                                             |
+| Atomic write operations                       | `increment` / `decrement` of numeric fields in the update input, allowed per field and view (D1) |
+| SQLite in production                          | Supported, documented as single-instance with the event loop caveat (F23); `server.requestTimeout` added; PostgreSQL recommended beyond it |
+| Comments                                      | Keep the JSDoc of the public API; remove comments restating the code and history notes; no ratio target |
+| Samples                                       | Keep the nine; fix `cms-api` (F4) and use it as the showcase of views (D1)                   |
+
+---
+
+## 6. Phases and stages
+
+| Phase | Name                          | Output                                                                    | Gate                                                  |
+|-------|-------------------------------|---------------------------------------------------------------------------|-------------------------------------------------------|
+| 0     | Preparation                   | Release channel, migration guide, load-test harness, baselines            | Baselines of every sample recorded                    |
+| 1     | Security fixes and audit      | 2.10.x patches for F1-F4, F7; per-module findings                         | Register reviewed, CRs ordered                        |
+| 2     | Toolchain and platform        | TypeScript 6 + `tsgo`, `tsx`, tooling package, TypeBox 1, skill package, Prisma 8 spike | CI green, samples and scaffolds build |
+| 3     | Conventions and defaults      | Durations, exposure, maintenance jobs, secure defaults, query defaults    | Conventions applied in every package                  |
+| 4     | Data model and API design     | Views, `extend*`, cache scopes, audit, forced 2FA                         | Each RFC approved before its code                     |
+| 5     | Module-by-module              | The remaining approved CRs, in the order of section 7                     | Per module                                            |
+| 6     | Performance                   | Projection, counts, aggregates, FTS, idle, all databases and samples      | Budgets met or explained                              |
+| 7     | AI workflow, docs, migration  | Skill, AGENTS.md, CLI aids, docs site, migration guide, codemods          | Docs and samples on v3                                |
+| 8     | Release                       | `3.0.0-next.N`, then `3.0.0`                                              | Samples and every module combination run on it        |
+
+**Order**: security first (it ships to 2.x users), then the toolchain (every later pull request runs on it), then the
+conventions (the features adopt them), then the design work, then performance against the final design.
 
 ### Phase 0: Preparation (no behavior change)
 
-- **0.1** A `next` branch as a semantic-release prerelease channel (`3.0.0-next.N` on the `next` dist-tag); 2.x fixes
-  stay on `main` and are merged forward.
-- **0.2** `MIGRATION-v3.md` skeleton.
-- **0.3** Load-test harness (see [5.21](#521-performance-and-load-tests)): seeders of 10k and 100k records, the
-  scenarios, the database matrix of the samples' `docker-compose.yml`. Record the v2.10.0 numbers.
-- **0.4** Idle and memory baseline: heap, RSS and event-loop wake-ups of an idle sample over 30 minutes, and after a
-  soak of 1M requests.
-- **0.5** Analysis tools: `knip` (unused exports, files and dependencies), `npm audit` or `osv-scanner`.
+| Step | CR          | Work                                                                                                   |
+|------|-------------|--------------------------------------------------------------------------------------------------------|
+| 0.1  | V3-PROC-01  | `next` branch and prerelease channel in `release.config.js`                                            |
+| 0.2  | V3-PROC-02  | `MIGRATION-v3.md` skeleton, one section per breaking CR                                                |
+| 0.3  | V3-PERF-01  | `tools/load/`: the seeder (10k, 100k, 1M rows per model shape), the scenarios of E2, autocannon, a JSON report; a `npm run load -- <sample>` entry |
+| 0.4  | V3-PERF-01  | Baselines of every sample on its own database (PostgreSQL, MySQL, SQL Server, SQLite, libsql on Bun), with Docker; recorded in this file |
+| 0.5  | V3-PERF-02  | `tools/load/probe.js`: timer wake-ups and memory of an idle application (E5), heap snapshot diff after a soak |
+| 0.6  | V3-TOOL-00  | `knip` (unused exports, files, dependencies) and `osv-scanner` as non-blocking CI jobs                  |
 
-### Phase 1: Audit (read-only)
+**Gate 0**: the numbers of every sample recorded; the harness reviewed.
 
-Every package goes through the checklist of section 6, in its order. The findings and CRs are written into section 6
-under the package. Tests reproducing a bug are welcome; a critical or high security bug is fixed at once in a 2.x
-patch release.
+### Phase 1: Security fixes and audit
 
-- **1.1** Security review ([5.6](#56-security-review))
-- **1.2** Edge cases ([5.7](#57-edge-cases))
-- **1.3** API surface and consistency ([5.22](#522-consistency-sweep))
-- **1.4** Comments, dead code and docs accuracy ([5.19](#519-comments-dead-code-and-code-size))
+**Stage 1a: patches for 2.10.x** (P0, released before any v3 work lands):
 
-### Phases 2 to 8
+| CR           | Fix                                                                                                    |
+|--------------|--------------------------------------------------------------------------------------------------------|
+| V3-SEC-01    | Filter limits (`maxConditions`, `maxDepth`, `maxListValues`) with a `400 RESOURCE_FILTER_TOO_COMPLEX`; a JSON body limit separate from the upload limit (keeping `100M` for multipart in 2.x); `data` reading a web key fixed (F37) |
+| V3-SEC-02    | The filter and sort schemas of a relation leave out the fields of its `output.omit`                    |
+| V3-SEC-03    | The cache stores an allow list of headers                                                              |
+| V3-SEC-04    | CSV formula escaping (`=`, `+`, `-`, `@`, tab, carriage return prefixed with `'`), the array join bug  |
+| V3-SAMPLE-01 | `cms-api`: anonymous reads restricted to published posts, the view count moved off the read path      |
+| V3-BUG-01    | A duplicate model, service, policy or routes name logs a warning naming both (error in v3, D2)        |
 
-Detailed in this file when the previous phase closes. Their content is the themes of section 5.
+**Stage 1b: read-only review**, every package through the checklist of section 7, in its order. Findings go into the
+register (section 4) and become CRs. Specific items:
+
+- The security checklist: access (every route has auth and a policy; `include` of a related model honors its policy;
+  counts and aggregates honor `readRestrictions`; MCP tools and realtime events run as the user); input (mass
+  assignment, prototype pollution in config merge, JSON fields and query parsing, ReDoS in `_like`/regex filters);
+  tokens (JWT algorithm pinning, secret length, refresh rotation, one-time tokens single-use with constant-time
+  comparison, TOTP replay window, a password reset revoking sessions); OAuth2 and MCP OAuth (state, PKCE, redirect
+  allow list, F8: `email_verified` of every provider); files (path traversal, content sniffing, `sharp`
+  `limitInputPixels`, signed URL scope); outbound (SSRF through AI endpoints and `weaver-client generate <url>`);
+  output (template escaping, internals in problem details, secrets in logs); realtime (ticket single use, origin,
+  per-connection limits, slow consumers); abuse (rate limits of auth, export, aggregate, bulk, MCP and AI calls).
+- The edge cases, each with a test (V3-QA-01): two updates of one record (lost update; `If-Match` with `updatedAt`),
+  unique constraint races, bulk partial failures and the 5 s bulk transaction at 1k items, deleting a user owning
+  records, a role in use, relations to soft-deleted records, restoring a soft-deleted record whose unique value is
+  taken, a stable order on ties, case-insensitive search per database, `null` versus missing versus empty string,
+  dates and time zones, decimals and big integers in JSON, `in` lists beyond 2,100 values on SQL Server, interrupted
+  uploads, a storage write succeeding while the database write fails, a role change or disabling while tokens live,
+  refresh token reuse, TOTP clock skew, a job retried after partial side effects, a job scheduled on every instance,
+  `SIGTERM` during a transaction, an export or a stream, migrations while old instances run, a missing secret in
+  production, cache invalidation across instances, unicode file names, out-of-order time series points, geometries
+  across the antimeridian.
+- V3-QA-02: every test running a command that installs packages passes an explicit `cwd` (F32).
+
+**Gate 1**: the register reviewed, every CR approved, rejected or deferred, and ordered.
+
+### Phase 2: Toolchain and platform
+
+| Step | CR          | Work                                                                                                    |
+|------|-------------|---------------------------------------------------------------------------------------------------------|
+| 2.1  | V3-TOOL-01  | TypeScript 6; `baseUrl` removed, `types` listed, decorator flags removed, `noImplicitAny: true` (108 fixes) |
+| 2.2  | V3-TOOL-02  | `tsgo` for the monorepo build and type-check; the client's CommonJS build off `node10`; the `WebSocket.send` typing |
+| 2.3  | V3-TOOL-03  | `ts-node` replaced by `tsx` in `cli/utils/loader-util.ts`                                               |
+| 2.4  | V3-TOOL-05  | `@appweaver/tooling` (ESLint 10, Prettier, Jest + SWC configs), `weaver lint|format|test`, the scaffold templates on it |
+| 2.5  | V3-TOOL-06  | TypeBox 1.x everywhere, one copy; `typebox-codegen` replaced if it cannot follow                        |
+| 2.6  | V3-TOOL-07  | Prisma 8 spike branch on the latest RC, tracking the upgrade recipes; merged at GA                      |
+| 2.7  | V3-TOOL-08  | `@appweaver/skill` and `weaver skill sync`                                                              |
+| 2.8  | V3-SEC-06   | `generate-api-key` replaced; `npm audit` triaged                                                        |
+
+**Gate 2**: CI green on the new toolchain, its duration compared to E1, every sample and every scaffold combination
+building.
+
+### Phase 3: Conventions and defaults
+
+| Step | CR          | Work                                                                                                    |
+|------|-------------|---------------------------------------------------------------------------------------------------------|
+| 3.1  | V3-CONV-01  | `Duration` and `Size` types, the keys renamed, `weaver upgrade` rewriting the old ones                  |
+| 3.2  | V3-CONV-02  | `actions` on REST, events and MCP; the bulk flags removed; `weaver routes`                              |
+| 3.3  | V3-CONV-03  | The maintenance job registry, locks, `maintenance.*`, batched deletes                                   |
+| 3.4  | V3-CONV-04  | The defaults table of D5                                                                                |
+| 3.5  | V3-CONV-05  | `database.keepTables`                                                                                   |
+| 3.6  | V3-CONV-06  | `totalCount` default and bounded count, `maxOffset`                                                     |
+| 3.7  | V3-CONV-07  | `aggregate` in one `GROUP BY`, no implicit 7-day window                                                 |
+| 3.8  | V3-COMMON-01 | Array env values: a JSON array accepted, anything ambiguous rejected                                   |
+
+**Gate 3**: every package on the conventions; `MIGRATION-v3.md` covers each change.
+
+### Phase 4: Data model and API design
+
+Each item starts with an RFC section in this file (the API, the merge and composition rules, the generated types, the
+OpenAPI output, the migration), approved before its code.
+
+| Step | CR          | Work                                                                                                    |
+|------|-------------|---------------------------------------------------------------------------------------------------------|
+| 4.1  | V3-DATA-01  | `extendModel`, `extendService`, `extendPolicy`, `extendRoutes`; duplicates fail                         |
+| 4.2  | V3-DATA-02  | Views: model, routes (registry keyed by model and view), policies, relations, MCP, events, export, filters limited to the view, generated types and client |
+| 4.3  | V3-DATA-03  | `increment` / `decrement` write operations                                                              |
+| 4.4  | V3-DATA-04  | Framework models: optional audit routes, the ApiKey policy without `user!`                              |
+| 4.5  | V3-DATA-05  | Audit off the hot path (D8)                                                                             |
+| 4.6  | V3-WEB-01   | Cache scopes (D7)                                                                                       |
+| 4.7  | V3-WEB-02   | Forced 2FA lifecycle (D6)                                                                               |
+
+**Gate 4**: `cms-api` rewritten on views and `extend*` as the showcase; the samples and the scaffolds on the new APIs.
+
+### Phase 5: Module-by-module
+
+The approved CRs of phase 1b and section 7, package by package. **Gate 5** per package: the checklist of section 7
+ticked.
+
+### Phase 6: Performance
+
+| Step | CR          | Work                                                                         | Target (SQLite 100k unless noted)           |
+|------|-------------|------------------------------------------------------------------------------|---------------------------------------------|
+| 6.1  | V3-PERF-03  | Projection compiled once per model and view, one pass per record             | `projectVirtualFields` out of the top 20 functions |
+| 6.2  | V3-PERF-04  | The find+count `$transaction` measured and dropped where it only adds cost; bounded count | `query` with count < 15 ms     |
+| 6.3  | V3-PERF-05  | Full-text search mode; relation filter SQL and the indexes of implicit many-to-many tables | text search < 20 ms with FTS     |
+| 6.4  | V3-PERF-06  | Timers only while there is work; bounded collections                         | 0 wake-ups in 60 s of idle from the framework |
+| 6.5  | V3-PERF-07  | `server.requestTimeout`; SQLite production guidance                          | documented                                  |
+| 6.6  | V3-PERF-08  | Idle heap broken down (heap snapshot), duplicated schemas removed            | idle heap -30% (from 119 MB)                |
+| 6.7  | V3-PERF-09  | Every sample's scenario on its own database, against phase 0                 | no regression; budgets per scenario         |
+
+**Gate 6**: the budgets met or each miss explained in this file.
+
+### Phase 7: AI workflow, docs and migration
+
+| Step | CR          | Work                                                                                                    |
+|------|-------------|---------------------------------------------------------------------------------------------------------|
+| 7.1  | V3-DOC-02   | `SKILL.md` < 5k tokens; the references split per module; `configuration.md` generated from the schema |
+| 7.2  | V3-DOC-03   | `AGENTS.md` < 8k tokens; details in `docs/contributing/*.md`                                            |
+| 7.3  | V3-DOC-04   | Agent benchmark: fixed tasks on a scaffolded project (a model with relations and routes, a view, a role and its policy, a maintenance job, a realtime channel, an MCP tool), counting turns, tokens and errors, before and after |
+| 7.4  | V3-CLI-02..04 | `weaver doctor`, `weaver resource new`, `--json` output                                               |
+| 7.5  | V3-DOC-05   | `MIGRATION-v3.md` complete, `weaver upgrade --target-version 3` codemods (config keys, durations, `actions`, imports) |
+| 7.6  | V3-DOC-01   | Comments cleanup, package by package                                                                    |
+
+### Phase 8: Release — see section 10.
 
 ---
 
-## 5. Themes
+## 7. Module-by-module plan
 
-Each theme lists the goal, the current state, the questions to answer, and an initial recommendation to be challenged
-in review.
-
-### 5.1 Extending and overriding framework models
-
-**Goal**: change a model of the framework or of a module (the auth model, `ApiKey`, `File`, `AuditLog`, `AuditChange`,
-`Role`, `Permission`, ...) without copying it: add scalars, relations, indexes, virtual fields, the `export` or audit
-config, override the options of one field, and leave everything else as the framework defines it, still receiving its
-updates.
-
-**Questions**
-
-- Merge semantics: a deep merge per field? May a field be removed, and never a field the framework relies on?
-- Declaration: `extendModel('ApiKey', { ... })` in the resources of the application, discovered like a model, applied
-  before `weaver generate` writes the Prisma schema and the types.
-- Typing: the generated types and the `ResourceRegistry` reflect the extension.
-- Services, policies and routes the same way: a service subclass under the same token, a policy composed with the
-  framework one, the routes overridden per action.
-- Auth: replace building an auth model from scratch (`createAuthModel`) with a default `User` model, service, policy
-  and routes the application extends. Is a custom name (`Employee` in `hr-api`) still supported?
-
-**Initial recommendation**: one `extend*` mechanism, merged field by field, rejecting the removal of a field the
-framework needs. An added field must be optional or have a default, since the framework creates these records itself.
-Policies compose (both must allow), so an extension cannot loosen a framework guard by accident.
-
-### 5.2 Model views: input and output per role
-
-**Goal**: one model, several API shapes. A `Post` with a `public` view (the published fields, no audit fields, the only
-write being the increment of `viewCount`) and an `admin` view (every field, every write), each with its policy and
-routes.
-
-**Current state**: finding 8, the visibility of a field is the same for every user.
-
-**Options**
-
-- **A. Keep as is**, plus a field mask in the policy removing fields at runtime per user. Cheap, but the OpenAPI
-  document cannot tell (every maskable field becomes optional), the generated clients lose precision, and the cache key
-  has to include the mask.
-- **B. Static views** (`views` of `createModel`, or `createModelView`): each view picks or omits the output fields and
-  the input fields, and the allowed write operations (`increment`), with its own policy and routes
-  (`createRoutes({ modelName: 'Post', view: 'public' })`). The schemas stay static, so the OpenAPI document, the
-  clients, the serialization, the cache and the MCP tools stay precise.
-- **C. One route choosing the view per request by role**: the response schema becomes a union. Bad for clients,
-  caching and serialization. Rejected.
-
-**Initial recommendation**: B, as an addition: a model without views works as today. The runtime mask of A only if a
-real use case needs it, and only removing fields. Side benefit: the MCP tools and the realtime events can bind a slim
-view, so an agent reads fewer tokens.
-
-**Questions**: is a view a type of its own in the generated types and the `ResourceService`? Are the events projected
-per view? Do the atomic writes (`increment`) exist today, or are they part of this work?
-
-### 5.3 Exposure defaults: REST, bulk, events and MCP
-
-**Goal**: one rule for what a model exposes, the same on every surface (finding 3).
-
-**Options**
-
-- **a. Everything opt-in**: `createRoutes` exposes nothing unless listed. Safest, verbose, breaks every application.
-- **b. CRUD on, everything else opt-in**, with the same selection syntax on every surface, and the bulk routes switched
-  in code instead of env flags.
-- **c. Presets** (`rest: 'crud' | 'read' | 'none'`) with per-surface overrides.
-
-**Initial recommendation**: b with the presets of c. Exposure is code, not config, so the `RESOURCE_BULK_*_ENABLED`
-flags go. Add `weaver routes`, listing every route, event and tool of every model, so a human or an agent can check the
-exposed surface.
-
-### 5.4 Secure and realistic defaults
-
-Every default is reviewed as if the application went to production unchanged. The output is a table of the key, its
-current default, the proposed one and the reason. Known candidates:
-
-- **Audit fields hidden by default** (finding 5), shown per model or view.
-- **Token lifetimes** (finding 6): an access token of minutes with a rotating refresh token, and reuse detection.
-- **Forced 2FA lifecycle** (finding 7):
-    - the first login of a user without a method: enrolment flow, verified email or phone needed, the method when the
-      mailer or the SMS sender is disabled (fail at startup?)
-    - an enrolment grace period, forcing per role (`forcedRoles`), recovery codes issued at enrolment
-    - an admin reset of a user's methods, a remembered device
-    - API keys, OAuth2 logins and the MCP sign-in under forced 2FA
-- **Others**: email verification before login, password policy, auth rate limits on by default, CORS, Swagger UI off
-  in production, problem details without internals in production, body size, maximum page size, filter and include
-  depth limits.
-
-### 5.5 Framework-owned models: ApiKey versus the audit log
-
-**Question from the task**: hand the `ApiKey` routes, service and policy over to the application, like the audit log?
-
-**Honest assessment**: no for `ApiKey`. Its invariants (a key never grants more than its owner holds, only a JWT
-session manages keys) are security-critical and easy to get wrong in application code; moving them out turns a
-framework guarantee into documentation. The inconsistency (finding 9) is real, but better solved the other way: every
-framework model ships its model, service, policy and routes (the audit routes off by default, read-only, admin only),
-and the application customizes them through [5.1](#51-extending-and-overriding-framework-models). Decided together
-with 5.1 and 5.3. Finding 10 (the `KEEP_DATABASE_TABLE` keys) is unified in the same CR.
-
-### 5.6 Security review
-
-The checklist every module goes through in phase 1. Each finding is rated critical, high, medium or low.
-
-- **Access**: every route has authentication and a policy; an `include` of a related model honors that model's policy;
-  filtering, sorting or aggregating on a hidden or restricted field cannot leak it (oracle); counts and aggregates
-  honor `readRestrictions`; MCP tools and realtime events run as the user.
-- **Input**: mass assignment, prototype pollution (config merge, JSON fields, query parsing), ReDoS in filters, deep
-  JSON and large arrays.
-- **Tokens**: JWT algorithm pinning and secret length, refresh rotation, one-time tokens single use with constant-time
-  comparison, TOTP replay window, a password reset or change revoking the sessions.
-- **OAuth2 and MCP OAuth**: state, PKCE, redirect URI allow list, account takeover through an unverified provider email.
-- **Files**: path traversal of the `local` storage, content sniffing versus the declared type, size limits, image
-  decompression bombs (`sharp` pixel limit), signed URL scope and lifetime.
-- **Outbound**: SSRF through the AI endpoints, `weaver-client generate <url>` and any fetched URL.
-- **Output**: CSV injection in the export, template escaping (pages and emails), internals in problem details, secrets
-  in logs (`isSecretName`).
-- **Realtime**: ticket lifetime and single use, origin check, per-connection limits, memory of slow consumers.
-- **Supply chain**: dependency audit, `allowScripts`, `--ignore-scripts` of `weaver module add`, pinned versions.
-- **Abuse**: rate limits of the auth routes, export, aggregate, bulk, MCP tool calls and AI calls (cost).
-
-### 5.7 Edge cases
-
-The common real-life cases, each verified with a test:
-
-- **Concurrency**: two updates of one record (lost update: optimistic locking, `If-Match`?), unique constraint races,
-  bulk partial failures and the 5 s bulk transaction timeout at 1k items.
-- **Deletes**: a user owning records (`createdById`), a role in use, relations to soft-deleted records, restoring a
-  soft-deleted record whose unique value is taken.
-- **Pagination**: page size caps, deep offsets at 100k records, the cost of the total count, a stable order on ties
-  (an `id` tie-breaker, or rows skip or repeat between pages).
-- **Filters per database**: case-insensitive search (collations of SQLite and MySQL versus PostgreSQL), `null` versus
-  missing versus empty string, dates and time zones, decimals and big integers in JSON, long `in` lists (the 2,100
-  parameter limit of SQL Server).
-- **Files**: an upload interrupted midway, the same file uploaded twice at once, a storage write succeeding while the
-  database write fails.
-- **Auth**: a role change or a disabling while tokens live, refresh token reuse, TOTP clock skew, forced 2FA for a user
-  without email or phone.
-- **Jobs**: a retry after partial side effects (idempotency), a worker crash, a job scheduled on every instance.
-- **Lifecycle**: `SIGTERM` during a transaction, an export or a stream; migrations while old instances run; a missing
-  secret in production failing fast.
-- **Multi-instance**: cache invalidation across instances, realtime events.
-- **Data**: unicode in file names and search, out-of-order and duplicate time series points, geometries across the
-  antimeridian and invalid geometries.
-
-### 5.8 Caching of resource reads
-
-**Goal**: a cached read shared by every user where it is safe, enforced to return the same data whoever asks.
-
-**Current state**: finding 4, the hit ratio of an authenticated route is per user.
-
-**Proposal**: `cache: { scope: 'shared' }`, accepted only when the response of the route cannot depend on the user: no
-`readRestrictions` for the action, no user-dependent virtual field, no view mask. Checked at startup, failing
-otherwise, and the response computed without the user. A later `scope: 'access'` would key on the roles and
-permissions the policy reads instead of the user, but only if policies declare what they read; without that it is
-unsafe, so it is deferred.
-
-**Also review**: the invalidation strategy (`ExpireRelated`), stampede protection (single flight), the memory bounds of
-the cache, and the Redis memory of per-user keys.
-
-### 5.9 Audit log off the hot path
-
-**Goal**: the audit log adds no latency to a request; it is an aftereffect.
-
-**To verify**: what runs during the request (the diff of `recordChange`, finding 11, and the entry of the request in
-`onResponse`), measured with the audit on and off.
-
-**Candidates**: compute the diff at flush time from the two snapshots; a bounded buffer with a dropped-entries metric;
-flush through the queue when there is one; start the flush timer on the first entry instead of every second; the cost
-of a bulk update of 1k records.
-
-**Acceptance**: the p95 latency with the audit on stays within a few percent of the audit off, at 100k records.
-
-### 5.10 Maintenance and scheduled jobs
-
-**Current state**: finding 2. Inventory every periodic job: audit retention, time series retention (`database`
-driver), file version pruning, expired one-time tokens and security store entries, queue job cleanup, and any other.
-
-**Proposal**: a registry of maintenance jobs, each with a name, a default schedule and a handler. A job runs on the
-`Scheduler` when one is enabled, else on a timer; with a `Queue`, it is enqueued with a deduplication ID, so one
-instance runs it; `weaver run maintenance:<job>` runs it once (a Kubernetes cron job or a worker process); a switch
-turns maintenance off on the API instances. One section, `maintenance.<job>.enabled` and `.schedule`, replaces the
-per-feature `*_WORKER`, `*_INTERVAL` and `PRUNE_INTERVAL` keys. Large deletes run in batches, so they never hold long
-locks at 100k rows.
-
-**Honest assessment**: with one instance, today's timers work. The problem is N instances (N purges and their lock
-contention) and no visibility. Multi-instance is the common production setup, so it is worth doing.
-
-### 5.11 Time units
-
-**Current state**: finding 1, three conventions.
-
-**Options**
-
-- **a. Milliseconds everywhere**, as integers. Consistent, but `604800000` is unreadable.
-- **b. Seconds everywhere**. Rejected: sub-second values exist (the 200 ms Redis command timeout, the coalescing and
-  flush intervals of realtime).
-- **c. One `Duration` type**: an integer of milliseconds or a string with a unit (`'200ms'`, `'15m'`, `'7d'`), parsed
-  once when the config loads, milliseconds in the code.
-
-**Initial recommendation**: c. The units leave the key names (`KEEP_COMPLETED_SECONDS` becomes `KEEP_COMPLETED`), the
-JSON Schema accepts both forms, and the docs stop saying "in milliseconds". Open: the TOTP step, defined in seconds by
-RFC 6238.
-
-### 5.12 TypeScript 7 and the build
-
-- **TypeScript 7** (the native compiler): build and type-check speed. Blockers to check: the tools using the
-  TypeScript JS API (typescript-eslint type-aware rules, `tsc-alias`, `ts-node`, `tsc-watch`,
-  `@sinclair/typebox-codegen`, `madge`). Path: TypeScript 6 first (fix its deprecations, `baseUrl` among them), then 7
-  once the tools support it, or 7 for type-checking only.
-- **Compiler flags**: drop `experimentalDecorators` and `emitDecoratorMetadata` (finding 13).
-- **Aliases**: replace the `paths` and `tsc-alias` with package `exports` and subpath `imports`, so nothing rewrites
-  the emitted JS. Affects the scaffolded projects.
-- **ESM**: decide whether v3 publishes ESM (or dual). The ecosystem moves there, but the Prisma client output, the
-  test runner and the dynamic loading of the CLI are affected. A spike first, no blind commitment.
-- **`ts-node`**: replaceable by the type stripping of Node? The packages use `enum`s (`ErrorCode`), which plain type
-  stripping does not support.
-- **TypeBox**: 0.34 to 1.x? It is public API (config sections, schemas), so a major is the moment to do it.
-
-### 5.13 Testing: Vitest instead of Jest, without SWC
-
-**Facts**: 312 test files on Jest 30 and `@swc/jest`, the `moduleNameMapper` mapping the packages to their sources,
-contract suites already runner-agnostic (Jest, Vitest, Bun), and the scaffolded projects shipping Jest and SWC.
-
-**Options**: stay on Jest (it needs a transformer, so SWC or the slower `ts-jest` stays), or move to Vitest (TypeScript
-built in, ESM ready, `resolve.alias` replacing `moduleNameMapper`, `vi` instead of `jest`, no SWC or `jest-junit`).
-
-**Initial recommendation**: a spike on `core` and `data`, comparing the wall time, the watch mode, the coverage (v8)
-and the differences of mock hoisting. Decided at gate 2. If 5.12 chooses ESM, Vitest is close to mandatory. The
-scaffolded projects follow the same choice.
-
-### 5.14 Lint, format and tooling through the CLI
-
-**Idea**: `weaver lint`, `weaver format` and `weaver test` with configs shipped by Appweaver, so a project carries one
-dev dependency instead of the ~17 packages of `scaffoldDependencies.tooling`.
-
-**Honest assessment**: bundling ESLint and its plugins into the CLI makes it heavy and pins the lint versions of every
-project to ours. A separate `@appweaver/tooling` dev dependency (the configs, with the tools as its dependencies) is
-cleaner, and `weaver upgrade --tooling` already exists. Also evaluate Biome or oxlint (lint and format in one fast
-tool) versus ESLint and Prettier, the type-aware rules being the deciding factor. It may also end the 4 GB heap of
-`tools/lint.js`.
-
-### 5.15 Prisma 8 and the database commands
-
-- Read the release notes and map each breaking change to our wrappers: `weaver migrate`, `migration new|check|reset`,
-  `test setup|reset`, `generate` (client output, generator), the five driver adapters, `prisma.config.ts`, the `$extends`
-  extensions (telemetry, spatial), the error codes of `toDatabaseError`.
-- `migrate/plan-migrations.ts` parses the output and the debug log of `prisma migrate status` (`P1003`, `P3005`,
-  `P3009`): fragile. Use a structured output if Prisma 8 has one.
-- Restructure the commands, e.g. `weaver db migrate|status|plan|new|check|reset|seed`.
-- Recreate the databases of every sample.
-
-### 5.16 The skill as a package
-
-**Proposal**: `@appweaver/skill`, a dev dependency released with the framework, and `weaver skill sync` (or
-`weaver upgrade`) placing it in `.claude/skills`, `.agents`, ... The scaffolded `AGENTS.md` points to it.
-
-**Honest assessment**: for: the version always matches the installed framework, `npm update` updates it, the copy code
-leaves `weaver upgrade`. Against: agents read their skills directory, not `node_modules`, so a sync step remains, and
-it is one more package to release. Initial recommendation: do it, together with measuring and splitting the skill
-([5.20](#520-ai-agent-workflow)).
-
-### 5.17 Generated client
-
-- Types and client in separate files by default.
-- A resource client lists its used operations or its omitted ones, whichever list is shorter (finding 12).
-- Find where the 7,425 lines of the `movies-api-bun` client come from (most likely the `openapi-typescript` paths and
-  components) and shrink them: generic resource types parameterized by the model instead of per-route expansions, no
-  duplicated GET and POST query variants.
-- Target: about half the lines on `movies-api-bun` with the same type safety, and a measured type-check time of the
-  consumer.
-- Keep or drop the Angular client and the untyped client (`--no-types`)? Depends on their use.
-
-### 5.18 Idle cost and memory leaks
-
-- **Timers**: list every timer of an idle application (the audit flush every second, heartbeats, the polling of
-  `MemoryQueue`, the ready polling of `StreamInstance`). Target: a timer runs only while there is work.
-- **Unbounded collections**: the in-memory caches, rate limiters (login), realtime registries, tickets, `JobResults`
-  waiters, AI streams, MCP rate limits.
-- **Soak test**: an hour idle and 1M requests, heap snapshots compared. Target: no growth after warm-up.
-
-### 5.19 Comments, dead code and code size
-
-- Keep the JSDoc of the public API (it feeds the IDE and the docs). Remove the comments restating the code, shorten the
-  long explanations to one line, remove history notes.
-- `knip`: unused exports, files and dependencies.
-- `AGENTS.md` and `SKILL.md` are in the context of every agent session: trim them, every line costs tokens.
-- No target ratio: reviewed per module.
-
-### 5.20 AI agent workflow
-
-**Goal**: an agent builds a correct application in fewer tokens and turns.
-
-- **Measure**: a fixed set of tasks on a scaffolded project (a model with relations and routes, a role with its
-  policy, a scheduled job, a realtime channel, an MCP tool), counting turns, tokens and errors before and after.
-- **Skill**: size, structure, loaded on demand.
-- **CLI aids**: `--json` output, `weaver routes` (the exposed surface), `weaver doctor` (config, generated files and
-  migrations in sync), `weaver resource new <name>` (model, service, policy, routes and test), errors naming the fix.
-- **One way to do things**: every alternative removed is a wrong guess an agent cannot make.
-
-### 5.21 Performance and load tests
-
-- **Data**: 10k and 100k records (1M as a stretch) of each model shape: flat, with relations, with files, with time
-  series, with geo fields. On SQLite, PostgreSQL, MySQL and SQL Server.
-- **Scenarios**: find by ID; query with filters (equality, range, `contains`, relation filters); sort with deep offset
-  pages and with a cursor; relation includes (N+1); aggregates (count, sum, group by); CSV export (memory); bulk create,
-  update and delete; writes with the audit on and off; cache hits and misses; realtime fan-out to 1k connections; MCP
-  tool calls; time series and spatial queries.
-- **Checks**: query plans (`EXPLAIN`), indexes of the filtered and sorted fields, the cost of the total count, memory
-  per request, the event access queries of finding 19.
-- **Samples**: one realistic scenario per sample (the checkout of `webshop-api`, the tickets of `helpdesk-api`, the
-  trips of `vehicle-tracking-api`, ...).
-- **Budgets**: p50, p95 and p99 latency, throughput and RSS per scenario. Run nightly or by hand, never per pull
-  request.
-- **Tool**: k6 (scripted, dockerized, good reports) or autocannon (Node, simple). One of them, chosen in phase 0.
-
-### 5.22 Consistency sweep
-
-Config key names, error code names, logger names, the CLI conventions (already tested), OpenAPI operation IDs, event
-names, MCP tool names, file names and the `exports` entry points.
-
----
-
-## 6. Module-by-module review
-
-**Checklist of every package**
+**Checklist of every package** (phase 1b and gate 5)
 
 - [ ] **Purpose**: does it belong here, should it be merged, split or removed?
-- [ ] **Public API**: exports, entry points, names, unused exports, types
-- [ ] **Config**: keys, production-safe defaults, units, docs and examples
+- [ ] **Public API**: exports, entry points, names, unused exports (knip), types
+- [ ] **Config**: keys, production-safe defaults (D5), units (D11), docs and examples
 - [ ] **Errors**: codes, details, HTTP mapping, actionable messages
-- [ ] **Security**: [5.6](#56-security-review)
+- [ ] **Security**: the checklist of phase 1b
 - [ ] **Performance and idle cost**: hot paths, allocations, timers, unbounded collections
-- [ ] **Edge cases**: [5.7](#57-edge-cases)
+- [ ] **Edge cases**: the list of phase 1b that applies
 - [ ] **Tests**: uncovered branches, contract suites, missing scenarios
 - [ ] **Comments and dead code**
 - [ ] **Docs**: skill reference, docs site, samples
 
-**Review order**: `common`, `core`, `data`, `web`, `realtime`, `mcp`, `ai` and `openai`, the drivers,
-`opentelemetry`, `testing`, `cli`, `create`, `client`, the skill and docs, the samples, the tools and CI.
+**Order**: `common`, `core`, `data`, `web`, `realtime`, `mcp`, `ai` and `openai`, the drivers, `opentelemetry`,
+`testing`, `cli`, `create`, `client`, the skill and docs, the samples, the tools and CI.
 
-**Initial items per package** (to be completed in phase 1)
+### `common` (9,790 lines, 32% comments, 58 `any`)
 
-| Package                | Items to look at                                                                                                                                                                                                                                                                                               |
-|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `common`               | The config system (flattening, `splitRecordEntry`, the JSON and env precedence), the `Duration` type, `ErrorCode` and `defineErrors`, the logger, telemetry helpers, `defineModule`; the size of `types/` (model, routes, policy) and their readability; does all of it belong in `common` (9.8k lines)?          |
-| `core`                 | The DI container and the frozen context, lifecycle order and shutdown, module discovery and provider selection (is loading a class by module path still needed?), memory and cache eviction, `MemoryQueue` polling, `JobResults`, the `Events` versus `PubSub` naming, locale, health, tasks, the memory security store bounds |
-| `data`                 | `ResourceService` (size, transactions, orphans, soft delete), the filter, sort and aggregate schemas, query cost (include depth, counts), `createModel` (5.1, 5.2, 5.4), the auth model, seeders, the streaming of the export, time series and file retention (5.10), spatial engines, audit (5.9), the `KEEP_DATABASE_TABLE` keys |
-| `web`                  | Route registration and the size of the OpenAPI document, caching (5.8), JWT defaults, OAuth2, API keys, basic auth, captchas, 2FA (5.4), account flows, problem details, health, Swagger in production, rate limits, CORS and helmet defaults, the cost of the audit and telemetry hooks, file and series routes |
-| `realtime`             | 6k lines: is every feature used (input streams, relay, coalescing, resume)? Memory per connection, the access query per event (finding 19), draining, SSE and WebSocket parity                                                                                                                                   |
-| `mcp`                  | Compliance with the current protocol revision, OAuth sign-in, destructive tool gating, the size of the tool schemas for agents (views of 5.2), tool names, rate limits, the cache of the read-only tools                                                                                                        |
-| `ai`, `openai`         | Driver contract, the maintenance cost of the presets, alias fallback, the stream relay of the queue, tool loop limits, cost controls (token budgets per user), drivers of non-OpenAI-compatible APIs: needed?                                                                                                    |
-| Drivers                | `redis` (circuit breaker, reconnection), `bullmq`, `cron`, `nodemailer`, `twilio` (timeouts), `handlebars` (escaping), `sharp` (pixel limits): contract suites cover them; one package per heavy dependency stays, small as they are                                                                              |
-| `opentelemetry`        | Zero overhead when disabled, the semantic convention versions, the cost of the log bridge                                                                                                                                                                                                                      |
-| `testing`              | Helper API, the contract suites under the chosen runner, the fidelity of `createDatabaseStub`                                                                                                                                                                                                                  |
-| `cli`                  | Command grouping (5.15), new commands (5.20), runtime dependencies (finding 15), `--json`, start and watch on Node and Bun, `upgrade`                                                                                                                                                                           |
-| `create`               | The cost of the module combination tests, templates in sync with the samples, tooling dependencies (5.14), the Bun variants                                                                                                                                                                                    |
-| `client`               | 5.17; `FetchClient` token refresh races, `RealtimeClient` reconnection, the Angular client                                                                                                                                                                                                                     |
-| Skill and docs         | 5.16, 5.19, 5.20                                                                                                                                                                                                                                                                                               |
-| Samples                | Nine samples to maintain: does each one still show something the others do not? A load scenario each (5.21)                                                                                                                                                                                                   |
-| Tools and CI           | CI duration, nightly load tests, the 4 GB lint heap, `tools/copy-packages.js` and the sample lockfiles under the new toolchain                                                                                                                                                                                   |
+- Confirmed: F36 (array env values), the `Duration`/`Size` types land here (D11), `@appweaver/common` takes 285 ms to
+  load (E5): find what loads eagerly.
+- Review: the config flattening (`splitRecordEntry`) and the JSON/env precedence; `ErrorCode` size and naming;
+  `types/` readability (model, routes, policy) since views and `actions` reshape them; what belongs to `core` instead.
+- CRs: V3-COMMON-01, V3-CONV-01, V3-SEC-06.
+
+### `core` (7,374 lines, 17%, 9 `any`)
+
+- Confirmed: F9 (`define` keeps the first definition while loaders keep the last), the maintenance registry lands here
+  (D9).
+- Review: the DI container and the frozen context; lifecycle order and shutdown; provider selection (is loading a class
+  by module path still needed?); `MemoryQueue` polling; `JobResults` waiters; `Events` versus `PubSub` naming; the
+  memory security store bounds; `CacheService` key building.
+- CRs: V3-CONV-03, V3-DATA-01 (registry side), V3-PERF-06.
+
+### `data` (17,594 lines, 18%, 211 `any`, 67 implicit)
+
+- Confirmed: F2, F7, F9, F10, F16, F19, F20, F21, F25, F26, F37; the `ApiKey` policy `user!`.
+- Review: `ResourceService` (1,723 lines: transactions, orphans, soft delete, the projection passes); query cost
+  (include depth, counts, `_some`); seeders; export streaming at 100k; spatial engines; time series retention; the 211
+  explicit `any`.
+- CRs: V3-SEC-02, V3-SEC-04, V3-DATA-01..05, V3-CONV-05..07, V3-PERF-03..05.
+
+### `web` (14,252 lines, 14%, 69 `any`)
+
+- Confirmed: F1, F3, F5, F6, F11, F12, F15, F22, F38.
+- Review: the OpenAPI document size; JWT (`findById` of the user on every request, its cache), OAuth2 providers (F8),
+  basic auth, captchas; the account flows; problem details in production; the health routes; the cost of the audit
+  and telemetry hooks; file and series routes.
+- CRs: V3-SEC-01, V3-SEC-03, V3-SEC-05, V3-CONV-02, V3-CONV-04, V3-WEB-01, V3-WEB-02.
+
+### `realtime` (6,024 lines, 17%, 1 `any`)
+
+- Facts: streams, actions, channels and resource events are used by `movies-api-bun` only.
+- Review: memory per connection; the access query per event and distinct subscribed user, measured at 1k
+  connections; draining; SSE and WebSocket parity; views for events (D1).
+- Not removing features without usage data; the realtime scenario of phase 6 decides.
+
+### `mcp` (2,356 lines, 11%, 4 `any`)
+
+- Confirmed: F28.
+- Review: OAuth sign-in (`iss`), destructive gating, tool schema size for agents (views), the read-only tool cache
+  (`user` scope), rate limits.
+- CRs: V3-MCP-01.
+
+### `ai` and `openai` (3,507 lines)
+
+- Review: 18 presets to maintain (`ai/driver/presets.ts`): are they current; alias fallback; the stream relay of the
+  queue; tool loop limits; cost controls (token budgets per user and per endpoint); a driver for a non-OpenAI-compatible
+  API only on demand.
+
+### Drivers (`redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `handlebars`, `sharp`)
+
+- Covered by their contract suites. Review: Redis circuit breaker and reconnection; BullMQ idle timers (E5: 10
+  wake-ups a minute) and lock settings; `twilio` timeouts; `handlebars` escaping; `sharp` `limitInputPixels`; the
+  maintenance lock on Redis (D9).
+
+### `opentelemetry` (780 lines)
+
+- Review: zero overhead when disabled (measured), semantic convention versions, the log bridge cost.
+
+### `testing` (1,588 lines)
+
+- Review: the contract suites under Jest (D14), `createDatabaseStub` fidelity, a contract for the maintenance jobs.
+
+### `cli` (5,621 lines, 15%, 11 `any`)
+
+- Confirmed: F29.
+- CRs: V3-TOOL-03, V3-CLI-01 (`weaver routes`), V3-CLI-02 (`doctor`), V3-CLI-03 (`resource new`), V3-CLI-04 (`--json`),
+  V3-CLI-05 (`weaver db *`), the codemods of `weaver upgrade` (V3-DOC-05).
+
+### `create` (3,513 lines)
+
+- Review: the cost of the module combination tests; templates in sync with the samples; the tooling package (D15);
+  the Bun variants; views and `actions` in the templates.
+
+### `client` (7,320 lines, 22%, 56 `any`)
+
+- Confirmed: F33.
+- CRs: V3-CLIENT-01..03 (D19). Review: `FetchClient` token refresh races, `RealtimeClient` reconnection, the Angular
+  client and the untyped client (`--no-types`): keep only if used.
+
+### Skill and docs
+
+- Confirmed: F34. CRs: V3-TOOL-08, V3-DOC-02, V3-DOC-03, V3-DOC-04.
+
+### Samples
+
+- Confirmed: F4. Every sample gets a load scenario (phase 0) and moves to views and `actions` (phase 4).
+
+### Tools and CI
+
+- CI duration compared at gate 2; nightly load tests (never per pull request); the 4 GB lint heap of `tools/lint.js`
+  re-measured under ESLint 10 and TypeScript 6; `tools/copy-packages.js` and the sample lockfiles under the new
+  toolchain.
 
 ---
 
-## 7. Change request register
+## 8. Change request register
 
-The initial CRs, all `proposed`. Phase 1 adds the findings of each module.
+All `proposed` until approved. Effort: S < 1 day, M days, L a week, XL more.
 
-| ID            | Title                                                                    | Theme      | Phase | Breaking   |
-|---------------|--------------------------------------------------------------------------|------------|-------|------------|
-| V3-PROC-01    | `next` prerelease branch and channel                                     | 4          | 0     | No         |
-| V3-PROC-02    | `MIGRATION-v3.md`                                                        | 9          | 0     | No         |
-| V3-PERF-01    | Load-test harness and the v2.10.0 baseline                               | 5.21       | 0     | No         |
-| V3-PERF-02    | Idle and memory baseline, soak test                                      | 5.18       | 0     | No         |
-| V3-SEC-01     | Security review, one CR per finding                                      | 5.6        | 1     | Per finding |
-| V3-QA-01      | Edge case test suite                                                     | 5.7        | 1     | Per finding |
-| V3-TOOL-01    | Remove the decorator compiler flags                                      | 5.12       | 2     | No         |
-| V3-TOOL-02    | TypeScript 6 deprecations, then TypeScript 7                             | 5.12       | 2     | Maybe      |
-| V3-TOOL-03    | ESM decision spike                                                       | 5.12       | 2     | Maybe      |
-| V3-TOOL-04    | Vitest spike and decision, SWC removal                                   | 5.13       | 2     | Projects   |
-| V3-TOOL-05    | Tooling package or CLI commands for lint, format and test                | 5.14       | 2     | Projects   |
-| V3-TOOL-06    | Prisma 8 and the database commands                                       | 5.15       | 2     | Yes        |
-| V3-TOOL-07    | `@appweaver/skill` package                                               | 5.16       | 2     | No         |
-| V3-TOOL-08    | TypeBox 1.x                                                              | 5.12       | 2     | Yes        |
-| V3-CONV-01    | `Duration` config type, units out of the key names                       | 5.11       | 3     | Yes        |
-| V3-CONV-02    | One exposure rule and syntax for REST, bulk, events and MCP              | 5.3        | 3     | Yes        |
-| V3-CONV-03    | Maintenance jobs on the scheduler or the queue, run once per cluster     | 5.10       | 3     | Yes        |
-| V3-CONV-04    | Secure defaults table and its changes                                    | 5.4        | 3     | Yes        |
-| V3-CONV-05    | One key for the framework tables kept without their feature              | 5.5        | 3     | Yes        |
-| V3-DATA-01    | Extending and overriding models, services, policies and routes           | 5.1        | 4     | No         |
-| V3-DATA-02    | Model views                                                              | 5.2        | 4     | No         |
-| V3-DATA-03    | Auth model built by extension                                            | 5.1        | 4     | Yes        |
-| V3-DATA-04    | One pattern for the framework-owned models                               | 5.5        | 4     | Maybe      |
-| V3-DATA-05    | Audit log off the hot path                                               | 5.9        | 4     | No         |
-| V3-WEB-01     | Shared cache scope, checked at startup                                   | 5.8        | 4     | No         |
-| V3-WEB-02     | Forced 2FA lifecycle: first login, per role, grace period                | 5.4        | 4     | Maybe      |
-| V3-CLI-01     | `weaver routes`                                                          | 5.3, 5.20  | 5     | No         |
-| V3-CLI-02     | `weaver doctor`                                                          | 5.20       | 5     | No         |
-| V3-CLI-03     | `weaver resource new`                                                    | 5.20       | 5     | No         |
-| V3-CLI-04     | `--json` output                                                          | 5.20       | 5     | No         |
-| V3-CLIENT-01  | Types and client in separate files by default                            | 5.17       | 5     | Yes        |
-| V3-CLIENT-02  | Used or omitted operations, whichever is shorter                         | 5.17       | 5     | No         |
-| V3-CLIENT-03  | Halve the generated client                                               | 5.17       | 5     | Maybe      |
-| V3-PERF-03    | Fixes from the load tests                                                | 5.21       | 6     | Per fix    |
-| V3-PERF-04    | Timers only while there is work, bounded collections                     | 5.18       | 6     | No         |
-| V3-DOC-01     | Comments and dead code, per package                                      | 5.19       | 5     | No         |
-| V3-DOC-02     | Trim `AGENTS.md` and the skill, agent benchmark                          | 5.20       | 7     | No         |
+| ID            | Title                                                                    | Phase | Prio | Effort | Breaking       |
+|---------------|--------------------------------------------------------------------------|-------|------|--------|----------------|
+| V3-PROC-01    | `next` prerelease channel                                                | 0     | P1   | S      | No             |
+| V3-PROC-02    | `MIGRATION-v3.md`                                                        | 0     | P1   | S      | No             |
+| V3-PERF-01    | Load-test harness and baselines of every sample                          | 0     | P1   | M      | No             |
+| V3-PERF-02    | Idle and memory probe, soak test                                         | 0     | P1   | S      | No             |
+| V3-TOOL-00    | `knip` and `osv-scanner` in CI                                           | 0     | P2   | S      | No             |
+| V3-SEC-01     | Filter complexity limits, JSON body limit (F1, F37)                      | 1     | P0   | M      | 2.x: no; v3 defaults |
+| V3-SEC-02     | Relation `output.omit` fields not filterable (F2)                        | 1     | P0   | S      | Rejects such filters |
+| V3-SEC-03     | Cached responses replay only allowed headers (F3)                        | 1     | P0   | S      | No             |
+| V3-SEC-04     | CSV formula escaping, array join (F7)                                    | 1     | P0   | S      | No             |
+| V3-SAMPLE-01  | `cms-api`: published posts only, no write on read (F4)                   | 1     | P0   | S      | Sample only    |
+| V3-BUG-01     | Duplicate resource names: warning (F9)                                   | 1     | P1   | S      | No             |
+| V3-SEC-05     | OAuth providers: `email_verified` everywhere (F8)                        | 1     | P1   | S      | Maybe          |
+| V3-SEC-07     | Findings of the security checklist, one CR each                          | 1     | -    | -      | Per finding    |
+| V3-QA-01      | Edge case suite                                                          | 1     | P1   | L      | Per finding    |
+| V3-QA-02      | Tests never install packages in the repository (F32)                     | 1     | P1   | S      | No             |
+| V3-TOOL-01    | TypeScript 6, config cleanup, `noImplicitAny` (F30, F31)                 | 2     | P1   | M      | No             |
+| V3-TOOL-02    | `tsgo` build and type-check                                              | 2     | P2   | S      | No             |
+| V3-TOOL-03    | `tsx` instead of `ts-node` (F29)                                         | 2     | P1   | S      | No             |
+| V3-TOOL-05    | `@appweaver/tooling`, `weaver lint|format|test`, ESLint 10               | 2     | P1   | M      | Projects       |
+| V3-TOOL-06    | TypeBox 1.x (F27)                                                        | 2     | P1   | L      | Yes            |
+| V3-TOOL-07    | Prisma 8 (at GA)                                                         | 2     | P1   | L      | Yes            |
+| V3-TOOL-08    | `@appweaver/skill`, `weaver skill sync`                                  | 2     | P1   | M      | No             |
+| V3-SEC-06     | `generate-api-key` replaced, audit triage (F35)                          | 2     | P2   | S      | No             |
+| V3-CONV-01    | `Duration` and `Size` (F17)                                              | 3     | P1   | L      | Yes            |
+| V3-CONV-02    | `actions` everywhere, bulk flags removed, `weaver routes` (F14)          | 3     | P1   | M      | Yes            |
+| V3-CONV-03    | Maintenance job registry (F16)                                           | 3     | P1   | M      | Yes (keys)     |
+| V3-CONV-04    | Secure defaults (F5, F6, F10, F11, F38)                                  | 3     | P1   | M      | Yes            |
+| V3-CONV-05    | `database.keepTables` (F18)                                              | 3     | P2   | S      | Yes            |
+| V3-CONV-06    | `totalCount` default, bounded count, `maxOffset` (F19)                   | 3     | P1   | S      | Yes            |
+| V3-CONV-07    | `aggregate` in one `GROUP BY`, no implicit window (F20)                  | 3     | P1   | M      | Yes            |
+| V3-COMMON-01  | Array env values (F36)                                                   | 3     | P2   | S      | No             |
+| V3-DATA-01    | `extend*`, duplicates fail (F9)                                          | 4     | P1   | L      | Duplicates fail |
+| V3-DATA-02    | Model views (F13, F2)                                                    | 4     | P1   | XL     | No (additive)  |
+| V3-DATA-03    | `increment` / `decrement`                                                | 4     | P1   | M      | No             |
+| V3-DATA-04    | Framework models: audit routes, ApiKey policy                            | 4     | P2   | S      | No             |
+| V3-DATA-05    | Audit off the hot path (F25, F26)                                        | 4     | P1   | M      | No             |
+| V3-WEB-01     | Cache scopes, key once, JSON storage (F15, F22)                          | 4     | P1   | M      | Yes (config)   |
+| V3-WEB-02     | Forced 2FA lifecycle (F12)                                               | 4     | P1   | L      | Yes            |
+| V3-MCP-01     | MCP 2026-07-28 (F28)                                                     | 5     | P1   | M      | No             |
+| V3-CLI-01     | `weaver routes`                                                          | 3     | P1   | S      | No             |
+| V3-CLI-02     | `weaver doctor`                                                          | 7     | P2   | M      | No             |
+| V3-CLI-03     | `weaver resource new`                                                    | 7     | P2   | M      | No             |
+| V3-CLI-04     | `--json` output                                                          | 7     | P2   | S      | No             |
+| V3-CLI-05     | `weaver db *` commands                                                   | 5     | P1   | M      | Aliases kept   |
+| V3-CLIENT-01  | Types in their own file by default                                       | 5     | P1   | S      | Yes            |
+| V3-CLIENT-02  | Used or omitted operations, inapplicable ones dropped                    | 5     | P1   | S      | No             |
+| V3-CLIENT-03  | Generic resource types, comments opt-in, < 3,500 lines                   | 5     | P1   | M      | Maybe          |
+| V3-PERF-03    | Compiled projection (F21)                                                | 6     | P1   | M      | No             |
+| V3-PERF-04    | The find+count transaction measured, dropped where it only adds cost     | 6     | P1   | S      | No             |
+| V3-PERF-05    | Full-text search mode, relation filter (F24)                             | 6     | P2   | L      | No             |
+| V3-PERF-06    | Timers only while working, bounded collections                           | 6     | P1   | M      | No             |
+| V3-PERF-07    | `server.requestTimeout`, SQLite guidance (F23)                           | 6     | P1   | S      | No             |
+| V3-PERF-08    | Idle heap reduction                                                      | 6     | P2   | M      | No             |
+| V3-PERF-09    | All samples on their databases against phase 0                           | 6     | P1   | M      | No             |
+| V3-DOC-01     | Comments and dead code                                                   | 7     | P2   | M      | No             |
+| V3-DOC-02     | Skill under 5k tokens, generated configuration reference                 | 7     | P1   | M      | No             |
+| V3-DOC-03     | `AGENTS.md` under 8k tokens                                              | 7     | P1   | S      | No             |
+| V3-DOC-04     | Agent benchmark                                                          | 7     | P2   | M      | No             |
+| V3-DOC-05     | Migration guide and `weaver upgrade` codemods                            | 7     | P1   | L      | No             |
 
 ---
 
-## 8. Open decisions
+## 9. Decisions left to the maintainer
 
-1. **Release**: a `next` prerelease channel, and a `2.x` maintenance branch after 3.0.0 (for how long)?
-2. **A last 2.x minor** accepting the new config keys and warning on the old ones, to ease the upgrade?
-3. **Module format**: CommonJS, ESM or dual?
-4. **Node**: keep `>= 24.7` or require Node 26?
-5. **Exposure rule** (5.3): b with presets?
-6. **Model views** (5.2): option B?
-7. **Framework-owned models** (5.5): keep the ApiKey routes in the framework and add default audit routes?
-8. **Durations** (5.11): option c?
-9. **Test runner** (5.13): decided after the spike?
-10. **Lint tooling** (5.14): separate package or CLI; ESLint and Prettier, or Biome or oxlint?
-11. **Samples**: which of the nine stay?
-12. **Client**: keep the Angular client and the untyped client?
-13. **TypeBox 1.x** in v3?
+The experiments settled most questions of revision 1. These remain:
+
+1. **2.x support**: how long `2.x` keeps receiving security fixes after 3.0.0 (proposed: 6 months).
+2. **Defaults of D5** that change behavior for existing deployments: the 15-minute access token, Swagger off in
+   production, `totalCount: false`. Each is a one-line config to restore; confirm they are worth the migration note.
+3. **Prisma 8 timing**: ship v3 on Prisma 7.10 if Prisma 8 is not GA at phase 8, or wait?
+4. **Samples**: all nine stay in v3 (proposed); any to retire?
+5. **Angular client and untyped client** (`--no-types`): keep, or drop without usage data?
+6. **Views naming**: `views` and `view`, or `variants`?
 
 ---
 
-## 9. Release plan
+## 10. Release plan
 
-1. Every approved CR done; phase reviews closed.
+1. Every approved CR done; every phase gate passed.
 2. `3.0.0-next.N` prereleases on the `next` dist-tag; the samples and a scaffolded project of every module combination
-   run on them.
-3. `MIGRATION-v3.md` complete, with `weaver upgrade --target-version 3` applying the mechanical steps (config key
-   renames, imports).
-4. docs.appweaver.co on v3, with the v2 docs kept under a versioned path.
-5. `3.0.0` released from `main`; `2.x` keeps receiving security fixes for the agreed period.
+   run on them; the load-test budgets met.
+3. `MIGRATION-v3.md` complete, with `weaver upgrade --target-version 3` applying the mechanical steps.
+4. docs.appweaver.co on v3, the v2 docs kept under a versioned path.
+5. `3.0.0` released from `main` (`next` merged); a `2.x` maintenance branch for security fixes for the agreed period.
