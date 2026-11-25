@@ -1,7 +1,9 @@
 # Appweaver v3.0.0 Plan
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`).
-> **Revision 3**: v3 waits for TypeScript 7.1 and Prisma 8.0.0 stable before its toolchain phase (D12, D16, phase 2).
+> **Revision 4**: phase 1a done on `fix/security-and-query-limits` (section 6); v3 is built on the TypeScript 7.1 beta and
+> the Prisma 8 release candidates for development, and released only once both are stable (D12, D16, section 10).
+> **Revision 3**: v3 waits for TypeScript 7.1 and Prisma 8.0.0 stable before its toolchain phase (superseded by 4).
 > **Revision 2**: every claim below was checked in the code or measured (section 3). Each decision of section 5 states
 > the evidence it rests on, the alternatives rejected, and what it breaks. Nothing is implemented before its phase plan
 > is reviewed and its change requests are approved.
@@ -341,6 +343,9 @@ high, medium, low, or a design or performance finding.
 | F36 | A JSON array in an array env variable is silently one string                                              | Config      | Low    | C, E10   | V3-COMMON-01 |
 | F37 | `data/utils/file-util.ts:145` reads the `SERVER_BODY_MAX_SIZE` of web from data                          | Layering    | Low    | R        | V3-SEC-01   |
 | F38 | Swagger UI on in production by default                                                                    | Default     | Low    | R        | V3-CONV-04  |
+| F39 | A policy receives `null` for an anonymous request and for the application's own calls alike (jobs, seeders, tests), so it cannot restrict the first without the second; the `cms-api` fix reads `currentRequestScope()?.source` | Design | Medium | C | V3-DATA-06 |
+| F40 | Two `cms-api` e2e tests of the 2FA (phone verification, method order) fail on `main` too               | Test        | Low    | C        | V3-QA-03    |
+| F41 | The `cms-api` listing had no index for the restricted public query: 7 req/s at 100k until one was added; the sample indexes are not checked against the queries their policies build | Sample | Low | C | V3-SAMPLE-02 |
 
 ---
 
@@ -596,16 +601,17 @@ scheduled for the coming weeks (`7.1.0-beta` is on npm, and typescript-eslint 8.
 
 **Decision**:
 
-1. No intermediate step on TypeScript 6 or a split build: v3 moves from 5.9 straight to **TypeScript 7.1 once it is
-   stable**, for the monorepo, the published packages and the scaffolded projects alike. Phase 2 starts only then
-   (section 6).
+1. No intermediate step on TypeScript 6 or a split build: v3 moves from 5.9 straight to **TypeScript 7.1**, for the
+   monorepo, the published packages and the scaffolded projects alike. Development starts now on the latest
+   `7.1.0-beta` (or RC), pinned exactly, on the `next` branch only; the stable 7.1.0 replaces it before 3.0.0 is
+   released, and no `3.0.0` (only `3.0.0-next.N`) is published on a beta.
 2. The config changes E6 found are made with it: `baseUrl` removed (the `paths` relative to the config), `types` and
    `typeRoots` listed explicitly, the decorator flags removed, the client's CommonJS build off `moduleResolution:
    node10`, the `WebSocket.send` typing fixed, and `noImplicitAny: true` (108 fixes). The config cleanup that is
    valid on 5.9 too (decorator flags, `noImplicitAny`) may land earlier, in phase 1b.
 3. `ts-node` is replaced by `tsx` (its `register` API) for loading the project's models: `ts-node` will not follow
    TypeScript 7.
-4. On the 7.1 release, a check of every tool needing the API: typescript-eslint, `openapi-typescript` (the client
+4. On the 7.1 beta, then again on the stable release, a check of every tool needing the API: typescript-eslint, `openapi-typescript` (the client
    generator), `typebox-codegen` (`weaver generate --types`, replaced in V3-TOOL-06 if it does not follow) and madge.
    A tool that does not support 7.1 yet keeps `typescript@6` as its own aliased dependency (`"typescript-api":
    "npm:typescript@6"`) until it does, so it never holds the migration back.
@@ -633,11 +639,12 @@ its own dependencies, replacing the 17 packages of `scaffoldDependencies.tooling
 `weaver format` and `weaver test` resolve the tools from the project. Biome or oxlint: re-evaluated on TypeScript 7.1
 (type-aware rules are the deciding factor). ESLint 10 regardless.
 
-### D16. Prisma 8 — **decided: wait for 8.0.0 stable, v3 ships on it**
+### D16. Prisma 8 — **decided: build on the release candidates, ship on 8.0.0 stable**
 
 Prisma 8 is still a release candidate (E12), and 8.0.0 stable is scheduled for the coming weeks. v3 ships on Prisma 8;
-there is no fallback to Prisma 7.10. The migration starts on 8.0.0 stable (phase 2), not on the RCs, whose upgrade
-recipes change from one RC to the next. Its scope, measured in E12: `take`/`skip` to `limit`/`offset` (5 places),
+there is no fallback to Prisma 7.10. The migration starts now on the latest RC, pinned exactly on the `next` branch,
+following the upgrade recipe of every RC it moves to (they change from one RC to the next, so an RC bump is a CR of its
+own with its recipe applied and the samples' databases recreated); 8.0.0 stable replaces it before 3.0.0 is released. Its scope, measured in E12: `take`/`skip` to `limit`/`offset` (5 places),
 `@db.*` (9 in the schema generator), the date types, the 29 raw SQL calls, the 5 error codes, the five adapters, the
 `$extends` extensions (telemetry, spatial), the migrations and databases of every sample and the scaffold templates.
 
@@ -709,11 +716,12 @@ nothing we use (we implement neither Roots, Sampling nor Logging).
 **Order**: security first (it ships to 2.x users), then the toolchain (every later pull request runs on it), then the
 conventions (the features adopt them), then the design work, then performance against the final design.
 
-**Waiting on upstream**: phase 2 starts once **TypeScript 7.1** (the release shipping the compiler API) and **Prisma
-8.0.0** are both stable, both scheduled for the coming weeks. Phases 0 and 1 (the harness, the baselines, the 2.10.x
-security patches, the read-only review) and the RFCs of phase 4 depend on neither, so they fill the wait. No CR of
-phases 3 to 8 is merged before phase 2, so nothing is written twice against the old toolchain. If either release slips
-far, this section is revisited, not the order.
+**Pre-releases for development**: **TypeScript 7.1** (the release shipping the compiler API) and **Prisma 8.0.0** are
+both scheduled as stable in the coming weeks. Phase 2 does not wait for them: it moves the `next` branch to the latest
+TypeScript `7.1.0-beta` and Prisma 8 RC, each pinned to an exact version, for development only. No CR of phases 3 to 8
+is merged before phase 2, so nothing is written twice against the old toolchain. The stable releases are a gate of the
+release (section 10): `3.0.0-next.N` prereleases may run on the pre-releases, `3.0.0` never does. A pre-release bump is
+a CR of its own, with its upgrade notes applied.
 
 ### Phase 0: Preparation (no behavior change)
 
@@ -730,7 +738,25 @@ far, this section is revisited, not the order.
 
 ### Phase 1: Security fixes and audit
 
-**Stage 1a: patches for 2.10.x** (P0, released before any v3 work lands):
+**Stage 1a: patches for 2.10.x** (P0, released before any v3 work lands). **Done** on the `fix/security-and-query-limits`
+branch, from `main`, in 10 commits (`fix:` and `perf:`, so a patch release); every test, lint and check passing (315
+suites, 4,896 tests, 89.1% branch coverage), and the `cms-api` e2e suite as on `main` (see F40). Verified on the
+running sample at 100k posts:
+
+| Probe (E2, E10, E11)                                   | 2.10.0                         | The branch                               |
+|--------------------------------------------------------|--------------------------------|------------------------------------------|
+| 7.9 MB filter of 300k conditions                       | server frozen 19.5 s, then 500 | `400 RESOURCE_FILTER_TOO_COMPLEX` in 0.16 s, others served at once |
+| 12 MB JSON body                                        | parsed                         | `413` in 3 ms                            |
+| Filter or sort on `author.email` (relation-omitted)    | an oracle (103,666 vs 0)       | `400`                                    |
+| Anonymous query of the drafts                          | drafts with their content      | none                                     |
+| Cached query from a second CORS origin                 | the first origin's header      | its own origin                           |
+| `projectVirtualFields` share of the CPU of a query     | ~6%                            | 0.2%                                     |
+| Anonymous listing (`query` without the count)          | 211 req/s (every post)         | 296 req/s (published only, with the new `(status, createdAt, id)` index; 7 req/s without it) |
+| Audit flush wake-ups in 60 s of idle                   | 60                             | 0                                        |
+
+Deviations from the stage as planned: the JSON body limit defaults to `10M` in 2.x (`1M` stays the v3 default of D5),
+F37 is left to phase 3, and V3-BUG-01 became a fix rather than a warning: `define` already warned about a duplicate
+name, the loader was what kept the other definition.
 
 | CR           | Fix                                                                                                    |
 |--------------|--------------------------------------------------------------------------------------------------------|
@@ -739,7 +765,9 @@ far, this section is revisited, not the order.
 | V3-SEC-03    | The cache stores an allow list of headers                                                              |
 | V3-SEC-04    | CSV formula escaping (`=`, `+`, `-`, `@`, tab, carriage return prefixed with `'`), the array join bug  |
 | V3-SAMPLE-01 | `cms-api`: anonymous reads restricted to published posts, the view count moved off the read path      |
-| V3-BUG-01    | A duplicate model, service, policy or routes name logs a warning naming both (error in v3, D2)        |
+| V3-BUG-01    | The loader keeps the definition the context holds (the context already warned about a duplicate name) |
+| V3-PERF-03a  | The related models of the projection resolved once per model (part of V3-PERF-03)                     |
+| V3-PERF-06a  | The audit flush timer runs only while entries are buffered (part of V3-PERF-06)                        |
 
 **Stage 1b: read-only review**, every package through the checklist of section 7, in its order. Findings go into the
 register (section 4) and become CRs. Specific items:
@@ -771,14 +799,15 @@ register (section 4) and become CRs. Specific items:
 
 | Step | CR          | Work                                                                                                    |
 |------|-------------|---------------------------------------------------------------------------------------------------------|
-**Entry**: TypeScript 7.1 and Prisma 8.0.0 stable released (see "Waiting on upstream" above).
+**Entry**: phase 1 closed. TypeScript on the latest `7.1.0-beta`, Prisma on the latest 8 RC, both pinned exactly (see
+"Pre-releases for development" above).
 
 | Step | CR          | Work                                                                                                    |
 |------|-------------|---------------------------------------------------------------------------------------------------------|
-| 2.1  | V3-TOOL-02  | Tool check on TypeScript 7.1: typescript-eslint, `openapi-typescript`, `typebox-codegen`, madge; a tool not ready keeps an aliased `typescript@6` (D12) |
+| 2.1  | V3-TOOL-02  | Tool check on the TypeScript 7.1 beta: typescript-eslint, `openapi-typescript`, `typebox-codegen`, madge; a tool not ready keeps an aliased `typescript@6` (D12) |
 | 2.2  | V3-TOOL-01  | TypeScript 7.1 everywhere: `baseUrl` removed, `types` and `typeRoots` listed, decorator flags removed, the client's CommonJS build off `node10`, the `WebSocket.send` typing, `noImplicitAny: true` (108 fixes) |
 | 2.3  | V3-TOOL-03  | `ts-node` replaced by `tsx` in `cli/utils/loader-util.ts`                                               |
-| 2.4  | V3-TOOL-07  | Prisma 8.0.0: the API renames, `@db.*`, date types, raw SQL, error codes, adapters, extensions, the migrations of every sample and the scaffold templates |
+| 2.4  | V3-TOOL-07  | Prisma 8 (latest RC): the API renames, `@db.*`, date types, raw SQL, error codes, adapters, extensions, the migrations of every sample and the scaffold templates |
 | 2.5  | V3-CLI-05   | `weaver db *` on the commands of Prisma 8 (D16)                                                         |
 | 2.6  | V3-TOOL-06  | TypeBox 1.x everywhere, one copy; `typebox-codegen` replaced if it cannot follow                        |
 | 2.7  | V3-TOOL-05  | `@appweaver/tooling` (ESLint 10, Prettier, Jest + SWC configs), `weaver lint|format|test`, the scaffold templates on it |
@@ -974,7 +1003,9 @@ ticked.
 
 ## 8. Change request register
 
-All `proposed` until approved. Effort: S < 1 day, M days, L a week, XL more.
+All `proposed` until approved, except V3-SEC-01 to V3-SEC-04, V3-SAMPLE-01 and V3-BUG-01, **done** on
+`fix/security-and-query-limits` (phase 1a), with parts of V3-PERF-03 and V3-PERF-06. Effort: S < 1 day, M days, L a
+week, XL more.
 
 | ID            | Title                                                                    | Phase | Prio | Effort | Breaking       |
 |---------------|--------------------------------------------------------------------------|-------|------|--------|----------------|
@@ -988,11 +1019,13 @@ All `proposed` until approved. Effort: S < 1 day, M days, L a week, XL more.
 | V3-SEC-03     | Cached responses replay only allowed headers (F3)                        | 1     | P0   | S      | No             |
 | V3-SEC-04     | CSV formula escaping, array join (F7)                                    | 1     | P0   | S      | No             |
 | V3-SAMPLE-01  | `cms-api`: published posts only, no write on read (F4)                   | 1     | P0   | S      | Sample only    |
-| V3-BUG-01     | Duplicate resource names: warning (F9)                                   | 1     | P1   | S      | No             |
+| V3-BUG-01     | The loader follows the context's definitions (F9)                        | 1     | P1   | S      | No             |
 | V3-SEC-05     | OAuth providers: `email_verified` everywhere (F8)                        | 1     | P1   | S      | Maybe          |
 | V3-SEC-07     | Findings of the security checklist, one CR each                          | 1     | -    | -      | Per finding    |
 | V3-QA-01      | Edge case suite                                                          | 1     | P1   | L      | Per finding    |
 | V3-QA-02      | Tests never install packages in the repository (F32)                     | 1     | P1   | S      | No             |
+| V3-QA-03      | The two failing `cms-api` 2FA e2e tests (F40)                            | 1     | P1   | S      | No             |
+| V3-SAMPLE-02  | Query plans of every sample's policies checked by the load scenarios (F41) | 6   | P2   | S      | No             |
 | V3-TOOL-01    | TypeScript 7.1, config cleanup, `noImplicitAny` (F30, F31)               | 2     | P1   | M      | Projects       |
 | V3-TOOL-02    | Tool check on TypeScript 7.1, aliased `typescript@6` where needed        | 2     | P1   | S      | No             |
 | V3-TOOL-03    | `tsx` instead of `ts-node` (F29)                                         | 2     | P1   | S      | No             |
@@ -1014,6 +1047,7 @@ All `proposed` until approved. Effort: S < 1 day, M days, L a week, XL more.
 | V3-DATA-03    | `increment` / `decrement`                                                | 4     | P1   | M      | No             |
 | V3-DATA-04    | Framework models: audit routes, ApiKey policy                            | 4     | P2   | S      | No             |
 | V3-DATA-05    | Audit off the hot path (F25, F26)                                        | 4     | P1   | M      | No             |
+| V3-DATA-06    | A system context for the application's own calls, distinct from anonymous (F39) | 4 | P1 | M      | Yes            |
 | V3-WEB-01     | Cache scopes, key once, JSON storage (F15, F22)                          | 4     | P1   | M      | Yes (config)   |
 | V3-WEB-02     | Forced 2FA lifecycle (F12)                                               | 4     | P1   | L      | Yes            |
 | V3-MCP-01     | MCP 2026-07-28 (F28)                                                     | 5     | P1   | M      | No             |
@@ -1047,8 +1081,11 @@ The experiments settled most questions of revision 1. These remain:
 1. **2.x support**: how long `2.x` keeps receiving security fixes after 3.0.0 (proposed: 6 months).
 2. **Defaults of D5** that change behavior for existing deployments: the 15-minute access token, Swagger off in
    production, `totalCount: false`. Each is a one-line config to restore; confirm they are worth the migration note.
-3. **Upstream slip**: decided to wait for TypeScript 7.1 and Prisma 8.0.0 stable before phase 2. If either slips by
-   more than a few weeks, start the phase 4 implementation behind it, or keep waiting?
+3. **Upstream slip**: decided to build on the TypeScript 7.1 beta and the Prisma 8 RCs and release on the stable
+   versions. If either stable release slips past the end of phase 7, hold 3.0.0 (proposed), or release on the
+   pre-release?
+7. **2.x release of phase 1a**: `fix/security-and-query-limits` adds config keys and an error code under `fix:`
+   commits, so semantic-release makes it 2.10.1; rename the first commit `feat:` for a 2.11.0?
 4. **Samples**: all nine stay in v3 (proposed); any to retire?
 5. **Angular client and untyped client** (`--no-types`): keep, or drop without usage data?
 6. **Views naming**: `views` and `view`, or `variants`?
@@ -1057,7 +1094,9 @@ The experiments settled most questions of revision 1. These remain:
 
 ## 10. Release plan
 
-1. Every approved CR done; every phase gate passed.
+1. Every approved CR done; every phase gate passed; **TypeScript 7.1.0 and Prisma 8.0.0 stable** replacing the
+   pre-releases development ran on, with the full test suite, the samples' e2e suites and the load tests rerun on
+   them.
 2. `3.0.0-next.N` prereleases on the `next` dist-tag; the samples and a scaffolded project of every module combination
    run on them; the load-test budgets met.
 3. `MIGRATION-v3.md` complete, with `weaver upgrade --target-version 3` applying the mechanical steps.
