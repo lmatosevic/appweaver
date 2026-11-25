@@ -151,4 +151,50 @@ describe('caching', () => {
       })
     );
   });
+
+  test('replays only the headers describing the payload', async () => {
+    app = Fastify({ logger: false });
+    app.register(fastifyRequestContext, {
+      defaultStoreValues: { cached: undefined }
+    });
+    app.register(caching);
+    app.get(
+      '/posts',
+      { config: { cache: true, public: true } },
+      async (request, reply) =>
+        reply
+          .header('access-control-allow-origin', request.headers.origin)
+          .header('x-request-id', String(request.id))
+          .header('etag', '"v1"')
+          .send({ calls: handler() })
+    );
+    await app.ready();
+
+    await app.inject({
+      url: '/posts',
+      headers: { origin: 'https://a.example' }
+    });
+    const cached = await app.inject({
+      url: '/posts',
+      headers: { origin: 'https://b.example' }
+    });
+
+    expect(cached.json()).toEqual({ calls: 1 });
+    expect(cached.headers['etag']).toBe('"v1"');
+    expect(cached.headers['content-type']).toMatch(/application\/json/);
+    expect(cached.headers['access-control-allow-origin']).toBeUndefined();
+    expect(cached.headers['x-request-id']).toBeUndefined();
+    expect(Object.keys(store.values().next().value.headers).sort()).toEqual([
+      'content-type',
+      'etag'
+    ]);
+  });
+
+  test('builds the key of a request once', async () => {
+    await server({ cache: true, cacheTTL: 5000 });
+
+    await send();
+
+    expect(cacheService.buildCacheKey).toHaveBeenCalledTimes(1);
+  });
 });

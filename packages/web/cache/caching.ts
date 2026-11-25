@@ -18,6 +18,19 @@ export type CacheEntry = {
   payload: string;
 };
 
+// The headers describing the payload itself. The others belong to the request that produced it (the CORS origin, the
+// rate limit counters, the cookies, the request ID) and are set again for every request instead
+const CACHED_HEADERS = [
+  'content-type',
+  'content-disposition',
+  'content-language',
+  'etag',
+  'last-modified'
+];
+
+// The key of a request, built once in preHandler and reused in onSend
+const cacheKeys = new WeakMap<FastifyRequest, string>();
+
 export default fastifyPlugin((server: Server) => {
   const cacheService = inject(CacheService);
 
@@ -30,6 +43,7 @@ export default fastifyPlugin((server: Server) => {
     // No user on a route without authentication
     const user = config.public ? undefined : (currentAuthUser() ?? undefined);
     const key = buildCacheKey(request, config, cacheService, user);
+    cacheKeys.set(request, key);
 
     const entry = await cacheService.getCachedValue<CacheEntry>(key);
     if (entry) {
@@ -52,13 +66,19 @@ export default fastifyPlugin((server: Server) => {
       reply.statusCode < 300 &&
       !requestContext.get('cached')
     ) {
-      const user = config.public ? undefined : (currentAuthUser() ?? undefined);
-      const key = buildCacheKey(request, config, cacheService, user);
+      const key =
+        cacheKeys.get(request) ??
+        buildCacheKey(
+          request,
+          config,
+          cacheService,
+          config.public ? undefined : (currentAuthUser() ?? undefined)
+        );
       await cacheService.addToCache(
         key,
         {
           statusCode: reply.statusCode,
-          headers: reply.getHeaders(),
+          headers: cachedHeaders(reply.getHeaders()),
           payload
         },
         config.cacheTTL
@@ -68,6 +88,19 @@ export default fastifyPlugin((server: Server) => {
     return payload;
   });
 });
+
+function cachedHeaders(
+  headers: Record<string, unknown>
+): Record<string, string | string[]> {
+  const cached: Record<string, string | string[]> = {};
+  for (const name of CACHED_HEADERS) {
+    const value = headers[name];
+    if (value !== undefined) {
+      cached[name] = value as string | string[];
+    }
+  }
+  return cached;
+}
 
 function getRouteConfig(req: FastifyRequest): FullRouteConfig {
   return req.routeOptions.config;
