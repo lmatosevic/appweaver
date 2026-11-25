@@ -105,7 +105,8 @@ The `email` and `phone` of the auth model take `redact` too, to keep the contact
 ## Writing
 
 The entries are buffered and written in batches (`audit.flushInterval`, `audit.batchSize`), so a request never waits
-for its entry, and flushed when the application stops. A batch failing is retried once with the next flush. Beyond
+for its entry, and flushed when the application stops. The flush runs `audit.flushInterval` after an entry is buffered,
+so an idle application runs no timer. A batch failing is retried once with the next flush. Beyond
 `audit.maxBuffer` buffered entries the new ones are dropped with a warning.
 
 A change is recorded once its transaction commits, so a rolled back change leaves no trace. Only the writes of the

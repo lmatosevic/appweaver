@@ -22,6 +22,7 @@
       "listen": true,
       "apiPrefix": "/api",
       "bodyMaxSize": "100M",
+      "jsonBodyMaxSize": "10M",
       "staticEnabled": true,
       "staticDirPath": "./public",
       "staticRoutePrefix": "/public",
@@ -94,13 +95,17 @@
       "bulkDeleteEnabled": false,
       "bulkMaxItems": 2000,
       "bulkTransactionTimeout": 5000,
-      "bulkReturnRecords": true
+      "bulkReturnRecords": true,
+      "filterMaxConditions": 1000,
+      "filterMaxDepth": 10,
+      "filterMaxListValues": 2000
     },
     "export": {
       "csvDelimiter": ";",
       "csvJoinDelimiter": ",",
       "csvAddHeaders": true,
       "csvAddSepRow": false,
+      "csvEscapeFormulas": true,
       "batchSize": 1000
     },
     "security": {

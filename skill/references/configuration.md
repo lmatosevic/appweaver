@@ -356,7 +356,8 @@ See [logging](./logging.md) for the loggers and the levels per module.
 | `SERVER_HOST`                           | string   | `'0.0.0.0'`  | HTTP server listening host/IP.                                                                       |
 | `SERVER_LISTEN`                         | boolean  | `true`       | Listen when the app starts, `false` serves only `app.server.inject()` (e2e tests).                   |
 | `SERVER_API_PREFIX`                     | string   | `'/api'`     | Base path prefix for all API routes.                                                                 |
-| `SERVER_BODY_MAX_SIZE`                  | string   | `100M`       | Maximum request body size.                                                                           |
+| `SERVER_BODY_MAX_SIZE`                  | string   | `100M`       | Maximum request body size, i.e. of a multipart file upload.                                          |
+| `SERVER_JSON_BODY_MAX_SIZE`             | string   | `10M`        | Maximum size of a JSON request body, parsed at once on the event loop.                               |
 | `SERVER_STATIC_ENABLED`                 | boolean  | `true`       | Enable serving static files from disk.                                                               |
 | `SERVER_STATIC_DIR_PATH`                | string   | `'./public'` | Directory containing static files.                                                                   |
 | `SERVER_STATIC_ROUTE_PREFIX`            | string   | `'/public'`  | URL prefix for static file routes.                                                                   |
@@ -453,6 +454,9 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | `RESOURCE_BULK_MAX_ITEMS`           | integer | `2000`                                | Maximum items of a bulk request. Overridable per route (`maxItems`).                    |
 | `RESOURCE_BULK_TRANSACTION_TIMEOUT` | integer | `5000`                                | Timeout (ms) of the transaction a bulk request runs in.                                 |
 | `RESOURCE_BULK_RETURN_RECORDS`      | boolean | `true`                                | Respond with the records, or only `{ success, count }`. Overridable per route.          |
+| `RESOURCE_FILTER_MAX_CONDITIONS`    | integer | `1000`                                | Maximum conditions (field and operator keys) of a filter, nested filters included.      |
+| `RESOURCE_FILTER_MAX_DEPTH`         | integer | `10`                                  | Maximum nesting depth of a filter, every nested object or list counting as a level.     |
+| `RESOURCE_FILTER_MAX_LIST_VALUES`   | integer | `2000`                                | Maximum number of values of a list in a filter, i.e. of an `_in` list.                  |
 
 ### Data export (EXPORT\_\*)
 
@@ -463,6 +467,7 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | `EXPORT_CSV_JOIN_DELIMITER` | string  | `','`   | Delimiter for joining array values in CSV cells. |
 | `EXPORT_CSV_ADD_HEADERS`    | boolean | `true`  | Include a header row in CSV exports.             |
 | `EXPORT_CSV_ADD_SEP_ROW`    | boolean | `false` | Add separator row (BOM) for Excel compatibility. |
+| `EXPORT_CSV_ESCAPE_FORMULAS` | boolean | `true` | Prefix with `'` the text cells a spreadsheet would run as a formula (`=`, `+`, `-`, `@`, tab, carriage return), signed numeric text excepted. |
 
 ### Security (SECURITY\_\*)
 

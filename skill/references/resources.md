@@ -682,7 +682,10 @@ const config = {
 ```
 
 `omit` hides fields of the related model in this relation only (routes, MCP tools, realtime events), while its own
-routes keep them; an unknown name fails the startup. A field to hide everywhere is `hidden` instead.
+routes keep them; an unknown name fails the startup. A field to hide everywhere is `hidden` instead. The omitted fields
+can neither be filtered nor sorted on through the relation (the filter of the relation is its own
+`<Model><Relation>RelationQueryFilter` schema, i.e. `PostAuthorRelationQueryFilter`), or their values could be guessed
+one condition at a time.
 
 ```ts
 // The author of a public post, without the contact details
@@ -941,7 +944,10 @@ record itself. A function `mapValue` receives the field value (or each item of a
 value.
 
 Hidden fields and virtual fields with `output: { type: 'none' }` are never exported, nested in a relation either. A
-relation without a `mapValue` writes one column per field of the related record.
+relation without a `mapValue` writes one column per field of the related record. An array of plain values is joined
+with `export.csvJoinDelimiter`. A text cell a spreadsheet would run as a formula (starting with `=`, `+`, `-`, `@`, a
+tab or a carriage return) is prefixed with `'`, numeric text such as a phone number excepted
+(`export.csvEscapeFormulas`, on by default).
 
 ### Index config
 
@@ -1139,6 +1145,13 @@ mirror the WHERE part of a database query. The matching
 `POST /query`, `POST /aggregate`, and `POST /export` routes accept the same structure, validated against a generated
 per-model `<Model>QueryFilter` schema that rejects unknown and hidden fields with a `400` `VALIDATION_FAILED` error
 naming the field, i.e. `{ "field": "filter.titel", "rule": "additionalProperties", "message": "is not allowed" }`.
+
+A filter is bounded, so one request cannot build a query the database takes seconds to plan: at most
+`resource.filterMaxConditions` conditions (every field and operator key, nested filters included, `1000`),
+`resource.filterMaxDepth` nesting levels (`10`) and `resource.filterMaxListValues` values in a list (`2000`). A filter
+beyond them is refused with `400` `RESOURCE_FILTER_TOO_COMPLEX`, the details naming the `limit` and its `max`, before the
+request is validated; the service methods check the same limits. A JSON body is limited to `server.jsonBodyMaxSize`
+(`10M`), apart from the uploads (`server.bodyMaxSize`).
 
 **Logical operators** (filter level) — take a single filter object (each entry becomes one condition) or a list of them:
 
@@ -1572,7 +1585,9 @@ Extends RouteConfig with caching options (the global TTL and invalidation strate
 | `cacheSkipInvalidation` | boolean | `false` | Skip automatic cache invalidation on writes.          |
 
 The cache key of a resource route is built from the model, the route, the request and the user, so the
-invalidation of the model's writes reaches it. A custom `cacheKey`, with `cacheModelName` and `cacheRelations`, is an
+invalidation of the model's writes reaches it. A cached response replays only the headers describing its payload
+(`content-type`, `content-disposition`, `content-language`, `etag`, `last-modified`); the others, such as the CORS
+origin or the rate limit counters, are set again for every request. A custom `cacheKey`, with `cacheModelName` and `cacheRelations`, is an
 option of the custom routes of [`registerRoute`](#registerroute) only.
 
 ### Query route config (query, aggregate)
