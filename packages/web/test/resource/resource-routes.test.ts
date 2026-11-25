@@ -949,6 +949,45 @@ describe('resource-routes', () => {
       });
     });
 
+    describe('filter complexity', () => {
+      const oversized = {
+        _or: Array.from({ length: 2001 }, (_, index) => ({ views: index }))
+      };
+
+      beforeEach(async () => {
+        app = await server({
+          query: { method: 'get-post' },
+          aggregate: { method: 'get-post' },
+          export: {}
+        });
+      });
+
+      test.each([
+        ['POST', '/posts/query', { filter: oversized }],
+        [
+          'GET',
+          `/posts/query?filter=${encodeURIComponent(JSON.stringify({ id: { _in: Array.from({ length: 2001 }, (_, index) => index) } }))}`,
+          undefined
+        ],
+        [
+          'POST',
+          '/posts/aggregate',
+          { select: { views: { sum: true } }, filter: oversized }
+        ],
+        ['POST', '/posts/export', { filter: oversized }]
+      ])(
+        'refuses %s %s before validating the request',
+        async (method, url, payload) => {
+          const { status, body } = await request(method as any, url, payload);
+
+          expect(status).toBe(400);
+          expect(body.code).toBe(ErrorCode.ResourceFilterTooComplex);
+          expect(service.query).not.toHaveBeenCalled();
+          expect(service.aggregate).not.toHaveBeenCalled();
+        }
+      );
+    });
+
     describe('GET /query', () => {
       beforeEach(async () => {
         app = await server({ query: { method: 'get-post' } });

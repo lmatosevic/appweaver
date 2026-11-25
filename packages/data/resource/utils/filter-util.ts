@@ -1,11 +1,74 @@
 import {
+  ErrorCode,
   extractResourceName,
   extractSchemaProperties,
   isArray,
-  isPlainObject
+  isPlainObject,
+  ResourceError
 } from '@appweaver/common';
 import { injectModel } from '@appweaver/core';
+import { resourceConfig } from '../resource-config';
 import { liveRelationFilter } from './delete-util';
+
+/**
+ * Checks a filter against the complexity limits of the `resource` config before it is mapped, so a single request
+ * cannot build a query the database takes seconds to plan or run: the number of its conditions (every field and
+ * operator key, nested filters included), its nesting depth and the length of its value lists.
+ *
+ * @param {*} filter - The filter of the request.
+ * @param {string} modelName - The name of the model the filter is matched against, for the error details.
+ * @throws {ResourceError} `RESOURCE_FILTER_TOO_COMPLEX` when the filter exceeds one of the limits.
+ */
+export function assertFilterComplexity(
+  filter: unknown,
+  modelName: string
+): void {
+  const maxConditions = resourceConfig.FILTER_MAX_CONDITIONS;
+  const maxDepth = resourceConfig.FILTER_MAX_DEPTH;
+  const maxListValues = resourceConfig.FILTER_MAX_LIST_VALUES;
+  let conditions = 0;
+
+  const fail = (limit: 'conditions' | 'depth' | 'listValues', max: number) => {
+    const names = {
+      conditions: `more than ${max} conditions`,
+      depth: `more than ${max} nesting levels`,
+      listValues: `a list of more than ${max} values`
+    };
+    throw new ResourceError(
+      ErrorCode.ResourceFilterTooComplex,
+      `The ${modelName} filter holds ${names[limit]}`,
+      { model: modelName, limit, max }
+    );
+  };
+
+  // Iterative, so a deeply nested filter cannot exhaust the stack before its depth is checked
+  const stack: [unknown, number][] = [[filter, 0]];
+  while (stack.length > 0) {
+    const [value, depth] = stack.pop()!;
+    if (isArray(value)) {
+      if (value.length > maxListValues) {
+        fail('listValues', maxListValues);
+      }
+    } else if (!isPlainObject(value)) {
+      continue;
+    }
+    if (depth >= maxDepth) {
+      fail('depth', maxDepth);
+    }
+    const children = isArray(value) ? value : Object.values(value);
+    if (!isArray(value)) {
+      conditions += children.length;
+      if (conditions > maxConditions) {
+        fail('conditions', maxConditions);
+      }
+    }
+    for (const child of children) {
+      if (isArray(child) || isPlainObject(child)) {
+        stack.push([child, depth + 1]);
+      }
+    }
+  }
+}
 
 /**
  * Logical filter operators mapped to their database query connectives. Both

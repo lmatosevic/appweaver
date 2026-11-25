@@ -148,9 +148,13 @@ export function createSchema(
   // The errors of the geometries written and of the spatial filters
   const geo = hasGeo(resourceModel.config);
   const geometryErrors = geo ? [ErrorCode.SpatialInvalidGeometry] : [];
-  const spatialFilterErrors = geo
-    ? [ErrorCode.SpatialInvalidFilter, ErrorCode.SpatialTooManyCandidates]
-    : [];
+  // A filter beyond the complexity limits is refused on every route taking one
+  const spatialFilterErrors = [
+    ErrorCode.ResourceFilterTooComplex,
+    ...(geo
+      ? [ErrorCode.SpatialInvalidFilter, ErrorCode.SpatialTooManyCandidates]
+      : [])
+  ];
 
   const createErrors = [
     ...geometryErrors,

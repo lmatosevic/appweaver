@@ -45,7 +45,14 @@ export const resourceConfig = defineConfig(
     BULK_TRANSACTION_TIMEOUT: Type.Integer({ default: 5000 }),
     /** Respond to a bulk request with the records it applied, the same as their single routes, or only with
      * `{ success, count }` when `false`, unless its route sets `returnRecords`. Default: `true`. */
-    BULK_RETURN_RECORDS: Type.Boolean({ default: true })
+    BULK_RETURN_RECORDS: Type.Boolean({ default: true }),
+    /** Maximum number of conditions (the fields and operators) a filter holds, its nested filters included. Default:
+     * `1000`. */
+    FILTER_MAX_CONDITIONS: Type.Integer({ default: 1000, minimum: 1 }),
+    /** Maximum nesting depth of a filter, every nested object or list counting as a level. Default: `10`. */
+    FILTER_MAX_DEPTH: Type.Integer({ default: 10, minimum: 1 }),
+    /** Maximum number of values of a list in a filter, i.e. of an `_in` list. Default: `2000`. */
+    FILTER_MAX_LIST_VALUES: Type.Integer({ default: 2000, minimum: 1 })
   },
   {
     // The path patterns are relative to the source directory of the application

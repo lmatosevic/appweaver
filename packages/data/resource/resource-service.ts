@@ -76,7 +76,7 @@ import {
   pageCursors,
   queryFingerprint
 } from './utils/cursor-util';
-import { mapQueryFilter } from './utils/filter-util';
+import { assertFilterComplexity, mapQueryFilter } from './utils/filter-util';
 import { mapStableSortValues, sortEntries } from './utils/sort-util';
 import { matchesWhere } from './utils/where-util';
 import { SpatialDistances, SpatialService } from '../spatial/spatial-service';
@@ -1248,6 +1248,7 @@ export abstract class ResourceService<
     filter: Query,
     distances?: SpatialDistances
   ): Promise<{ AND: any[] }> {
+    assertFilterComplexity(filter, this._client.name);
     const restrictions = await this.applyReadRestrictions(action, filter);
     const textSearch = this.extractTextSearchQuery(filter);
 

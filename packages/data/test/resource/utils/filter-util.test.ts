@@ -1,8 +1,10 @@
 import { createModel } from '../../../factory/create-model';
 import {
+  assertFilterComplexity,
   mapQueryFilter,
   ResolvedFilterConditions
 } from '../../../resource/utils/filter-util';
+import { configOverrides, ErrorCode } from '@appweaver/common';
 import { resetContext } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';
 
@@ -415,6 +417,66 @@ describe('filter-util', () => {
       test('leaves the scalar null checks unchanged', () => {
         expect(map({ title: null })).toEqual({ title: null });
       });
+    });
+  });
+
+  describe('assertFilterComplexity', () => {
+    const check = (filter: unknown) => () =>
+      assertFilterComplexity(filter, 'Post');
+    const tooComplex = (limit: string, max: number) =>
+      expect.objectContaining({
+        code: ErrorCode.ResourceFilterTooComplex,
+        details: { model: 'Post', limit, max }
+      });
+
+    beforeEach(() => {
+      Object.assign(configOverrides, {
+        RESOURCE_FILTER_MAX_CONDITIONS: 5,
+        RESOURCE_FILTER_MAX_DEPTH: 3,
+        RESOURCE_FILTER_MAX_LIST_VALUES: 4
+      });
+    });
+
+    afterEach(() => {
+      delete configOverrides.RESOURCE_FILTER_MAX_CONDITIONS;
+      delete configOverrides.RESOURCE_FILTER_MAX_DEPTH;
+      delete configOverrides.RESOURCE_FILTER_MAX_LIST_VALUES;
+    });
+
+    test('accepts a filter within the limits', () => {
+      expect(check({ title: { _ne: 'A' }, views: [1, 2, 3, 4] })).not.toThrow();
+      expect(check(undefined)).not.toThrow();
+      expect(check({})).not.toThrow();
+    });
+
+    test('counts the conditions of the nested filters', () => {
+      expect(
+        check({
+          _or: [
+            { title: 'A', views: 1 },
+            { title: 'B', views: 2 },
+            { title: 'C', views: 3 }
+          ]
+        })
+      ).toThrow(tooComplex('conditions', 5));
+    });
+
+    test('limits the nesting depth', () => {
+      expect(check({ author: { team: { name: { _eq: 'A' } } } })).toThrow(
+        tooComplex('depth', 3)
+      );
+    });
+
+    test('limits the values of a list', () => {
+      expect(check({ id: { _in: [1, 2, 3, 4, 5] } })).toThrow(
+        tooComplex('listValues', 4)
+      );
+    });
+
+    test('names the limit in its message', () => {
+      expect(check({ id: [1, 2, 3, 4, 5] })).toThrow(
+        'The Post filter holds a list of more than 4 values'
+      );
     });
   });
 });
