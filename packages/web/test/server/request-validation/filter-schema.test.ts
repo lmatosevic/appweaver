@@ -8,7 +8,8 @@ import {
   GeoConditionSchema,
   QUERY_CONDITION_SCHEMA_NAME,
   QueryConditionSchema,
-  queryFilterName
+  queryFilterName,
+  relationQueryFilterName
 } from '@appweaver/data';
 import { resetContext } from '@appweaver/testing';
 import { requestValidation } from '../../../server/request-validation';
@@ -34,6 +35,19 @@ async function server(schemaName: string): Promise<FastifyInstance> {
       ...buildQueryFilterSchema(model),
       $id: queryFilterName(model.name)
     });
+    for (const [field, relation] of Object.entries(
+      model.config.relations ?? {}
+    )) {
+      const omit = relation.output?.omit;
+      if (omit?.length) {
+        const name = relationQueryFilterName(model.name, field);
+        const related = context.resource.models.get(relation.model)!;
+        app.addSchema({
+          ...buildQueryFilterSchema(related, { name, omit }),
+          $id: name
+        });
+      }
+    }
   }
 
   app.post(
@@ -87,7 +101,14 @@ describe('filter schema', () => {
       },
       relations: {
         author: { model: 'User', type: 'oneToMany', owner: true },
-        tags: { model: 'Tag', type: 'manyToMany' }
+        tags: { model: 'Tag', type: 'manyToMany' },
+        // A public shape of the user, without the last name
+        reviewer: {
+          model: 'User',
+          type: 'oneToMany',
+          owner: true,
+          output: { type: 'always', omit: ['lastName'] }
+        }
       }
     });
 
@@ -163,6 +184,30 @@ describe('filter schema', () => {
     expect(body.message).toBe(
       'body/author must NOT have additional properties'
     );
+  });
+
+  test('rejects the fields a relation omits from its output', async () => {
+    const omitted = await validated(app!, {
+      reviewer: { lastName: { _like: 'A%' } }
+    });
+    const nested = await validated(app!, {
+      reviewer: { _or: [{ firstName: 'Ada' }, { lastName: 'Lovelace' }] }
+    });
+    const kept = await validated(app!, {
+      reviewer: { firstName: 'Ada' },
+      author: { lastName: 'Lovelace' }
+    });
+
+    expect(omitted.status).toBe(400);
+    expect(omitted.body.message).toBe(
+      'body/reviewer must NOT have additional properties'
+    );
+    expect(nested.status).toBe(400);
+    expect(kept.status).toBe(200);
+    expect(kept.body).toEqual({
+      reviewer: { firstName: 'Ada' },
+      author: { lastName: 'Lovelace' }
+    });
   });
 
   test('keeps operator conditions', async () => {

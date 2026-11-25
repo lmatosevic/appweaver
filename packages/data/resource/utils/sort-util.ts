@@ -183,6 +183,8 @@ function mapSortPath(
 
   let modelName = resourceName;
   let modelInclusions = inclusions;
+  // The fields the relation leading to the current model leaves out of its output
+  let omitted: string[] = [];
 
   for (const [index, field] of segments.entries()) {
     const model = injectModel(modelName, false);
@@ -191,6 +193,15 @@ function mapSortPath(
         ErrorCode.ResourceInvalidSort,
         `Cannot sort by the '${path}' field, the '${modelName}' model is not loaded`,
         { model: modelName, field: path }
+      );
+    }
+
+    // Sorting by a field the relation omits would reveal its order
+    if (omitted.includes(field)) {
+      throw new ResourceError(
+        ErrorCode.ResourceInvalidSort,
+        `Cannot sort by the '${path}' field, '${field}' is not a sortable field of the ${model.name} model`,
+        { model: model.name, field: path }
       );
     }
 
@@ -268,6 +279,7 @@ function mapSortPath(
     }
 
     mappedSegments.push(field);
+    omitted = ('model' in relation ? relation.output?.omit : undefined) ?? [];
     modelName = capitalize(relatedModelName(model, field));
     modelInclusions = isPlainObject(inclusion) ? inclusion.include : undefined;
   }

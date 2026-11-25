@@ -50,6 +50,12 @@ describe('sort-util', () => {
           owner: true,
           output: { type: 'always', include: { team: { type: 'always' } } }
         },
+        owner: {
+          model: 'User',
+          type: 'oneToMany',
+          owner: true,
+          output: { type: 'always', omit: ['email'] }
+        },
         reviewer: { model: 'User', type: 'oneToMany', owner: true },
         tags: { model: 'Tag', type: 'manyToMany' },
         editor: {
@@ -220,6 +226,13 @@ describe('sort-util', () => {
         expect(() => map('unknown')).toThrow(
           /'unknown' is not a sortable field of the Post model/
         );
+      });
+
+      test('throws for a field the relation omits from its output', () => {
+        expect(() => map('owner.email')).toThrow(
+          /'email' is not a sortable field of the User model/
+        );
+        expect(map('owner.age')).toEqual([{ owner: { age: 'asc' } }]);
       });
 
       test('throws for a hidden scalar field', () => {
