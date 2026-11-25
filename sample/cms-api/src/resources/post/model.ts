@@ -213,6 +213,8 @@ export default createModel({
   index: [
     ['status', '-publishedAt'],
     ['categoryId', '-publishedAt'],
-    ['-createdAt', '+id']
+    ['-createdAt', '+id'],
+    // The default listing of the public routes, which serve the published posts
+    ['status', '-createdAt', '+id']
   ]
 });

@@ -135,6 +135,7 @@ model Post {
   @@index([status, publishedAt(sort: Desc)])
   @@index([categoryId, publishedAt(sort: Desc)])
   @@index([createdAt(sort: Desc), id(sort: Asc)])
+  @@index([status, createdAt(sort: Desc), id(sort: Asc)])
   @@index([authorId])
   @@index([createdById])
   @@index([deletedById])

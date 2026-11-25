@@ -17,7 +17,9 @@ scheduled for publishing, static pages for the site menu, and comments open to g
 | File uploads: public cover, gallery and hero images, resized on upload                | post, page, and user models and policies                                                 |
 | File versions: a comment attachment keeps 10, a gallery image 3, the cover none       | `storage.versions` of `appweaver.json`, the post model                                   |
 | Write restrictions assigning the signed-in author on create                           | [`resources/post/policy.ts`](src/resources/post/policy.ts)                               |
-| Service hooks: publish date on publishing, view counter, self-parent check            | [`resources/post/service.ts`](src/resources/post/service.ts)                             |
+| Read restrictions: the published posts to the public, their own drafts to the authors | [`resources/post/policy.ts`](src/resources/post/policy.ts)                               |
+| Service hooks: publish date on publishing, self-parent check                          | [`resources/post/service.ts`](src/resources/post/service.ts)                             |
+| View counter raised when the HTML page of a post is rendered                          | [`features/syndication/posts.ts`](src/features/syndication/posts.ts)                     |
 | Text search over several fields of a resource                                         | `textSearch` of the services                                                             |
 | Public routes, per-route roles, response caching, and rate limited guest comments     | [`resources/*/routes.ts`](src/resources/comment/routes.ts)                               |
 | Bulk create, update, and delete routes for tags                                       | [`resources/tag/routes.ts`](src/resources/tag/routes.ts)                                 |

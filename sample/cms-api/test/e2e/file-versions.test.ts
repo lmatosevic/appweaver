@@ -15,6 +15,14 @@ describe('File versions', () => {
   let comments: any;
   let posts: any;
   let auth: Record<string, string>;
+  let authorId: number;
+
+  // Written by the signed-in user, who may only change their own posts
+  const createPost = async (data: { title: string; slug: string }) => {
+    const post = await posts.create(data);
+    await posts.client.update({ where: { id: post.id }, data: { authorId } });
+    return post;
+  };
 
   const multipart = (parts: Part[]) => {
     const boundary = '----AppweaverFileVersionsBoundary';
@@ -68,7 +76,7 @@ describe('File versions', () => {
     });
 
   const seedComment = async () => {
-    const post = await posts.create({ title: 'Versioned', slug: 'versioned' });
+    const post = await createPost({ title: 'Versioned', slug: 'versioned' });
     return comments.create({ body: 'With versions', post: post.id });
   };
 
@@ -97,6 +105,7 @@ describe('File versions', () => {
     );
     const { accessToken } = await inject(AuthService).generateAuthTokens(user);
     auth = { authorization: `Bearer ${accessToken}` };
+    authorId = user.id;
   }, 30_000);
 
   afterAll(async () => {
@@ -251,7 +260,7 @@ describe('File versions', () => {
 
   describe('array file field', () => {
     test('replaces a named file, keeping the others', async () => {
-      const post = await posts.create({ title: 'Gallery', slug: 'gallery' });
+      const post = await createPost({ title: 'Gallery', slug: 'gallery' });
 
       const [a, b] = (
         await upload(`posts/${post.id}`, [
@@ -280,7 +289,7 @@ describe('File versions', () => {
     });
 
     test('deleting the latest version links the previous one again', async () => {
-      const post = await posts.create({ title: 'Restored', slug: 'restored' });
+      const post = await createPost({ title: 'Restored', slug: 'restored' });
       const first = (
         await upload(`posts/${post.id}`, [galleryImage('a1')])
       ).json().galleryImages[0];
@@ -318,7 +327,7 @@ describe('File versions', () => {
     });
 
     test('a failed upload restores the files it replaced', async () => {
-      const post = await posts.create({ title: 'Failed', slug: 'failed' });
+      const post = await createPost({ title: 'Failed', slug: 'failed' });
       const first = (
         await upload(`posts/${post.id}`, [galleryImage('a1')])
       ).json().galleryImages[0];
@@ -341,7 +350,7 @@ describe('File versions', () => {
     });
 
     test('keeps at most the max count of versions', async () => {
-      const post = await posts.create({ title: 'Pruned', slug: 'pruned' });
+      const post = await createPost({ title: 'Pruned', slug: 'pruned' });
       let current = (
         await upload(`posts/${post.id}`, [galleryImage('v1')])
       ).json().galleryImages[0];
@@ -368,7 +377,7 @@ describe('File versions', () => {
 
   describe('file field without versions', () => {
     test('rejects a version of the file', async () => {
-      const post = await posts.create({ title: 'Cover', slug: 'cover' });
+      const post = await createPost({ title: 'Cover', slug: 'cover' });
       // A 4x4 PNG, the cover image accepting only JPEG, PNG and WebP
       const cover = await inject(FileService).saveBuffer(
         'coverImage',

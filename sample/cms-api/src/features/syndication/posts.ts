@@ -1,4 +1,7 @@
+import { createLogger } from '@appweaver/common';
 import db from '@db/client';
+
+const logger = createLogger('post');
 
 const include = {
   author: {
@@ -26,4 +29,14 @@ export async function findPublishedPosts() {
     include,
     orderBy: { publishedAt: 'desc' }
   });
+}
+
+/**
+ * Counts a view of a post, once its page is rendered. Never on a read of the
+ * API, which would turn every read into a write and miss the cached ones.
+ */
+export function countView(id: number): void {
+  db.post
+    .update({ where: { id }, data: { viewCount: { increment: 1 } } })
+    .catch((error) => logger.warn(error, 'Post view count was not raised'));
 }
