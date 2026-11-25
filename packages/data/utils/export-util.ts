@@ -14,12 +14,41 @@ export function toCsv(data: any[], header: boolean = false): string {
     delimiter: exportConfig.CSV_DELIMITER,
     cast: {
       date: (value: Date) => value.toISOString(),
+      string: (value: string) => escapeFormula(value),
       object: (value: any) =>
-        isArray(value) &&
-        (isString(value) || isNumber(value) || isBoolean(value))
-          ? value.join(exportConfig.CSV_JOIN_DELIMITER)
-          : JSON.stringify(value)
+        escapeFormula(
+          isArray(value) &&
+            value.every(
+              (item) => isString(item) || isNumber(item) || isBoolean(item)
+            )
+            ? value.join(exportConfig.CSV_JOIN_DELIMITER)
+            : JSON.stringify(value)
+        )
     },
     header
   });
+}
+
+// The first characters a spreadsheet reads as the start of a formula
+const FORMULA_PREFIX = /^[=+\-@\t\r]/;
+
+// A signed number, a phone number or a date written with digits and separators only, which no spreadsheet runs
+const NUMERIC_TEXT = /^[+-]?[\d\s.,()/-]*\d[\d\s.,()/-]*$/;
+
+/**
+ * Prefixes with `'` a cell a spreadsheet would run as a formula (CSV injection), unless `export.csvEscapeFormulas` is
+ * off or the text is only a signed number.
+ *
+ * @param {string} value - The text of the cell.
+ * @return {string} The text, prefixed when it starts like a formula.
+ */
+export function escapeFormula(value: string): string {
+  if (
+    !exportConfig.CSV_ESCAPE_FORMULAS ||
+    !FORMULA_PREFIX.test(value) ||
+    NUMERIC_TEXT.test(value)
+  ) {
+    return value;
+  }
+  return `'${value}`;
 }
