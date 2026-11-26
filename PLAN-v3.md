@@ -891,7 +891,7 @@ them, V3-DOC-05):
 **Why `spatial` rather than `geometry`** (decided, revision 10): the config section, the service and the engines are already
 named `spatial` (`spatial.provider`, `SpatialService`, `PostgisSpatialEngine`, `skill/references/spatial.md`), and
 `geometry` is one of the field types (`point`, `lineString`, `polygon`, ..., `geometry`), so `geometry: { shape: { type:
-'geometry' } }` would read twice the same word for two things. 
+'geometry' } }` would read twice the same word for two things.
 
 **Kept on purpose**:
 
