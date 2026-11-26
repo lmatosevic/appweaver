@@ -1,6 +1,7 @@
 # Appweaver v3.0.0 Plan
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`).
+> **Revision 9**: full names instead of the framework's own abbreviations (`geo`, `2fa`, `OTT`, ...), D23, V3-CONV-08.
 > **Revision 8**: remembered 2FA devices added to phase 4, next to the forced 2FA lifecycle (D6b, V3-WEB-03).
 > **Revision 7**: no Prisma 8 plans: v3 keeps Prisma 7 exactly as it is used today, with no switch planned and no code
 > preparing one; the migration engine interface, the `weaver db` restructuring and the Prisma 8 backlog are removed
@@ -400,6 +401,7 @@ high, medium, low, or a design or performance finding.
 | F42 | No supported way to add SQL that Prisma does not generate: `weaver migration new` applies at once (no `--create-only`), and what Prisma can model but the schema does not declare (a generated column, a trigram index) is dropped by the next migration | Design | Medium | C, E14 | V3-DATA-07 |
 | F43 | Prisma 8 has no SQL Server library (RC targets: PostgreSQL, SQLite, MySQL, MariaDB); Appweaver supports SQL Server (`hr-api`) | Platform | High | C, E14 | None (D16) |
 | F44 | Prisma 8 migrations are TypeScript ES modules; Appweaver projects are CommonJS (D13) | Platform | Medium | C, E14 | None (D16) |
+| F45 | Abbreviations of the framework's own in the public API: `geo` (model key, 7 exported types, 6 functions), `2fa` (config section, routes, JWT scope, 5 error codes) beside `twoFactor` everywhere in the code, `OTT` (5 config keys, 2 exported types), `SEP` (`export.csvAddSepRow`), the confusable CLI aliases `mge` and `mgn` | Consistency | Low | R | V3-CONV-08 |
 | F41 | The `cms-api` listing had no index for the restricted public query: 7 req/s at 100k until one was added; the sample indexes are not checked against the queries their policies build | Sample | Low | C | V3-SAMPLE-02 |
 
 ---
@@ -859,6 +861,54 @@ migrations of the same deploy; a file referencing a column a later Prisma migrat
 already put custom SQL in its Prisma migrations today; the layer is what makes it portable across databases and module
 packages, and safe from the drops of E14.
 
+### D23. Full names instead of abbreviations — **decided: rename the framework's own abbreviations, keep the standard ones**
+
+**Problem**: F45. A reader, human or agent, has to guess what `geo`, `2fa` or `OTT` stand for, and `2fa` is used for the
+config, the routes and the errors while the code says `twoFactor` (`TwoFactorService`, `TwoFactorMethod`). An env name
+`SECURITY_ACCOUNT_2FA_ENABLED` has a segment starting with a digit. One name per concept, written out, is the rule of
+"one way to do things".
+
+**Renamed** (old names accepted in v3 with a deprecation warning at startup, removed in v4; `weaver upgrade` rewrites
+them, V3-DOC-05):
+
+| Today                                                                                   | v3                                                                                                   |
+|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
+| Model key `geo: { location: { type: 'point' } }`                                        | `spatial: { ... }` (proposed, decision 10 of section 9; `geometry` is the alternative)                |
+| `GeoConfig`, `GeoField`, `GeoFieldType`, `GeoFilterOperators`, `GeoConditionSchema`, `GeoColumns`, `GeoModel` | `SpatialConfig`, `SpatialField`, `SpatialFieldType`, `SpatialFilterOperators`, `SpatialConditionSchema`, `SpatialColumns`, `SpatialModel` |
+| `geoColumns`, `geoFieldSchema`, `geoStorage`, `geoDistance`, `geoModelOf`, `hasGeo`     | `spatialColumns`, `spatialFieldSchema`, `spatialStorage`, `spatialDistance`, `spatialModelOf`, `hasSpatialFields` |
+| Config section `security.account.2fa` (`SECURITY_ACCOUNT_2FA_*`), `.2fa.totp`           | `security.account.twoFactor` (`SECURITY_ACCOUNT_TWO_FACTOR_*`), `.twoFactor.totp`                    |
+| Routes `/auth/account/2fa/*`                                                            | `/auth/account/two-factor/*` (the old paths answer in v3, left out of the OpenAPI document)          |
+| JWT scope `2fa`, `AuthScope.TwoFA`, `AuthOTTPurpose.TwoFAVerification` (`2faVerification`) | `twoFactor`, `AuthScope.TwoFactor`, `OneTimeTokenPurpose.TwoFactorVerification`                  |
+| Error codes `ACCOUNT_2FA_*` (5)                                                         | `ACCOUNT_TWO_FACTOR_*`                                                                               |
+| `security.authOttTtl`                                                                   | `security.exchangeTokenTtl` (the one-time token of `/exchange-token`)                               |
+| `security.account.verifyEmailOttTtl`, `resetPasswordOttTtl`, `verifyPhoneOttTtl`        | `verifyEmailTokenTtl`, `resetPasswordTokenTtl`, `verifyPhoneCodeTtl`                                 |
+| `security.account.2fa.ottTtl`                                                           | `security.account.twoFactor.challengeTtl`                                                            |
+| Types `AuthOTTData`, `AuthOTTPurpose`                                                   | `OneTimeTokenData`, `OneTimeTokenPurpose`                                                            |
+| `export.csvAddSepRow`                                                                   | `export.csvAddSeparatorRow`                                                                          |
+| CLI aliases `mge` (`migrate`) and `mgn` (`migration`), one letter apart                 | removed; the other aliases (`g`, `b`, `s`, `r`, `sd`, `cfg`, `oa`, `mod`, `up`, `t`) stay as shortcuts of full names |
+
+**Why `spatial` rather than `geometry`** (for decision 10): the config section, the service and the engines are already
+named `spatial` (`spatial.provider`, `SpatialService`, `PostgisSpatialEngine`, `skill/references/spatial.md`), and
+`geometry` is one of the field types (`point`, `lineString`, `polygon`, ..., `geometry`), so `geometry: { shape: { type:
+'geometry' } }` would read twice the same word for two things. `geometry` is just as explicit if preferred.
+
+**Kept on purpose**:
+
+- Standard acronyms every reader knows: JWT, CORS, OAuth2, TOTP, SMS, AI, MCP, API, URL, IP, CSV, SSE, HTTP, and Twilio's
+  own `SID`.
+- `TTL`, `MAX`/`MIN`, and `DIR` in the `*_DIR_PATH` keys, which match the `--*-dir` flags of the CLI conventions.
+- `pubsub` and `PubSub`, the usual name of the pattern.
+- The filter operators `_ne`, `_gt`, `_gte`, `_lt`, `_lte`, `_in`, `_nin`, `_ilike`: the vocabulary of Prisma and
+  MongoDB that every agent already writes; renaming them would cost every query of every application for no clarity.
+- The GeoJSON types (`GeoPoint`, `GeoPolygon`, `GeoLineString`, `GeoMultiPoint`, `GeoMultiLineString`,
+  `GeoMultiPolygon`, `GeoGeometry`, `GeoPosition`, `GeoLatLng`, `GeoBox`): their `Geo` is the GeoJSON standard's, they
+  describe its objects.
+- The `Fn` suffix of the function types (`FileAccessFn`, ...), a TypeScript convention.
+
+**Effort**: M, mostly mechanical: the renames, the deprecated aliases and their warnings, the old route paths, the
+codemods of `weaver upgrade`, the samples, the scaffold templates, the generated client and the skill. In phase 3 with the
+other convention changes, so the config keys are renamed once together with D11.
+
 ### D21. Other decisions
 
 | Topic                                         | Decision                                                                                     |
@@ -1002,6 +1052,7 @@ sample and every scaffold combination building and passing its e2e tests on its 
 | 3.6  | V3-CONV-06  | `totalCount` default and bounded count, `maxOffset`                                                     |
 | 3.7  | V3-CONV-07  | `aggregate` in one `GROUP BY`, no implicit 7-day window                                                 |
 | 3.8  | V3-COMMON-01 | Array env values: a JSON array accepted, anything ambiguous rejected                                   |
+| 3.9  | V3-CONV-08  | Full names instead of abbreviations (D23), with the codemods of `weaver upgrade`                        |
 
 **Gate 3**: every package on the conventions; `MIGRATION-v3.md` covers each change.
 
@@ -1216,6 +1267,7 @@ week, XL more.
 | V3-CONV-05    | `database.keepTables` (F18)                                              | 3     | P2   | S      | Yes            |
 | V3-CONV-06    | `totalCount` default, bounded count, `maxOffset` (F19)                   | 3     | P1   | S      | Yes            |
 | V3-CONV-07    | `aggregate` in one `GROUP BY`, no implicit window (F20)                  | 3     | P1   | M      | Yes            |
+| V3-CONV-08    | Full names: `geo` to `spatial`, `2fa` to `twoFactor`, `OTT`, `SEP`, CLI aliases (D23, F45) | 3 | P1 | M | Yes (aliases in v3) |
 | V3-COMMON-01  | Array env values (F36)                                                   | 3     | P2   | S      | No             |
 | V3-DATA-01    | `extend*`, duplicates fail (F9)                                          | 4     | P1   | L      | Duplicates fail |
 | V3-DATA-02    | Model views (F13, F2)                                                    | 4     | P1   | XL     | No (additive)  |
@@ -1269,6 +1321,8 @@ The experiments settled most questions of revision 1. These remain:
 8. ~~**Prisma 8 and SQL Server**~~: decided in revision 7, Prisma 7 as used so far, no Prisma 8 plans (D16).
 9. **SQL migration file names** (D22): `<version>_<name>.<database>.sql` suffixes (proposed), or one directory per
    database (`database/sql/postgresql/...`)?
+10. **Name of the spatial model key** (D23): `spatial` (proposed, matching the config section and `SpatialService`), or
+    `geometry`?
 
 ---
 
