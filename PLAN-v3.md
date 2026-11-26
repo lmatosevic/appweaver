@@ -1,10 +1,12 @@
 # Appweaver v3.0.0 Plan
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`).
+> **Revision 6**: v3 stays on Prisma 7.x; Prisma 8 comes in a 3.x minor once it supports every database (D16). The
+> custom SQL migration layer (D22) stays in v3. Only TypeScript runs on a pre-release (7.1 beta) during development.
 > **Revision 5**: custom SQL migrations investigated (E14, D22); Prisma 8 has no SQL Server library, so D16 is re-opened
 > (section 9).
 > **Revision 4**: phase 1a done on `fix/security-and-query-limits` (section 6); v3 is built on the TypeScript 7.1 beta and
-> the Prisma 8 release candidates for development, and released only once both are stable (D12, D16, section 10).
+> the Prisma 8 release candidates for development, and released only once both are stable (Prisma part superseded by 6).
 > **Revision 3**: v3 waits for TypeScript 7.1 and Prisma 8.0.0 stable before its toolchain phase (superseded by 4).
 > **Revision 2**: every claim below was checked in the code or measured (section 3). Each decision of section 5 states
 > the evidence it rests on, the alternatives rejected, and what it breaks. Nothing is implemented before its phase plan
@@ -654,7 +656,7 @@ scheduled for the coming weeks (`7.1.0-beta` is on npm, and typescript-eslint 8.
 1. No intermediate step on TypeScript 6 or a split build: v3 moves from 5.9 straight to **TypeScript 7.1**, for the
    monorepo, the published packages and the scaffolded projects alike. Development starts now on the latest
    `7.1.0-beta` (or RC), pinned exactly, on the `next` branch only; the stable 7.1.0 replaces it before 3.0.0 is
-   released, and no `3.0.0` (only `3.0.0-next.N`) is published on a beta.
+   released, and no `3.0.0` (only `3.0.0-next.N`) is published on a beta. Prisma stays on 7.x (D16).
 2. The config changes E6 found are made with it: `baseUrl` removed (the `paths` relative to the config), `types` and
    `typeRoots` listed explicitly, the decorator flags removed, the client's CommonJS build off `moduleResolution:
    node10`, the `WebSocket.send` typing fixed, and `noImplicitAny: true` (108 fixes). The config cleanup that is
@@ -671,7 +673,8 @@ scheduled for the coming weeks (`7.1.0-beta` is on npm, and typescript-eslint 8.
 
 ESM-only would touch the runtime `require` of providers and modules (`common/utils/module-util.ts`), the Prisma client
 output, the Jest setup and every scaffolded project, while nothing in E1-E12 shows a user-facing gain. The client
-package already ships ESM and CommonJS. Revisited in a v3 minor, once the project runs on Prisma 8 and TypeScript 7.1.
+package already ships ESM and CommonJS. Revisited once the project runs on TypeScript 7.1 and Prisma 8 (whose migrations
+are ES modules, F44).
 
 ### D14. Test runner — **decided: stay on Jest with SWC**
 
@@ -689,28 +692,34 @@ its own dependencies, replacing the 17 packages of `scaffoldDependencies.tooling
 `weaver format` and `weaver test` resolve the tools from the project. Biome or oxlint: re-evaluated on TypeScript 7.1
 (type-aware rules are the deciding factor). ESLint 10 regardless.
 
-### D16. Prisma 8 — **re-opened (revision 5): Prisma 8 has no SQL Server library**
+### D16. Prisma — **decided (revision 6): v3 stays on Prisma 7.x, Prisma 8 in a 3.x minor**
 
-> E14 found what the text below did not know: Prisma 8 has no SQL Server target (F43), its migrations are TypeScript ES
-> modules (F44), and its CLI, PSL dialect and migration model are new. Shipping v3 on Prisma 8 would drop SQL Server
-> (the `hr-api` sample) or wait for Prisma to add it. **Recommendation**: v3 ships on **Prisma 7** (fixed for 18 months
-> after Prisma 8 is GA), with the `weaver db` commands and the SQL migration layer (D22) written against an internal
-> interface of the migration engine, so Prisma 8 arrives in a v3 minor once it supports every database Appweaver does,
-> and the Prisma 8 spike keeps running on the `next` branch meanwhile. The alternative is to drop SQL Server in v3.
-> Decision 8 of section 9. The text below stands if Prisma 8 gains SQL Server before phase 8.
+**Why**: Prisma 8 has no SQL Server library (F43), which Appweaver supports (`hr-api`); its CLI, PSL dialect and
+migration model are new, and its migrations are TypeScript ES modules (F44, Appweaver projects are CommonJS). Tying v3 to
+it would drop a database or hold the release. Prisma 7 receives fixes for 18 months after Prisma 8 is GA.
 
+**Decision**:
 
-Prisma 8 is still a release candidate (E12), and 8.0.0 stable is scheduled for the coming weeks. v3 ships on Prisma 8;
-there is no fallback to Prisma 7.10. The migration starts now on the latest RC, pinned exactly on the `next` branch,
-following the upgrade recipe of every RC it moves to (they change from one RC to the next, so an RC bump is a CR of its
-own with its recipe applied and the samples' databases recreated); 8.0.0 stable replaces it before 3.0.0 is released. Its scope, measured in E12: `take`/`skip` to `limit`/`offset` (5 places),
-`@db.*` (9 in the schema generator), the date types, the 29 raw SQL calls, the 5 error codes, the five adapters, the
-`$extends` extensions (telemetry, spatial), the migrations and databases of every sample and the scaffold templates.
+1. v3 ships on the latest **Prisma 7.x** (7.10.1 today), bumped within 7.x as usual. No Prisma 8 work on the `next`
+   branch, and no Prisma pre-release in development.
+2. The switch to Prisma 8 waits until it is stable **for every database Appweaver supports** (PostgreSQL, MySQL and
+   MariaDB, SQLite and libSQL, SQL Server), then lands as a **3.x minor**.
+3. That switch can be a minor only if the application never touches Prisma directly, so v3 prepares it: the `weaver db`
+   commands (V3-CLI-05) and the SQL migration layer (D22) are written against an internal **migration engine**
+   interface (plan, apply, status, reset, check), implemented for Prisma 7 in v3 and for Prisma 8 later; Appweaver keeps
+   generating the schema and `prisma.config.ts`; the existing migration history is baselined by `weaver upgrade`
+   (Prisma 8 derives a baseline from the database on an empty migrations directory). What cannot be hidden
+   (`prisma.config.ts`, the migration files becoming ES modules, raw Prisma calls in application code) is listed in
+   that minor's upgrade notes; if it turns out to break applications, the switch waits for v4 instead.
+4. What Prisma 7 already offers is used in v3: partial indexes (the `partialIndexes` preview of 7.4+) and the extended
+   index options (`type: Gin`, `ops`), for D22 C.
 
-The CLI is restructured together with it, on the commands Prisma 8 actually has:
-`weaver db migrate|status|plan|new|check|reset|seed`, replacing `migrate`, `migration` and `seed`, with the old names as
-aliases for one major. `migrate/plan-migrations.ts` stops parsing the debug log of `prisma migrate status` where Prisma
-8 offers a structured output.
+**The CLI restructuring does not wait** for Prisma 8: `weaver db migrate|status|plan|new|check|reset|seed`, replacing
+`migrate`, `migration` and `seed`, with the old names as aliases for one major, on Prisma 7.
+`migrate/plan-migrations.ts` keeps parsing the output of `prisma migrate status` until the Prisma 8 engine replaces it.
+
+The scope measured in E12 (`take`/`skip`, `@db.*`, date types, the 29 raw SQL calls, the 5 error codes, the adapters,
+the `$extends` extensions) is the backlog of that 3.x minor (V3-TOOL-07, deferred).
 
 ### D17. TypeBox 1.x — **decided: yes, in v3**
 
@@ -850,7 +859,7 @@ migrations today; the layer is what makes it portable across databases, module p
 |-------|-------------------------------|---------------------------------------------------------------------------|-------------------------------------------------------|
 | 0     | Preparation                   | Release channel, migration guide, load-test harness, baselines            | Baselines of every sample recorded                    |
 | 1     | Security fixes and audit      | 2.10.x patches for F1-F4, F7; per-module findings                         | Register reviewed, CRs ordered                        |
-| 2     | Toolchain and platform        | TypeScript 7.1, Prisma 8, `tsx`, tooling package, TypeBox 1, skill package | CI green, samples and scaffolds build      |
+| 2     | Toolchain and platform        | TypeScript 7.1, `weaver db`, `tsx`, tooling package, TypeBox 1, skill package | CI green, samples and scaffolds build   |
 | 3     | Conventions and defaults      | Durations, exposure, maintenance jobs, secure defaults, query defaults    | Conventions applied in every package                  |
 | 4     | Data model and API design     | Views, `extend*`, cache scopes, audit, forced 2FA                         | Each RFC approved before its code                     |
 | 5     | Module-by-module              | The remaining approved CRs, in the order of section 7                     | Per module                                            |
@@ -861,11 +870,11 @@ migrations today; the layer is what makes it portable across databases, module p
 **Order**: security first (it ships to 2.x users), then the toolchain (every later pull request runs on it), then the
 conventions (the features adopt them), then the design work, then performance against the final design.
 
-**Pre-releases for development**: **TypeScript 7.1** (the release shipping the compiler API) and **Prisma 8.0.0** are
-both scheduled as stable in the coming weeks. Phase 2 does not wait for them: it moves the `next` branch to the latest
-TypeScript `7.1.0-beta` and Prisma 8 RC, each pinned to an exact version, for development only. No CR of phases 3 to 8
-is merged before phase 2, so nothing is written twice against the old toolchain. The stable releases are a gate of the
-release (section 10): `3.0.0-next.N` prereleases may run on the pre-releases, `3.0.0` never does. A pre-release bump is
+**Pre-release for development**: **TypeScript 7.1** (the release shipping the compiler API) is scheduled as stable in
+the coming weeks. Phase 2 does not wait for it: it moves the `next` branch to the latest TypeScript `7.1.0-beta`, pinned
+to an exact version, for development only. Prisma stays on 7.x (D16). No CR of phases 3 to 8
+is merged before phase 2, so nothing is written twice against the old toolchain. The stable TypeScript 7.1 is a gate of the
+release (section 10): `3.0.0-next.N` prereleases may run on the beta, `3.0.0` never does. A pre-release bump is
 a CR of its own, with its upgrade notes applied.
 
 ### Phase 0: Preparation (no behavior change)
@@ -944,22 +953,22 @@ register (section 4) and become CRs. Specific items:
 
 | Step | CR          | Work                                                                                                    |
 |------|-------------|---------------------------------------------------------------------------------------------------------|
-**Entry**: phase 1 closed. TypeScript on the latest `7.1.0-beta`, Prisma on the latest 8 RC, both pinned exactly (see
-"Pre-releases for development" above).
+**Entry**: phase 1 closed. TypeScript on the latest `7.1.0-beta`, pinned exactly (see "Pre-release for development"
+above). Prisma on the latest 7.x.
 
 | Step | CR          | Work                                                                                                    |
 |------|-------------|---------------------------------------------------------------------------------------------------------|
 | 2.1  | V3-TOOL-02  | Tool check on the TypeScript 7.1 beta: typescript-eslint, `openapi-typescript`, `typebox-codegen`, madge; a tool not ready keeps an aliased `typescript@6` (D12) |
 | 2.2  | V3-TOOL-01  | TypeScript 7.1 everywhere: `baseUrl` removed, `types` and `typeRoots` listed, decorator flags removed, the client's CommonJS build off `node10`, the `WebSocket.send` typing, `noImplicitAny: true` (108 fixes) |
 | 2.3  | V3-TOOL-03  | `ts-node` replaced by `tsx` in `cli/utils/loader-util.ts`                                               |
-| 2.4  | V3-TOOL-07  | Prisma 8 (latest RC), on the `next` branch, merged only per D16 (re-opened): the API renames, `@db.*`, date types, raw SQL, error codes, adapters, extensions, the migrations of every sample and the scaffold templates |
-| 2.5  | V3-CLI-05   | `weaver db *` on the commands of Prisma 8 (D16)                                                         |
+| 2.4  | V3-DATA-09  | The migration engine interface (plan, apply, status, reset, check) and its Prisma 7 implementation (D16) |
+| 2.5  | V3-CLI-05   | `weaver db *` on the migration engine, the old commands as aliases (D16)                                |
 | 2.6  | V3-TOOL-06  | TypeBox 1.x everywhere, one copy; `typebox-codegen` replaced if it cannot follow                        |
 | 2.7  | V3-TOOL-05  | `@appweaver/tooling` (ESLint 10, Prettier, Jest + SWC configs), `weaver lint|format|test`, the scaffold templates on it |
 | 2.8  | V3-TOOL-08  | `@appweaver/skill` and `weaver skill sync`                                                              |
 | 2.9  | V3-SEC-06   | `generate-api-key` replaced; `npm audit` triaged (the `effect` advisory comes with Prisma 7's `@prisma/config`) |
 
-**Gate 2**: CI green on TypeScript 7.1 and Prisma 8, its duration compared to E1 (target: the x4.7 build of E6), every
+**Gate 2**: CI green on the TypeScript 7.1 beta and Prisma 7, its duration compared to E1 (target: the x4.7 build of E6), every
 sample and every scaffold combination building and passing its e2e tests on its database.
 
 ### Phase 3: Conventions and defaults
@@ -1178,7 +1187,8 @@ week, XL more.
 | V3-TOOL-03    | `tsx` instead of `ts-node` (F29)                                         | 2     | P1   | S      | No             |
 | V3-TOOL-05    | `@appweaver/tooling`, `weaver lint|format|test`, ESLint 10               | 2     | P1   | M      | Projects       |
 | V3-TOOL-06    | TypeBox 1.x (F27)                                                        | 2     | P1   | L      | Yes            |
-| V3-TOOL-07    | Prisma 8.0.0 stable                                                      | 2     | P1   | L      | Yes            |
+| V3-TOOL-07    | Prisma 8, **deferred** to a 3.x minor once it supports every database (D16) | 3.x | P2 | L     | Hidden by V3-DATA-09 |
+| V3-DATA-09    | Migration engine interface, Prisma 7 implementation (D16)               | 2     | P1   | M      | No             |
 | V3-TOOL-08    | `@appweaver/skill`, `weaver skill sync`                                  | 2     | P1   | M      | No             |
 | V3-SEC-06     | `generate-api-key` replaced, audit triage (F35)                          | 2     | P2   | S      | No             |
 | V3-CONV-01    | `Duration` and `Size` (F17)                                              | 3     | P1   | L      | Yes            |
@@ -1231,16 +1241,14 @@ The experiments settled most questions of revision 1. These remain:
 1. **2.x support**: how long `2.x` keeps receiving security fixes after 3.0.0 (proposed: 6 months).
 2. **Defaults of D5** that change behavior for existing deployments: the 15-minute access token, Swagger off in
    production, `totalCount: false`. Each is a one-line config to restore; confirm they are worth the migration note.
-3. **Upstream slip**: decided to build on the TypeScript 7.1 beta and the Prisma 8 RCs and release on the stable
-   versions. If either stable release slips past the end of phase 7, hold 3.0.0 (proposed), or release on the
-   pre-release?
+3. **Upstream slip**: decided to build on the TypeScript 7.1 beta and release on the stable 7.1. If it slips past the
+   end of phase 7, hold 3.0.0 (proposed), or release on TypeScript 5.9 with 7.1 in a minor?
 4. **Samples**: all nine stay in v3 (proposed); any to retire?
 5. **Angular client and untyped client** (`--no-types`): keep, or drop without usage data?
 6. **Views naming**: `views` and `view`, or `variants`?
 7. **2.x release of phase 1a**: `fix/security-and-query-limits` adds config keys and an error code under `fix:`
    commits, so semantic-release makes it 2.10.1; rename the first commit `feat:` for a 2.11.0?
-8. **Prisma 8 and SQL Server** (D16, F43): ship v3 on Prisma 7 with Prisma 8 in a minor once it supports SQL Server
-   (recommended), or ship on Prisma 8 and drop SQL Server?
+8. ~~**Prisma 8 and SQL Server**~~: decided in revision 6, v3 on Prisma 7.x, Prisma 8 in a 3.x minor (D16).
 9. **SQL migration file names** (D22): `<version>_<name>.<database>.sql` suffixes (proposed), or one directory per
    database (`database/sql/postgresql/...`)?
 
@@ -1248,8 +1256,8 @@ The experiments settled most questions of revision 1. These remain:
 
 ## 10. Release plan
 
-1. Every approved CR done; every phase gate passed; **TypeScript 7.1.0 and Prisma 8.0.0 stable** replacing the
-   pre-releases development ran on, with the full test suite, the samples' e2e suites and the load tests rerun on
+1. Every approved CR done; every phase gate passed; **TypeScript 7.1.0 stable** replacing the beta development ran
+   on, Prisma on the latest 7.x, with the full test suite, the samples' e2e suites and the load tests rerun on
    them.
 2. `3.0.0-next.N` prereleases on the `next` dist-tag; the samples and a scaffolded project of every module combination
    run on them; the load-test budgets met.
