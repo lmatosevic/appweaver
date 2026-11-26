@@ -1,6 +1,7 @@
 # Appweaver v3.0.0 Plan
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`).
+> **Revision 10**: the spatial model key is `spatial` (decision 10 closed, D23).
 > **Revision 9**: full names instead of the framework's own abbreviations (`geo`, `2fa`, `OTT`, ...), D23, V3-CONV-08.
 > **Revision 8**: remembered 2FA devices added to phase 4, next to the forced 2FA lifecycle (D6b, V3-WEB-03).
 > **Revision 7**: no Prisma 8 plans: v3 keeps Prisma 7 exactly as it is used today, with no switch planned and no code
@@ -873,7 +874,7 @@ them, V3-DOC-05):
 
 | Today                                                                                   | v3                                                                                                   |
 |-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| Model key `geo: { location: { type: 'point' } }`                                        | `spatial: { ... }` (proposed, decision 10 of section 9; `geometry` is the alternative)                |
+| Model key `geo: { location: { type: 'point' } }`                                        | `spatial: { location: { type: 'point' } }` (decided, revision 10)                                    |
 | `GeoConfig`, `GeoField`, `GeoFieldType`, `GeoFilterOperators`, `GeoConditionSchema`, `GeoColumns`, `GeoModel` | `SpatialConfig`, `SpatialField`, `SpatialFieldType`, `SpatialFilterOperators`, `SpatialConditionSchema`, `SpatialColumns`, `SpatialModel` |
 | `geoColumns`, `geoFieldSchema`, `geoStorage`, `geoDistance`, `geoModelOf`, `hasGeo`     | `spatialColumns`, `spatialFieldSchema`, `spatialStorage`, `spatialDistance`, `spatialModelOf`, `hasSpatialFields` |
 | Config section `security.account.2fa` (`SECURITY_ACCOUNT_2FA_*`), `.2fa.totp`           | `security.account.twoFactor` (`SECURITY_ACCOUNT_TWO_FACTOR_*`), `.twoFactor.totp`                    |
@@ -887,10 +888,10 @@ them, V3-DOC-05):
 | `export.csvAddSepRow`                                                                   | `export.csvAddSeparatorRow`                                                                          |
 | CLI aliases `mge` (`migrate`) and `mgn` (`migration`), one letter apart                 | removed; the other aliases (`g`, `b`, `s`, `r`, `sd`, `cfg`, `oa`, `mod`, `up`, `t`) stay as shortcuts of full names |
 
-**Why `spatial` rather than `geometry`** (for decision 10): the config section, the service and the engines are already
+**Why `spatial` rather than `geometry`** (decided, revision 10): the config section, the service and the engines are already
 named `spatial` (`spatial.provider`, `SpatialService`, `PostgisSpatialEngine`, `skill/references/spatial.md`), and
 `geometry` is one of the field types (`point`, `lineString`, `polygon`, ..., `geometry`), so `geometry: { shape: { type:
-'geometry' } }` would read twice the same word for two things. `geometry` is just as explicit if preferred.
+'geometry' } }` would read twice the same word for two things. 
 
 **Kept on purpose**:
 
@@ -1321,8 +1322,7 @@ The experiments settled most questions of revision 1. These remain:
 8. ~~**Prisma 8 and SQL Server**~~: decided in revision 7, Prisma 7 as used so far, no Prisma 8 plans (D16).
 9. **SQL migration file names** (D22): `<version>_<name>.<database>.sql` suffixes (proposed), or one directory per
    database (`database/sql/postgresql/...`)?
-10. **Name of the spatial model key** (D23): `spatial` (proposed, matching the config section and `SpatialService`), or
-    `geometry`?
+10. ~~**Name of the spatial model key**~~: decided in revision 10, `spatial` (D23).
 
 ---
 
