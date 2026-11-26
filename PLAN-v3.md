@@ -1,6 +1,8 @@
 # Appweaver v3.0.0 Plan
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`).
+> **Revision 5**: custom SQL migrations investigated (E14, D22); Prisma 8 has no SQL Server library, so D16 is re-opened
+> (section 9).
 > **Revision 4**: phase 1a done on `fix/security-and-query-limits` (section 6); v3 is built on the TypeScript 7.1 beta and
 > the Prisma 8 release candidates for development, and released only once both are stable (D12, D16, section 10).
 > **Revision 3**: v3 waits for TypeScript 7.1 and Prisma 8.0.0 stable before its toolchain phase (superseded by 4).
@@ -296,6 +298,51 @@ Config units, counted: ~40 time keys in integer milliseconds, 7 in integer secon
 (`audit.retention`, `flushInterval`, `retentionInterval`, `storage.versions.pruneInterval`, `timescale.chunkInterval`,
 `server.staticMaxAge`, `log.rotateInterval`, ...). Sizes mix `'100M'`, `'64KB'` and `'5 MB'`.
 
+### E14. Custom SQL in the migrations (PostgreSQL 16 with `pg_trgm`, Prisma 7.10.1 and Prisma 8.0.0-rc.35)
+
+**Prisma 7.10**: a migration created with `prisma migrate dev --create-only`, its `migration.sql` replaced by hand, then
+applied, then `prisma migrate dev` run again with no change of the schema:
+
+| Object created by the hand-written SQL                                   | Next `migrate dev`                                  |
+|--------------------------------------------------------------------------|-----------------------------------------------------|
+| `CREATE EXTENSION pg_trgm`                                               | kept                                                |
+| Expression index `ON "Post" (lower("title"))`                            | kept                                                |
+| Partial index `ON "Post" ("id") WHERE "status" = 'Published'`            | kept                                                |
+| Function and `BEFORE INSERT OR UPDATE` trigger                           | kept                                                |
+| View                                                                     | kept                                                |
+| Trigram index `USING GIN ("title" gin_trgm_ops)`                         | **dropped** (`DROP INDEX`), silently, in a new migration |
+| Generated column `"search" tsvector GENERATED ALWAYS AS (...) STORED` and its GIN index | **dropped** (`DROP COLUMN`, `DROP INDEX`), with only a data-loss warning |
+
+Prisma 7 plans a migration by diffing the schema against a shadow database the migrations were replayed into, so
+whatever it can model (columns, indexes on columns) and the schema does not declare is removed; what it cannot model
+(triggers, functions, views, expression and partial indexes, extensions) is left alone. Declaring them keeps them:
+
+- The trigram index declared as `@@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "Post_title_trgm_idx")`:
+  kept, no diff.
+- The generated column declared as `search Unsupported("tsvector")?`: the next migration emits
+  `ALTER COLUMN "search" DROP DEFAULT`, which PostgreSQL refuses (`column "search" ... is a generated column`), so
+  `migrate dev` fails. Declared as `Unsupported("tsvector")? @default(dbgenerated("<expression>"))` with the expression
+  exactly as PostgreSQL normalizes it (`to_tsvector('english'::regconfig, ((COALESCE(title, ''::text) || ' '::text) ||
+  COALESCE(body, ''::text)))`): kept, no diff. Workable, but the string must match the database's rendering exactly.
+
+**Prisma 8.0.0-rc.35** (scaffolded with `prisma orm init --target postgres`):
+
+- A new CLI (`contract emit`, `migration plan|new|status|check`, `db migrate|verify|sign|update`), a PSL dialect of its
+  own (`temporal.UpdatedAt`, `@onCreate(now())`), and migrations as **TypeScript ES modules** (`migration.ts`, a
+  `Migration` class listing operations, run by Node to emit `ops.json`), which need `"type": "module"`: an Appweaver
+  project is CommonJS.
+- Migrations are planned **offline, from contract to contract**, never by diffing a database, so an object of the
+  database the contract does not describe is not dropped by the next plan; `db verify` accepts it unless `--strict`.
+- A hand-written migration may carry raw SQL (`rawSql({ ..., execute: [{ description, sql }] })`), but one that does
+  not change the contract is refused at apply time (`MIGRATION.CONTRACT_SPACE_VIOLATION`, "a true no-op self-edge"): a
+  standalone custom SQL migration needs a data invariant or a contract change to ride on.
+- Expression and partial indexes are part of the Prisma 8 schema ([changelog of 2026-08-02](https://www.prisma.io/changelog/2026-08-02));
+  partial indexes are a preview of Prisma 7.4+ already. Generated columns are not mentioned in either.
+- Database targets on npm: `@prisma/orm-postgres`, `orm-sqlite`, `orm-mysql`, `orm-mariadb` (8.0.0-rc.25); **no SQL
+  Server target**, and the supported-databases page lists SQL Server (and CockroachDB) without a Prisma 8 library yet.
+  Prisma 7 receives fixes for 18 months after Prisma 8 is GA.
+- Prisma 8 ships agent skills itself (`prisma skills sync`, a `postinstall` hook), the pattern of D18.
+
 ---
 
 ## 4. Findings register
@@ -345,6 +392,9 @@ high, medium, low, or a design or performance finding.
 | F38 | Swagger UI on in production by default                                                                    | Default     | Low    | R        | V3-CONV-04  |
 | F39 | A policy receives `null` for an anonymous request and for the application's own calls alike (jobs, seeders, tests), so it cannot restrict the first without the second; the `cms-api` fix reads `currentRequestScope()?.source` | Design | Medium | C | V3-DATA-06 |
 | F40 | Two `cms-api` e2e tests of the 2FA (phone verification, method order) fail on `main` too               | Test        | Low    | C        | V3-QA-03    |
+| F42 | No supported way to add SQL that Prisma does not generate: `weaver migration new` applies at once (no `--create-only`), and what Prisma can model but the schema does not declare (a generated column, a trigram index) is dropped by the next migration | Design | Medium | C, E14 | V3-DATA-07 |
+| F43 | Prisma 8 has no SQL Server library (RC targets: PostgreSQL, SQLite, MySQL, MariaDB); Appweaver supports SQL Server (`hr-api`) | Platform | High | C, E14 | D16 (re-opened) |
+| F44 | Prisma 8 migrations are TypeScript ES modules; Appweaver projects are CommonJS (D13) | Platform | Medium | C, E14 | D16 |
 | F41 | The `cms-api` listing had no index for the restricted public query: 7 req/s at 100k until one was added; the sample indexes are not checked against the queries their policies build | Sample | Low | C | V3-SAMPLE-02 |
 
 ---
@@ -639,7 +689,16 @@ its own dependencies, replacing the 17 packages of `scaffoldDependencies.tooling
 `weaver format` and `weaver test` resolve the tools from the project. Biome or oxlint: re-evaluated on TypeScript 7.1
 (type-aware rules are the deciding factor). ESLint 10 regardless.
 
-### D16. Prisma 8 — **decided: build on the release candidates, ship on 8.0.0 stable**
+### D16. Prisma 8 — **re-opened (revision 5): Prisma 8 has no SQL Server library**
+
+> E14 found what the text below did not know: Prisma 8 has no SQL Server target (F43), its migrations are TypeScript ES
+> modules (F44), and its CLI, PSL dialect and migration model are new. Shipping v3 on Prisma 8 would drop SQL Server
+> (the `hr-api` sample) or wait for Prisma to add it. **Recommendation**: v3 ships on **Prisma 7** (fixed for 18 months
+> after Prisma 8 is GA), with the `weaver db` commands and the SQL migration layer (D22) written against an internal
+> interface of the migration engine, so Prisma 8 arrives in a v3 minor once it supports every database Appweaver does,
+> and the Prisma 8 spike keeps running on the `next` branch meanwhile. The alternative is to drop SQL Server in v3.
+> Decision 8 of section 9. The text below stands if Prisma 8 gains SQL Server before phase 8.
+
 
 Prisma 8 is still a release candidate (E12), and 8.0.0 stable is scheduled for the coming weeks. v3 ships on Prisma 8;
 there is no fallback to Prisma 7.10. The migration starts now on the latest RC, pinned exactly on the `next` branch,
@@ -683,6 +742,92 @@ of this repository goes under ~8k tokens, the details moved to `docs/contributin
 Our transport is already sessionless, so the stateless core fits: accept the protocol version and capabilities from
 `_meta` without `initialize`, keep answering `initialize` for older clients, validate `iss` in the OAuth flow, drop
 nothing we use (we implement neither Roots, Sampling nor Logging).
+
+### D22. Custom SQL migrations — **decided: an Appweaver SQL migration layer, independent of Prisma**
+
+**Need**: SQL Prisma does not generate (a trigram index, a `GENERATED ... STORED` column, a trigger, a function, a view,
+a full-text index, a check constraint), versioned with the project and applied by `weaver migrate`, with variants per
+database.
+
+**Options**
+
+- **A. Hand-edited Prisma migrations** (`--create-only`, then edit `migration.sql`). Works on Prisma 7 for what Prisma
+  cannot model, interleaved with the generated migrations for free. But what Prisma can model is dropped by the next
+  migration unless declared (E14), a migration directory belongs to one provider (`migration_lock.toml`), so no
+  per-database variants, and on Prisma 8 it becomes a TypeScript ES module that must ride on a contract change. Tied
+  to the Prisma version, and changes with it.
+- **B. An Appweaver SQL migration layer**: plain SQL files Appweaver tracks and applies itself, after the Prisma
+  migrations. Independent of the Prisma version and its format, per-database variants by file name, usable by module
+  packages, and the same mechanism the framework already relies on for the PostGIS triggers and the TimescaleDB
+  hypertables (`setupDatabase`, after `prisma migrate deploy`).
+- **C. Model-level declarations** generating the SQL (an index `type`/`ops`/`where`/expression, a `generated` field).
+  The best experience for the common cases, but it covers only what is foreseen.
+
+**Decision**: B as the mechanism, C for the common cases on top of it, A kept as an escape hatch of Prisma 7 only (a
+`--create-only` option on `weaver migration new`, documented with its limits).
+
+**Layout and naming** (`database.sqlDirPath`, default `./database/sql`):
+
+```
+database/sql/
+  20261201_post_search.sql                  # any database
+  20261201_post_search.postgresql.sql       # replaces the generic file on PostgreSQL
+  20261201_post_search.sqlite.sql           # replaces it on SQLite
+  20261205_post_trgm.postgresql.sql         # PostgreSQL only: no generic file, skipped on the others
+  views/published_posts.sql                 # repeatable: applied again whenever its checksum changes
+```
+
+- A file name is `<version>_<name>[.<database>].sql`, `<database>` one of `postgresql`, `mysql`, `sqlite`,
+  `sqlserver` (the values of `database.type`). For one version and name, the variant of the current database is
+  applied if there is one, else the generic file, else nothing. Files run in version order.
+- `views/`, `functions/`, `triggers/` hold **repeatable** files (`CREATE OR REPLACE ...`), re-applied when their checksum
+  changes, after the versioned ones.
+- A file runs in one transaction where the database has transactional DDL (PostgreSQL, SQLite, SQL Server), unless it
+  starts with `-- appweaver:no-transaction` (i.e. `CREATE INDEX CONCURRENTLY`); MySQL commits each statement.
+- Statements are split by the database's own rules (dollar quoting, `BEGIN ... END` bodies, `GO` on SQL Server), or
+  the file is sent whole where the driver accepts several statements.
+
+**Tracking**: a framework model `SqlMigration` (name, database, checksum, applied time, duration), declared in the
+Prisma schema like `Seeder` so Prisma never drops its table, pruned when the directory does not exist. A versioned
+file changed after it was applied fails `weaver migrate` (like a seeder's checksum), unless `--fix-checksums`.
+
+**Commands**:
+
+- `weaver migrate` (and `weaver db migrate`): the Prisma migrations, then the SQL migrations, then `setupDatabase`.
+  `--dry-run` lists the pending SQL files with their content.
+- `weaver migration new <name> --sql [--database <type>]` scaffolds a file; `weaver migration new <name>
+  --create-only` creates a Prisma migration to edit (option A).
+- `weaver test setup`, `weaver test reset` and `weaver migration reset` apply them after the reset, so the tests and a
+  reset database have them.
+- Module packages ship theirs (`sql` of the manifest), applied before the application's, each tracked under its module
+  name, like the seeders.
+
+**Keeping Prisma from dropping them**: with Prisma 7, `weaver migration new` and `weaver migration check` read the SQL
+Prisma plans and **fail when it drops a column or an index a SQL migration created** (the names are parsed from the
+`CREATE`/`ALTER ... ADD COLUMN` statements of `database/sql`), telling to declare it (C) or to use a trigger. With
+Prisma 8 the plan never drops them (E14).
+
+**Model declarations (C)**, generating both the Prisma schema and, when needed, a SQL migration:
+
+```ts
+index: [
+  { fields: ['title'], type: 'gin', ops: 'gin_trgm_ops' },         // Prisma 7 and 8: @@index(..., type: Gin)
+  { expression: 'lower("email")' },                                // Prisma 8, else a SQL migration
+  { fields: ['id'], where: `"status" = 'Published'` }              // Prisma 7.4+ preview, Prisma 8
+],
+scalars: {
+  search: { type: 'unsupported', dbType: 'tsvector', generated: { sql: '...', stored: true }, hidden: true }
+}
+```
+
+A generated column is the fragile case (E14): on Prisma 7 it needs the expression exactly as the database renders it,
+so `weaver generate` reads it back from the database after the SQL migration, or the column is left to a trigger. It
+lands last, after the layer.
+
+**Honest notes**: the layer runs after every pending Prisma migration, so a SQL file cannot sit between two Prisma
+migrations of the same deploy; a file referencing a column a later Prisma migration drops breaks. Prisma 8's
+`db migrate --to` could interleave them by version later. A Prisma 7 project already can put custom SQL in its
+migrations today; the layer is what makes it portable across databases, module packages and the Prisma 8 switch.
 
 ### D21. Other decisions
 
@@ -807,7 +952,7 @@ register (section 4) and become CRs. Specific items:
 | 2.1  | V3-TOOL-02  | Tool check on the TypeScript 7.1 beta: typescript-eslint, `openapi-typescript`, `typebox-codegen`, madge; a tool not ready keeps an aliased `typescript@6` (D12) |
 | 2.2  | V3-TOOL-01  | TypeScript 7.1 everywhere: `baseUrl` removed, `types` and `typeRoots` listed, decorator flags removed, the client's CommonJS build off `node10`, the `WebSocket.send` typing, `noImplicitAny: true` (108 fixes) |
 | 2.3  | V3-TOOL-03  | `ts-node` replaced by `tsx` in `cli/utils/loader-util.ts`                                               |
-| 2.4  | V3-TOOL-07  | Prisma 8 (latest RC): the API renames, `@db.*`, date types, raw SQL, error codes, adapters, extensions, the migrations of every sample and the scaffold templates |
+| 2.4  | V3-TOOL-07  | Prisma 8 (latest RC), on the `next` branch, merged only per D16 (re-opened): the API renames, `@db.*`, date types, raw SQL, error codes, adapters, extensions, the migrations of every sample and the scaffold templates |
 | 2.5  | V3-CLI-05   | `weaver db *` on the commands of Prisma 8 (D16)                                                         |
 | 2.6  | V3-TOOL-06  | TypeBox 1.x everywhere, one copy; `typebox-codegen` replaced if it cannot follow                        |
 | 2.7  | V3-TOOL-05  | `@appweaver/tooling` (ESLint 10, Prettier, Jest + SWC configs), `weaver lint|format|test`, the scaffold templates on it |
@@ -846,6 +991,8 @@ OpenAPI output, the migration), approved before its code.
 | 4.5  | V3-DATA-05  | Audit off the hot path (D8)                                                                             |
 | 4.6  | V3-WEB-01   | Cache scopes (D7)                                                                                       |
 | 4.7  | V3-WEB-02   | Forced 2FA lifecycle (D6)                                                                               |
+| 4.8  | V3-DATA-07  | SQL migration layer (D22), with `weaver migrate`, `weaver test setup|reset` and `weaver migration reset` |
+| 4.9  | V3-DATA-08  | Index options and generated fields in the model (D22 C), after V3-DATA-07                               |
 
 **Gate 4**: `cms-api` rewritten on views and `extend*` as the showcase; the samples and the scaffolds on the new APIs.
 
@@ -1047,6 +1194,9 @@ week, XL more.
 | V3-DATA-03    | `increment` / `decrement`                                                | 4     | P1   | M      | No             |
 | V3-DATA-04    | Framework models: audit routes, ApiKey policy                            | 4     | P2   | S      | No             |
 | V3-DATA-05    | Audit off the hot path (F25, F26)                                        | 4     | P1   | M      | No             |
+| V3-DATA-07    | SQL migration layer: `database/sql`, per-database variants, repeatable files, `SqlMigration` tracking, module SQL, drop guard (D22, F42) | 4 | P1 | L | No (additive) |
+| V3-DATA-08    | Index `type`/`ops`/`where`/expression and generated fields in the model (D22 C) | 4 | P2 | M | No |
+| V3-CLI-06     | `weaver migration new --create-only` (D22 A; also a 2.x minor)           | 1     | P2   | S      | No             |
 | V3-DATA-06    | A system context for the application's own calls, distinct from anonymous (F39) | 4 | P1 | M      | Yes            |
 | V3-WEB-01     | Cache scopes, key once, JSON storage (F15, F22)                          | 4     | P1   | M      | Yes (config)   |
 | V3-WEB-02     | Forced 2FA lifecycle (F12)                                               | 4     | P1   | L      | Yes            |
@@ -1084,11 +1234,15 @@ The experiments settled most questions of revision 1. These remain:
 3. **Upstream slip**: decided to build on the TypeScript 7.1 beta and the Prisma 8 RCs and release on the stable
    versions. If either stable release slips past the end of phase 7, hold 3.0.0 (proposed), or release on the
    pre-release?
-7. **2.x release of phase 1a**: `fix/security-and-query-limits` adds config keys and an error code under `fix:`
-   commits, so semantic-release makes it 2.10.1; rename the first commit `feat:` for a 2.11.0?
 4. **Samples**: all nine stay in v3 (proposed); any to retire?
 5. **Angular client and untyped client** (`--no-types`): keep, or drop without usage data?
 6. **Views naming**: `views` and `view`, or `variants`?
+7. **2.x release of phase 1a**: `fix/security-and-query-limits` adds config keys and an error code under `fix:`
+   commits, so semantic-release makes it 2.10.1; rename the first commit `feat:` for a 2.11.0?
+8. **Prisma 8 and SQL Server** (D16, F43): ship v3 on Prisma 7 with Prisma 8 in a minor once it supports SQL Server
+   (recommended), or ship on Prisma 8 and drop SQL Server?
+9. **SQL migration file names** (D22): `<version>_<name>.<database>.sql` suffixes (proposed), or one directory per
+   database (`database/sql/postgresql/...`)?
 
 ---
 
