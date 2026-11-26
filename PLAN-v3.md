@@ -1,6 +1,7 @@
 # Appweaver v3.0.0 Plan
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`).
+> **Revision 8**: remembered 2FA devices added to phase 4, next to the forced 2FA lifecycle (D6b, V3-WEB-03).
 > **Revision 7**: no Prisma 8 plans: v3 keeps Prisma 7 exactly as it is used today, with no switch planned and no code
 > preparing one; the migration engine interface, the `weaver db` restructuring and the Prisma 8 backlog are removed
 > (D16). The custom SQL migration layer (D22) stays. Only TypeScript runs on a pre-release (7.1 beta) in development.
@@ -566,6 +567,45 @@ mailbox.
    `totp.encryptionKey` for `Totp`).
 7. API keys stay outside 2FA (documented); the MCP sign-in and OAuth2 sign-ins follow the same steps.
 
+### D6b. Remembered 2FA devices — **decided: opt-in device tokens, in phase 4 with D6**
+
+**Need**: a user who passed 2FA on a device may skip it there on the next sign-ins, until the device is forgotten.
+
+**Today**: `POST /auth/login` answers a 2FA user with a token of the `2fa` scope, `/2fa/challenge` sends a code,
+`/2fa/verify` turns the code into a one-time token, and `/exchange-token` turns that into the tokens of the `auth` scope;
+OAuth2 sign-ins reach the same exchange, the MCP sign-in has a 2FA step of its own, and basic auth refuses 2FA users. The
+decision to require 2FA is taken in one place (`AuthService.login` and `exchangeToken`, `web/security/auth-service.ts`),
+where a device check fits.
+
+**Decision**:
+
+1. Config `security.account.2fa.rememberDevice`: `enabled` (default `false`), `ttl` (a duration, default `30d`),
+   `maxDevices` per user (default `10`, the oldest forgotten beyond it), `rotate` (default `true`).
+2. `/2fa/verify` takes `rememberDevice: true`; the one-time token carries it, and `/exchange-token` then also answers a
+   `deviceToken` (256 random bits) with its `deviceTokenExpiresIn`.
+3. A framework model `TrustedDevice` keeps the user, the SHA-256 of the token (never the token), a label from the user
+   agent, and the creation, last use and expiration times. Kept or pruned like the other auth models (`database.keepTables`,
+   V3-CONV-05).
+4. `POST /auth/login` and `/exchange-token` (OAuth2) take the `deviceToken`: a valid, unexpired token of that same user
+   skips the `2fa` scope and answers the tokens of the `auth` scope; with `rotate`, a new device token replaces it in the
+   answer, so a stolen copy stops working once the device signs in again. An unknown, expired or foreign token is
+   ignored: the sign-in asks for 2FA as usual, with no error that would tell a guess from a stale token.
+5. Every device of a user is forgotten on a password change or reset, a 2FA method enabled or disabled, the admin reset
+   of the 2FA (`resetTwoFactor`), a logout of every session (`logoutAt`), and the user disabled or deleted.
+6. Routes under `/auth/account/2fa/devices`: list (label, created, last used, expires), forget one, forget all.
+7. The device is identified by the token alone. No fingerprinting by IP or browser (unstable, a privacy concern); the
+   user agent is only the label of the list. No notification email.
+8. A remembered device skips the code challenge, never the enrolment of a forced user (D6 2.); basic auth still refuses
+   2FA users; the MCP sign-in page keeps asking for the code (its forms could remember a device with a cookie later).
+9. The audit log records a device trusted, used and forgotten (`auth` category).
+
+**Risk**: whoever steals the device token from the client's storage skips the second factor on that account until it
+expires, rotates or is forgotten, but still needs the password. The `ttl`, the rotation and the forgetting events bound it.
+
+**Effort**: about 4 days (the model and its schema, the token flow and the revocation events, the routes and the
+client methods, the tests and the docs). In phase 4 with V3-WEB-02, since both change the same sign-in, verify and
+exchange code.
+
 ### D7. Caching of resource reads — **decided: explicit scopes, enforced at startup**
 
 **Problem**: F15 (per-user keys on authenticated routes), F3 (replayed headers), F22 (flatted), and the key is built
@@ -979,6 +1019,7 @@ OpenAPI output, the migration), approved before its code.
 | 4.5  | V3-DATA-05  | Audit off the hot path (D8)                                                                             |
 | 4.6  | V3-WEB-01   | Cache scopes (D7)                                                                                       |
 | 4.7  | V3-WEB-02   | Forced 2FA lifecycle (D6)                                                                               |
+| 4.7b | V3-WEB-03   | Remembered 2FA devices (D6b), with V3-WEB-02                                                            |
 | 4.8  | V3-DATA-07  | SQL migration layer (D22), with `weaver migrate`, `weaver test setup|reset` and `weaver migration reset` |
 | 4.9  | V3-DATA-08  | Index options and generated fields in the model (D22 C), after V3-DATA-07                               |
 
@@ -1187,6 +1228,7 @@ week, XL more.
 | V3-DATA-06    | A system context for the application's own calls, distinct from anonymous (F39) | 4 | P1 | M      | Yes            |
 | V3-WEB-01     | Cache scopes, key once, JSON storage (F15, F22)                          | 4     | P1   | M      | Yes (config)   |
 | V3-WEB-02     | Forced 2FA lifecycle (F12)                                               | 4     | P1   | L      | Yes            |
+| V3-WEB-03     | Remembered 2FA devices, opt-in (D6b)                                     | 4     | P1   | M      | No (additive)  |
 | V3-MCP-01     | MCP 2026-07-28 (F28)                                                     | 5     | P1   | M      | No             |
 | V3-CLI-01     | `weaver routes`                                                          | 3     | P1   | S      | No             |
 | V3-CLI-02     | `weaver doctor`                                                          | 7     | P2   | M      | No             |
