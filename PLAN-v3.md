@@ -1,6 +1,7 @@
 # Appweaver v3.0.0 Plan
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`).
+> **Revision 11**: response compression, configurable globally and per route (E15, D24, V3-WEB-04).
 > **Revision 10**: the spatial model key is `spatial` (decision 10 closed, D23).
 > **Revision 9**: full names instead of the framework's own abbreviations (`geo`, `2fa`, `OTT`, ...), D23, V3-CONV-08.
 > **Revision 8**: remembered 2FA devices added to phase 4, next to the forced 2FA lifecycle (D6b, V3-WEB-03).
@@ -349,6 +350,39 @@ whatever it can model (columns, indexes on columns) and the schema does not decl
   Server target**, and the supported-databases page lists SQL Server (and CockroachDB) without a Prisma 8 library yet.
   Prisma 7 receives fixes for 18 months after Prisma 8 is GA.
 - Prisma 8 ships agent skills itself (`prisma skills sync`, a `postinstall` hook), the pattern of D18.
+
+### E15. Response compression (`@fastify/compress` 9.3.0, Fastify 5.12.8, Node 24, 4 cores)
+
+The plugin compresses a payload already in memory and at most `syncThreshold` bytes in one synchronous call (on the
+event loop), and everything larger, every stream (the CSV export) and every web `ReadableStream` through a zlib stream,
+which runs in the libuv thread pool, **off the event loop**. The default `syncThreshold` follows the cores the process
+gets: 64 KB on 1 core, 8 KB on 2, 4 KB from 3 (it reads the cgroup CPU quota since Node 22.12, but a quota under one core,
+`cpu: 500m`, reads as the host's cores). It supports `zstd` (Node 22.15+), `br`, `gzip` and `deflate`, a `threshold`
+(1 KB by default), `customTypes` (by default the compressible types of `mime-db`), `respectNoTransform`, per-encoding
+options, and a per-route `compress` route option (`false` or an object merged over the global options).
+
+Measured with autocannon in the same process (20 connections, 5 s), so the numbers are relative:
+
+| JSON payload     | Encoding                 | Bytes   | Req/s  | p99    | Event loop delay p99 |
+|------------------|--------------------------|---------|--------|--------|----------------------|
+| 2 KB (3 items)   | none                     | 2,216   | 50,614 | 1 ms   | 1.6 ms               |
+|                  | gzip (synchronous)       | 235     | 19,964 | 5 ms   | 5.3 ms               |
+|                  | gzip, streams only       | 235     | 5,406  | 15 ms  | 5.6 ms               |
+|                  | brotli (quality 4)       | 204     | 11,404 | 7 ms   | 4.9 ms               |
+|                  | zstd                     | 217     | 12,050 | 7 ms   | 5.7 ms               |
+| 220 KB (300 items) | none                   | 221,981 | 2,716  | 13 ms  | 7.8 ms               |
+|                  | gzip (streamed)          | 3,531   | 2,001  | 23 ms  | 9.2 ms               |
+|                  | brotli (quality 4)       | 1,507   | 897    | 38 ms  | 11.3 ms              |
+|                  | zstd                     | 1,486   | 1,963  | 22 ms  | 9.2 ms               |
+
+- Small payloads: the synchronous path is ~4 times faster than streaming them, and blocks the loop for microseconds.
+- Large payloads: the streamed compression leaves the event loop delay close to the uncompressed one; zstd is as fast as
+  gzip with a 2.4 times smaller output, brotli is half as fast. (The test payload repeats itself, so the ratios are
+  higher than real data; the speed order holds.)
+- Node's `fetch` (the Appweaver client) decodes `zstd`, `br` and `gzip`, and asks for `gzip, deflate` by default.
+- On localhost compression only costs CPU; the gain is the bandwidth and the transfer time of a real network.
+- The thread pool has 4 threads by default (`UV_THREADPOOL_SIZE`), shared with the password hashing (`crypto.argon2`),
+  the file system (the `local` storage) and DNS lookups: heavy compression can queue sign-ins.
 
 ---
 
@@ -910,6 +944,64 @@ named `spatial` (`spatial.provider`, `SpatialService`, `PostgisSpatialEngine`, `
 codemods of `weaver upgrade`, the samples, the scaffold templates, the generated client and the skill. In phase 3 with the
 other convention changes, so the config keys are renamed once together with D11.
 
+### D24. Response compression — **decided: `@fastify/compress`, global config and a per-route switch**
+
+**Need**: compressed responses, switched on and tuned in the config, overridden per route, without blocking the event
+loop.
+
+**Decision**: register `@fastify/compress` in `createServer`. A custom worker-thread compressor is **rejected**: E15 shows
+the plugin already compresses large payloads and streams in the libuv thread pool, and small ones synchronously in
+microseconds, which is faster than handing them to any thread.
+
+**Config** (`server.compression`, sizes with the `Size` type of D11):
+
+| Key               | Default                 | Meaning                                                                                   |
+|-------------------|-------------------------|-------------------------------------------------------------------------------------------|
+| `enabled`         | `true`                  | Off when a reverse proxy or a CDN compresses already (documented)                         |
+| `threshold`       | `'1KB'`                 | Smaller responses are sent as they are                                                    |
+| `encodings`       | `['zstd', 'gzip']`      | In the server's order of preference, among those the client accepts; `br` and `deflate` opt-in (brotli is half as fast, E15) |
+| `levels`          | `{ zstd: 3, gzip: 6, br: 4 }` | The level of each encoding                                                          |
+| `syncThreshold`   | the plugin's (by cores) | Responses up to it are compressed on the event loop; to set for a container under one CPU  |
+| `respectNoTransform` | `true`               | A response with `Cache-Control: no-transform` is never compressed                         |
+
+The compressible content types are the plugin's (`mime-db`), so images, videos and archives are never compressed again.
+
+**Per route**: a `compress` option, `false` or `{ threshold?, encodings?, levels? }` merged over the config:
+
+```ts
+createRoutes({
+  modelName: 'Post',
+  defaults: { compress: { threshold: '4KB' } },   // every route of the model
+  export: { compress: true },                     // the CSV export, streamed and compressed in the thread pool
+  find: { compress: false }
+});
+
+registerRoute((router) => router.get('/report', { config: { compress: false } }, handler));
+```
+
+`RouteConfig` gets the option, `registerRoute` and the resource routes map it onto the `compress` route option the plugin
+reads.
+
+**Off by the framework**:
+
+- The Server-Sent Events of `@appweaver/realtime` and of the MCP endpoint: they are written to the raw response with
+  `Cache-Control: no-transform`, which the plugin does not touch; their routes also set `compress: false`, so a future
+  change cannot buffer a stream. The WebSocket keeps its own `permessage-deflate` setting.
+- The authentication routes (`/auth/*`, the account, 2FA and MCP OAuth routes), whose bodies hold tokens: compressing a
+  secret beside reflected input enables the BREACH attack over HTTPS, so they default to `compress: false`.
+- The health routes, which stay under the threshold anyway.
+
+**With the response cache (D7)**: the cache stores the uncompressed payload and a cached reply is compressed again on
+every hit (`content-encoding` is not among the replayed headers). Phase 6 measures storing one compressed variant per
+negotiated encoding instead (V3-PERF-10), since a hot cached route would otherwise pay the compression on every hit.
+
+**Thread pool**: documented, with `UV_THREADPOOL_SIZE` (read once at process start, so set in the environment or by
+`weaver start` from `server.threadPoolSize`, optional) for an API compressing large responses while hashing passwords.
+
+**Effort**: S to M, about 2 days: the plugin and its config section, the route option in `createRoutes` and
+`registerRoute`, the exclusions, tests (encodings, threshold, per-route override, SSE untouched, cache replay compressed,
+CSV export streamed), the config examples, the skill and a load scenario with compression on.
+
 ### D21. Other decisions
 
 | Topic                                         | Decision                                                                                     |
@@ -1074,6 +1166,7 @@ OpenAPI output, the migration), approved before its code.
 | 4.7b | V3-WEB-03   | Remembered 2FA devices (D6b), with V3-WEB-02                                                            |
 | 4.8  | V3-DATA-07  | SQL migration layer (D22), with `weaver migrate`, `weaver test setup|reset` and `weaver migration reset` |
 | 4.9  | V3-DATA-08  | Index options and generated fields in the model (D22 C), after V3-DATA-07                               |
+| 4.10 | V3-WEB-04   | Response compression (D24): `server.compression`, the `compress` route option, the exclusions         |
 
 **Gate 4**: `cms-api` rewritten on views and `extend*` as the showcase; the samples and the scaffolds on the new APIs.
 
@@ -1093,6 +1186,7 @@ ticked.
 | 6.5  | V3-PERF-07  | `server.requestTimeout`; SQLite production guidance                          | documented                                  |
 | 6.6  | V3-PERF-08  | Idle heap broken down (heap snapshot), duplicated schemas removed            | idle heap -30% (from 119 MB)                |
 | 6.7  | V3-PERF-09  | Every sample's scenario on its own database, against phase 0                 | no regression; budgets per scenario         |
+| 6.8  | V3-PERF-10  | Cached responses stored compressed, one variant per negotiated encoding (D24) | the cached scenario of E2 compressed within 10% of uncompressed |
 
 **Gate 6**: the budgets met or each miss explained in this file.
 
@@ -1282,6 +1376,7 @@ week, XL more.
 | V3-WEB-01     | Cache scopes, key once, JSON storage (F15, F22)                          | 4     | P1   | M      | Yes (config)   |
 | V3-WEB-02     | Forced 2FA lifecycle (F12)                                               | 4     | P1   | L      | Yes            |
 | V3-WEB-03     | Remembered 2FA devices, opt-in (D6b)                                     | 4     | P1   | M      | No (additive)  |
+| V3-WEB-04     | Response compression, global config and per route (D24, E15)             | 4     | P1   | S      | No (additive)  |
 | V3-MCP-01     | MCP 2026-07-28 (F28)                                                     | 5     | P1   | M      | No             |
 | V3-CLI-01     | `weaver routes`                                                          | 3     | P1   | S      | No             |
 | V3-CLI-02     | `weaver doctor`                                                          | 7     | P2   | M      | No             |
@@ -1297,6 +1392,7 @@ week, XL more.
 | V3-PERF-07    | `server.requestTimeout`, SQLite guidance (F23)                           | 6     | P1   | S      | No             |
 | V3-PERF-08    | Idle heap reduction                                                      | 6     | P2   | M      | No             |
 | V3-PERF-09    | All samples on their databases against phase 0                           | 6     | P1   | M      | No             |
+| V3-PERF-10    | Compressed variants in the response cache (D24)                          | 6     | P2   | S      | No             |
 | V3-DOC-01     | Comments and dead code                                                   | 7     | P2   | M      | No             |
 | V3-DOC-02     | Skill under 5k tokens, generated configuration reference                 | 7     | P1   | M      | No             |
 | V3-DOC-03     | `AGENTS.md` under 8k tokens                                              | 7     | P1   | S      | No             |
