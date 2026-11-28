@@ -236,6 +236,7 @@ on it:
 | `@appweaver/openai`                                               | The `openai` AI driver, for OpenAI and every OpenAI-compatible server (Ollama, OpenRouter)   |
 | `@appweaver/opentelemetry`                                        | The OpenTelemetry SDK exporting the traces, metrics and logs of the instrumentation          |
 | `@appweaver/testing`                                              | The test helpers shared by the packages                                                      |
+| `@appweaver/skill`                                                | The AI agent skill (`skill/` of the repository), synced into a project by `weaver skill sync`  |
 
 The directories moved as they were, so a file keeps its path within its package (`core/server/register-route.ts` is
 now `web/server/register-route.ts`). `@appweaver/common` and `@appweaver/core` are peer dependencies of every other
@@ -1105,6 +1106,23 @@ The test database of a server (PostgreSQL, MySQL, SQL Server) is kept, since `we
 
 ---
 
+### `weaver skill`
+
+Manage the AI agent skill files of the project.
+
+```
+weaver skill sync [--dry-run]
+```
+
+`sync` copies the skill of the project's `@appweaver/skill` dev dependency (`SKILL.md`, `GUIDELINES.md` and
+`references/`) into the `skills/appweaver/` of every agent directory the project has (`.claude`, `.junie`, `.kiro`,
+`.pi`, `.github`, `.opencode`, `.agents`), replacing the files of the previous version (`syncSkill` of
+`@appweaver/skill`). The project's own `AGENTS.md` or `CLAUDE.md` is never touched. Without the package it exits with 1,
+naming the install command. `weaver upgrade` runs it after the packages are installed, unless `--no-skill`, and
+`npm create @appweaver` adds the package with the agent files of `--agent`.
+
+---
+
 ### `weaver upgrade` (alias: `up`)
 
 Upgrade Appweaver packages in the current project.
@@ -1418,7 +1436,7 @@ This runs the following steps automatically:
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
    `common`, `ai`, `openai`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `opentelemetry`,
-   `realtime`, `mcp`, `handlebars`, `sharp`, `testing`, `cli`, `client` and `create`.
+   `realtime`, `mcp`, `handlebars`, `sharp`, `skill`, `testing`, `cli`, `client` and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
@@ -1442,6 +1460,7 @@ This runs the following steps automatically:
     cd packages/mcp/dist        && npm publish
     cd packages/handlebars/dist && npm publish
     cd packages/sharp/dist      && npm publish
+    cd packages/skill/dist      && npm publish
     cd packages/testing/dist    && npm publish
     cd packages/create/dist     && npm publish
     cd packages/cli/dist        && npm publish
@@ -1490,15 +1509,17 @@ or pull request descriptions: semantic-release copies the commit messages into `
 
 The [SKILL.md](./skill/SKILL.md) file provides a comprehensive guide for AI agents (such as Claude Code, Codex, Cursor,
 or other coding assistants) working with Appweaver projects. It contains detailed documentation on the library's
-architecture, conventions, APIs, and best practices to enable agentic development workflows.
+architecture, conventions, APIs, and best practices to enable agentic development workflows. The `skill/` directory is
+published as the `@appweaver/skill` package (`packages/skill`, its `files` copying `../../skill` into `dist/skill`),
+released with the framework, so a project's skill follows its framework version.
 
 ### For new projects created with `@appweaver/create`
 
 New projects scaffolded via `npm create @appweaver` include a `AGENTS.md` or `CLAUDE.md` file at the project root. This
 file is a thin, project-owned stub that references the framework guidelines (`GUIDELINES.md`) copied into the agent's
 skills directory (e.g. `.claude/skills/appweaver/GUIDELINES.md`). It can be freely extended with project-specific
-instructions and is never overwritten by `weaver upgrade`, which refreshes only the skill files (including
-`GUIDELINES.md`) inside the skills' directory.
+instructions and is never overwritten by `weaver skill sync` (which `weaver upgrade` runs), refreshing only the skill
+files of the project's `@appweaver/skill` dev dependency (including `GUIDELINES.md`) inside the skills' directory.
 
 ### Updating skill files
 

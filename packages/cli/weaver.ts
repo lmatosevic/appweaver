@@ -35,6 +35,7 @@ import { moduleCommand } from './module';
 import { openapiCommand } from './openapi';
 import { runCommand } from './run';
 import { seedCommand } from './seed';
+import { skillCommand } from './skill';
 import { startCommand } from './start';
 import { testingCommand } from './testing';
 import { upgradeCommand } from './upgrade';
@@ -68,6 +69,8 @@ openapiCommand(program);
 runCommand(program);
 
 seedCommand(program);
+
+skillCommand(program);
 
 startCommand(program);
 

@@ -3,8 +3,14 @@
   "compilerOptions": {
     "rootDir": "./",
     "outDir": "./dist",
-    "paths": {}
+    "paths": {
+      "@appweaver/skill": ["../skill"]
+    }
   },
   "exclude": ["node_modules", "dist", "test/**/*", "**/*.test.ts"],
-  "references": []
+  "references": [
+    {
+      "path": "../skill/tsconfig.build.json"
+    }
+  ]
 }

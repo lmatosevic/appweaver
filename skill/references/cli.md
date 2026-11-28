@@ -556,6 +556,23 @@ The test database of a server (PostgreSQL, MySQL, SQL Server) is kept, since `we
 
 ---
 
+## `weaver skill`
+
+```
+weaver skill sync [--dry-run]
+```
+
+`sync` copies the skill files of the project's `@appweaver/skill` dev dependency into the `skills/appweaver/` of every
+agent directory the project has (`.claude`, `.junie`, `.kiro`, `.pi`, `.github`, `.opencode`, `.agents`), replacing the
+files of the previous version. The project's `AGENTS.md` or `CLAUDE.md` is never touched. It exits with 1 when the
+package is not installed (`npm install --save-dev @appweaver/skill`).
+
+| Option      | Description                                                         | Default |
+|-------------|---------------------------------------------------------------------|---------|
+| `--dry-run` | Print the skill directories that would be written without writing them | `false` |
+
+---
+
 ## `weaver upgrade`
 
 ```
@@ -566,7 +583,7 @@ Upgrade the Appweaver packages. The companion packages installed in the project 
 TypeScript) are bumped along to the exact versions the target release is built with, read from the
 `scaffoldDependencies` of `@appweaver/cli` in the registry. The libraries of the drivers come with their `@appweaver/*`
 packages. Missing packages are never added and newer ones never downgraded. Run `weaver generate` afterward when Prisma
-is upgraded.
+is upgraded. The skill files are refreshed by `weaver skill sync` after the install.
 
 **Arguments:**
 

@@ -21,6 +21,7 @@ import { moduleCommand } from '../module';
 import { openapiCommand } from '../openapi';
 import { runCommand } from '../run';
 import { seedCommand } from '../seed';
+import { skillCommand } from '../skill';
 import { startCommand } from '../start';
 import { testingCommand } from '../testing';
 import { upgradeCommand } from '../upgrade';
@@ -38,6 +39,7 @@ function createProgram(): Command {
     openapiCommand,
     runCommand,
     seedCommand,
+    skillCommand,
     startCommand,
     testingCommand,
     upgradeCommand
@@ -84,6 +86,7 @@ describe('weaver', () => {
     [['seed'], '--continue-on-error', 'continueOnError'],
     [['seed'], '--fix-warnings', 'fixWarnings'],
     [['upgrade'], '--dry-run', 'dryRun'],
+    [['skill', 'sync'], '--dry-run', 'dryRun'],
     [['upgrade'], '--target-version', 'targetVersion'],
     [['module', 'add'], '--dry-run', 'dryRun'],
     [['module', 'remove'], '--dry-run', 'dryRun'],

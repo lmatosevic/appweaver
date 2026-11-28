@@ -1241,9 +1241,12 @@ weaver upgrade --force                         # force upgrade despite peerDepen
 weaver upgrade --no-companions                 # skip the companion packages (prisma, typebox, typescript, …)
 weaver upgrade --tooling                       # also upgrade the tooling packages (eslint, jest, prettier, …)
 weaver upgrade --dry-run                       # print the upgrades without installing them
+weaver skill sync                              # copy the installed @appweaver/skill into the agent directories
 ```
 
-Besides the `@appweaver/*` packages, `weaver upgrade` bumps the companion packages the project already has (Prisma
+After the install, `weaver upgrade` runs `weaver skill sync`, which copies the skill of the project's `@appweaver/skill`
+dev dependency into `skills/appweaver/` of every agent directory (`.claude`, `.agents`, `.github`, …); run it alone after
+installing the package by hand. Besides the `@appweaver/*` packages, `weaver upgrade` bumps the companion packages the project already has (Prisma
 and its adapters, TypeBox, TypeScript) to the exact versions the target release is built with. It never adds missing
 packages or downgrades newer ones. The libraries of the drivers (BullMQ, Cron, Handlebars, IoRedis, Nodemailer, Sharp)
 come with their `@appweaver/*` driver packages. Run `weaver generate` afterwards when Prisma is upgraded.

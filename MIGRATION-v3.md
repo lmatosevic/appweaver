@@ -36,6 +36,7 @@ startup.
 | [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails) | V3-SEC-05 | OAuth2 providers           | done    |
 | [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101) | V3-SEC-01..04 | Filters, body size, CSV export | done |
 | [20. Smaller API changes](#20-smaller-api-changes)                          | per CR       | The utilities named              | done    |
+| [21. The skill package](#21-the-skill-package)                              | V3-TOOL-08   | Projects with agent files        | done    |
 
 Each section follows the same layout: **What changed**, **Who is affected**, **Before**, **After**, **Steps**.
 
@@ -226,4 +227,15 @@ Released in 2.10.1 (phase 1a); listed here for a project upgrading from an older
   whose `string` tokens (the API keys of `randomString`) came from a generator that is not cryptographically secure. The
   `uuidv5` method is removed, and the options are `TokenOptions` (`{ pool }`) instead of the `DefaultGenerationOptions`
   of `generate-api-key`. A `base32` token is four groups of seven RFC 4648 characters separated by dashes.
+
+## 21. The skill package
+
+**What changed** (V3-TOOL-08, D18): the skill files are the `@appweaver/skill` package, released with the framework,
+instead of files bundled in `@appweaver/cli`. `weaver skill sync` copies them into the agent directories, and
+`weaver upgrade` runs it after the install.
+
+**Who is affected**: projects with agent files (`.claude/skills/appweaver`, `.agents/skills/appweaver`, ...).
+
+**Steps**: `npm install --save-dev @appweaver/skill`, then `npx weaver skill sync`. A project created by
+`npm create @appweaver` with an agent has it already.
 

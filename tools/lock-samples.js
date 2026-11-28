@@ -29,6 +29,7 @@ const lockedPackages = [
   'nodemailer',
   'handlebars',
   'sharp',
+  'skill',
   'twilio',
   'opentelemetry',
   'realtime',

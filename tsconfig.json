@@ -27,6 +27,8 @@
       "@appweaver/openai/*": ["./packages/openai/*"],
       "@appweaver/sharp": ["./packages/sharp"],
       "@appweaver/sharp/*": ["./packages/sharp/*"],
+      "@appweaver/skill": ["./packages/skill"],
+      "@appweaver/skill/*": ["./packages/skill/*"],
       "@appweaver/cron": ["./packages/cron"],
       "@appweaver/cron/*": ["./packages/cron/*"],
       "@appweaver/nodemailer": ["./packages/nodemailer"],

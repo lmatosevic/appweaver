@@ -12,6 +12,7 @@
       "@appweaver/create/*": ["../create/*"],
       "@appweaver/data": ["../data"],
       "@appweaver/data/*": ["../data/*"],
+      "@appweaver/skill": ["../skill"],
       "@appweaver/web": ["../web"],
       "@appweaver/web/*": ["../web/*"]
     }
@@ -29,6 +30,9 @@
     },
     {
       "path": "../data/tsconfig.build.json"
+    },
+    {
+      "path": "../skill/tsconfig.build.json"
     },
     {
       "path": "../web/tsconfig.build.json"

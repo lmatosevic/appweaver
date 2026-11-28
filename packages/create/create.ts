@@ -5,6 +5,7 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { Command, InvalidOptionArgumentError } from 'commander';
+import { syncSkill } from '@appweaver/skill';
 import {
   createModulePackage,
   createProject,
@@ -255,16 +256,12 @@ async function createApp(
 
     const guidelinesFileName = agent === 'claude' ? 'CLAUDE.md' : 'AGENTS.md';
 
-    // Copy skill and referenced files. The framework guidelines
-    // (GUIDELINES.md) are preserved inside the skills directory so that
-    // `weaver upgrade` can keep them in sync without touching the project's
-    // own root guidelines file.
-    const skillDir = path.join(__dirname, 'skill');
-    const projectSkillPath = path.join(agentsDir, 'skills', 'appweaver');
-    const projectSkillDir = path.join(destDir, projectSkillPath);
-    await fsp.cp(skillDir, projectSkillDir, {
-      recursive: true
-    });
+    // Copy the skill of @appweaver/skill, which the project depends on, so
+    // `weaver skill sync` keeps it in sync without touching the project's own
+    // root guidelines file. The framework guidelines (GUIDELINES.md) are
+    // inside the skills directory.
+    const [projectSkillPath] = syncSkill(destDir, [agentsDir]);
+    await addDevDependency(destDir, '@appweaver/skill', pkg.version);
 
     // Create a thin root guidelines file that references the framework
     // guidelines from the skills directory. This file is never overwritten
@@ -420,4 +417,22 @@ function parseAgentType(value: string): string {
   }
 
   return lowerAgentType;
+}
+
+/** Adds a dev dependency to the `package.json` of the project, keeping the dependencies sorted. */
+async function addDevDependency(
+  projectDir: string,
+  name: string,
+  version: string
+): Promise<void> {
+  const file = path.join(projectDir, 'package.json');
+  const projectPkg = JSON.parse(await fsp.readFile(file, 'utf8'));
+  const devDependencies: Record<string, string> = {
+    ...projectPkg.devDependencies,
+    [name]: version
+  };
+  projectPkg.devDependencies = Object.fromEntries(
+    Object.entries(devDependencies).sort(([a], [b]) => a.localeCompare(b))
+  );
+  await fsp.writeFile(file, `${JSON.stringify(projectPkg, null, 2)}\n`, 'utf8');
 }
