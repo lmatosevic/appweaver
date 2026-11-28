@@ -53,6 +53,44 @@ describe('memory-queue', () => {
     });
   });
 
+  describe('idle queue', () => {
+    // An idle queue used to look for jobs again on every tick, about a thousand timers a second
+    test('stops looking for jobs once the queue is idle', async () => {
+      const processor = queue.get('emails');
+      const done = new Promise<void>((resolve) =>
+        processor.addWorker(async () => {
+          resolve();
+          return true;
+        })
+      );
+      await processor.sendJob({ n: 1 });
+      await done;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      const timeout = jest.spyOn(global, 'setTimeout');
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(timeout).not.toHaveBeenCalled();
+      timeout.mockRestore();
+    });
+
+    test('processes a job sent after the queue went idle', async () => {
+      const processor = queue.get('emails');
+      const seen: number[] = [];
+      processor.addWorker(async (job) => {
+        seen.push(job.data.n);
+        return true;
+      });
+      await processor.sendJob({ n: 1 });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      await processor.sendJob({ n: 2 });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(seen).toEqual([1, 2]);
+    });
+  });
+
   describe('sendJob', () => {
     test('keeps a given job id', async () => {
       const job = await queue.get('emails').sendJob({}, 'a', { jobId: 'j-1' });

@@ -406,6 +406,8 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     this._processing = true;
 
     this._processingTimeout = setTimeout(async () => {
+      // Only a pass that started jobs looks again, an idle queue waits for the next job or worker
+      let started = false;
       try {
         const waitingJobs = Array.from(this._jobs.values())
           .filter((job) => job.status === 'waiting')
@@ -430,6 +432,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
 
         // Process jobs with available workers
         const jobsToProcess = waitingJobs.slice(0, availableWorkers.length);
+        started = jobsToProcess.length > 0;
 
         for (let i = 0; i < jobsToProcess.length; i++) {
           const job = jobsToProcess[i];
@@ -440,7 +443,7 @@ class MemoryQueueProcessor<Data = any, Response = any> extends QueueProcessor<
       } finally {
         this._processing = false;
         // Continue processing if there are more jobs
-        if (!this._paused && !this._closed) {
+        if (started && !this._paused && !this._closed) {
           this.processJobs();
         }
       }
