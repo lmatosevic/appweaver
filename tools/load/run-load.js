@@ -127,19 +127,14 @@ async function loadTest(sample, options) {
 }
 
 /**
- * Prepares a sample to run: its `.env` from `.env.example` when it has none, and the Docker Compose services of its
- * database and Redis, waiting until they are healthy.
+ * Starts the Docker Compose services of the database and Redis of a sample, waiting until they are healthy, with the
+ * values of its `.env.example` when it has no `.env` (`sample.env`), never writing a file.
  */
 function setupProject(sample, options) {
-  const envFile = path.join(sample.dir, '.env');
-  const exampleFile = path.join(sample.dir, '.env.example');
-  if (!fs.existsSync(envFile) && fs.existsSync(exampleFile)) {
-    fs.copyFileSync(exampleFile, envFile);
-    console.log(`${sample.name}: .env created from .env.example`);
-  }
   if (sample.services?.length) {
     const result = spawnSync('docker', ['compose', 'up', '-d', '--wait', ...sample.services], {
       cwd: sample.dir,
+      env: { ...process.env, ...sample.env },
       stdio: options.verbose ? 'inherit' : ['ignore', 'pipe', 'pipe'],
       encoding: 'utf8'
     });
