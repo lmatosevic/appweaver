@@ -1,0 +1,3 @@
+{
+  "//": "Empty, so Bun resolves the @appweaver packages of the seed task from node_modules, like the samples do, instead of the root paths to the sources"
+}

@@ -49,9 +49,19 @@ jobs:
       - uses: ./.github/actions/setup
       - run: npm run check:circular
 
+  # The unused files, exports and dependencies, with knip (knip.json)
+  unused:
+    name: Unused code
+    runs-on: ubuntu-latest
+    container: node:24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: npm run check:unused
+
   test:
     name: Unit tests
-    needs: [format, lint, circular]
+    needs: [format, lint, circular, unused]
     runs-on: ubuntu-latest
     container: node:24
     steps:

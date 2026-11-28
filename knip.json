@@ -1,0 +1,37 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "packages/*/{index,config,drivers,internal,module}.ts",
+    "packages/*/types/*-extensions.ts",
+    "packages/core/app/application.ts",
+    "packages/client/angular/index.ts",
+    "packages/create/scaffold/index.ts",
+    "packages/cli/weaver.ts",
+    "packages/client/weaver-client.ts",
+    "packages/create/create.ts",
+    "packages/data/prisma.config.ts",
+    "packages/*/test/**/*.ts",
+    "tools/**/*.js"
+  ],
+  "project": [
+    "packages/**/*.ts",
+    "tools/**/*.js"
+  ],
+  "ignore": [
+    "packages/data/prisma/**"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": [
+    "@appweaver/.*",
+    "@prisma/adapter-.*",
+    "@semantic-release/.*",
+    "conventional-changelog-conventionalcommits",
+    "@types/js-yaml",
+    "@hapi/wreck"
+  ],
+  "jest": {
+    "config": [
+      "jest.config.json"
+    ]
+  }
+}

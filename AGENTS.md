@@ -81,6 +81,11 @@ describe('Feature Verification', () => {
       madge (`.madgerc`). It skips the type-only and dynamic imports, which never run at load time, so it fails only on
       a cycle of runtime imports. A shorter import through a directory barrel (`index.ts`) loads every module of the
       barrel, so check it too.
+    - **Unused code**: Run `npm run check:unused` to check the package sources and the tools for unused files,
+      exports and dependencies with knip (`knip.json`). An export only used in its own file is not reported. A
+      dependency used outside the scanned sources (the driver adapters the samples run on, the plugins of
+      `release.config.js`) is listed in its `ignoreDependencies`, and a new entry point or type augmentation file in
+      its `entry`.
     - **Comments**: Keep code comments short and to the point. Explain only what the code itself cannot show.
     - **Class member order**: fields first, then all public methods, then the private ones.
     - **Type member order**: in an interface or type, required properties come first, optional ones after them.
@@ -88,8 +93,10 @@ describe('Feature Verification', () => {
       interface from `packages/common` it implements. Never on plain functions, constants or types.
 - **Continuous integration**: the `CI` workflow (`.github/workflows/ci.yml`) runs on every pull request to `main`
   and every push to it, in `node:24` containers set up by `.github/actions/setup` (npm 12, `npm ci`):
-  `npm run format:check`, `npm run lint` (after `npm run build`, since the samples import the built packages) and
-  `npm run check:circular`, then `npm test`. The test job uploads the coverage to Codecov (the `CODECOV_TOKEN` secret),
+  `npm run format:check`, `npm run lint` (after `npm run build`, since the samples import the built packages),
+  `npm run check:circular` and `npm run check:unused`, then `npm test`. The `Vulnerabilities` workflow
+  (`.github/workflows/vulnerabilities.yml`) runs osv-scanner over the lockfiles of the monorepo and the samples every
+  Monday and by hand, never on a pull request. The test job uploads the coverage to Codecov (the `CODECOV_TOKEN` secret),
   which the coverage badge of the READMEs reads and which reports the coverage diff of every pull request in its
   informational status checks, never failing, and without a comment (`codecov.yml`).
 - **Branch names**: a new branch is named after the work it holds, in kebab-case (`fix/realtime-input-errors`), never
@@ -1359,7 +1366,12 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   run `npm run build` first or it generates the models of the last build. The samples run one after another, stopping at
   the first failure, or with `-p, --parallel` (anywhere before `--`) all at once, every output line prefixed with its
   sample and every failure reported at the end. A new operation is an entry of its `operations`, with the names of its
-  `params`.
+  `params`, and `options: true` when the words after `--` are optional options of its command.
+- The load tests of `PLAN-v3.md` are operations of `samples:manage` too, never root scripts: `load` seeds the main model
+  of a sample to a size and load-tests it with autocannon, `probe` measures its idle timer wake-ups and memory, and
+  `load-summary` prints the reports of `reports/load` as tables (`npm run samples:manage -- load cms-api -- --setup
+  --size 100k`). Each sample holds its load definition in `test/load/load.js`, the scripts are in `tools/load`
+  (`tools/load/README.md`). Never run them with `--parallel`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
 - The Bun sample runs its scripts with `bun run`. Bun runs every test file in one process, where the application
   context is frozen once an application starts, so its end-to-end files share one application instead of resetting the
