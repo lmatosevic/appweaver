@@ -1,0 +1,26 @@
+name: Vulnerabilities
+
+# The known vulnerabilities of the lockfiles of the monorepo and the samples (V3-TOOL-00 of PLAN-v3.md), on a schedule
+# and by hand, never on a pull request: most come with the transitive dependencies of the published releases the
+# samples are locked to, which no pull request introduces or can fix on its own, and they are triaged with the
+# dependency upgrades (V3-SEC-06).
+on:
+  schedule:
+    # Mondays at 06:17 UTC
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  osv-scanner:
+    name: Known vulnerabilities
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.0 scan source --recursive .
