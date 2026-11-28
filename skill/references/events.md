@@ -20,7 +20,7 @@ const events = inject(Events);
 Registers a listener for a specific resource and action. Returns a listener ID that can be used to unsubscribe.
 
 | Parameter      | Type               | Description                                             |
-|----------------|--------------------|---------------------------------------------------------|
+| -------------- | ------------------ | ------------------------------------------------------- |
 | `resourceName` | `string`           | The name of the resource model (e.g. `'Product'`)       |
 | `event`        | `ActionType`       | `'create'`, `'update'`, `'delete'`, `'find'`, `'query'` |
 | `listener`     | `EventListener<T>` | Callback receiving `EventData<T>`                       |
@@ -35,7 +35,7 @@ and `current` is an array of them for a `query`. Give the type yourself for a mo
 ```ts
 type EventData<T> = {
   previous?: T; // present on 'update'
-  current: T;   // an array of resources on 'query'
+  current: T; // an array of resources on 'query'
 };
 ```
 
@@ -48,9 +48,13 @@ receives them readonly at every depth (`DeepReadonly` of `@appweaver/common`): `
 `DeepReadonly<Product>`, or the `Pick` of the fields it reads; to change one, copy it (`{ ...current, status: 'x' }`).
 
 ```ts
-const listenerId = events.onResourceEvent('Product', 'create', ({ current }) => {
-  logger.info('New product created:', current.name);
-});
+const listenerId = events.onResourceEvent(
+  'Product',
+  'create',
+  ({ current }) => {
+    logger.info('New product created:', current.name);
+  }
+);
 ```
 
 **Listening to updates** (access both previous and current state):
@@ -72,7 +76,7 @@ service ([resources.md](./resources.md#createservice)); use it directly only whe
 your own service logic.
 
 | Parameter      | Type           | Description                                     |
-|----------------|----------------|-------------------------------------------------|
+| -------------- | -------------- | ----------------------------------------------- |
 | `resourceName` | `string`       | Resource model name                             |
 | `event`        | `ActionType`   | Action type                                     |
 | `data`         | `EventData<T>` | Object with `current` (and optional `previous`) |
@@ -114,7 +118,9 @@ import { inject } from '@appweaver/core';
 
 const pubsub = inject(PubSub);
 
-await pubsub.subscribe<{ key: string }>('cache.cleared', ({ key }) => localCache.delete(key));
+await pubsub.subscribe<{ key: string }>('cache.cleared', ({ key }) =>
+  localCache.delete(key)
+);
 await pubsub.publish('cache.cleared', { key: 'products' });
 ```
 
@@ -126,7 +132,7 @@ channels belong to `@appweaver/realtime`.
 ## Configuration
 
 | Key                    | Type     | Default  | Description                           |
-|------------------------|----------|----------|---------------------------------------|
+| ---------------------- | -------- | -------- | ------------------------------------- |
 | `EVENTS_MAX_LISTENERS` | `int`    | `20`     | Max listeners per event (Node.js cap) |
 | `EVENTS_PROVIDER`      | `string` | `'auto'` | `auto`/`node`, or a module path       |
 

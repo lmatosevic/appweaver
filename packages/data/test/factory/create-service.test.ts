@@ -15,9 +15,12 @@ import { NodeEvents } from '@appweaver/core/drivers';
 import { createModel } from '../../factory/create-model';
 import { createService } from '../../factory/create-service';
 import { withoutPolicies } from '../../utils/policy-util';
-import { resetContext } from '@appweaver/testing';
+import { resetContext, runTestsAsAnonymous } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';
 import { createDatabaseStub, DatabaseStub } from '@appweaver/testing';
+
+// The policies apply to the calls of a request, not to the application's own calls
+runTestsAsAnonymous();
 
 const policy = (config: Record<string, any>) =>
   ({
@@ -490,6 +493,21 @@ describe('create-service', () => {
           withoutPolicies(() => new Service().checkEventAccess(event))
         ).resolves.toBe(true);
       });
+    });
+
+    it("skips the policies for the application's own calls, outside of a request", async () => {
+      const readRestrictions = jest.fn().mockReturnValue({ authorId: 7 });
+      define(
+        policy({ readRestrictions, checkAccess: () => false }),
+        'Post',
+        'override'
+      );
+      const Service = createService({ modelName: 'Post' });
+
+      await expect(new Service().find(1)).resolves.toMatchObject({ id: 1 });
+
+      expect(readRestrictions).not.toHaveBeenCalled();
+      expect(db.lastQuery('findFirst').args.where).toEqual({ id: 1 });
     });
 
     test('applies the read restrictions of the policy', async () => {

@@ -7,23 +7,23 @@ first-party module does.
 
 ## First-party modules
 
-| Module                     | Enabled                      | Brings                                                                                                                                                     |
-|----------------------------|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Module                     | Enabled                      | Brings                                                                                                                                                                       |
+| -------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@appweaver/core`          | Always                       | The contracts and the in-process drivers: `memory`, `node` events, `memory` pub/sub, `local` storage, `memory` queue, `json` mailer, `json` SMS sender, `memory` time series |
-| `@appweaver/data`          | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store, the `database` and `timescale` time series                             |
-| `@appweaver/web`           | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account, 2FA (`TwoFactorService`) and OAuth2 services                                                   |
-| `@appweaver/redis`         | Installed                    | The `redis` memory, also the store of the cache and the rate limit, and the `redis` pub/sub                                                               |
-| `@appweaver/bullmq`        | Installed (requires `redis`) | The `bullmq` queue                                                                                                                                         |
-| `@appweaver/cron`          | Installed                    | The `cron` scheduler                                                                                                                                       |
-| `@appweaver/nodemailer`    | Installed                    | The `smtp` mailer                                                                                                                                          |
-| `@appweaver/twilio`        | Installed                    | The `twilio` SMS sender (`SmsSender`), with the REST API of Twilio and no SDK                                                                              |
-| `@appweaver/realtime`      | Installed (requires `web`)   | The realtime connections (`RealtimeGateway`) over WebSocket and SSE: channels, resource events and actions, see [realtime](./realtime.md)                   |
-| `@appweaver/ai`            | Installed                    | `AiService` calling the AI models of the endpoints of the `ai` config, the tools, the built-in `mock` driver, see [ai](./ai.md)                          |
-| `@appweaver/openai`        | Installed (requires `ai`)    | The `openai` AI driver (`AiDriver`), for OpenAI and every OpenAI-compatible server (Ollama, OpenRouter, vLLM, ...), with the `openai` SDK                  |
-| `@appweaver/mcp`           | Installed (requires `web`)   | The MCP server of the AI agents: the resource actions of the `mcp` route config and `createMcpTool`, see [mcp](./mcp.md)                                  |
-| `@appweaver/opentelemetry` | Installed                    | The OpenTelemetry SDK (`TelemetryService`) exporting the traces, metrics and logs over OTLP, see [telemetry](./telemetry.md)                               |
-| `@appweaver/handlebars`    | Installed                    | The `handlebars` template engine                                                                                                                           |
-| `@appweaver/sharp`         | Installed                    | The `sharp` image processor                                                                                                                                |
+| `@appweaver/data`          | Installed                    | The `prisma` database, the resources, `FileService`, the `database` security store, the `database` and `timescale` time series                                               |
+| `@appweaver/web`           | Installed (requires `data`)  | The Fastify server (`HttpServer`), authentication, account, 2FA (`TwoFactorService`) and OAuth2 services                                                                     |
+| `@appweaver/redis`         | Installed                    | The `redis` memory, also the store of the cache and the rate limit, and the `redis` pub/sub                                                                                  |
+| `@appweaver/bullmq`        | Installed (requires `redis`) | The `bullmq` queue                                                                                                                                                           |
+| `@appweaver/cron`          | Installed                    | The `cron` scheduler                                                                                                                                                         |
+| `@appweaver/nodemailer`    | Installed                    | The `smtp` mailer                                                                                                                                                            |
+| `@appweaver/twilio`        | Installed                    | The `twilio` SMS sender (`SmsSender`), with the REST API of Twilio and no SDK                                                                                                |
+| `@appweaver/realtime`      | Installed (requires `web`)   | The realtime connections (`RealtimeGateway`) over WebSocket and SSE: channels, resource events and actions, see [realtime](./realtime.md)                                    |
+| `@appweaver/ai`            | Installed                    | `AiService` calling the AI models of the endpoints of the `ai` config, the tools, the built-in `mock` driver, see [ai](./ai.md)                                              |
+| `@appweaver/openai`        | Installed (requires `ai`)    | The `openai` AI driver (`AiDriver`), for OpenAI and every OpenAI-compatible server (Ollama, OpenRouter, vLLM, ...), with the `openai` SDK                                    |
+| `@appweaver/mcp`           | Installed (requires `web`)   | The MCP server of the AI agents: the resource actions of the `mcp` route config and `createMcpTool`, see [mcp](./mcp.md)                                                     |
+| `@appweaver/opentelemetry` | Installed                    | The OpenTelemetry SDK (`TelemetryService`) exporting the traces, metrics and logs over OTLP, see [telemetry](./telemetry.md)                                                 |
+| `@appweaver/handlebars`    | Installed                    | The `handlebars` template engine                                                                                                                                             |
+| `@appweaver/sharp`         | Installed                    | The `sharp` image processor                                                                                                                                                  |
 
 Every first-party module but core is a package of its own, enabled like any [package module](#package-modules): by
 being a dependency of the application's `package.json`. A driver package carries the library it wraps as a dependency,
@@ -37,7 +37,7 @@ installing `ioredis` alone enables nothing. The scaffold modules of `weaver modu
 The enabled modules come from:
 
 | Source         | Found                                                                                                                                                                                      |
-|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Core           | `@appweaver/core`, always                                                                                                                                                                  |
 | Packages       | The `dependencies` and `optionalDependencies` of the project's `package.json` whose own `package.json` has `"appweaver": { "module": "./dist/module.js" }`, and the modules they `require` |
 | Local modules  | Every manifest matching `APP_MODULES_PATTERN` (`app.modulesPattern`, default `<srcPath>/modules/*/module.ts`), without any config                                                          |
@@ -101,7 +101,7 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 ```
 
 | Field       | Type                                     | Purpose                                                                                                                                              |
-|-------------|------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`      | `string`                                 | The name, the package name for a package module                                                                                                      |
 | `framework` | `string`                                 | The supported Appweaver version range, i.e. `^2.0.0`, checked at startup                                                                             |
 | `requires`  | `string[]`                               | The modules that must be enabled with it (`@appweaver/bullmq` requires `@appweaver/redis`)                                                           |
@@ -115,7 +115,7 @@ export default defineModule({ name: 'appweaver-newsletter' /* ... */ });
 | `main`      | `() => import(...)`                      | Code run at startup: scheduled jobs, queue workers, event listeners                                                                                  |
 | `web`       | `() => import(...)`                      | Its resource routes, custom routes (`registerRoute`) and plugins (`registerPlugin`), loaded by the `setup` of `@appweaver/web`                       |
 | `seeders`   | `string`                                 | The absolute path of its seeders directory, run by `weaver seed` before the seeders of the application                                               |
-| `tasks`     | `string`                                 | The absolute path of its tasks directory (`createTask` files), listed and run by `weaver run`, overridden by a task of the application                |
+| `tasks`     | `string`                                 | The absolute path of its tasks directory (`createTask` files), listed and run by `weaver run`, overridden by a task of the application               |
 | `locales`   | `string`                                 | The absolute path of its translations, overridden by the ones of the application                                                                     |
 | `templates` | `string`                                 | The absolute path of its templates, overridden by the ones of the application                                                                        |
 
@@ -130,7 +130,8 @@ resources and `@appweaver/web` the routes:
 ```ts
 export default defineModule({
   name: '@acme/appweaver-jobs',
-  setup: async ({ modules, scanPath }) => (await import('./load-jobs')).loadJobs(modules, scanPath)
+  setup: async ({ modules, scanPath }) =>
+    (await import('./load-jobs')).loadJobs(modules, scanPath)
 });
 ```
 
@@ -204,26 +205,47 @@ export const gcsConfig = defineConfig('storage.gcs', {
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { Storage as GcsClient } from '@google-cloud/storage';
-import { ContentStream, FileUrlOptions, HealthCheckResult, Storage, StoreOptions } from '@appweaver/common';
+import {
+  ContentStream,
+  FileUrlOptions,
+  HealthCheckResult,
+  Storage,
+  StoreOptions
+} from '@appweaver/common';
 import { gcsConfig } from './config';
 
 export class GcsStorage extends Storage {
   private readonly _bucket = new GcsClient().bucket(gcsConfig.BUCKET);
 
-  async onInit(): Promise<void> {
-  }
+  async onInit(): Promise<void> {}
 
-  async store(fileName: string, data: Readable, options?: StoreOptions): Promise<string | null> {
-    await pipeline(data, this._bucket.file(fileName).createWriteStream({ contentType: options?.contentType }));
+  async store(
+    fileName: string,
+    data: Readable,
+    options?: StoreOptions
+  ): Promise<string | null> {
+    await pipeline(
+      data,
+      this._bucket
+        .file(fileName)
+        .createWriteStream({ contentType: options?.contentType })
+    );
     return fileName;
   }
 
-  async stream(fileName: string, start: number, end?: number): Promise<ContentStream | null> {
+  async stream(
+    fileName: string,
+    start: number,
+    end?: number
+  ): Promise<ContentStream | null> {
     const file = this._bucket.file(fileName);
     const [exists] = await file.exists();
     if (!exists) return null;
     const [metadata] = await file.getMetadata();
-    return { stream: file.createReadStream({ start, end }), size: Number(metadata.size) };
+    return {
+      stream: file.createReadStream({ start, end }),
+      size: Number(metadata.size)
+    };
   }
 
   async delete(fileName: string): Promise<boolean> {
@@ -237,9 +259,14 @@ export class GcsStorage extends Storage {
   }
 
   // The files route redirects to the signed URL instead of streaming the file
-  async url(fileName: string, options?: FileUrlOptions): Promise<string | null> {
+  async url(
+    fileName: string,
+    options?: FileUrlOptions
+  ): Promise<string | null> {
     const ttl = options?.expiresIn ?? gcsConfig.SIGNED_URL_TTL;
-    const [url] = await this._bucket.file(fileName).getSignedUrl({ action: 'read', expires: Date.now() + ttl });
+    const [url] = await this._bucket
+      .file(fileName)
+      .getSignedUrl({ action: 'read', expires: Date.now() + ttl });
     return url;
   }
 
@@ -258,7 +285,9 @@ import { gcsConfig } from './config';
 export default defineModule({
   name: 'gcs',
   config: [gcsConfig],
-  providers: [{ contract: Storage, name: 'gcs', load: () => import('./gcs-storage') }]
+  providers: [
+    { contract: Storage, name: 'gcs', load: () => import('./gcs-storage') }
+  ]
 });
 ```
 
@@ -312,7 +341,9 @@ export default defineModule({
   framework: '^2.0.0',
   config: [gcsConfig],
   loggers: ['gcs'], // the createLogger('gcs') of its sources
-  providers: [{ contract: Storage, name: 'gcs', load: () => import('./gcs-storage') }]
+  providers: [
+    { contract: Storage, name: 'gcs', load: () => import('./gcs-storage') }
+  ]
 });
 ```
 
@@ -348,7 +379,7 @@ npx @appweaver/create module @acme/appweaver-vonage "Vonage SMS sender" --contra
 ```
 
 | Option                   | Description                                                                      | Default                        |
-|--------------------------|----------------------------------------------------------------------------------|--------------------------------|
+| ------------------------ | -------------------------------------------------------------------------------- | ------------------------------ |
 | `<package>`              | npm name of the package, i.e. `@acme/appweaver-gcs`                              | —                              |
 | `[description]`          | Description of the package                                                       | `Appweaver module`             |
 | `-o, --output-dir <dir>` | Directory of the package                                                         | package name without its scope |
@@ -358,7 +389,7 @@ The short name of the module strips the scope and the `appweaver-` prefix (`@acm
 name of its provider. The package holds:
 
 | File                                              | Holds                                                                                                                                            |
-|---------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `package.json`                                    | The `appweaver.module` field, the keyword `appweaver-module`, `@appweaver/common`, `@appweaver/core` and TypeBox as peer dependencies            |
 | `src/module.ts`                                   | The manifest, named after the package, with its `framework` range and its provider or `main`                                                     |
 | `src/config.ts`                                   | Its section: `<contract>.<name>` for a driver (`storage.gcs`, `STORAGE_GCS_*`), `<name>` for a feature module                                    |
@@ -388,16 +419,16 @@ testStorageContract('GcsStorage', () => new GcsStorage());
 A driver of an external service runs the suite on an in-memory stand-in of its client, the way `@appweaver/redis` runs
 `testMemoryContract` on `ioredis-mock` (`jest.mock('ioredis', ...)`), or on a real service in an integration test.
 
-| Suite                    | Contract     | Tests                                                                                                                                                                                            |
-|--------------------------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `testMemoryContract`     | `Memory`     | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check                                                                                                            |
-| `testStorageContract`    | `Storage`    | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, the health check                                                                                                       |
-| `testQueueContract`      | `Queue`      | A job processed by a worker and its result, a failed job, a given job id and an ignored send of one still queued, closing a queue, the health check                                              |
-| `testSchedulerContract`  | `Scheduler`  | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)                                                                                                       |
-| `testMailerContract`     | `Mailer`     | Sending an email with every field of the contract, the health check                                                                                                                              |
+| Suite                    | Contract     | Tests                                                                                                                                                                                               |
+| ------------------------ | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `testMemoryContract`     | `Memory`     | Values and their expiry, `exists` and `delete`, key patterns, locks, the health check                                                                                                               |
+| `testStorageContract`    | `Storage`    | Storing and streaming a file and a byte range, `exists`, `delete`, `url`, the health check                                                                                                          |
+| `testQueueContract`      | `Queue`      | A job processed by a worker and its result, a failed job, a given job id and an ignored send of one still queued, closing a queue, the health check                                                 |
+| `testSchedulerContract`  | `Scheduler`  | Adding, starting, stopping and removing a job, an unknown job id (yearly jobs, none ticks)                                                                                                          |
+| `testMailerContract`     | `Mailer`     | Sending an email with every field of the contract, the health check                                                                                                                                 |
 | `testAiDriverContract`   | `AiDriver`   | A text answer, a tool call and a conversation with its result, the JSON mode, a stream and a streamed tool call, the embeddings (unless `embeddings: false`), the capabilities and the health check |
-| `testSmsContract`        | `SmsSender`  | Sending a text message with and without a sender, the name of its health check, the health check                                                                                                 |
-| `testTimeSeriesContract` | `TimeSeries` | Writing and merging points, selecting fields and ranges, ordering and limiting, every aggregate by bucket and over the range, deleting a range (a store with `supportsDelete`), the health check |
+| `testSmsContract`        | `SmsSender`  | Sending a text message with and without a sender, the name of its health check, the health check                                                                                                    |
+| `testTimeSeriesContract` | `TimeSeries` | Writing and merging points, selecting fields and ranges, ordering and limiting, every aggregate by bucket and over the range, deleting a range (a store with `supportsDelete`), the health check    |
 
 The suites use the `describe`, `test`, `beforeEach`, `afterEach` and `expect` globals, so they run under Jest, Vitest
 (with `globals: true`) and Bun. A driver of a remote service runs them against a test instance or emulator, the

@@ -32,7 +32,7 @@ weaver-client <command>
 ```
 
 | Command     | Alias | Description                                     |
-|-------------|-------|-------------------------------------------------|
+| ----------- | ----- | ----------------------------------------------- |
 | `generate`  | `g`   | Generate TypeScript types and/or a client class |
 | `--version` | `-v`  | Output package version                          |
 | `--help`    | `-h`  | Output usage information                        |
@@ -50,13 +50,13 @@ Reads an OpenAPI v3 schema and generates TypeScript types and a typed client cla
 **Arguments:**
 
 | Argument        | Description                                                                                                                                                                                                                |
-|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `<schema-path>` | Path to the OpenAPI schema. Accepts a relative or absolute file path (including a Windows drive path such as `C:\api\openapi.json`) or a URL (`http://`, `https://`, `file://`). JSON and YAML formats are both supported. |
 
 **Options:**
 
 | Option                     | Description                                                                                  | Default                   |
-|----------------------------|----------------------------------------------------------------------------------------------|---------------------------|
+| -------------------------- | -------------------------------------------------------------------------------------------- | ------------------------- |
 | `--types-only`             | Generate TypeScript types only, skip client class generation                                 | `false`                   |
 | `--client-only`            | Generate client class only, skip TypeScript types generation                                 | `false`                   |
 | `-o, --output-path <path>` | Output path for both types and client (used when `--types-path`/`--client-path` are not set) | `./generated/client.ts`   |
@@ -149,7 +149,10 @@ directly. The per-resource module type holds the same types under the keys the `
 ```ts
 import { PostQuerySort, SortDirection } from './generated/schema';
 
-const sort: PostQuerySort = { createdAt: SortDirection.desc, title: SortDirection.asc };
+const sort: PostQuerySort = {
+  createdAt: SortDirection.desc,
+  title: SortDirection.asc
+};
 const posts = await client.post.query({ sort, page: 1, size: 20 });
 ```
 
@@ -171,13 +174,20 @@ resource to the plain values it accepts:
 
 ```ts
 export type QueryFilterScalar = string | number | boolean | null;
-export type QueryFilterValue = QueryFilterScalar | QueryFilterScalar[] | QueryCondition;
+export type QueryFilterValue =
+  | QueryFilterScalar
+  | QueryFilterScalar[]
+  | QueryCondition;
 
 export type PostQueryFilter = {
   /** @description Filter by the title field */
   title?: QueryFilterValue;
   /** @description Filter by the author relation, matching an id, a list of ids, or a nested User filter */
-  author?: QueryFilterScalar | QueryFilterScalar[] | UserQueryFilter | UserQueryFilter[];
+  author?:
+    | QueryFilterScalar
+    | QueryFilterScalar[]
+    | UserQueryFilter
+    | UserQueryFilter[];
   // ...
 };
 ```
@@ -229,7 +239,9 @@ When a `query` or `aggregate` route is GET-only, the generator passes `{ query: 
 client sends the request as query parameters. With both methods available, it uses POST.
 
 ```ts
-tag = this.resourceClient<Type.TagResourceModuleType>('/api/tags', { query: 'get' });
+tag = this.resourceClient<Type.TagResourceModuleType>('/api/tags', {
+  query: 'get'
+});
 ```
 
 ### Angular client (`--framework angular`)
@@ -244,9 +256,10 @@ import { AngularClient } from '@appweaver/client/angular';
 import { HttpClient } from '@angular/common/http';
 
 // In an Angular service or provider:
-const client = new CMSAPIClient(httpClient, { baseUrl: 'http://localhost:3000' });
-client.user.query({ filter: { enabled: true } }).subscribe((users) => {
+const client = new CMSAPIClient(httpClient, {
+  baseUrl: 'http://localhost:3000'
 });
+client.user.query({ filter: { enabled: true } }).subscribe((users) => {});
 ```
 
 An error response reaches the `error` callback as a `ClientError`, as with `FetchClient`, not as Angular's
@@ -275,11 +288,11 @@ fetch-only projects do not need it at all.
 
 ```ts
 type ClientConfig = {
-  baseUrl: string;           // Base URL prepended to every request path
-  timeout?: number;          // Request timeout in milliseconds
+  baseUrl: string; // Base URL prepended to every request path
+  timeout?: number; // Request timeout in milliseconds
   middlewares?: Middleware[]; // Additional openapi-fetch middlewares
-  auth?: AuthConfig;         // Authentication strategy
-  fetch?: FetchHandler;      // Custom fetch implementation
+  auth?: AuthConfig; // Authentication strategy
+  fetch?: FetchHandler; // Custom fetch implementation
   realtime?: RealtimeClientOptions; // Options of client.realtime
 };
 ```
@@ -370,7 +383,7 @@ Exposes CRUD and file operations for a single resource endpoint. The `filter` an
 `export` take the syntax of [resources.md](./resources.md#query-filters).
 
 | Method                                       | HTTP                                         | Description                                                      |
-|----------------------------------------------|----------------------------------------------|------------------------------------------------------------------|
+| -------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------- |
 | `find(id, options?)`                         | `GET /{resource}/{id}`                       | Fetch a single record by ID                                      |
 | `query(request, options?)`                   | `POST /{resource}/query`                     | Filter, sort, and paginate the collection                        |
 | `aggregate(request, options?)`               | `POST /{resource}/aggregate`                 | Aggregation query (count, sum, avg, etc.)                        |
@@ -429,32 +442,48 @@ const newPost = await client.post.create({ title: 'Hello', body: '...' });
 const updated = await client.post.update({ id: 1, title: 'Updated' });
 
 // Replace the whole record (omitted fields reset to their default or null)
-const replaced = await client.post.replace({ id: 1, title: 'Replaced', body: '...' });
+const replaced = await client.post.replace({
+  id: 1,
+  title: 'Replaced',
+  body: '...'
+});
 
 // Delete
 const deleted = await client.post.delete(1);
 
 // Bulk, generated only for resources enabling the routes, resolves the created records
-const posts = await client.post.bulkCreate([{ title: 'One' }, { title: 'Two' }]);
+const posts = await client.post.bulkCreate([
+  { title: 'One' },
+  { title: 'Two' }
+]);
 // A route returning no records (`returnRecords: false`) is typed by the call: { success: true, count: 2 }
-const { count } = await client.post.bulkCreate<BulkResponse>([{ title: 'One' }, { title: 'Two' }]);
+const { count } = await client.post.bulkCreate<BulkResponse>([
+  { title: 'One' },
+  { title: 'Two' }
+]);
 
 // Export as CSV
 const file = await client.post.export({ filter: { published: true } });
 // file.body — ReadableStream, file.filename — string, file.contentType — string
 
 // Upload files
-const files = await client.post.uploadFiles({ cover: new File([], 'cover.jpg') });
+const files = await client.post.uploadFiles({
+  cover: new File([], 'cover.jpg')
+});
 
 // Delete files
 await client.post.deleteFiles({ fileIds: [42, 43] });
 
 // Upload a new version of a file (with `storage.versions.enabled`)
-await client.post.uploadFiles(1, { gallery: [{ file: newImage, replace: 'gallery/a-1f2e.png' }] });
+await client.post.uploadFiles(1, {
+  gallery: [{ file: newImage, replace: 'gallery/a-1f2e.png' }]
+});
 
 // List the versions, read a previous one from its URL (`?version=2`), delete the latest one
 const versions = await client.post.fileVersions(1, 'gallery/a-9c8d.png');
-await client.post.deleteFileVersions(1, { gallery: { name: 'gallery/a-9c8d.png', version: 'latest' } });
+await client.post.deleteFileVersions(1, {
+  gallery: { name: 'gallery/a-9c8d.png', version: 'latest' }
+});
 ```
 
 ### `AuthClient`
@@ -462,7 +491,7 @@ await client.post.deleteFileVersions(1, { gallery: { name: 'gallery/a-9c8d.png',
 The routes of [security.md](./security.md#auth-routes).
 
 | Method                              | HTTP                         | Description                                 |
-|-------------------------------------|------------------------------|---------------------------------------------|
+| ----------------------------------- | ---------------------------- | ------------------------------------------- |
 | `login(request, options?)`          | `POST /auth/login`           | Authenticate with credentials               |
 | `logout(options?)`                  | `POST /auth/logout`          | Invalidate the current session              |
 | `refresh(options?)`                 | `POST /auth/refresh`         | Renew access token                          |
@@ -471,7 +500,10 @@ The routes of [security.md](./security.md#auth-routes).
 | `me(options?)`                      | `GET /auth/me`               | Get the current user's identity             |
 
 ```ts
-const session = await client.auth.login({ email: 'user@example.com', password: 'secret' });
+const session = await client.auth.login({
+  email: 'user@example.com',
+  password: 'secret'
+});
 const me = await client.auth.me();
 await client.auth.logout();
 ```
@@ -482,7 +514,7 @@ The routes of [security.md](./security.md#account-management) and its
 [phone verification](./security.md#phone-verification).
 
 | Method                                 | HTTP                                      | Description                        |
-|----------------------------------------|-------------------------------------------|------------------------------------|
+| -------------------------------------- | ----------------------------------------- | ---------------------------------- |
 | `sendVerifyEmail(request, options?)`   | `POST /auth/account/send-verify-email`    | Send email verification link       |
 | `verifyEmail(request, options?)`       | `POST /auth/account/verify-email`         | Verify email with token            |
 | `verifyEmailRedirect(token, options?)` | `GET /auth/account/verify-email-redirect` | Handle redirect-based verification |
@@ -505,7 +537,7 @@ The two-factor authentication, under the `/2fa` path of the account routes (`two
 [security.md](./security.md#two-factor-authentication-2fa).
 
 | Method                                      | HTTP                                        | Description                                  |
-|---------------------------------------------|---------------------------------------------|----------------------------------------------|
+| ------------------------------------------- | ------------------------------------------- | -------------------------------------------- |
 | `challenge(request?, options?)`             | `POST /auth/account/2fa/challenge`          | Send a challenge by a method, or the default |
 | `verify(request, options?)`                 | `POST /auth/account/2fa/verify`             | Verify a code, returns the token to exchange |
 | `listMethods(options?)`                     | `GET /auth/account/2fa/methods`             | List the enabled and the available methods   |
@@ -517,11 +549,17 @@ The two-factor authentication, under the `/2fa` path of the account routes (`two
 | `generateRecoveryCodes(request?, options?)` | `POST /auth/account/2fa/recovery-codes`     | Generate the recovery codes, shown once      |
 
 ```ts
-const session = await client.auth.login({ username: 'user@example.com', password: 'secret' });
+const session = await client.auth.login({
+  username: 'user@example.com',
+  password: 'secret'
+});
 if (session.twoFactorMethods) {
   // The tokens of the 2fa scope, used by the challenge and its verification only
   const { challengeId } = await client.twoFactor.challenge({ method: 'Totp' });
-  const { token } = await client.twoFactor.verify({ challengeId, code: '123456' });
+  const { token } = await client.twoFactor.verify({
+    challengeId,
+    code: '123456'
+  });
   await client.auth.exchangeToken({ token });
 }
 ```
@@ -529,7 +567,7 @@ if (session.twoFactorMethods) {
 ### `HealthClient`
 
 | Method            | HTTP                | Description                                                   |
-|-------------------|---------------------|---------------------------------------------------------------|
+| ----------------- | ------------------- | ------------------------------------------------------------- |
 | `check(options?)` | `GET /health`       | Health check status, the body of its 503 when a check is down |
 | `ready(options?)` | `GET /health/ready` | Readiness probe, `{ ready: false }` on its 503                |
 
@@ -540,7 +578,7 @@ const status = await client.health.check();
 ### `FilesClient`
 
 | Method                      | HTTP                  | Description               |
-|-----------------------------|-----------------------|---------------------------|
+| --------------------------- | --------------------- | ------------------------- |
 | `public(path, options?)`    | `GET /files/{path}`   | Download a public file    |
 | `protected(path, options?)` | `GET /files/p/{path}` | Download a protected file |
 
@@ -559,17 +597,17 @@ connection or a failed attempt, with a backoff randomized from its half to itsel
 and within a random part of `reconnectDelay` on a server restarting (`1012`, a rolling update), resuming the streams
 of its calls on the new instance.
 
-| Method                                     | Description                                                                                    |
-|--------------------------------------------|------------------------------------------------------------------------------------------------|
-| `subscribe(channel, handler, params?)`     | `handler(payload, { eventId, channel })`; returns `{ id, ready, unsubscribe }`                 |
-| `on(model, handler, { action?, filter? })` | Resource events, `handler({ model, action, current, previous? })`                              |
-| `observe(channel, params?)`                | An observable of the payloads, for `from(...)` of RxJS                                         |
-| `send(action, payload)` / `emit(...)`      | Calls an action, resolving to its result / fire-and-forget                                     |
-| `call(action, payload, { input? })`        | Calls a streaming action: an async iterable of its chunks, with `result`, `stream`, `onChunk(listener)`, `cancel()` and `input` (`write(chunk)`, `end()`) |
-| `stream(name, handlers, { key?, params? })` | Subscribes to the streams of a key, `handlers`: `onStart(info)`, `onChunk(chunk, { streamId, seq, gap, sync })`, `onEnd(result, info)`, `onError(error, info)` |
-| `connect()`, `disconnect()`, `reconnect()` | Opens, closes (keeping the subscriptions), or reopens with a new ticket, i.e. after a login    |
-| `onStateChange(listener)`, `onError(...)`  | `idle`, `connecting`, `open`, `reconnecting`; the errors answering no subscription or action   |
-| `state`, `connectionId`, `transport`, `authenticated` | The state of the connection, and whether it is of a user                            |
+| Method                                                | Description                                                                                                                                                    |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `subscribe(channel, handler, params?)`                | `handler(payload, { eventId, channel })`; returns `{ id, ready, unsubscribe }`                                                                                 |
+| `on(model, handler, { action?, filter? })`            | Resource events, `handler({ model, action, current, previous? })`                                                                                              |
+| `observe(channel, params?)`                           | An observable of the payloads, for `from(...)` of RxJS                                                                                                         |
+| `send(action, payload)` / `emit(...)`                 | Calls an action, resolving to its result / fire-and-forget                                                                                                     |
+| `call(action, payload, { input? })`                   | Calls a streaming action: an async iterable of its chunks, with `result`, `stream`, `onChunk(listener)`, `cancel()` and `input` (`write(chunk)`, `end()`)      |
+| `stream(name, handlers, { key?, params? })`           | Subscribes to the streams of a key, `handlers`: `onStart(info)`, `onChunk(chunk, { streamId, seq, gap, sync })`, `onEnd(result, info)`, `onError(error, info)` |
+| `connect()`, `disconnect()`, `reconnect()`            | Opens, closes (keeping the subscriptions), or reopens with a new ticket, i.e. after a login                                                                    |
+| `onStateChange(listener)`, `onError(...)`             | `idle`, `connecting`, `open`, `reconnecting`; the errors answering no subscription or action                                                                   |
+| `state`, `connectionId`, `transport`, `authenticated` | The state of the connection, and whether it is of a user                                                                                                       |
 
 `subscription.ready` rejects with the `ClientError` of a refused subscription, which a reconnection does not renew.
 
@@ -585,9 +623,12 @@ chunk as JSON; keep a chunk under the `realtime.maxMessageSize` of the server. A
 call over SSE, and fails it when the connection is lost before the input ended.
 
 ```ts
-const recorder = new MediaRecorder(await navigator.mediaDevices.getUserMedia({ audio: true }));
+const recorder = new MediaRecorder(
+  await navigator.mediaDevices.getUserMedia({ audio: true })
+);
 const call = client.realtime.call('voice.transcribe', { language: 'en' });
-recorder.ondataavailable = async (event) => call.input.write(new Uint8Array(await event.data.arrayBuffer()));
+recorder.ondataavailable = async (event) =>
+  call.input.write(new Uint8Array(await event.data.arrayBuffer()));
 recorder.onstop = () => call.input.end();
 recorder.start(250);
 for await (const text of call) showCaption(text);
@@ -607,10 +648,10 @@ try {
 type RealtimeClientOptions = {
   transport?: 'auto' | 'websocket' | 'sse'; // default: auto
   anonymous?: boolean | 'auto'; // true: no ticket; 'auto': anonymous when the ticket is refused (401). Default: false
-  reconnect?: boolean;          // default: true
-  reconnectDelay?: number;      // ms, doubled each attempt, randomized (default: 500)
-  maxReconnectDelay?: number;   // default: 30000
-  actionTimeout?: number;       // default: 30000
+  reconnect?: boolean; // default: true
+  reconnectDelay?: number; // ms, doubled each attempt, randomized (default: 500)
+  maxReconnectDelay?: number; // default: 30000
+  actionTimeout?: number; // default: 30000
   WebSocket?: typeof WebSocket; // default: the global one
 };
 ```
@@ -625,7 +666,7 @@ body. It exposes file metadata as properties and provides helper methods to cons
 **Properties:**
 
 | Property    | Type                | Description                                                     |
-|-------------|---------------------|-----------------------------------------------------------------|
+| ----------- | ------------------- | --------------------------------------------------------------- |
 | `stream`    | `ReadableStream`    | Readable stream of the file content                             |
 | `fileName`  | `string`            | File name extracted from the `Content-Disposition` header       |
 | `type`      | `string`            | MIME type from the `Content-Type` header                        |
@@ -637,7 +678,7 @@ body. It exposes file metadata as properties and provides helper methods to cons
 **Methods:**
 
 | Method                   | Returns                | Description                                                           |
-|--------------------------|------------------------|-----------------------------------------------------------------------|
+| ------------------------ | ---------------------- | --------------------------------------------------------------------- |
 | `buffer()`               | `Promise<ArrayBuffer>` | Raw binary content as an `ArrayBuffer`                                |
 | `blob()`                 | `Promise<Blob>`        | Content wrapped in a `Blob` with the correct MIME type                |
 | `text(encoding: string)` | `Promise<string>`      | Content decoded to string using specified encoding (default is UTF-8) |
@@ -650,9 +691,9 @@ The `FileContentRange` type describes a partial-content range:
 
 ```ts
 type FileContentRange = {
-  start: number;  // Starting byte position (inclusive)
-  end: number;    // Ending byte position (inclusive)
-  total: number;  // Total size of the complete file in bytes
+  start: number; // Starting byte position (inclusive)
+  end: number; // Ending byte position (inclusive)
+  total: number; // Total size of the complete file in bytes
 };
 ```
 
@@ -675,8 +716,8 @@ const csv = await file.text();
 
 // Inspect metadata before consuming
 console.log(file.fileName); // e.g. "export.csv"
-console.log(file.type);     // e.g. "text/csv"
-console.log(file.length);   // e.g. 4096
+console.log(file.type); // e.g. "text/csv"
+console.log(file.length); // e.g. 4096
 ```
 
 ---
@@ -697,9 +738,13 @@ Returns the raw `{ data, error, response }` tuple from `openapi-fetch` without t
 inspect error details or branch on status codes.
 
 ```ts
-const { data, error, response } = await client.sendRequestRaw('post', '/api/custom-endpoint', {
-  body: { key: 'value' }
-});
+const { data, error, response } = await client.sendRequestRaw(
+  'post',
+  '/api/custom-endpoint',
+  {
+    body: { key: 'value' }
+  }
+);
 
 if (error) {
   console.error(`Failed with ${response.status}`);
@@ -742,14 +787,14 @@ try {
   const post = await client.post.find(999);
 } catch (err) {
   if (err instanceof ClientError) {
-    console.error(err.message);        // The detail of the problem details response
-    console.error(err.status);         // HTTP status code
-    console.error(err.code);           // Error code, i.e. 'RESOURCE_NOT_FOUND' ('REQUEST_FAILED' without problem details)
-    console.error(err.errors);         // Invalid fields, i.e. [{ field: 'email', rule: 'unique', message: 'must be unique' }]
-    console.error(err.details);        // Details specific to the code
-    console.error(err.problem);        // The whole RFC 9457 problem details body
-    console.error(err.response);       // Native Response object
-    console.error(err.route);          // The route of the request, i.e. { method: 'get', path: '/api/posts/{id}' }
+    console.error(err.message); // The detail of the problem details response
+    console.error(err.status); // HTTP status code
+    console.error(err.code); // Error code, i.e. 'RESOURCE_NOT_FOUND' ('REQUEST_FAILED' without problem details)
+    console.error(err.errors); // Invalid fields, i.e. [{ field: 'email', rule: 'unique', message: 'must be unique' }]
+    console.error(err.details); // Details specific to the code
+    console.error(err.problem); // The whole RFC 9457 problem details body
+    console.error(err.response); // Native Response object
+    console.error(err.route); // The route of the request, i.e. { method: 'get', path: '/api/posts/{id}' }
   }
 }
 ```
@@ -757,7 +802,7 @@ try {
 A plain `instanceof` check types `err.code` as `any`. The generated file exports the error types of the API to type it:
 
 | Export                         | Description                                                                                                                                          |
-|--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ErrorCode`                    | Constant and union of every framework and application error code of the API, its keys PascalCase as on the server, i.e. `ErrorCode.ResourceNotFound` |
 | `ApiError`                     | `ClientError<ErrorCode>`                                                                                                                             |
 | `isApiError(err)`              | Narrows a caught error to `ApiError`, so `err.is()` accepts the error codes of the API only                                                          |
@@ -794,9 +839,13 @@ once in `components['responses']` (i.e. `ResourceNotFoundError`) and referred to
 Use `sendRequestRaw` to avoid exceptions and handle errors inline:
 
 ```ts
-const { data, error, response } = await client.sendRequestRaw('get', '/api/posts/{id}', {
-  params: { path: { id: 999 } }
-});
+const { data, error, response } = await client.sendRequestRaw(
+  'get',
+  '/api/posts/{id}',
+  {
+    params: { path: { id: 999 } }
+  }
+);
 
 if (error?.code === 'RESOURCE_NOT_FOUND') {
   // handle not found

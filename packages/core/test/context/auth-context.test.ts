@@ -4,6 +4,7 @@ import {
   currentAuthSource,
   currentAuthType,
   currentAuthUser,
+  isSystemCall,
   runAs,
   runInAuthContext,
   setAuthContext
@@ -18,6 +19,18 @@ describe('auth-context', () => {
       expect(currentAuthType()).toBeUndefined();
       expect(currentAuthSource()).toBeUndefined();
       expect(currentApiKey()).toBeUndefined();
+    });
+  });
+
+  describe('isSystemCall', () => {
+    test("is true for the application's own calls, outside of an auth context", () => {
+      expect(isSystemCall()).toBe(true);
+    });
+
+    test('is false in a request and in a call run as a user or anonymously', () => {
+      expect(runInAuthContext(() => isSystemCall())).toBe(false);
+      expect(runAs(user, () => isSystemCall())).toBe(false);
+      expect(runAs(null, () => isSystemCall())).toBe(false);
     });
   });
 

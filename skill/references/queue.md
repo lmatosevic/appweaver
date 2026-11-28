@@ -70,7 +70,7 @@ the id of a job still in it (waiting, delayed, running, or a finished job the qu
 existing job, with every driver, so a send can be made idempotent (``{ jobId: `invoice-${id}` }``).
 
 | Parameter | Type              | Description                  |
-|-----------|-------------------|------------------------------|
+| --------- | ----------------- | ---------------------------- |
 | `data`    | `Data`            | Job payload                  |
 | `name`    | `string`          | Optional job name/type label |
 | `options` | `QueueJobOptions` | Job options, see below       |
@@ -78,7 +78,7 @@ existing job, with every driver, so a send can be made idempotent (``{ jobId: `i
 **`QueueJobOptions`** (the same for every queue):
 
 | Field             | Type                                                | Description                                               |
-|-------------------|-----------------------------------------------------|-----------------------------------------------------------|
+| ----------------- | --------------------------------------------------- | --------------------------------------------------------- |
 | `delay`           | `number`                                            | Milliseconds to wait before the job is processed          |
 | `attempts`        | `number`                                            | Attempts, the first one included (`QUEUE_RETRY_ATTEMPTS`) |
 | `backoff`         | `{ type: 'fixed' \| 'exponential'; delay: number }` | Wait between the attempts (`QUEUE_RETRY_BACKOFF*`)        |
@@ -87,7 +87,11 @@ existing job, with every driver, so a send can be made idempotent (``{ jobId: `i
 | `providerOptions` | `Record<string, unknown>`                           | Options of the driver, i.e. the `JobsOptions` of BullMQ   |
 
 ```ts
-const job = await emailQueue.sendJob({ to: 'alice@example.com', template: 'welcome' }, 'welcome', { delay: 60_000 });
+const job = await emailQueue.sendJob(
+  { to: 'alice@example.com', template: 'welcome' },
+  'welcome',
+  { delay: 60_000 }
+);
 ```
 
 #### `processor.sendBulkJobs(jobs)`
@@ -134,7 +138,7 @@ Closes this processor and its workers.
 Each listener registration method returns a listener ID. Pass it to `removeListener` to unsubscribe.
 
 | Method                 | Trigger                                |
-|------------------------|----------------------------------------|
+| ---------------------- | -------------------------------------- |
 | `onCompleted(handler)` | Job finished successfully              |
 | `onFailed(handler)`    | Job failed (BullMQ: every attempt)     |
 | `onError(handler)`     | Worker or queue error                  |
@@ -172,8 +176,12 @@ result (or the error of its last attempt) goes through the `PubSub` on the chann
 the caller without a `PubSub`. Only the results of the waited jobs are published:
 
 ```ts
-const results = new JobResults(reportQueue, 'reports', { toError: (error) => new Error(error.message) });
-const report = await results.wait((jobId) => reportQueue.sendJob(params, 'build', { jobId }));
+const results = new JobResults(reportQueue, 'reports', {
+  toError: (error) => new Error(error.message)
+});
+const report = await results.wait((jobId) =>
+  reportQueue.sendJob(params, 'build', { jobId })
+);
 ```
 
 ---
@@ -203,7 +211,7 @@ processor with `traceQueueSend` and `traceQueueProcess` of `@appweaver/common`.
 ## Configuration
 
 | Key                            | Type     | Default   | Description                                                                                                  |
-|--------------------------------|----------|-----------|--------------------------------------------------------------------------------------------------------------|
+| ------------------------------ | -------- | --------- | ------------------------------------------------------------------------------------------------------------ |
 | `QUEUE_PROVIDER`               | `string` | `'auto'`  | `auto` (`bullmq` with `@appweaver/bullmq`, otherwise `memory`), `memory`, `bullmq`, `none`, or a module path |
 | `QUEUE_KEEP_COMPLETED_COUNT`   | `int`    | `0`       | How many completed jobs to retain (0 = remove all)                                                           |
 | `QUEUE_KEEP_COMPLETED_SECONDS` | `int?`   | -         | How long to retain the completed jobs, in seconds                                                            |
@@ -255,7 +263,10 @@ export class ReportService {
     });
 
     this._processor.onFailed((job, err) => {
-      logger.error(err, `Report generation failed for user ${job?.data.userId}:`);
+      logger.error(
+        err,
+        `Report generation failed for user ${job?.data.userId}:`
+      );
     });
   }
 

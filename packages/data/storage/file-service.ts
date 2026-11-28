@@ -768,6 +768,9 @@ export class FileService implements OnReady, OnDestroy {
     }
 
     const policy = this.getFilePolicy(file.resourceName, file.resourceField);
+    if (arePoliciesSkipped()) {
+      return file;
+    }
 
     if (!identity && policy.accessType !== 'public') {
       throw new FileError(
@@ -801,7 +804,6 @@ export class FileService implements OnReady, OnDestroy {
       );
 
       if (
-        !arePoliciesSkipped() &&
         (await policy.canAccess?.(identity ?? null, resource, file)) === false
       ) {
         throw new FileError(

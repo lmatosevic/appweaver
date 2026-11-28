@@ -29,15 +29,13 @@ cases apart by their `code` instead of parsing messages:
   ],
   "details": {
     "model": "User",
-    "fields": [
-      "email"
-    ]
+    "fields": ["email"]
   }
 }
 ```
 
 | Member      | Description                                                                                                  |
-|-------------|--------------------------------------------------------------------------------------------------------------|
+| ----------- | ------------------------------------------------------------------------------------------------------------ |
 | `type`      | URI of the problem type, the `APP_TYPE_BASE` config (`urn:appweaver`), `error` and the kebab-case code       |
 | `title`     | Short summary of the error code, the same for every occurrence                                               |
 | `status`    | HTTP status code of the response                                                                             |
@@ -80,7 +78,7 @@ Every class extends the abstract `AppweaverError` of `@appweaver/common` and acc
 their prefix:
 
 | Class                | Package             | Codes            | Raised by                                                                                |
-|----------------------|---------------------|------------------|------------------------------------------------------------------------------------------|
+| -------------------- | ------------------- | ---------------- | ---------------------------------------------------------------------------------------- |
 | `RequestError`       | `@appweaver/common` | request codes    | The API layer, or the application for a rejected request                                 |
 | `ConfigurationError` | `@appweaver/common` | `CONFIGURATION_` | Invalid configuration and model definitions                                              |
 | `ApplicationError`   | `@appweaver/common` | any              | The application, with its own codes (see below)                                          |
@@ -105,13 +103,16 @@ their prefix:
 | `SpatialError`       | `@appweaver/common` | `SPATIAL_`       | The geo fields: invalid geometries and spatial filters                                   |
 | `RealtimeError`      | `@appweaver/common` | `REALTIME_`      | The realtime connections: tickets, subscriptions, actions, streams and limits            |
 | `AiError`            | `@appweaver/common` | `AI_`            | The AI models: unknown models, missing capabilities, provider failures, invalid objects  |
-| `McpError`           | `@appweaver/common` | `MCP_`           | The MCP server: denied origins, invalid tool inputs, results too large, rate limits     |
+| `McpError`           | `@appweaver/common` | `MCP_`           | The MCP server: denied origins, invalid tool inputs, results too large, rate limits      |
 
 ```ts
 import { ErrorCode } from '@appweaver/common';
 import { ResourceError } from '@appweaver/common';
 
-throw new ResourceError(ErrorCode.ResourceNotFound, 'Order not found', { model: 'Order', id });
+throw new ResourceError(ErrorCode.ResourceNotFound, 'Order not found', {
+  model: 'Order',
+  id
+});
 ```
 
 The constructor takes the code, the message, the `details` (typed per code by `ErrorDetailsMap`, optional for the codes
@@ -124,164 +125,164 @@ code and narrows the details, `isAppweaverError(error)` recognizes an error of a
 The `ErrorCode` enum of `@appweaver/common` lists every code the framework raises, mapped to its HTTP status by
 `errorHttpMap` of `@appweaver/web`:
 
-| Code                                 | Status | Title                                 |
-|--------------------------------------|--------|---------------------------------------|
-| `INTERNAL_ERROR`                     | 500    | Internal server error                 |
-| `VALIDATION_FAILED`                  | 400    | Validation failed                     |
-| `MALFORMED_REQUEST`                  | 400    | Malformed request                     |
-| `UNSUPPORTED_MEDIA_TYPE`             | 415    | Unsupported media type                |
-| `PAYLOAD_TOO_LARGE`                  | 413    | Payload too large                     |
-| `ROUTE_NOT_FOUND`                    | 404    | Route not found                       |
-| `RATE_LIMITED`                       | 429    | Too many requests                     |
-| `REQUEST_FAILED`                     | 400    | Request failed                        |
-| `CONFIGURATION_INVALID`              | 500    | Invalid configuration                 |
-| `CONTEXT_DEFINITION_MISSING`         | 500    | Missing context definition            |
-| `CONTEXT_DEFINITION_DUPLICATE`       | 500    | Duplicate context definition          |
-| `CONTEXT_SERVER_UNAVAILABLE`         | 500    | Server unavailable                    |
-| `MODULE_INVALID`                     | 500    | Invalid module                        |
-| `MODULE_MISSING`                     | 500    | Missing module                        |
-| `MODULE_DUPLICATE`                   | 500    | Duplicate module                      |
-| `MODULE_INCOMPATIBLE`                | 500    | Incompatible module                   |
-| `MODULE_PROVIDER_MISSING`            | 500    | Missing provider                      |
-| `MODULE_PROVIDER_AMBIGUOUS`          | 500    | Ambiguous provider                    |
-| `DATABASE_UNIQUE_VIOLATION`          | 409    | Unique constraint violation           |
-| `DATABASE_FOREIGN_KEY_VIOLATION`     | 409    | Relation constraint violation         |
-| `DATABASE_NULL_VIOLATION`            | 400    | Required field missing                |
-| `DATABASE_VALUE_TOO_LONG`            | 400    | Value too long                        |
-| `DATABASE_VALUE_OUT_OF_RANGE`        | 400    | Value out of range                    |
-| `DATABASE_INVALID_VALUE`             | 400    | Invalid value                         |
-| `DATABASE_RECORD_NOT_FOUND`          | 404    | Record not found                      |
-| `DATABASE_WRITE_CONFLICT`            | 409    | Write conflict                        |
-| `DATABASE_INVALID_TRANSACTION`       | 500    | Invalid transaction                   |
-| `DATABASE_UNAVAILABLE`               | 503    | Database unavailable                  |
-| `DATABASE_OPERATION_FAILED`          | 500    | Database operation failed             |
-| `RESOURCE_NOT_FOUND`                 | 404    | Resource not found                    |
-| `RESOURCE_FORBIDDEN`                 | 403    | Resource access forbidden             |
-| `RESOURCE_INVALID_SORT`              | 400    | Invalid sort                          |
-| `RESOURCE_FILTER_TOO_COMPLEX`        | 400    | Filter too complex                    |
-| `RESOURCE_INVALID_AGGREGATE`         | 400    | Invalid aggregation                   |
-| `RESOURCE_INVALID_CURSOR`            | 400    | Invalid pagination cursor             |
-| `RESOURCE_OFFSET_TOO_LARGE`          | 400    | Page offset too large                 |
-| `RESOURCE_INVALID_QUERY_PARAMETER`   | 400    | Invalid query parameter               |
-| `RESOURCE_INVALID_RELATION`          | 400    | Invalid relation                      |
-| `RESOURCE_DELETE_RESTRICTED`         | 409    | Delete restricted                     |
-| `AUTH_UNAUTHORIZED`                  | 401    | Unauthorized                          |
-| `AUTH_INVALID_CREDENTIALS`           | 401    | Invalid credentials                   |
-| `AUTH_INVALID_HEADER`                | 401    | Invalid authorization header          |
-| `AUTH_INVALID_TOKEN`                 | 401    | Invalid token                         |
-| `AUTH_TOKEN_EXPIRED`                 | 401    | Token expired                         |
-| `AUTH_FORBIDDEN`                     | 403    | Forbidden                             |
-| `AUTH_SCOPE_FORBIDDEN`               | 403    | Token scope forbidden                 |
-| `AUTH_USER_NOT_FOUND`                | 400    | User not found or disabled            |
-| `AUTH_PASSWORD_DISABLED`             | 403    | Password authentication disabled      |
-| `AUTH_PASSWORD_INVALID`              | 403    | Invalid password                      |
-| `AUTH_PASSWORD_WEAK`                 | 400    | Password too weak                     |
-| `AUTH_PASSWORD_REQUIRED`             | 401    | Password confirmation required        |
-| `AUTH_API_KEY_MISSING`               | 401    | API key missing                       |
-| `AUTH_API_KEY_INVALID`               | 401    | Invalid API key                       |
-| `AUTH_API_KEY_EXPIRED`               | 403    | API key expired                       |
-| `AUTH_API_KEY_PERMISSION_DENIED`     | 403    | API key permission denied             |
-| `AUTH_PROXY_AUTHENTICATION_REQUIRED` | 407    | Proxy authentication required         |
-| `AUTH_INVALID_REDIRECT_URL`          | 400    | Invalid redirect URL                  |
-| `ACCOUNT_FEATURE_UNAVAILABLE`        | 501    | Account feature unavailable           |
-| `ACCOUNT_EMAIL_ALREADY_VERIFIED`     | 409    | Email already verified                |
-| `ACCOUNT_PASSWORD_NOT_SET`           | 403    | Password not set                      |
-| `ACCOUNT_EMAIL_NOT_VERIFIED`         | 403    | Email not verified                    |
-| `ACCOUNT_PHONE_NOT_VERIFIED`         | 403    | Phone number not verified             |
-| `ACCOUNT_PHONE_ALREADY_VERIFIED`     | 409    | Phone number already verified         |
-| `ACCOUNT_PHONE_NOT_SET`              | 400    | Phone number not set                  |
-| `ACCOUNT_2FA_METHOD_UNAVAILABLE`     | 400    | 2FA method unavailable                |
-| `ACCOUNT_2FA_METHOD_NOT_ENABLED`     | 400    | 2FA method not enabled                |
-| `ACCOUNT_2FA_METHOD_ALREADY_ENABLED` | 409    | 2FA method already enabled            |
-| `ACCOUNT_2FA_CODE_INVALID`           | 400    | Invalid 2FA code                      |
-| `ACCOUNT_2FA_TOO_MANY_ATTEMPTS`      | 429    | Too many 2FA attempts                 |
-| `OAUTH2_PROVIDER_ERROR`              | 502    | OAuth2 provider error                 |
-| `OAUTH2_EMAIL_UNAVAILABLE`           | 403    | OAuth2 email unavailable              |
-| `OAUTH2_EMAIL_UNVERIFIED`            | 403    | OAuth2 email unverified               |
-| `OAUTH2_REGISTRATION_DISABLED`       | 403    | OAuth2 registration disabled          |
-| `OAUTH2_ACCOUNT_CONFLICT`            | 409    | OAuth2 account linked to another user |
-| `OAUTH2_USER_REJECTED`               | 403    | OAuth2 user rejected                  |
-| `RECAPTCHA_MISSING`                  | 400    | reCAPTCHA missing                     |
-| `RECAPTCHA_INVALID`                  | 400    | Invalid reCAPTCHA                     |
-| `RECAPTCHA_ACTION_MISMATCH`          | 403    | reCAPTCHA action mismatch             |
-| `RECAPTCHA_LOW_SCORE`                | 403    | reCAPTCHA low score                   |
-| `RECAPTCHA_UNAVAILABLE`              | 502    | reCAPTCHA unavailable                 |
-| `TURNSTILE_MISSING`                  | 400    | Turnstile missing                     |
-| `TURNSTILE_INVALID`                  | 400    | Invalid Turnstile                     |
-| `TURNSTILE_ACTION_MISMATCH`          | 403    | Turnstile action mismatch             |
-| `TURNSTILE_UNAVAILABLE`              | 502    | Turnstile unavailable                 |
-| `FILE_NOT_FOUND`                     | 404    | File not found                        |
-| `FILE_FORBIDDEN`                     | 403    | File access forbidden                 |
-| `FILE_FIELD_NOT_FOUND`               | 400    | File field not found                  |
-| `FILE_UNSUPPORTED_TYPE`              | 415    | Unsupported file type                 |
-| `FILE_TOO_LARGE`                     | 413    | File too large                        |
-| `FILE_LIMIT_EXCEEDED`                | 400    | File limit exceeded                   |
-| `FILE_INVALID_PATH`                  | 400    | Invalid file path                     |
-| `FILE_NONE_PROVIDED`                 | 400    | No files provided                     |
-| `FILE_UPLOAD_FAILED`                 | 400    | File upload failed                    |
-| `FILE_DELETE_FAILED`                 | 400    | File delete failed                    |
-| `FILE_STORAGE_ERROR`                 | 500    | File storage error                    |
-| `FILE_VERSION_NOT_FOUND`             | 404    | File version not found                |
-| `FILE_VERSIONING_DISABLED`           | 400    | File versioning disabled              |
-| `FILE_REPLACE_TARGET_INVALID`        | 400    | Invalid file to replace               |
-| `EXPORT_FAILED`                      | 500    | Export failed                         |
-| `QUEUE_CLOSED`                       | 503    | Queue closed                          |
-| `QUEUE_UNAVAILABLE`                  | 503    | Queue unavailable                     |
-| `MAILER_SEND_FAILED`                 | 502    | Email sending failed                  |
-| `MAILER_SENDER_MISSING`              | 500    | Email sender missing                  |
-| `SMS_SEND_FAILED`                    | 502    | SMS sending failed                    |
-| `TEMPLATE_NOT_FOUND`                 | 500    | Template not found                    |
-| `TEMPLATE_RENDER_FAILED`             | 500    | Template rendering failed             |
-| `TEMPLATE_LOAD_FAILED`               | 500    | Template loading failed               |
-| `TEMPLATE_PREVIEW_NOT_FOUND`         | 404    | Template preview not found            |
-| `LOCALE_LOAD_FAILED`                 | 500    | Locale loading failed                 |
-| `LOCK_NOT_ACQUIRED`                  | 503    | Resource is locked                    |
-| `MEMORY_UNAVAILABLE`                 | 503    | Memory unavailable                    |
-| `TIMESERIES_NOT_ENABLED`             | 404    | Time series not enabled               |
-| `TIMESERIES_INVALID_FIELD`           | 400    | Invalid time series field             |
-| `TIMESERIES_INVALID_VALUE`           | 400    | Invalid time series value             |
-| `TIMESERIES_INVALID_TIME`            | 400    | Invalid time series point time        |
-| `TIMESERIES_INVALID_RANGE`           | 400    | Invalid time series range             |
-| `TIMESERIES_INVALID_BUCKET`          | 400    | Invalid time series bucket            |
-| `TIMESERIES_INVALID_AGGREGATE`       | 400    | Invalid time series aggregate         |
-| `TIMESERIES_TOO_MANY_POINTS`         | 413    | Too many time series points           |
-| `TIMESERIES_TOO_MANY_RESOURCES`      | 400    | Too many time series resources        |
-| `TIMESERIES_FORBIDDEN`               | 403    | Time series access forbidden          |
-| `TIMESERIES_UNSUPPORTED`             | 501    | Time series operation not supported   |
-| `SPATIAL_INVALID_GEOMETRY`           | 400    | Invalid geometry                      |
-| `SPATIAL_INVALID_FILTER`             | 400    | Invalid spatial filter                |
-| `SPATIAL_TOO_MANY_CANDIDATES`        | 400    | Too many spatial matches              |
-| `REALTIME_TICKET_INVALID`            | 401    | Invalid realtime ticket               |
-| `REALTIME_CHANNEL_UNKNOWN`           | 404    | Unknown realtime channel              |
-| `REALTIME_SUBSCRIPTION_DENIED`       | 403    | Realtime subscription denied          |
-| `REALTIME_SUBSCRIPTION_LIMIT`        | 429    | Too many realtime subscriptions       |
-| `REALTIME_ACTION_UNKNOWN`            | 404    | Unknown realtime action               |
-| `REALTIME_ACTION_DENIED`             | 403    | Realtime action denied                |
-| `REALTIME_PAYLOAD_INVALID`           | 400    | Invalid realtime payload              |
-| `REALTIME_MESSAGE_INVALID`           | 400    | Invalid realtime message              |
-| `REALTIME_CONNECTION_LIMIT`          | 429    | Too many realtime connections         |
-| `REALTIME_RATE_LIMITED`              | 429    | Realtime messages rate limited        |
-| `REALTIME_TRANSPORT_DISABLED`        | 404    | Realtime transport disabled           |
-| `REALTIME_STREAM_NOT_FOUND`          | 404    | Realtime stream not found             |
-| `REALTIME_STREAM_ENDED`              | 409    | Realtime stream ended                 |
-| `REALTIME_STREAM_LOST`               | 503    | Realtime stream lost                  |
-| `REALTIME_STREAM_ACCEPT`             | 406    | Realtime stream not accepted          |
-| `REALTIME_INPUT_LIMIT`               | 413    | Realtime input too large              |
-| `REALTIME_SHUTTING_DOWN`             | 503    | Realtime server shutting down         |
-| `AI_MODEL_UNKNOWN`                   | 500    | AI model unknown                      |
-| `AI_REQUEST_INVALID`                 | 400    | Invalid AI request                    |
+| Code                                 | Status | Title                                    |
+| ------------------------------------ | ------ | ---------------------------------------- |
+| `INTERNAL_ERROR`                     | 500    | Internal server error                    |
+| `VALIDATION_FAILED`                  | 400    | Validation failed                        |
+| `MALFORMED_REQUEST`                  | 400    | Malformed request                        |
+| `UNSUPPORTED_MEDIA_TYPE`             | 415    | Unsupported media type                   |
+| `PAYLOAD_TOO_LARGE`                  | 413    | Payload too large                        |
+| `ROUTE_NOT_FOUND`                    | 404    | Route not found                          |
+| `RATE_LIMITED`                       | 429    | Too many requests                        |
+| `REQUEST_FAILED`                     | 400    | Request failed                           |
+| `CONFIGURATION_INVALID`              | 500    | Invalid configuration                    |
+| `CONTEXT_DEFINITION_MISSING`         | 500    | Missing context definition               |
+| `CONTEXT_DEFINITION_DUPLICATE`       | 500    | Duplicate context definition             |
+| `CONTEXT_SERVER_UNAVAILABLE`         | 500    | Server unavailable                       |
+| `MODULE_INVALID`                     | 500    | Invalid module                           |
+| `MODULE_MISSING`                     | 500    | Missing module                           |
+| `MODULE_DUPLICATE`                   | 500    | Duplicate module                         |
+| `MODULE_INCOMPATIBLE`                | 500    | Incompatible module                      |
+| `MODULE_PROVIDER_MISSING`            | 500    | Missing provider                         |
+| `MODULE_PROVIDER_AMBIGUOUS`          | 500    | Ambiguous provider                       |
+| `DATABASE_UNIQUE_VIOLATION`          | 409    | Unique constraint violation              |
+| `DATABASE_FOREIGN_KEY_VIOLATION`     | 409    | Relation constraint violation            |
+| `DATABASE_NULL_VIOLATION`            | 400    | Required field missing                   |
+| `DATABASE_VALUE_TOO_LONG`            | 400    | Value too long                           |
+| `DATABASE_VALUE_OUT_OF_RANGE`        | 400    | Value out of range                       |
+| `DATABASE_INVALID_VALUE`             | 400    | Invalid value                            |
+| `DATABASE_RECORD_NOT_FOUND`          | 404    | Record not found                         |
+| `DATABASE_WRITE_CONFLICT`            | 409    | Write conflict                           |
+| `DATABASE_INVALID_TRANSACTION`       | 500    | Invalid transaction                      |
+| `DATABASE_UNAVAILABLE`               | 503    | Database unavailable                     |
+| `DATABASE_OPERATION_FAILED`          | 500    | Database operation failed                |
+| `RESOURCE_NOT_FOUND`                 | 404    | Resource not found                       |
+| `RESOURCE_FORBIDDEN`                 | 403    | Resource access forbidden                |
+| `RESOURCE_INVALID_SORT`              | 400    | Invalid sort                             |
+| `RESOURCE_FILTER_TOO_COMPLEX`        | 400    | Filter too complex                       |
+| `RESOURCE_INVALID_AGGREGATE`         | 400    | Invalid aggregation                      |
+| `RESOURCE_INVALID_CURSOR`            | 400    | Invalid pagination cursor                |
+| `RESOURCE_OFFSET_TOO_LARGE`          | 400    | Page offset too large                    |
+| `RESOURCE_INVALID_QUERY_PARAMETER`   | 400    | Invalid query parameter                  |
+| `RESOURCE_INVALID_RELATION`          | 400    | Invalid relation                         |
+| `RESOURCE_DELETE_RESTRICTED`         | 409    | Delete restricted                        |
+| `AUTH_UNAUTHORIZED`                  | 401    | Unauthorized                             |
+| `AUTH_INVALID_CREDENTIALS`           | 401    | Invalid credentials                      |
+| `AUTH_INVALID_HEADER`                | 401    | Invalid authorization header             |
+| `AUTH_INVALID_TOKEN`                 | 401    | Invalid token                            |
+| `AUTH_TOKEN_EXPIRED`                 | 401    | Token expired                            |
+| `AUTH_FORBIDDEN`                     | 403    | Forbidden                                |
+| `AUTH_SCOPE_FORBIDDEN`               | 403    | Token scope forbidden                    |
+| `AUTH_USER_NOT_FOUND`                | 400    | User not found or disabled               |
+| `AUTH_PASSWORD_DISABLED`             | 403    | Password authentication disabled         |
+| `AUTH_PASSWORD_INVALID`              | 403    | Invalid password                         |
+| `AUTH_PASSWORD_WEAK`                 | 400    | Password too weak                        |
+| `AUTH_PASSWORD_REQUIRED`             | 401    | Password confirmation required           |
+| `AUTH_API_KEY_MISSING`               | 401    | API key missing                          |
+| `AUTH_API_KEY_INVALID`               | 401    | Invalid API key                          |
+| `AUTH_API_KEY_EXPIRED`               | 403    | API key expired                          |
+| `AUTH_API_KEY_PERMISSION_DENIED`     | 403    | API key permission denied                |
+| `AUTH_PROXY_AUTHENTICATION_REQUIRED` | 407    | Proxy authentication required            |
+| `AUTH_INVALID_REDIRECT_URL`          | 400    | Invalid redirect URL                     |
+| `ACCOUNT_FEATURE_UNAVAILABLE`        | 501    | Account feature unavailable              |
+| `ACCOUNT_EMAIL_ALREADY_VERIFIED`     | 409    | Email already verified                   |
+| `ACCOUNT_PASSWORD_NOT_SET`           | 403    | Password not set                         |
+| `ACCOUNT_EMAIL_NOT_VERIFIED`         | 403    | Email not verified                       |
+| `ACCOUNT_PHONE_NOT_VERIFIED`         | 403    | Phone number not verified                |
+| `ACCOUNT_PHONE_ALREADY_VERIFIED`     | 409    | Phone number already verified            |
+| `ACCOUNT_PHONE_NOT_SET`              | 400    | Phone number not set                     |
+| `ACCOUNT_2FA_METHOD_UNAVAILABLE`     | 400    | 2FA method unavailable                   |
+| `ACCOUNT_2FA_METHOD_NOT_ENABLED`     | 400    | 2FA method not enabled                   |
+| `ACCOUNT_2FA_METHOD_ALREADY_ENABLED` | 409    | 2FA method already enabled               |
+| `ACCOUNT_2FA_CODE_INVALID`           | 400    | Invalid 2FA code                         |
+| `ACCOUNT_2FA_TOO_MANY_ATTEMPTS`      | 429    | Too many 2FA attempts                    |
+| `OAUTH2_PROVIDER_ERROR`              | 502    | OAuth2 provider error                    |
+| `OAUTH2_EMAIL_UNAVAILABLE`           | 403    | OAuth2 email unavailable                 |
+| `OAUTH2_EMAIL_UNVERIFIED`            | 403    | OAuth2 email unverified                  |
+| `OAUTH2_REGISTRATION_DISABLED`       | 403    | OAuth2 registration disabled             |
+| `OAUTH2_ACCOUNT_CONFLICT`            | 409    | OAuth2 account linked to another user    |
+| `OAUTH2_USER_REJECTED`               | 403    | OAuth2 user rejected                     |
+| `RECAPTCHA_MISSING`                  | 400    | reCAPTCHA missing                        |
+| `RECAPTCHA_INVALID`                  | 400    | Invalid reCAPTCHA                        |
+| `RECAPTCHA_ACTION_MISMATCH`          | 403    | reCAPTCHA action mismatch                |
+| `RECAPTCHA_LOW_SCORE`                | 403    | reCAPTCHA low score                      |
+| `RECAPTCHA_UNAVAILABLE`              | 502    | reCAPTCHA unavailable                    |
+| `TURNSTILE_MISSING`                  | 400    | Turnstile missing                        |
+| `TURNSTILE_INVALID`                  | 400    | Invalid Turnstile                        |
+| `TURNSTILE_ACTION_MISMATCH`          | 403    | Turnstile action mismatch                |
+| `TURNSTILE_UNAVAILABLE`              | 502    | Turnstile unavailable                    |
+| `FILE_NOT_FOUND`                     | 404    | File not found                           |
+| `FILE_FORBIDDEN`                     | 403    | File access forbidden                    |
+| `FILE_FIELD_NOT_FOUND`               | 400    | File field not found                     |
+| `FILE_UNSUPPORTED_TYPE`              | 415    | Unsupported file type                    |
+| `FILE_TOO_LARGE`                     | 413    | File too large                           |
+| `FILE_LIMIT_EXCEEDED`                | 400    | File limit exceeded                      |
+| `FILE_INVALID_PATH`                  | 400    | Invalid file path                        |
+| `FILE_NONE_PROVIDED`                 | 400    | No files provided                        |
+| `FILE_UPLOAD_FAILED`                 | 400    | File upload failed                       |
+| `FILE_DELETE_FAILED`                 | 400    | File delete failed                       |
+| `FILE_STORAGE_ERROR`                 | 500    | File storage error                       |
+| `FILE_VERSION_NOT_FOUND`             | 404    | File version not found                   |
+| `FILE_VERSIONING_DISABLED`           | 400    | File versioning disabled                 |
+| `FILE_REPLACE_TARGET_INVALID`        | 400    | Invalid file to replace                  |
+| `EXPORT_FAILED`                      | 500    | Export failed                            |
+| `QUEUE_CLOSED`                       | 503    | Queue closed                             |
+| `QUEUE_UNAVAILABLE`                  | 503    | Queue unavailable                        |
+| `MAILER_SEND_FAILED`                 | 502    | Email sending failed                     |
+| `MAILER_SENDER_MISSING`              | 500    | Email sender missing                     |
+| `SMS_SEND_FAILED`                    | 502    | SMS sending failed                       |
+| `TEMPLATE_NOT_FOUND`                 | 500    | Template not found                       |
+| `TEMPLATE_RENDER_FAILED`             | 500    | Template rendering failed                |
+| `TEMPLATE_LOAD_FAILED`               | 500    | Template loading failed                  |
+| `TEMPLATE_PREVIEW_NOT_FOUND`         | 404    | Template preview not found               |
+| `LOCALE_LOAD_FAILED`                 | 500    | Locale loading failed                    |
+| `LOCK_NOT_ACQUIRED`                  | 503    | Resource is locked                       |
+| `MEMORY_UNAVAILABLE`                 | 503    | Memory unavailable                       |
+| `TIMESERIES_NOT_ENABLED`             | 404    | Time series not enabled                  |
+| `TIMESERIES_INVALID_FIELD`           | 400    | Invalid time series field                |
+| `TIMESERIES_INVALID_VALUE`           | 400    | Invalid time series value                |
+| `TIMESERIES_INVALID_TIME`            | 400    | Invalid time series point time           |
+| `TIMESERIES_INVALID_RANGE`           | 400    | Invalid time series range                |
+| `TIMESERIES_INVALID_BUCKET`          | 400    | Invalid time series bucket               |
+| `TIMESERIES_INVALID_AGGREGATE`       | 400    | Invalid time series aggregate            |
+| `TIMESERIES_TOO_MANY_POINTS`         | 413    | Too many time series points              |
+| `TIMESERIES_TOO_MANY_RESOURCES`      | 400    | Too many time series resources           |
+| `TIMESERIES_FORBIDDEN`               | 403    | Time series access forbidden             |
+| `TIMESERIES_UNSUPPORTED`             | 501    | Time series operation not supported      |
+| `SPATIAL_INVALID_GEOMETRY`           | 400    | Invalid geometry                         |
+| `SPATIAL_INVALID_FILTER`             | 400    | Invalid spatial filter                   |
+| `SPATIAL_TOO_MANY_CANDIDATES`        | 400    | Too many spatial matches                 |
+| `REALTIME_TICKET_INVALID`            | 401    | Invalid realtime ticket                  |
+| `REALTIME_CHANNEL_UNKNOWN`           | 404    | Unknown realtime channel                 |
+| `REALTIME_SUBSCRIPTION_DENIED`       | 403    | Realtime subscription denied             |
+| `REALTIME_SUBSCRIPTION_LIMIT`        | 429    | Too many realtime subscriptions          |
+| `REALTIME_ACTION_UNKNOWN`            | 404    | Unknown realtime action                  |
+| `REALTIME_ACTION_DENIED`             | 403    | Realtime action denied                   |
+| `REALTIME_PAYLOAD_INVALID`           | 400    | Invalid realtime payload                 |
+| `REALTIME_MESSAGE_INVALID`           | 400    | Invalid realtime message                 |
+| `REALTIME_CONNECTION_LIMIT`          | 429    | Too many realtime connections            |
+| `REALTIME_RATE_LIMITED`              | 429    | Realtime messages rate limited           |
+| `REALTIME_TRANSPORT_DISABLED`        | 404    | Realtime transport disabled              |
+| `REALTIME_STREAM_NOT_FOUND`          | 404    | Realtime stream not found                |
+| `REALTIME_STREAM_ENDED`              | 409    | Realtime stream ended                    |
+| `REALTIME_STREAM_LOST`               | 503    | Realtime stream lost                     |
+| `REALTIME_STREAM_ACCEPT`             | 406    | Realtime stream not accepted             |
+| `REALTIME_INPUT_LIMIT`               | 413    | Realtime input too large                 |
+| `REALTIME_SHUTTING_DOWN`             | 503    | Realtime server shutting down            |
+| `AI_MODEL_UNKNOWN`                   | 500    | AI model unknown                         |
+| `AI_REQUEST_INVALID`                 | 400    | Invalid AI request                       |
 | `AI_CAPABILITY_UNSUPPORTED`          | 400    | AI capability not supported by the model |
-| `AI_REQUEST_FAILED`                  | 502    | AI request failed                     |
-| `AI_AUTH_FAILED`                     | 502    | AI provider authentication failed     |
-| `AI_RATE_LIMITED`                    | 429    | AI provider rate limited              |
-| `AI_TIMEOUT`                         | 504    | AI request timed out                  |
-| `AI_PROVIDER_UNAVAILABLE`            | 503    | AI provider unavailable               |
-| `AI_CONTEXT_LENGTH_EXCEEDED`         | 422    | AI context length exceeded            |
-| `AI_OUTPUT_INVALID`                  | 502    | Invalid AI model output               |
-| `MCP_ORIGIN_DENIED`                  | 403    | MCP origin denied                     |
-| `MCP_INPUT_INVALID`                  | 400    | Invalid MCP tool input                |
-| `MCP_RESULT_TOO_LARGE`               | 413    | MCP tool result too large             |
-| `MCP_RATE_LIMITED`                   | 429    | MCP rate limit exceeded               |
+| `AI_REQUEST_FAILED`                  | 502    | AI request failed                        |
+| `AI_AUTH_FAILED`                     | 502    | AI provider authentication failed        |
+| `AI_RATE_LIMITED`                    | 429    | AI provider rate limited                 |
+| `AI_TIMEOUT`                         | 504    | AI request timed out                     |
+| `AI_PROVIDER_UNAVAILABLE`            | 503    | AI provider unavailable                  |
+| `AI_CONTEXT_LENGTH_EXCEEDED`         | 422    | AI context length exceeded               |
+| `AI_OUTPUT_INVALID`                  | 502    | Invalid AI model output                  |
+| `MCP_ORIGIN_DENIED`                  | 403    | MCP origin denied                        |
+| `MCP_INPUT_INVALID`                  | 400    | Invalid MCP tool input                   |
+| `MCP_RESULT_TOO_LARGE`               | 413    | MCP tool result too large                |
+| `MCP_RATE_LIMITED`                   | 429    | MCP rate limit exceeded                  |
 
 `REQUEST_FAILED` keeps the 4xx status of an error a Fastify plugin raised with no code of its own.
 
@@ -299,9 +300,19 @@ export default createService({
   modelName: 'Position',
   beforeCreate: (data) => {
     if (data.salaryMin > data.salaryMax) {
-      throw new RequestError(ErrorCode.ValidationFailed, 'salaryMin cannot exceed salaryMax', {
-        errors: [{ field: 'salaryMin', rule: 'max', message: 'cannot exceed salaryMax' }]
-      });
+      throw new RequestError(
+        ErrorCode.ValidationFailed,
+        'salaryMin cannot exceed salaryMax',
+        {
+          errors: [
+            {
+              field: 'salaryMin',
+              rule: 'max',
+              message: 'cannot exceed salaryMax'
+            }
+          ]
+        }
+      );
     }
   }
 });
@@ -310,10 +321,14 @@ export const policy = createPolicy({
   modelName: 'User',
   writeRestrictions: (user, data, action) => {
     if (user && data.id !== user.id) {
-      throw new ResourceError(ErrorCode.ResourceForbidden, 'Only the own profile can be changed', {
-        model: 'User',
-        action
-      });
+      throw new ResourceError(
+        ErrorCode.ResourceForbidden,
+        'Only the own profile can be changed',
+        {
+          model: 'User',
+          action
+        }
+      );
     }
     return null;
   }
@@ -358,9 +373,13 @@ export const ShopErrors = defineErrors({
 import { ApplicationError } from '@appweaver/common';
 import { ShopErrors } from '@/errors';
 
-throw new ApplicationError(ShopErrors.OutOfStock, `Only ${product.stock} left of ${product.name}`, {
-  productId: product.id
-});
+throw new ApplicationError(
+  ShopErrors.OutOfStock,
+  `Only ${product.stock} left of ${product.name}`,
+  {
+    productId: product.id
+  }
+);
 ```
 
 A name not in PascalCase, a name or a code of the framework, one registered again with another mapping, or a status
@@ -382,14 +401,22 @@ import { errorResponses, registerRoute } from '@appweaver/web';
 import { ShopErrors } from '@/errors';
 
 registerRoute((router) => {
-  router.post('/checkout', {
-    schema: {
-      response: {
-        201: Type.Ref('OrderSingle'),
-        ...errorResponses(ShopErrors.OutOfStock, ShopErrors.CouponInvalid, ErrorCode.ResourceNotFound)
+  router.post(
+    '/checkout',
+    {
+      schema: {
+        response: {
+          201: Type.Ref('OrderSingle'),
+          ...errorResponses(
+            ShopErrors.OutOfStock,
+            ShopErrors.CouponInvalid,
+            ErrorCode.ResourceNotFound
+          )
+        }
       }
-    }
-  }, handler);
+    },
+    handler
+  );
 });
 ```
 

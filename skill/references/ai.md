@@ -23,15 +23,31 @@ npm install @appweaver/ai @appweaver/openai   # or: weaver module add ai
     "ai": {
       "endpoints": {
         "local": { "preset": "ollama" },
-        "openrouter": { "preset": "openrouter", "apiKey": "${OPENROUTER_API_KEY}" }
+        "openrouter": {
+          "preset": "openrouter",
+          "apiKey": "${OPENROUTER_API_KEY}"
+        }
       },
       "defaultModel": "openrouter:openai/gpt-4o-mini",
-      "aliases": { "fast": "openrouter:openai/gpt-4o-mini", "smart": ["openrouter:anthropic/claude-sonnet-4.5", "local:qwen3:14b"] }
+      "aliases": {
+        "fast": "openrouter:openai/gpt-4o-mini",
+        "smart": ["openrouter:anthropic/claude-sonnet-4.5", "local:qwen3:14b"]
+      }
     }
   },
   "environments": {
-    "dev": { "ai": { "defaultModel": "local:qwen3:8b", "aliases": { "fast": "local:qwen3:8b", "smart": "local:qwen3:14b" } } },
-    "test": { "ai": { "defaultModel": "mock:echo", "aliases": { "fast": "mock:echo", "smart": "mock:echo" } } }
+    "dev": {
+      "ai": {
+        "defaultModel": "local:qwen3:8b",
+        "aliases": { "fast": "local:qwen3:8b", "smart": "local:qwen3:14b" }
+      }
+    },
+    "test": {
+      "ai": {
+        "defaultModel": "mock:echo",
+        "aliases": { "fast": "mock:echo", "smart": "mock:echo" }
+      }
+    }
   }
 }
 ```
@@ -40,14 +56,14 @@ Each endpoint property is also a variable, `AI_ENDPOINTS_<NAME>_<PROPERTY>` (`AI
 endpoint without `apiKey` reads its preset's variable. Startup fails when a default model or alias names an unknown
 endpoint.
 
-| Preset                                    | Base URL                                 | API key variable                 |
-|-------------------------------------------|------------------------------------------|----------------------------------|
-| `openai`                                  | `https://api.openai.com/v1`              | `OPENAI_API_KEY`                 |
-| `openrouter`                              | `https://openrouter.ai/api/v1`           | `OPENROUTER_API_KEY`             |
-| `ollama`, `lmstudio`, `vllm`, `llamacpp`  | `localhost` on 11434, 1234, 8000, 8080   | `OLLAMA_API_KEY`, `VLLM_API_KEY` |
-| `litellm`                                 | `http://localhost:4000/v1`               | `LITELLM_API_KEY`                |
-| `groq`, `together`, `fireworks`, `deepseek`, `mistral`, `xai`, `gemini`, `huggingface` | their APIs | `<NAME>_API_KEY`, `HF_TOKEN` |
-| `mock`                                    | -                                        | -                                |
+| Preset                                                                                 | Base URL                               | API key variable                 |
+| -------------------------------------------------------------------------------------- | -------------------------------------- | -------------------------------- |
+| `openai`                                                                               | `https://api.openai.com/v1`            | `OPENAI_API_KEY`                 |
+| `openrouter`                                                                           | `https://openrouter.ai/api/v1`         | `OPENROUTER_API_KEY`             |
+| `ollama`, `lmstudio`, `vllm`, `llamacpp`                                               | `localhost` on 11434, 1234, 8000, 8080 | `OLLAMA_API_KEY`, `VLLM_API_KEY` |
+| `litellm`                                                                              | `http://localhost:4000/v1`             | `LITELLM_API_KEY`                |
+| `groq`, `together`, `fireworks`, `deepseek`, `mistral`, `xai`, `gemini`, `huggingface` | their APIs                             | `<NAME>_API_KEY`, `HF_TOKEN`     |
+| `mock`                                                                                 | -                                      | -                                |
 
 Any other server sets its `baseUrl` (the `openai` driver is the default). A call needing a capability the endpoint lacks
 (`tools`, `json`, `json-schema`, `images`, `files`, `reasoning`, `embeddings`) fails with `AI_CAPABILITY_UNSUPPORTED`
@@ -56,7 +72,7 @@ before it is sent; set `capabilities` on the endpoint to correct the preset.
 ## AiService
 
 | Method                                  | Returns                   |
-|-----------------------------------------|---------------------------|
+| --------------------------------------- | ------------------------- |
 | `generate(prompt)`                      | `Promise<AiResult>`       |
 | `stream(prompt)`                        | `AiStream`                |
 | `generateObject({ ...prompt, schema })` | `Promise<AiObjectResult>` |
@@ -71,9 +87,9 @@ before it is sent; set `capabilities` on the endpoint to correct the preset.
 ```ts
 const ai = inject(AiService);
 const { text, usage, messages } = await ai.generate({
-  model: 'fast',                  // an alias or a reference, default: ai.defaultModel
+  model: 'fast', // an alias or a reference, default: ai.defaultModel
   system: 'Summarize in one sentence.',
-  prompt: ticket.body,            // the user message, after `messages`
+  prompt: ticket.body, // the user message, after `messages`
   messages: history,
   maxTokens: 200,
   temperature: 0.2,
@@ -94,22 +110,30 @@ An `AiStream` is read once: iterate it (text deltas), its `parts()` (`text-delta
 `tool-result`, `finish`) or `text()`. `result` resolves once it ends, `abort()` aborts the call.
 
 ```ts
-for await (const text of ai.stream({ prompt: question, signal })) process.stdout.write(text);
+for await (const text of ai.stream({ prompt: question, signal }))
+  process.stdout.write(text);
 
-createRealtimeAction({                // a streaming action returns the stream as it is
+createRealtimeAction({
+  // a streaming action returns the stream as it is
   name: 'assistant.ask',
   payload: Type.Object({ question: Type.String() }),
   stream: { codec: 'text' },
-  handler: ({ question }, { signal }) => inject(AiService).stream({ prompt: question, signal })
+  handler: ({ question }, { signal }) =>
+    inject(AiService).stream({ prompt: question, signal })
 });
 await pipeAiStream(ai.stream({ prompt }), roomAnswer.open(roomId)); // into a stream of createStream
-reply.header('content-type', 'text/event-stream').send(aiEventStream(ai.stream({ prompt }))); // SSE over HTTP
+reply
+  .header('content-type', 'text/event-stream')
+  .send(aiEventStream(ai.stream({ prompt }))); // SSE over HTTP
 ```
 
 ### Objects and classification
 
 ```ts
-const { object } = await ai.generateObject({ prompt: ticket.body, schema: TicketTriage });
+const { object } = await ai.generateObject({
+  prompt: ticket.body,
+  schema: TicketTriage
+});
 const label = await ai.classify(ticket.body, ['bug', 'billing', 'question']);
 ```
 
@@ -148,18 +172,18 @@ retries; `generateQueued` gets the result through the `PubSub`. `streamQueued` r
 
 ## Errors
 
-| Code                         | Status | When                                                                    |
-|------------------------------|--------|-------------------------------------------------------------------------|
-| `AI_MODEL_UNKNOWN`           | 500    | No model, an unknown alias or endpoint, an invalid reference           |
-| `AI_REQUEST_INVALID`         | 400    | No messages, an unknown tool name, functions in a queued prompt         |
-| `AI_CAPABILITY_UNSUPPORTED`  | 400    | The model lacks a needed capability (`details.capability`)              |
-| `AI_REQUEST_FAILED`          | 502    | The endpoint rejected the request                                       |
-| `AI_AUTH_FAILED`             | 502    | The endpoint rejected the API key                                       |
-| `AI_RATE_LIMITED`            | 429    | Rate limited (`details.retryAfter`)                                     |
-| `AI_TIMEOUT`                 | 504    | The request timed out                                                   |
-| `AI_PROVIDER_UNAVAILABLE`    | 503    | Unreachable, or a server error                                          |
-| `AI_CONTEXT_LENGTH_EXCEEDED` | 422    | The messages exceed the model's context                                 |
-| `AI_OUTPUT_INVALID`          | 502    | The object does not match the schema after the repairs                  |
+| Code                         | Status | When                                                            |
+| ---------------------------- | ------ | --------------------------------------------------------------- |
+| `AI_MODEL_UNKNOWN`           | 500    | No model, an unknown alias or endpoint, an invalid reference    |
+| `AI_REQUEST_INVALID`         | 400    | No messages, an unknown tool name, functions in a queued prompt |
+| `AI_CAPABILITY_UNSUPPORTED`  | 400    | The model lacks a needed capability (`details.capability`)      |
+| `AI_REQUEST_FAILED`          | 502    | The endpoint rejected the request                               |
+| `AI_AUTH_FAILED`             | 502    | The endpoint rejected the API key                               |
+| `AI_RATE_LIMITED`            | 429    | Rate limited (`details.retryAfter`)                             |
+| `AI_TIMEOUT`                 | 504    | The request timed out                                           |
+| `AI_PROVIDER_UNAVAILABLE`    | 503    | Unreachable, or a server error                                  |
+| `AI_CONTEXT_LENGTH_EXCEEDED` | 422    | The messages exceed the model's context                         |
+| `AI_OUTPUT_INVALID`          | 502    | The object does not match the schema after the repairs          |
 
 The SDK retries rate limits, timeouts and server errors `maxRetries` times first. An aborted call throws its signal's
 reason.
@@ -181,7 +205,13 @@ A driver extends `AiDriver` (`generate`, `stream`, `checkHealth`, optional `embe
 export default defineModule({
   name: '@acme/appweaver-anthropic',
   requires: ['@appweaver/ai'],
-  providers: [{ contract: AiDriver, name: 'anthropic', load: () => import('./anthropic-driver') }]
+  providers: [
+    {
+      contract: AiDriver,
+      name: 'anthropic',
+      load: () => import('./anthropic-driver')
+    }
+  ]
 });
 ```
 

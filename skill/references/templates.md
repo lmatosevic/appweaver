@@ -21,7 +21,7 @@ which `weaver module add` and `weaver module remove` add and remove later. With 
 include the account emails, and `en.json` their `emails` texts (it starts empty without the mailer):
 
 | Modules             | `templates/`, `@appweaver/handlebars`          | `locales/` | Account emails (with `mailer`)        |
-|---------------------|------------------------------------------------|------------|---------------------------------------|
+| ------------------- | ---------------------------------------------- | ---------- | ------------------------------------- |
 | `templates locales` | Scaffolded, the texts translated with `{{t}}`  | `en.json`  | Rendered from the localized templates |
 | `templates`         | Scaffolded, the English texts written in place | —          | Rendered from the English templates   |
 | `locales`           | —, `TEMPLATE_PROVIDER` is empty                | `en.json`  | Plain text of the `en.json` texts     |
@@ -75,7 +75,7 @@ a locale only when it is a locale tag, so `feeds/posts.rss.xml.hbs` is the templ
 The format decides the escaping and the MIME type:
 
 | Format                                              | Values              |
-|-----------------------------------------------------|---------------------|
+| --------------------------------------------------- | ------------------- |
 | `html`, `htm`, `xhtml`, `xml`, `rss`, `atom`, `svg` | Escaped as markup   |
 | Any other, i.e. `txt`, `csv`, `json`, `subject`     | Written as they are |
 
@@ -98,14 +98,25 @@ import { TemplateEngine } from '@appweaver/common';
 
 const templates = inject(TemplateEngine);
 
-const html = await templates.render('pages/invoice.html', { invoice }, { locale: 'de' });
-const xml = await templates.render('exports/orders.xml', { orders, generatedAt: new Date() });
-const text = await templates.renderString('Hi {{name}}', { name }, { format: 'txt' });
+const html = await templates.render(
+  'pages/invoice.html',
+  { invoice },
+  { locale: 'de' }
+);
+const xml = await templates.render('exports/orders.xml', {
+  orders,
+  generatedAt: new Date()
+});
+const text = await templates.renderString(
+  'Hi {{name}}',
+  { name },
+  { format: 'txt' }
+);
 const exists = await templates.hasTemplate('emails/welcome.html', 'de');
 ```
 
 | Method                                    | Description                                                                         |
-|-------------------------------------------|-------------------------------------------------------------------------------------|
+| ----------------------------------------- | ----------------------------------------------------------------------------------- |
 | `render(name, data?, { locale? })`        | Renders a template, rejecting with `TEMPLATE_NOT_FOUND` or `TEMPLATE_RENDER_FAILED` |
 | `renderString(source, data?, options?)`   | Renders a source string, `format` (default `html`) decides the escaping             |
 | `hasTemplate(name, locale?)`              | Whether the template exists in the locale or its fallbacks                          |
@@ -198,7 +209,7 @@ layout or a component with content wraps it with `{{> @partial-block}}`:
 ### Data variables
 
 | Variable           | Value                                |
-|--------------------|--------------------------------------|
+| ------------------ | ------------------------------------ |
 | `@locale`          | The locale rendered in, i.e. `de-AT` |
 | `@app.name`        | `APP_NAME`                           |
 | `@app.description` | `APP_DESCRIPTION`                    |
@@ -211,7 +222,7 @@ The locale-aware helpers use `@locale`, the options of the `Intl` helpers are gi
 translates with the locale service, see [Localization](#localization).
 
 | Helper                                    | Example                                                                            |
-|-------------------------------------------|------------------------------------------------------------------------------------|
+| ----------------------------------------- | ---------------------------------------------------------------------------------- |
 | `t key [locale] params...`                | `{{t "cart.items" count=items.length}}`                                            |
 | `formatDate value [style\|"iso"] options` | `{{formatDate createdAt "long"}}`, `{{formatDate d month="short" timeZone="UTC"}}` |
 | `formatNumber value options`              | `{{formatNumber ratio style="percent"}}`                                           |
@@ -232,10 +243,17 @@ translates with the locale service, see [Localization](#localization).
 Register them from a module the application loads, i.e. `src/features/index.ts`:
 
 ```ts
-import { registerTemplate, registerTemplateHelper, registerTemplateHelpers } from '@appweaver/core';
+import {
+  registerTemplate,
+  registerTemplateHelper,
+  registerTemplateHelpers
+} from '@appweaver/core';
 
 registerTemplateHelper('initials', (name: string) =>
-  name.split(' ').map((part) => part[0]).join('')
+  name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
 );
 
 // Several helpers at once, i.e. of a helper library the application installs
@@ -248,8 +266,13 @@ registerTemplate('emails/promo.html', source, 'de');
 A custom helper reads the rendered locale from `options.data.locale`, i.e. to format amounts kept in cents:
 
 ```ts
-registerTemplateHelper('money', (cents: number, options: { data?: { locale?: string } }) =>
-  new Intl.NumberFormat(options.data?.locale, { style: 'currency', currency: 'EUR' }).format(cents / 100)
+registerTemplateHelper(
+  'money',
+  (cents: number, options: { data?: { locale?: string } }) =>
+    new Intl.NumberFormat(options.data?.locale, {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(cents / 100)
 );
 ```
 
@@ -299,7 +322,7 @@ template engine is loaded (the `@appweaver/handlebars` package is not installed)
 ### Template configuration
 
 | Key                             | Default         | Description                                                                                |
-|---------------------------------|-----------------|--------------------------------------------------------------------------------------------|
+| ------------------------------- | --------------- | ------------------------------------------------------------------------------------------ |
 | `TEMPLATE_PATH`                 | `'./templates'` | Directory of the template files                                                            |
 | `TEMPLATE_CACHE`                | `true`          | Keep the templates in memory                                                               |
 | `TEMPLATE_PREVIEW_ENABLED`      | `false`         | Enable the preview route                                                                   |
@@ -310,7 +333,7 @@ template engine is loaded (the `@appweaver/handlebars` package is not installed)
 ### Template errors
 
 | Code                         | Raised when                                                   |
-|------------------------------|---------------------------------------------------------------|
+| ---------------------------- | ------------------------------------------------------------- |
 | `TEMPLATE_NOT_FOUND`         | No template of the name exists in the locale or its fallbacks |
 | `TEMPLATE_RENDER_FAILED`     | A template fails to compile or render, i.e. a missing partial |
 | `TEMPLATE_LOAD_FAILED`       | A template cannot be read, or its syntax is invalid           |
@@ -367,7 +390,7 @@ Angular, vue-i18n and Symfony, with the plural categories of the Unicode CLDR (`
 ```
 
 | Syntax                                                        | Writes                                                            |
-|---------------------------------------------------------------|-------------------------------------------------------------------|
+| ------------------------------------------------------------- | ----------------------------------------------------------------- |
 | `{name}`                                                      | The parameter as it is                                            |
 | `{n, plural, =0 {...} one {...} other {...}}`                 | The branch of the exact value, else of the plural category of `n` |
 | `#`                                                           | The number of the enclosing plural, formatted in the locale       |
@@ -438,7 +461,9 @@ const config = {
 };
 
 // At checkout: the language asked for, or the preferred one of the customer
-const order = await tx.order.create({ data: { ...data, language: request.language ?? customer.language } });
+const order = await tx.order.create({
+  data: { ...data, language: request.language ?? customer.language }
+});
 
 // Later, i.e. in a queue worker
 await inject(EmailService).sendEmail({
@@ -452,12 +477,12 @@ await inject(EmailService).sendEmail({
 ### Locale configuration
 
 | Key              | Default       | Description                        |
-|------------------|---------------|------------------------------------|
+| ---------------- | ------------- | ---------------------------------- |
 | `LOCALE_DEFAULT` | `'en'`        | Locale used when none is given     |
 | `LOCALE_PATH`    | `'./locales'` | Directory of the translation files |
 
 ### Locale errors
 
 | Code                 | Raised when                                                   |
-|----------------------|---------------------------------------------------------------|
+| -------------------- | ------------------------------------------------------------- |
 | `LOCALE_LOAD_FAILED` | A translation file is not a JSON object, or a message invalid |

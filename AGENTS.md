@@ -48,8 +48,9 @@ Tests are located in `packages/*/test` and use **Jest** with **SWC** for fast ex
   the sources of its package, so the tests need no build and the tests of every package share one instance of each
   module. A new package is added to both of its patterns
 - **Test helpers**: `resetContext`, `linkModels`, `createDatabaseStub`, `prismaError`, `sourceLoggerNames`,
-  `cliConventionViolations` and `recordTelemetry` of `@appweaver/testing` (`packages/testing`), shared by the tests of
-  every package
+  `cliConventionViolations`, `recordTelemetry` and `runTestsAsAnonymous` of `@appweaver/testing` (`packages/testing`),
+  shared by the tests of every package. The policies apply only in a request or `runAs`, so a test of a policy runs
+  its file with `runTestsAsAnonymous()`
 - **Package installs**: a test never installs packages in the repository. `jest.setup.js` fails a spawned
   `npm|bun|yarn|pnpm install|add|...` whose directory is inside it, so a command installing packages is mocked, or given
   a temporary project as its explicit `cwd`, never one reached by `process.chdir()` alone

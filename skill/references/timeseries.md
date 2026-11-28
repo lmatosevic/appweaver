@@ -16,7 +16,12 @@ export default createModel({
     serial: { type: 'string', unique: true }
   },
   series: {
-    temperature: { type: 'float', minimum: -50, maximum: 150, description: 'Degrees Celsius' },
+    temperature: {
+      type: 'float',
+      minimum: -50,
+      maximum: 150,
+      description: 'Degrees Celsius'
+    },
     errors: { type: 'int', minimum: 0 },
     online: { type: 'boolean' }
   },
@@ -29,21 +34,21 @@ export default createModel({
 });
 ```
 
-| Series field option | Description                                                   |
-|---------------------|---------------------------------------------------------------|
-| `type`              | `float`, `int` or `boolean`                                   |
-| `minimum`           | The smallest value accepted, of a numeric field               |
-| `maximum`           | The largest value accepted, of a numeric field                |
-| `description`       | The description of the field in the OpenAPI specification     |
-| `example`           | The example of the field in the OpenAPI specification         |
+| Series field option | Description                                               |
+| ------------------- | --------------------------------------------------------- |
+| `type`              | `float`, `int` or `boolean`                               |
+| `minimum`           | The smallest value accepted, of a numeric field           |
+| `maximum`           | The largest value accepted, of a numeric field            |
+| `description`       | The description of the field in the OpenAPI specification |
+| `example`           | The example of the field in the OpenAPI specification     |
 
-| Series option   | Description                                                                               |
-|-----------------|-------------------------------------------------------------------------------------------|
-| `ingest`        | `direct`, `queue` or `auto`, how the points are written (see [Ingestion](#ingestion))     |
-| `tableName`     | The table of the points, default `<Model>Series` or `<tableName>_series`                  |
+| Series option   | Description                                                                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ingest`        | `direct`, `queue` or `auto`, how the points are written (see [Ingestion](#ingestion))                                                                        |
+| `tableName`     | The table of the points, default `<Model>Series` or `<tableName>_series`                                                                                     |
 | `retention`     | How long the points are kept, a duration (`90d`), overriding the retention of the store: `timeseries.database.retention` or `timeseries.timescale.retention` |
-| `compressAfter` | The age TimescaleDB compresses the points from, default `timeseries.timescale.compressAfter` |
-| `chunkInterval` | The time range of a TimescaleDB chunk, default `timeseries.timescale.chunkInterval`       |
+| `compressAfter` | The age TimescaleDB compresses the points from, default `timeseries.timescale.compressAfter`                                                                 |
+| `chunkInterval` | The time range of a TimescaleDB chunk, default `timeseries.timescale.chunkInterval`                                                                          |
 
 A field cannot be named `time` or `resourceId`, the time and the resource of a point, nor `resource` with the
 `database` store (the relation of its Prisma model). The durations are a number and a unit of `ms`, `s`, `m`, `h`, `d`
@@ -60,12 +65,12 @@ model in the `ResourceRegistry`, so the `TimeSeriesService` types the values of 
 
 The store is selected by `timeseries.provider`:
 
-| Provider    | Package                | Store                                                                                     |
-|-------------|------------------------|-------------------------------------------------------------------------------------------|
-| `database`  | `@appweaver/data`      | The `<Model>Series` table of the database, on SQLite, PostgreSQL, MySQL and SQL Server     |
-| `timescale` | `@appweaver/data`      | The same table, a TimescaleDB hypertable on PostgreSQL, with compression and retention    |
-| `memory`    | `@appweaver/core`      | The process memory, for the tests                                                         |
-| `none`      | —                      | No store: the `TimeSeriesService` and the series routes are left out                      |
+| Provider    | Package           | Store                                                                                  |
+| ----------- | ----------------- | -------------------------------------------------------------------------------------- |
+| `database`  | `@appweaver/data` | The `<Model>Series` table of the database, on SQLite, PostgreSQL, MySQL and SQL Server |
+| `timescale` | `@appweaver/data` | The same table, a TimescaleDB hypertable on PostgreSQL, with compression and retention |
+| `memory`    | `@appweaver/core` | The process memory, for the tests                                                      |
+| `none`      | —                 | No store: the `TimeSeriesService` and the series routes are left out                   |
 
 With `auto` (the default), the driver of an enabled module package wins, otherwise `database` with `@appweaver/data`.
 `timescale` and `memory` are selected by their names only. Both SQL stores take part in the transactions, delete the
@@ -132,7 +137,11 @@ DDL. `weaver migrate` sets them up too, after the migrations, as the user of `da
   "config": {
     "timeseries": {
       "provider": "timescale",
-      "timescale": { "chunkInterval": "7d", "compressAfter": "30d", "retention": "365d" }
+      "timescale": {
+        "chunkInterval": "7d",
+        "compressAfter": "30d",
+        "retention": "365d"
+      }
     }
   }
 }
@@ -150,11 +159,11 @@ there.
 A write is validated first (the fields, their types and ranges, the times, `timeseries.maxPointsPerWrite`), so an invalid
 one fails at once, then applied in one of two ways:
 
-| Ingest   | Behavior                                                                                                    |
-|----------|-------------------------------------------------------------------------------------------------------------|
-| `direct` | Written in the request (the default of `timeseries.ingest`), responding `200 { count, queued: false }`      |
+| Ingest   | Behavior                                                                                                                                                        |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `direct` | Written in the request (the default of `timeseries.ingest`), responding `200 { count, queued: false }`                                                          |
 | `queue`  | Sent to the `timeseries.queueName` queue in jobs of up to `timeseries.queueBatchSize` points, responding `202 { count, queued: true }`, and written by a worker |
-| `auto`   | Queued on a durable queue (BullMQ), written directly on the in-memory one                                  |
+| `auto`   | Queued on a durable queue (BullMQ), written directly on the in-memory one                                                                                       |
 
 The worker runs in every instance with `timeseries.queueWorker` (`true` by default), `timeseries.queueConcurrency` jobs
 at once, retried with the `queue.retryAttempts` and `queue.retryBackoff` of the queue ([queue.md](./queue.md)). Since
@@ -175,13 +184,13 @@ retention that is not a duration) fails the start with `CONFIGURATION_INVALID`.
 `createRoutes` registers the series routes of a model with series fields, configured by `seriesWrite`, `seriesQuery`
 and `seriesDelete` (`exclude`, `roles`, `public`, `rateLimit`, ...):
 
-| Route                         | Config         | Description                                                                 |
-|-------------------------------|----------------|-----------------------------------------------------------------------------|
-| `POST /:id/series`            | `seriesWrite`  | Writes the points of a resource: `{ points: [{ time?, ...values }] }`        |
-| `POST /series`                | `seriesWrite`  | Writes the points of many resources: `{ points: [{ resourceId, time?, ...values }] }` |
-| `GET /:id/series`             | `seriesQuery`  | Queries the points of a resource                                            |
-| `POST /series/query`          | `seriesQuery`  | Queries the points of the resources of the `ids`, the `filter`, or both     |
-| `POST /:id/delete-series`     | `seriesDelete` | Deletes the points of a resource within `{ from?, to? }`, all without them   |
+| Route                     | Config         | Description                                                                           |
+| ------------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| `POST /:id/series`        | `seriesWrite`  | Writes the points of a resource: `{ points: [{ time?, ...values }] }`                 |
+| `POST /series`            | `seriesWrite`  | Writes the points of many resources: `{ points: [{ resourceId, time?, ...values }] }` |
+| `GET /:id/series`         | `seriesQuery`  | Queries the points of a resource                                                      |
+| `POST /series/query`      | `seriesQuery`  | Queries the points of the resources of the `ids`, the `filter`, or both               |
+| `POST /:id/delete-series` | `seriesDelete` | Deletes the points of a resource within `{ from?, to? }`, all without them            |
 
 ```ts
 export default createRoutes({
@@ -198,15 +207,15 @@ export default createRoutes({
 
 The query parameters (the body of `POST /series/query`):
 
-| Parameter   | Description                                                                                      |
-|-------------|--------------------------------------------------------------------------------------------------|
+| Parameter   | Description                                                                                     |
+| ----------- | ----------------------------------------------------------------------------------------------- |
 | `fields`    | The fields to return, comma separated in the query string (an array in a body), all by default  |
-| `from`      | The start of the range, inclusive                                                                |
-| `to`        | The end of the range, exclusive                                                                  |
-| `bucket`    | A duration (`15m`, `1h`, `1d`) aggregating the points of each bucket, aligned to the Unix epoch  |
-| `aggregate` | `avg` (the default with a bucket), `min`, `max`, `sum`, `count`, `first`, `last`                 |
-| `order`     | `asc` (default) or `desc`, by time                                                               |
-| `limit`     | The maximum number of points, at most `timeseries.maxPointsPerQuery`                             |
+| `from`      | The start of the range, inclusive                                                               |
+| `to`        | The end of the range, exclusive                                                                 |
+| `bucket`    | A duration (`15m`, `1h`, `1d`) aggregating the points of each bucket, aligned to the Unix epoch |
+| `aggregate` | `avg` (the default with a bucket), `min`, `max`, `sum`, `count`, `first`, `last`                |
+| `order`     | `asc` (default) or `desc`, by time                                                              |
+| `limit`     | The maximum number of points, at most `timeseries.maxPointsPerQuery`                            |
 
 ```bash
 GET /api/sensors/7/series?fields=temperature&from=2026-01-01T00:00:00Z&bucket=1h&aggregate=max
@@ -265,7 +274,10 @@ const hourly = await timeSeries.query('Sensor', {
 });
 // [{ resourceId: 7, time: Date, values: { temperature: 21.2 } }, ...]
 
-await timeSeries.delete('Sensor', { resourceIds: [7], to: '2026-01-01T00:00:00Z' });
+await timeSeries.delete('Sensor', {
+  resourceIds: [7],
+  to: '2026-01-01T00:00:00Z'
+});
 ```
 
 The service checks no policy, like the resource services called by the application. Its `normalizePoints` and
@@ -293,7 +305,10 @@ Select the `memory` store in the `test` environment, unless the end-to-end tests
 A driver of another store runs the contract suite of `@appweaver/testing`:
 
 ```ts
-import { contractSeriesModel, testTimeSeriesContract } from '@appweaver/testing';
+import {
+  contractSeriesModel,
+  testTimeSeriesContract
+} from '@appweaver/testing';
 
 // The store creates the table of contractSeriesModel when it needs one
 testTimeSeriesContract('QuestTimeSeries', () => new QuestTimeSeries());

@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { isSystemCall } from '@appweaver/core';
 
 const internalAccess = new AsyncLocalStorage<boolean>();
 
@@ -18,10 +19,11 @@ export function withoutPolicies<T>(fn: () => T): T {
 }
 
 /**
- * Checks whether the current call runs with internal access, started by {@link withoutPolicies}.
+ * Checks whether the current call runs with internal access: started by {@link withoutPolicies}, or the application's
+ * own call outside of a request and of `runAs` (`isSystemCall` of `@appweaver/core`).
  *
  * @return {boolean} True if the policies are skipped for the current call, otherwise false.
  */
 export function arePoliciesSkipped(): boolean {
-  return internalAccess.getStore() === true;
+  return internalAccess.getStore() === true || isSystemCall();
 }

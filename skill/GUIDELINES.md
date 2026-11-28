@@ -81,13 +81,22 @@ export default createModel({
   scalars: {
     title: { type: 'string', minLength: 1, maxLength: 200 },
     price: { type: 'float', minimum: 0 },
-    status: { type: 'enum', default: 'Draft', values: ['Draft', 'Active', 'Sold'] },
+    status: {
+      type: 'enum',
+      default: 'Draft',
+      values: ['Draft', 'Active', 'Sold']
+    },
     description: { type: 'string', required: false },
     lastViewedAt: { type: 'dateTime', defaultGenerator: 'now()' },
     enabled: { type: 'boolean', default: true }
   },
   relations: {
-    category: { model: 'Category', type: 'manyToOne', mappedBy: 'products', output: { type: 'always' } }
+    category: {
+      model: 'Category',
+      type: 'manyToOne',
+      mappedBy: 'products',
+      output: { type: 'always' }
+    }
   },
   files: {
     photo: { mimeType: 'image/*', maxSize: '2 MB' }
@@ -128,7 +137,11 @@ resource service anywhere by its model name:
 import { injectService } from '@appweaver/core';
 
 const products = injectService('Product'); // ProductResourceService
-const page = await products.query({ filter: { status: 'Active' }, size: 20, sort: '-createdAt' });
+const page = await products.query({
+  filter: { status: 'Active' },
+  size: 20,
+  sort: '-createdAt'
+});
 const first = await products.single({ title: 'Lamp' }); // the first match or null
 ```
 
@@ -155,7 +168,8 @@ import { createPolicy } from '@appweaver/data';
 
 export default createPolicy({
   modelName: 'Product',
-  checkAccess: (user, resource, action) => action !== 'delete' || resource.status === 'Draft',
+  checkAccess: (user, resource, action) =>
+    action !== 'delete' || resource.status === 'Draft',
   readRestrictions: (user) => (user ? undefined : { enabled: true }), // anonymous users see enabled products only
   files: {
     photo: { accessType: 'public' }
@@ -194,7 +208,11 @@ import { createAuthService } from '@appweaver/data';
 
 export default createAuthService({
   modelName: 'User',
-  registrationData: (_, email, password) => ({ email, password, roles: [1, 2] }),
+  registrationData: (_, email, password) => ({
+    email,
+    password,
+    roles: [1, 2]
+  }),
   registrationFiles: (_, data) => ({ avatar: data?.avatarFile })
 });
 ```
@@ -211,7 +229,10 @@ import { Type } from '@sinclair/typebox';
 registerRoute(
   async function (router: Router) {
     router.get('/search-result', {
-      schema: { summary: 'Search result', response: { 200: Type.Ref('SearchResult') } },
+      schema: {
+        summary: 'Search result',
+        response: { 200: Type.Ref('SearchResult') }
+      },
       handler: async () => ({ message: 'Hello, world!' })
     });
   },
@@ -228,7 +249,11 @@ import { Type } from '@sinclair/typebox';
 
 registerModel(
   Type.Object(
-    { id: Type.Number(), title: Type.String(), score: Type.Number({ minimum: 0, maximum: 1 }) },
+    {
+      id: Type.Number(),
+      title: Type.String(),
+      score: Type.Number({ minimum: 0, maximum: 1 })
+    },
     { $id: 'SearchResult' }
   )
 );
@@ -253,13 +278,13 @@ registerPlugin('audit-log', async (server) => {
 import { Cache, Mailer } from '@appweaver/common';
 import { define, inject, isDefined } from '@appweaver/core';
 
-define(MyCacheService, Cache);                   // register class under abstract token
+define(MyCacheService, Cache); // register class under abstract token
 define('https://api.example.com', 'ApiBaseUrl'); // register plain value
 
-const cache = inject(Cache);                     // resolve singleton
-const url = inject<string>('ApiBaseUrl');        // resolve by string token
-const mailer = inject(Mailer, false);            // undefined when no mailer is selected
-isDefined(Mailer);                               // check without creating the instance
+const cache = inject(Cache); // resolve singleton
+const url = inject<string>('ApiBaseUrl'); // resolve by string token
+const mailer = inject(Mailer, false); // undefined when no mailer is selected
+isDefined(Mailer); // check without creating the instance
 ```
 
 The modules define the providers from the `provider` keys; `main.ts` never loads them.
@@ -303,7 +328,7 @@ export async function createAdminUser(): Promise<void> {
 ## Common commands
 
 | Command                       | Description                                                                                                     |
-|-------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `npm run generate`            | Generate the types and Prisma schema of the models and `appweaver.schema.json` (only the latter without `data`) |
 | `npm run build`               | Build the application                                                                                           |
 | `npm run start`               | Start in production mode                                                                                        |
@@ -316,7 +341,7 @@ export async function createAdminUser(): Promise<void> {
 | `npm run lint`                | Lint code with ESLint                                                                                           |
 | `weaver migration check`      | Check whether the models need a new migration                                                                   |
 | `weaver migration new <name>` | Create a new database migration                                                                                 |
-| `weaver upgrade`              | Upgrade all @appweaver/* packages                                                                               |
+| `weaver upgrade`              | Upgrade all @appweaver/\* packages                                                                              |
 | `weaver module add <name>`    | Add a module (redis, docker, templates…)                                                                        |
 | `weaver module new <name>`    | Create a local module in `src/modules/`                                                                         |
 | `weaver config check`         | Validate the config of every module                                                                             |

@@ -25,7 +25,7 @@ const mailer = inject(Mailer, false); // undefined if not registered
 Sends an email. Returns `true` on success.
 
 | Field             | Type                      | Required | Description                                                                 |
-|-------------------|---------------------------|----------|-----------------------------------------------------------------------------|
+| ----------------- | ------------------------- | -------- | --------------------------------------------------------------------------- |
 | `to`              | `string \| string[]`      | Yes      | Recipient addresses, i.e. `jane@example.com` or `"Jane" <jane@example.com>` |
 | `subject`         | `string`                  | Yes      | Email subject line                                                          |
 | `text`            | `string`                  | Yes      | Plain-text body                                                             |
@@ -60,7 +60,12 @@ await mailer.sendEmail({
   subject: 'Your invoice',
   text: 'Please find your invoice attached.',
   attachments: [
-    { filename: 'invoice.pdf', content: pdf.toString('base64'), encoding: 'base64', contentType: 'application/pdf' }
+    {
+      filename: 'invoice.pdf',
+      content: pdf.toString('base64'),
+      encoding: 'base64',
+      contentType: 'application/pdf'
+    }
   ]
 });
 ```
@@ -77,7 +82,13 @@ Keep the address on a domain the mailer may send from, otherwise the provider or
 address in `replyTo`:
 
 ```ts
-await emailService.sendEmail({ to, from: { name: `${agent.name} via Helpdesk` }, replyTo: agent.email, subject, text });
+await emailService.sendEmail({
+  to,
+  from: { name: `${agent.name} via Helpdesk` },
+  replyTo: agent.email,
+  subject,
+  text
+});
 ```
 
 ---
@@ -101,7 +112,7 @@ tested with `testMailerContract`, see [modules](./modules.md#creating-a-module-p
 ## Configuration
 
 | Key                     | Type     | Default       | Description                                                                                            |
-|-------------------------|----------|---------------|--------------------------------------------------------------------------------------------------------|
+| ----------------------- | -------- | ------------- | ------------------------------------------------------------------------------------------------------ |
 | `MAILER_PROVIDER`       | `string` | `'auto'`      | `auto` (`smtp` with `@appweaver/nodemailer`, otherwise none), `smtp`, `json`, `none`, or a module path |
 | `MAILER_SENDER_NAME`    | `string` | —             | Display name of the default sender, the bare address without one                                       |
 | `MAILER_SENDER_ADDRESS` | `string` | —             | Address of the default sender, required by an enabled mailer to start                                  |
@@ -216,7 +227,13 @@ const sent = await emailService.sendEmailAndWait({
   to: 'bob@example.com',
   subject: 'Your invoice',
   text: 'Please find your invoice attached.',
-  attachments: [{ filename: 'invoice.pdf', content: pdf.toString('base64'), encoding: 'base64' }]
+  attachments: [
+    {
+      filename: 'invoice.pdf',
+      content: pdf.toString('base64'),
+      encoding: 'base64'
+    }
+  ]
 });
 ```
 
@@ -272,13 +289,13 @@ A `TemplateEmail` passed to any send method is rendered from the templates of th
 the given locale. The `template` is a name without the format, its templates render the parts of the email:
 
 | Template             | Renders             | Required                                    |
-|----------------------|---------------------|---------------------------------------------|
+| -------------------- | ------------------- | ------------------------------------------- |
 | `<template>.html`    | The HTML body       | No, the escaped text body when missing      |
 | `<template>.txt`     | The plain text body | No, derived from the HTML body when missing |
 | `<template>.subject` | The subject         | Unless `subject` is given                   |
 
 | Field      | Type                 | Required | Description                                                   |
-|------------|----------------------|----------|---------------------------------------------------------------|
+| ---------- | -------------------- | -------- | ------------------------------------------------------------- |
 | `to`       | `string \| string[]` | Yes      | Recipient addresses                                           |
 | `template` | `string`             | Yes      | Template name without the format, i.e. `emails/order-shipped` |
 | `data`     | `object`             | No       | The data the templates render                                 |
@@ -316,7 +333,7 @@ the locale as their last argument, `sendChallenge` of `TwoFactorService` as its 
 templates of its own:
 
 | Template                    | Data                                           |
-|-----------------------------|------------------------------------------------|
+| --------------------------- | ---------------------------------------------- |
 | `emails/verify-email`       | `email`, `link`                                |
 | `emails/password-reset`     | `email`, `link`                                |
 | `emails/two-factor-code`    | `email`, `code`, `purpose`, `expiresInMinutes` |
@@ -359,7 +376,10 @@ export class RegistrationService {
     });
   }
 
-  async notifyAdmins(admins: { email: string }[], message: string): Promise<void> {
+  async notifyAdmins(
+    admins: { email: string }[],
+    message: string
+  ): Promise<void> {
     // Blast all admin notifications without blocking
     await this._emailService.sendEmailBulk(
       admins.map((a) => ({

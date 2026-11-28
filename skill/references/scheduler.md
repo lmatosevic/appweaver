@@ -29,7 +29,7 @@ Registers a new cron job and returns a unique job ID. Jobs start immediately by 
 **`JobParams` fields** (the same for every scheduler):
 
 | Field             | Type                      | Default   | Description                                                      |
-|-------------------|---------------------------|-----------|------------------------------------------------------------------|
+| ----------------- | ------------------------- | --------- | ---------------------------------------------------------------- |
 | `cronTime`        | `string \| Date`          | —         | Cron expression (optional leading seconds field) or exact `Date` |
 | `onTick`          | `() => unknown`           | —         | Function to execute on each tick                                 |
 | `name`            | `string`                  | —         | Name of the job in the logs and the telemetry (`reports:daily`)  |
@@ -63,7 +63,7 @@ const jobId = scheduler.addJob({
 ```
 
 | Expression     | Meaning                  |
-|----------------|--------------------------|
+| -------------- | ------------------------ |
 | `* * * * *`    | Every minute             |
 | `*/15 * * * *` | Every 15 minutes         |
 | `0 * * * *`    | Every hour (on the hour) |
@@ -137,7 +137,7 @@ await scheduler.removeJob(jobId);
 ## Configuration
 
 | Key                        | Type     | Default  | Description                                                                              |
-|----------------------------|----------|----------|------------------------------------------------------------------------------------------|
+| -------------------------- | -------- | -------- | ---------------------------------------------------------------------------------------- |
 | `SCHEDULER_AUTO_START_JOB` | `bool`   | `true`   | Automatically start jobs when `addJob` is called                                         |
 | `SCHEDULER_PROVIDER`       | `string` | `'auto'` | `auto` (`cron` with `@appweaver/cron`, otherwise none), `cron`, `none`, or a module path |
 

@@ -67,7 +67,7 @@ npm create @appweaver <name> [description] -- [options]  # the same, npm passes 
 **Options:**
 
 | Flag                     | Description                                                                   | Default      |
-|--------------------------|-------------------------------------------------------------------------------|--------------|
+| ------------------------ | ----------------------------------------------------------------------------- | ------------ |
 | `--add <modules...>`     | Modules to add to the default ones, separated by spaces or commas             | `data web`   |
 | `--all`                  | Add every module                                                              | false        |
 | `--exclude <modules...>` | Modules to leave out of the default ones or of `--all` (e.g. `--exclude web`) | none         |
@@ -88,7 +88,7 @@ for the core application alone, i.e. a one-shot task (`weaver run`). `--database
 with `data` and `web`:
 
 | Module           | Adds                                                                                                            | Without it                                  |
-|------------------|-----------------------------------------------------------------------------------------------------------------|---------------------------------------------|
+| ---------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | `data` (default) | `@appweaver/data`, `@appweaver/sharp`, Prisma, `database/`, the generated types, the test database              | no database, no resources                   |
 | `web` (default)  | `@appweaver/web` (requires `data`), the server config, the `User` auth resource and its admin seeder, `public/` | no HTTP server, no auth model               |
 | `redis`          | `@appweaver/redis`, the `memory.redis.url`, the docker-compose Redis service                                    | memory, cache and rate limit in the process |
@@ -99,8 +99,8 @@ with `data` and `web`:
 | `locales`        | `locales/en.json`, the account email texts with the mailer                                                      | English texts written into the templates    |
 | `timeseries`     | The `series` fields in the database (requires `data`), `timescale` and the TimescaleDB image on PostgreSQL      | time series in the database (`auto`)        |
 | `telemetry`      | `@appweaver/opentelemetry`, the OTLP endpoint, telemetry off in the `test` environment                          | no telemetry exported                       |
-| `realtime`       | `@appweaver/realtime` (requires `web`): channels, resource events, actions and streams over WebSocket and SSE    | no realtime connections                     |
-| `mcp`            | `@appweaver/mcp` (requires `web`): the MCP server of the AI agents at `/mcp`                               | no MCP server                               |
+| `realtime`       | `@appweaver/realtime` (requires `web`): channels, resource events, actions and streams over WebSocket and SSE   | no realtime connections                     |
+| `mcp`            | `@appweaver/mcp` (requires `web`): the MCP server of the AI agents at `/mcp`                                    | no MCP server                               |
 | `ai`             | `@appweaver/ai` and `@appweaver/openai`: `AiService` on a local Ollama in `dev`, the `mock` model in `test`     | no AI models                                |
 | `docker`         | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `start.sh`                                                 | no Docker files                             |
 
@@ -243,7 +243,10 @@ Manually starting an application:
 // src/main.ts
 import { createApp } from '@appweaver/core';
 
-const app = await createApp({ autoStart: false, scanPath: './dist/my/app/path' });
+const app = await createApp({
+  autoStart: false,
+  scanPath: './dist/my/app/path'
+});
 
 // custom init logic...
 
@@ -269,7 +272,7 @@ packages (`weaver module add <package>`), and a module package is created with `
 and the [providers](references/configuration.md#providers).
 
 | Application                  | How                                                                                                                                      |
-|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | HTTP API                     | The default: `createApp()` starts the server on `SERVER_PORT`.                                                                           |
 | Queue worker, scheduled jobs | `APP_MODULES_DISABLED=@appweaver/web`: no server, kept alive by its workers or cron jobs. `HEALTH_CHECK_PORT` answers the health checks. |
 | One-shot task                | `weaver run <task> [args...]`: runs a `createTask` of `src/tasks/` by its name (`weaver run` lists them), then exits.                    |
@@ -416,7 +419,7 @@ Index entries are field names, nested in an array for a composite index. Prefix 
 or `+` for an ascending one; without a prefix, the database default order is used:
 
 ```ts
-index: ['-createdAt', ['status', '-createdAt']]
+index: ['-createdAt', ['status', '-createdAt']];
 ```
 
 Foreign key columns are indexed automatically, unless an explicit index already leads with them. `unique` takes the
@@ -580,7 +583,8 @@ import { createPolicy } from '@appweaver/data';
 
 export default createPolicy({
   modelName: 'Product',
-  checkAccess: (user, resource, action) => action !== 'delete' || resource.status === 'Draft',
+  checkAccess: (user, resource, action) =>
+    action !== 'delete' || resource.status === 'Draft',
   readRestrictions: (user) => (user ? undefined : { enabled: true }), // anonymous users see enabled products only
   files: {
     photo: {
@@ -593,9 +597,9 @@ export default createPolicy({
 `checkAccess` denies the action by returning `false`, `readRestrictions` returns extra filter conditions for the reads
 (or nothing to restrict none), and `writeRestrictions` returns data merged into the created or updated record.
 
-Policy and file policy callbacks may be `async`, and receive a `null` user for an unauthenticated request. Wrap trusted
-system code (jobs, seeders, custom flows) in `withoutPolicies(() => ...)` to call the resource services without the
-policies.
+Policy and file policy callbacks may be `async`, and receive a `null` user for an unauthenticated request. The
+application's own calls outside of a request (jobs, seeders, tasks, tests) skip the policies, unless run as a user with
+`runAs(user, fn)`; inside a request, wrap trusted system code in `withoutPolicies(() => ...)`.
 
 Wrap several service calls in `runTransaction(async () => ...)` (optionally with an isolation level first) to commit
 or roll them back together.
@@ -653,7 +657,11 @@ import { createAuthService } from '@appweaver/data';
 
 export default createAuthService({
   modelName: 'User',
-  registrationData: (_, email, password) => ({ email, password, roles: [1, 2] }),
+  registrationData: (_, email, password) => ({
+    email,
+    password,
+    roles: [1, 2]
+  }),
   registrationFiles: (_, data) => ({ avatar: data?.avatarFile })
 });
 ```
@@ -702,13 +710,20 @@ import { UserQuery } from '@/types/generated';
 const filter: UserQuery = {
   _and: {
     firstName: { _eq: 'John', _exists: true },
-    avatar: { _or: { title: { _eq: 'Avatar' }, description: { _like: '%avatar%' } } }
+    avatar: {
+      _or: { title: { _eq: 'Avatar' }, description: { _like: '%avatar%' } }
+    }
   },
   _or: [{ firstName: { _like: 'Jo%' } }, { lastName: 'Doe' }],
   roles: { _some: { name: { _contains: 'Admin' } } }
 };
 
-const users = await injectService('User').query({ filter, page: 1, size: 50, sort: '-createdAt' });
+const users = await injectService('User').query({
+  filter,
+  page: 1,
+  size: 50,
+  sort: '-createdAt'
+});
 ```
 
 `query` takes a single options object, the same shape as the `POST /query` body: `filter`, `page` (default `1`),
@@ -774,9 +789,11 @@ The response type is inferred from the selection, so a selection given as an obj
 aggregatable field of the model:
 
 ```ts
-const stats = await injectService('Post').aggregate({ select: { counter: { sum: true } } });
+const stats = await injectService('Post').aggregate({
+  select: { counter: { sum: true } }
+});
 stats.total.counter?.sum; // typed
-stats.total.publishedAt;  // compile error, the field was not selected
+stats.total.publishedAt; // compile error, the field was not selected
 ```
 
 ### Registering a custom route
@@ -835,11 +852,20 @@ import { TemplateEngine, templateContentType } from '@appweaver/common';
 import { EmailService, inject, LocaleService } from '@appweaver/core';
 
 // Any format, i.e. an XML document returned by a custom route
-const xml = await inject(TemplateEngine).render('exports/orders.xml', { orders }, { locale });
+const xml = await inject(TemplateEngine).render(
+  'exports/orders.xml',
+  { orders },
+  { locale }
+);
 reply.type(templateContentType('exports/orders.xml')).send(xml);
 
 // An email of the emails/order-shipped.{html,subject}.hbs templates, its text derived from the HTML
-await inject(EmailService).sendEmail({ to, template: 'emails/order-shipped', data: { order }, locale });
+await inject(EmailService).sendEmail({
+  to,
+  template: 'emails/order-shipped',
+  data: { order },
+  locale
+});
 
 // A translated string, i.e. in a service hook
 inject(LocaleService).translate('inbox.unread', 'de', { msg_cnt: 3 });
@@ -881,11 +907,17 @@ export const ShopErrors = defineErrors({
   OutOfStock: { status: 409, title: 'Product out of stock' }
 });
 
-throw new ResourceError(ErrorCode.ResourceNotFound, 'Order not found', { model: 'Order', id });
+throw new ResourceError(ErrorCode.ResourceNotFound, 'Order not found', {
+  model: 'Order',
+  id
+});
 throw new ApplicationError(ShopErrors.OutOfStock, 'Only 2 left', { productId });
 
 // The documented errors of a custom route, see the response schema of registerRoute
-const response = { 200: Type.Ref('OrderSingle'), ...errorResponses(ShopErrors.OutOfStock) };
+const response = {
+  200: Type.Ref('OrderSingle'),
+  ...errorResponses(ShopErrors.OutOfStock)
+};
 ```
 
 Use the framework class that fits (`ResourceError`, `RequestError` for invalid input, `AuthError`, `FileError`, ...),
@@ -916,7 +948,11 @@ import { currentSpan, telemetryCounter, withSpan } from '@appweaver/common';
 const invoices = telemetryCounter('billing.invoices');
 
 currentSpan()?.setAttribute('order.id', orderId); // the span of the request or the job
-const pdf = await withSpan('invoice render', { attributes: { 'order.id': orderId } }, () => render(orderId));
+const pdf = await withSpan(
+  'invoice render',
+  { attributes: { 'order.id': orderId } },
+  () => render(orderId)
+);
 invoices().add(1);
 ```
 
@@ -948,12 +984,19 @@ export const orderShipped = createChannel({
 });
 await orderShipped.publish({ orderId: 7, customerId: 1 });
 
-createRoutes({ modelName: 'order', events: { actions: ['create', { action: 'update', public: true }] } });
-createPolicy({ modelName: 'order', events: (user, { current }) => current.customerId === user?.id });
+createRoutes({
+  modelName: 'order',
+  events: { actions: ['create', { action: 'update', public: true }] }
+});
+createPolicy({
+  modelName: 'order',
+  events: (user, { current }) => current.customerId === user?.id
+});
 createRealtimeAction({
   name: 'chat.typing',
   payload: Type.Object({ roomId: Type.Integer() }),
-  handler: ({ roomId }, { user }) => typing.publish({ roomId, userId: user!.id })
+  handler: ({ roomId }, { user }) =>
+    typing.publish({ roomId, userId: user!.id })
 });
 ```
 
@@ -971,7 +1014,10 @@ createRealtimeAction({
   }
 });
 
-export const roomAnswer = createStream({ name: 'room.answer', subscribe: (user, _, key) => isMember(user, key) });
+export const roomAnswer = createStream({
+  name: 'room.answer',
+  subscribe: (user, _, key) => isMember(user, key)
+});
 const writer = roomAnswer.open(roomId);
 writer.write('Hello');
 writer.end();
@@ -998,9 +1044,19 @@ picks its models (the built-in `mock` endpoint in tests):
 
 ```ts
 const ai = inject(AiService);
-const { text } = await ai.generate({ model: 'fast', system: 'Be brief.', prompt: question });
-for await (const delta of ai.stream({ prompt: { template: 'prompts/answer', data } })) send(delta);
-const { object } = await ai.generateObject({ prompt: ticket.body, schema: TicketTriage });
+const { text } = await ai.generate({
+  model: 'fast',
+  system: 'Be brief.',
+  prompt: question
+});
+for await (const delta of ai.stream({
+  prompt: { template: 'prompts/answer', data }
+}))
+  send(delta);
+const { object } = await ai.generateObject({
+  prompt: ticket.body,
+  schema: TicketTriage
+});
 const label = await ai.classify(ticket.body, ['bug', 'billing']);
 await ai.generate({ prompt: 'Where is order 42?', tools: [getOrder] }); // createAiTool, run as the user
 await ai.generateQueued({ prompt: 'Summarize ...' }); // through the `ai` queue, on any instance
@@ -1017,7 +1073,10 @@ exposed unless declared: resource actions with the `mcp` key of `createRoutes`, 
 `update`, `delete` and tools marked `destructive` also need `mcp.destructiveEnabled`:
 
 ```ts
-createRoutes({ modelName: 'post', mcp: { actions: ['find', 'query', 'create'], exclude: ['note'] } }); // the access of the API routes
+createRoutes({
+  modelName: 'post',
+  mcp: { actions: ['find', 'query', 'create'], exclude: ['note'] }
+}); // the access of the API routes
 createMcpTool({
   name: 'refundOrder',
   input: Type.Object({ orderId: Type.Integer() }),
@@ -1094,7 +1153,8 @@ import { Mailer } from '@appweaver/common';
 import { inject, isDefined } from '@appweaver/core';
 
 const mailer: Mailer | undefined = inject(Mailer, false); // undefined with MAILER_PROVIDER=none
-if (isDefined(Mailer)) { /* ... */
+if (isDefined(Mailer)) {
+  /* ... */
 }
 ```
 
@@ -1121,7 +1181,8 @@ import { randomString } from '@appweaver/common';
 import { db } from '@db/client';
 
 export async function createAdminUser(): Promise<void> {
-  const password = systemConfig.ADMIN_INITIAL_PASSWORD || randomString(16, { extra: false });
+  const password =
+    systemConfig.ADMIN_INITIAL_PASSWORD || randomString(16, { extra: false });
 
   await db.user.create({
     data: {

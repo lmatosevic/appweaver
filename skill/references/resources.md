@@ -1777,9 +1777,14 @@ can allow unauthenticated uploads. They are separate from the resource policy: c
 
 ### Skipping the policies
 
-Code acting on behalf of the system rather than the requesting user, such as a job, a seeder, or a custom flow, can
-run resource and file service calls with `withoutPolicies`. Inside it, the access checks, the read and write
-restrictions, and the file checks are skipped, while the service hooks, validation, events, and cache invalidation
+The policies apply to the calls of a request (HTTP, realtime, MCP) and to the calls run with `runAs(user, fn)`. The
+application's own calls, outside of a request and of `runAs` (a queue worker, a scheduled job, a seeder, a task, a
+test calling a service), run as the system: the access checks, the read and write restrictions and the file checks are
+skipped (`isSystemCall()` of `@appweaver/core`), so a policy receives a `null` user only for an anonymous request, or
+for `runAs(null, fn)`. To apply the policies of a user in a job, run it with `runAs(user, fn)`.
+
+Inside a request, code acting on behalf of the system rather than the requesting user, such as a custom flow, runs
+resource and file service calls with `withoutPolicies`. The service hooks, validation, events, and cache invalidation
 still run. The framework's own authentication flows (login, sign-up, logout, password change, 2FA, email verification,
 and OAuth2 account linking) use it, so a policy on the auth model never blocks them.
 
@@ -1793,7 +1798,7 @@ const pending = await withoutPolicies(() =>
 ```
 
 The internal access covers every call made while the function runs, including the calls made by the service hooks.
-`arePoliciesSkipped()` tells whether the current call runs with it.
+`arePoliciesSkipped()` tells whether the current call runs with it, or as the system.
 
 ---
 

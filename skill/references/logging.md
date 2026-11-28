@@ -38,7 +38,7 @@ configured in the `telemetry` section, the `log` section stays as it is.
 The framework logs at these levels:
 
 | Level   | Logged                                                                                                  |
-|---------|---------------------------------------------------------------------------------------------------------|
+| ------- | ------------------------------------------------------------------------------------------------------- |
 | `fatal` | The process cannot go on, i.e. an uncaught exception                                                    |
 | `error` | A failure needing attention: a 5xx response, a failed job, a lost connection                            |
 | `warn`  | A degraded or unexpected state the application recovers from: a job retried, a slow query, a check down |
@@ -85,7 +85,7 @@ LOG_LEVELS=database:trace,cache:error
 ### Framework loggers
 
 | Name        | Logs of                                                                                                                      |
-|-------------|------------------------------------------------------------------------------------------------------------------------------|
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `app`       | The started application and its duration (info), the enabled modules, providers, app files and lifecycle hook durations      |
 | `database`  | The connection (info), slow queries (warn), Prisma events, transaction retries and rollbacks                                 |
 | `resource`  | Resources created, updated and deleted, bulk operations, denied policies, the loaded models, services and routes, CSV export |
@@ -134,7 +134,7 @@ as `[Redacted]`. Still never log a credential under another key.
 ## Output
 
 | Key            | Effect                                                                                    |
-|----------------|-------------------------------------------------------------------------------------------|
+| -------------- | ----------------------------------------------------------------------------------------- |
 | `LOG_PRETTY`   | Colored, human-readable lines (`[database] Prisma query`), for development                |
 | `LOG_PATH`     | Also writes to `<LOG_PATH>/<app name>.log` (`APP_NAME` in snake case), rotated by default |
 | `LOG_ROTATE_*` | The rotation of the file: its size, interval, total size, number of files and compression |

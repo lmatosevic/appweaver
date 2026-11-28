@@ -16,7 +16,7 @@ weaver <command> [options]
 ```
 
 | Option/Command   | Alias | Description                                      |
-|------------------|-------|--------------------------------------------------|
+| ---------------- | ----- | ------------------------------------------------ |
 | `build`          | `b`   | Build the application                            |
 | `config`         | `cfg` | Inspect the configuration                        |
 | `openapi`        | `oa`  | Generate the OpenAPI specification               |
@@ -44,7 +44,7 @@ weaver build|b [options]
 Build the application.
 
 | Option                 | Description                    | Default               |
-|------------------------|--------------------------------|-----------------------|
+| ---------------------- | ------------------------------ | --------------------- |
 | `-p, --project <path>` | TypeScript project config file | `tsconfig.build.json` |
 | `-h, --help`           | Output usage information       |                       |
 
@@ -61,7 +61,7 @@ config sections of the enabled modules (the installed packages and `src/modules/
 all defined.
 
 | Command            | Description                                                          |
-|--------------------|----------------------------------------------------------------------|
+| ------------------ | -------------------------------------------------------------------- |
 | `schema [options]` | Generate the JSON Schema of `appweaver.json`                         |
 | `print`            | Print every config value with its source, the secrets hidden         |
 | `check`            | Validate the config of every enabled module, exit with 1 on an error |
@@ -69,7 +69,7 @@ all defined.
 ### `weaver config schema`
 
 | Option                     | Description                    | Default                   |
-|----------------------------|--------------------------------|---------------------------|
+| -------------------------- | ------------------------------ | ------------------------- |
 | `-o, --output-path <path>` | Output path of the JSON Schema | `./appweaver.schema.json` |
 
 Writes the JSON Schema of `appweaver.json`, built from the config sections of the enabled modules: every key under its
@@ -118,7 +118,7 @@ weaver openapi|oa [options]
 Generate the OpenAPI specification of the application.
 
 | Option                     | Description                                            | Default          |
-|----------------------------|--------------------------------------------------------|------------------|
+| -------------------------- | ------------------------------------------------------ | ---------------- |
 | `-o, --output-path <path>` | Output path of the OpenAPI specification               | `./openapi.json` |
 | `--format <format>`        | Format of the OpenAPI specification (`json` or `yaml`) | `json`           |
 
@@ -139,7 +139,7 @@ select the outputs; with none, it generates all three, the types and the Prisma 
 enabled.
 
 | Option                        | Description                                        | Default                                         |
-|-------------------------------|----------------------------------------------------|-------------------------------------------------|
+| ----------------------------- | -------------------------------------------------- | ----------------------------------------------- |
 | `--types`                     | Generate the TypeScript types                      | —                                               |
 | `--prisma-schema`             | Generate the Prisma schema and client              | —                                               |
 | `--config-schema`             | Generate the JSON Schema of `appweaver.json`       | —                                               |
@@ -201,7 +201,7 @@ up when it starts too, but only a user owning the tables can, so this lets the a
 reads and writes the data. The setup loads the models of the build (`./dist/src`), so build before migrating.
 
 | Option       | Description                                                      | Default |
-|--------------|------------------------------------------------------------------|---------|
+| ------------ | ---------------------------------------------------------------- | ------- |
 | `--no-setup` | Skip the setup of the hypertables and the geometry triggers      | set up  |
 | `--dry-run`  | Print the pending migrations and their SQL without applying them | `false` |
 
@@ -229,7 +229,7 @@ local database.
 **Subcommands:**
 
 | Command           | Description                                                  |
-|-------------------|--------------------------------------------------------------|
+| ----------------- | ------------------------------------------------------------ |
 | `new <name>`      | Create a new database migration and apply it                 |
 | `check [options]` | Check whether the models need a new migration, print its SQL |
 | `reset [options]` | Reset the database                                           |
@@ -249,12 +249,12 @@ schema from the model files without writing it, compares it with the local datab
 and prints the SQL `weaver migration new` would create.
 
 | Option                      | Description                                        | Default     |
-|-----------------------------|----------------------------------------------------|-------------|
+| --------------------------- | -------------------------------------------------- | ----------- |
 | `--model-pattern <pattern>` | Glob pattern of the model files                    | from config |
 | `--no-prune`                | Keep the framework models the project does not use | pruned      |
 
 | Exit code | Meaning                                                                                  |
-|-----------|------------------------------------------------------------------------------------------|
+| --------- | ---------------------------------------------------------------------------------------- |
 | `0`       | No migration is needed                                                                   |
 | `1`       | A migration is needed, its SQL is printed                                                |
 | `2`       | The check cannot run: pending migrations (run `weaver migrate`), an unreachable database |
@@ -282,7 +282,7 @@ refuses the reset for an AI agent when `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` i
 of `weaver migration new` and `weaver test setup`, see **Run tests** in [SKILL.md](../SKILL.md).
 
 | Option        | Description                                               | Default |
-|---------------|-----------------------------------------------------------|---------|
+| ------------- | --------------------------------------------------------- | ------- |
 | `-y, --yes`   | Skip the confirmation prompt                              | `false` |
 | `-f, --force` | Allow the reset outside the `dev` and `test` environments | `false` |
 
@@ -302,7 +302,7 @@ installed `@appweaver/cli`, install module packages, and create local modules. A
 depends on its packages, `locales` and `docker` when `locales/` and `Dockerfile` exist.
 
 | Module      | Packages                | Requires | Files                                                                                                                              |
-|-------------|-------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------|
+| ----------- | ----------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `redis`     | `@appweaver/redis`      | —        | The Redis service of `docker-compose.yml`                                                                                          |
 | `queue`     | `@appweaver/bullmq`     | `redis`  | —                                                                                                                                  |
 | `scheduler` | `@appweaver/cron`       | —        | —                                                                                                                                  |
@@ -329,7 +329,7 @@ Create a local module in `src/modules/<name>/` (under `APP_SOURCE_PATH`), enable
 config:
 
 | File        | Holds                                                                                                |
-|-------------|------------------------------------------------------------------------------------------------------|
+| ----------- | ---------------------------------------------------------------------------------------------------- |
 | `module.ts` | The manifest: its name, config, `loggers` and `main`, with commented `providers` and `services`      |
 | `config.ts` | Its config section, named after the camelCase of the name (`audit-log` → `auditLog`), with `ENABLED` |
 | `main.ts`   | The code run at startup: scheduled jobs, queue workers, event listeners                              |
@@ -358,7 +358,7 @@ that the package is not a module (no `appweaver.module` field in its `package.js
 `--dry-run` it prints the install command instead.
 
 | Option              | Description                                      | Default   |
-|---------------------|--------------------------------------------------|-----------|
+| ------------------- | ------------------------------------------------ | --------- |
 | `--database <type>` | `sqlite`, `postgresql`, `mysql` or `sqlserver`   | `sqlite`  |
 | `--no-install`      | Skip the installation of the dependencies        | installed |
 | `--dry-run`         | Print the changes without applying them          | `false`   |
@@ -381,7 +381,7 @@ changed e2e test of `web`. Removing `data` deletes `database/` with its migratio
 in the project in a warning.
 
 | Option         | Description                               | Default   |
-|----------------|-------------------------------------------|-----------|
+| -------------- | ----------------------------------------- | --------- |
 | `--no-install` | Skip the installation of the dependencies | installed |
 | `--dry-run`    | Print the changes without applying them   | `false`   |
 | `--verbose`    | Print verbose output                      | `false`   |
@@ -413,7 +413,7 @@ export default createTask({
     status: { required: true, choices: ['Pending', 'Paid'] } // <status>: 'Pending' | 'Paid'
   },
   options: {
-    min: { type: 'number', default: 1 },                     // --min <min>: number
+    min: { type: 'number', default: 1 }, // --min <min>: number
     quiet: { type: 'boolean', description: 'Print nothing.' } // --quiet: boolean
   },
   run: async ({ args, options }) => {
@@ -427,7 +427,7 @@ export default createTask({
 ```
 
 | Field         | Description                                                                                                                   |
-|---------------|-------------------------------------------------------------------------------------------------------------------------------|
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `run`         | `({ args, options, argv }) => number \| void`, `argv` holding the arguments as given                                          |
 | `name`        | Default: the path in the tasks directory (`orders/count.ts` is `orders:count`)                                                |
 | `description` | Listed by `weaver run`, shown by `--help`                                                                                     |
@@ -460,7 +460,7 @@ weaver seed|sd [options]
 Seed the database.
 
 | Option                 | Description                                                             | Default                                   |
-|------------------------|-------------------------------------------------------------------------|-------------------------------------------|
+| ---------------------- | ----------------------------------------------------------------------- | ----------------------------------------- |
 | `--build-project`      | Build the project before seeding                                        | `false`                                   |
 | `-p, --project <path>` | TypeScript project config file of `--build-project`                     | `tsconfig.build.json`                     |
 | `--seeders-dir <dir>`  | Directory of the seeders                                                | from config (`DATABASE_SEEDERS_DIR_PATH`) |
@@ -487,7 +487,7 @@ weaver start|s [options]
 Start the application.
 
 | Option                 | Description                                                 | Default               |
-|------------------------|-------------------------------------------------------------|-----------------------|
+| ---------------------- | ----------------------------------------------------------- | --------------------- |
 | `-w, --watch`          | Run in watch mode (recompiles and restarts on file changes) | `false`               |
 | `-p, --project <path>` | TypeScript project config file of the watch mode            | `tsconfig.build.json` |
 
@@ -517,16 +517,16 @@ weaver test|t [options] [command]
 Run the tests (`weaver test [patterns...]`), or set up, reset and tear down the test environment (the subcommands). The
 tests run with the Jest of `@appweaver/tooling` on Node and `bun test` on Bun.
 
-| Option        | Description                                                  | Default |
-|---------------|--------------------------------------------------------------|---------|
-| `--e2e`       | Run the end-to-end tests (`test/e2e/jest.e2e-config.json`)    | `false` |
-| `--coverage`  | Collect the coverage                                         | `false` |
-| `-w, --watch` | Run the tests again on every change                          | `false` |
+| Option        | Description                                                | Default |
+| ------------- | ---------------------------------------------------------- | ------- |
+| `--e2e`       | Run the end-to-end tests (`test/e2e/jest.e2e-config.json`) | `false` |
+| `--coverage`  | Collect the coverage                                       | `false` |
+| `-w, --watch` | Run the tests again on every change                        | `false` |
 
 **Subcommands:**
 
 | Command              | Description                                                                               |
-|----------------------|-------------------------------------------------------------------------------------------|
+| -------------------- | ----------------------------------------------------------------------------------------- |
 | `setup [options]`    | Set up the temporary test data: the storage directory, the Prisma schema and the database |
 | `reset [options]`    | Reset the test database and/or the storage files                                          |
 | `teardown [options]` | Remove the temporary test directory                                                       |
@@ -536,7 +536,7 @@ tests run with the Jest of `@appweaver/tooling` on Node and `bun test` on Bun.
 Requires `NODE_ENV=test`.
 
 | Option                        | Description                           | Default                                         |
-|-------------------------------|---------------------------------------|-------------------------------------------------|
+| ----------------------------- | ------------------------------------- | ----------------------------------------------- |
 | `--temp-dir <dir>`            | Directory of the temporary test data  | `./temp`                                        |
 | `--model-pattern <pattern>`   | Glob pattern of the model files       | from config (`RESOURCE_MODEL_PATTERN`)          |
 | `--prisma-schema-path <path>` | Output path of the Prisma schema      | from config (`DATABASE_SCHEMA_PATH`)            |
@@ -556,7 +556,7 @@ Requires `NODE_ENV=test`. With no flags, resets both database and storage. The d
 test database, so the e2e Jest config runs the test files one at a time (`"maxWorkers": 1`).
 
 | Option             | Description                          | Default  |
-|--------------------|--------------------------------------|----------|
+| ------------------ | ------------------------------------ | -------- |
 | `--database`       | Reset the database                   | —        |
 | `--storage`        | Reset the storage files              | —        |
 | `--temp-dir <dir>` | Directory of the temporary test data | `./temp` |
@@ -567,7 +567,7 @@ test database, so the e2e Jest config runs the test files one at a time (`"maxWo
 Requires `NODE_ENV=test`.
 
 | Option             | Description                          | Default  |
-|--------------------|--------------------------------------|----------|
+| ------------------ | ------------------------------------ | -------- |
 | `--temp-dir <dir>` | Directory of the temporary test data | `./temp` |
 | `--verbose`        | Print verbose output                 | `false`  |
 
@@ -586,8 +586,8 @@ agent directory the project has (`.claude`, `.junie`, `.kiro`, `.pi`, `.github`,
 files of the previous version. The project's `AGENTS.md` or `CLAUDE.md` is never touched. It exits with 1 when the
 package is not installed (`npm install --save-dev @appweaver/skill`).
 
-| Option      | Description                                                         | Default |
-|-------------|---------------------------------------------------------------------|---------|
+| Option      | Description                                                            | Default |
+| ----------- | ---------------------------------------------------------------------- | ------- |
 | `--dry-run` | Print the skill directories that would be written without writing them | `false` |
 
 ---
@@ -607,13 +607,13 @@ is upgraded. The skill files are refreshed by `weaver skill sync` after the inst
 **Arguments:**
 
 | Argument   | Description                                                                    | Default                               |
-|------------|--------------------------------------------------------------------------------|---------------------------------------|
+| ---------- | ------------------------------------------------------------------------------ | ------------------------------------- |
 | `packages` | The `@appweaver/*` packages to upgrade (i.e. `@appweaver/core @appweaver/cli`) | All installed `@appweaver/*` packages |
 
 **Options:**
 
 | Option                       | Description                                                                     | Default  |
-|------------------------------|---------------------------------------------------------------------------------|----------|
+| ---------------------------- | ------------------------------------------------------------------------------- | -------- |
 | `--no-companions`            | Skip upgrading the companion packages                                           | upgraded |
 | `--tooling`                  | Also upgrade the tooling packages (`eslint`, `jest`, `prettier`, …)             | `false`  |
 | `--no-skill`                 | Skip upgrading the AI agent skill files in agent dirs (`.claude`, `.agents`, …) | upgraded |

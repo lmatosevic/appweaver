@@ -71,7 +71,10 @@ const orders = injectService('Order');
 // The parameter type gives the transaction client the models of the application
 const order = await runTransaction(async (tx: Prisma.TransactionClient) => {
   const order = await orders.create({ customer: customerId, total });
-  await tx.product.updateMany({ where: { id: productId, stock: { gte: 1 } }, data: { stock: { decrement: 1 } } });
+  await tx.product.updateMany({
+    where: { id: productId, stock: { gte: 1 } },
+    data: { stock: { decrement: 1 } }
+  });
   afterCommit(() => sendOrderEmail(order)); // runs only once committed
   return order;
 });
@@ -79,13 +82,21 @@ const order = await runTransaction(async (tx: Prisma.TransactionClient) => {
 await runTransaction('Serializable', async () => {
   // Database calls...
 });
-await runTransaction({ isolationLevel: 'Serializable', timeout: 10_000, maxWait: 2_000, retries: 3 }, async () => {
-  // Database calls...
-});
+await runTransaction(
+  {
+    isolationLevel: 'Serializable',
+    timeout: 10_000,
+    maxWait: 2_000,
+    retries: 3
+  },
+  async () => {
+    // Database calls...
+  }
+);
 ```
 
 | Option           | Default                                           | Description                                                                       |
-|------------------|---------------------------------------------------|-----------------------------------------------------------------------------------|
+| ---------------- | ------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `isolationLevel` | database default, always `Serializable` on SQLite | `ReadUncommitted`, `ReadCommitted`, `RepeatableRead`, `Serializable`, `Snapshot`. |
 | `timeout`        | `DATABASE_TRANSACTION_TIMEOUT`                    | Maximum run time in milliseconds.                                                 |
 | `maxWait`        | `DATABASE_TRANSACTION_MAX_WAIT`                   | Maximum wait for a connection in milliseconds.                                    |
@@ -123,7 +134,7 @@ generator client {
 model User {
   id    Int    @id @default(autoincrement())
   email String @unique
-  name  String 
+  name  String
 }
 ```
 
@@ -155,7 +166,7 @@ The options of these commands are in [cli.md](./cli.md#weaver-generate).
 ## Configuration
 
 | Key                             | Type     | Default                      | Description                                     |
-|---------------------------------|----------|------------------------------|-------------------------------------------------|
+| ------------------------------- | -------- | ---------------------------- | ----------------------------------------------- |
 | `DATABASE_TYPE`                 | `enum`   | —                            | `sqlite`, `postgresql`, `mysql`, or `sqlserver` |
 | `DATABASE_URL`                  | `string` | —                            | Connection string / DSN of the application      |
 | `DATABASE_MIGRATION_URL`        | `string` | `DATABASE_URL`               | Connection string / DSN of the migrations       |

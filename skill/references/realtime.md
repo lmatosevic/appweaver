@@ -22,24 +22,33 @@ import { createChannel } from '@appweaver/realtime';
 
 export const orderShipped = createChannel({
   name: 'order.shipped',
-  payload: Type.Object({ orderId: Type.Integer(), customerId: Type.Integer(), carrier: Type.String() }),
+  payload: Type.Object({
+    orderId: Type.Integer(),
+    customerId: Type.Integer(),
+    carrier: Type.String()
+  }),
   params: Type.Object({ orderId: Type.Optional(Type.Integer()) }),
   roles: ['customer', 'admin'],
   subscribe: (user, params) => true, // once, when the client subscribes
-  deliver: (user, payload, params) => // for every payload and subscription
-    payload.customerId === user?.id && (!params.orderId || params.orderId === payload.orderId)
+  deliver: (
+    user,
+    payload,
+    params // for every payload and subscription
+  ) =>
+    payload.customerId === user?.id &&
+    (!params.orderId || params.orderId === payload.orderId)
 });
 
 await orderShipped.publish({ orderId: 7, customerId: 1, carrier: 'DHL' }); // validated against `payload`
 ```
 
-| Option                           | Description                                                                                 |
-|----------------------------------|---------------------------------------------------------------------------------------------|
-| `name`                           | `[a-zA-Z0-9][\w.:-]*`, unique, never starting with `resource:`                              |
-| `payload`, `params`              | TypeBox schemas of the payloads and of the subscription parameters                          |
-| `public`, `roles`, `permissions` | Who may subscribe, see [Access](#access)                                                    |
-| `subscribe`, `deliver`           | Return false to deny the subscription, or to keep a payload from it. They run as the user   |
-| `description`                    | Description in the OpenAPI document                                                         |
+| Option                           | Description                                                                               |
+| -------------------------------- | ----------------------------------------------------------------------------------------- |
+| `name`                           | `[a-zA-Z0-9][\w.:-]*`, unique, never starting with `resource:`                            |
+| `payload`, `params`              | TypeBox schemas of the payloads and of the subscription parameters                        |
+| `public`, `roles`, `permissions` | Who may subscribe, see [Access](#access)                                                  |
+| `subscribe`, `deliver`           | Return false to deny the subscription, or to keep a payload from it. They run as the user |
+| `description`                    | Description in the OpenAPI document                                                       |
 
 The payloads and parameters of the channels and the payloads of the actions are validated with TypeBox, failing with
 `REALTIME_PAYLOAD_INVALID`. The string formats work as on the HTTP routes (`date-time`, `date`, `time`, `email`, `uri`,
@@ -47,7 +56,10 @@ The payloads and parameters of the channels and the payloads of the actions are 
 application registered its own in the `FormatRegistry` of TypeBox:
 
 ```ts
-payload: Type.Object({ text: Type.String(), sentAt: Type.String({ format: 'date-time' }) })
+payload: Type.Object({
+  text: Type.String(),
+  sentAt: Type.String({ format: 'date-time' })
+});
 ```
 
 ## Resource events
@@ -57,8 +69,8 @@ createRoutes({
   modelName: 'product',
   events: {
     actions: [
-      'create',                              // the access of the events: roles ['staff']
-      { action: 'update', public: true },    // an access of its own, replacing it
+      'create', // the access of the events: roles ['staff']
+      { action: 'update', public: true }, // an access of its own, replacing it
       { action: 'delete', roles: ['admin'] }
     ],
     roles: ['staff']
@@ -89,7 +101,8 @@ Before an event reaches a user, `ResourceService.checkEventAccess` runs as that 
 ```ts
 createPolicy({
   modelName: 'order',
-  events: (user, { action, current, previous }) => (!!user && hasRole(user, 'admin')) || current.customerId === user?.id
+  events: (user, { action, current, previous }) =>
+    (!!user && hasRole(user, 'admin')) || current.customerId === user?.id
 });
 ```
 
@@ -106,8 +119,11 @@ fields, so the Redis server must be as private as the database.
 > ```ts
 > createPolicy({
 >   modelName: 'post',
->   readRestrictions: (user) => ({ team: { members: { some: { userId: user?.id } } } }),
->   events: (user, { current }) => !!user && userTeamIds(user).includes(current.teamId)
+>   readRestrictions: (user) => ({
+>     team: { members: { some: { userId: user?.id } } }
+>   }),
+>   events: (user, { current }) =>
+>     !!user && userTeamIds(user).includes(current.teamId)
 > });
 > ```
 
@@ -121,7 +137,9 @@ createRealtimeAction({
   payload: Type.Object({ roomId: Type.Integer() }),
   response: Type.Object({ seen: Type.Integer() }),
   roles: ['user'],
-  handler: async ({ roomId }, { user, transport, connectionId, ack }) => ({ seen: 3 }) // runs as the user
+  handler: async ({ roomId }, { user, transport, connectionId, ack }) => ({
+    seen: 3
+  }) // runs as the user
 });
 ```
 
@@ -159,15 +177,24 @@ createRealtimeAction({
   stream: { codec: 'text', coalesce: 16 }, // merges the tokens of 16 ms into one chunk
   async *handler({ prompt }, { user, signal }) {
     const stream = anthropic.messages.stream(
-      { model: process.env.ANTHROPIC_MODEL!, max_tokens: 4096, messages: [{ role: 'user', content: prompt }] },
+      {
+        model: process.env.ANTHROPIC_MODEL!,
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: prompt }]
+      },
       { signal }
     );
     for await (const event of stream) {
-      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+      if (
+        event.type === 'content_block_delta' &&
+        event.delta.type === 'text_delta'
+      ) {
         yield event.delta.text;
       }
     }
-    return { stopReason: (await stream.finalMessage()).stop_reason ?? 'end_turn' };
+    return {
+      stopReason: (await stream.finalMessage()).stop_reason ?? 'end_turn'
+    };
   }
 });
 ```
@@ -196,7 +223,8 @@ for a key by its producer, anywhere in the application (a route, an action, a qu
 export const roomAnswer = createStream({
   name: 'room.answer',
   params: Type.Object({ roomId: Type.Integer() }),
-  subscribe: (user, { roomId }, key) => key === String(roomId) && isMember(user, roomId) // once per subscription
+  subscribe: (user, { roomId }, key) =>
+    key === String(roomId) && isMember(user, roomId) // once per subscription
 });
 
 export const radio = createStream({
@@ -218,20 +246,20 @@ writer.end({ messageId });
 radio.open('jazz').write(frame, { sync: true }); // a chunk a listener can start from
 ```
 
-| Option                           | Description                                                                                                   |
-|----------------------------------|---------------------------------------------------------------------------------------------------------------|
-| `name`                           | `[a-zA-Z0-9][\w.:-]*`, unique, subscribed to as the channel `stream:<name>`                                   |
-| `codec`                          | `text` (default), `json` or `binary`                                                                          |
-| `mimeType`                       | The media type of a `binary` stream, told to the clients                                                      |
-| `chunk`                          | The TypeBox schema of the chunks of a `json` stream, checked outside of `prod`                                |
-| `params`                         | The TypeBox schema of the subscription parameters                                                             |
-| `public`, `roles`, `permissions` | Who may subscribe, see [Access](#access)                                                                      |
+| Option                           | Description                                                                                                         |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `name`                           | `[a-zA-Z0-9][\w.:-]*`, unique, subscribed to as the channel `stream:<name>`                                         |
+| `codec`                          | `text` (default), `json` or `binary`                                                                                |
+| `mimeType`                       | The media type of a `binary` stream, told to the clients                                                            |
+| `chunk`                          | The TypeBox schema of the chunks of a `json` stream, checked outside of `prod`                                      |
+| `params`                         | The TypeBox schema of the subscription parameters                                                                   |
+| `public`, `roles`, `permissions` | Who may subscribe, see [Access](#access)                                                                            |
 | `resource`                       | `{ model, id? }`: the record of a key, a subscriber must be able to `find` it, see [Access](#access-of-the-streams) |
-| `subscribe`                      | `(user, params, key)`, false denies the subscription; it runs as the user                                     |
-| `replay`                         | `{ from, maxBytes }`: `all` the chunks kept (default), from the last `sync` one, or `none`; the bytes kept     |
-| `onSlow`                         | A subscriber over `realtime.sendBufferLimit`: `close` (default), `drop` its chunks, or `skip-to-sync`          |
-| `coalesce`                       | Milliseconds the `text` or `binary` chunks are merged for, `0` (default) for none                             |
-| `description`                    | Description in the OpenAPI document                                                                           |
+| `subscribe`                      | `(user, params, key)`, false denies the subscription; it runs as the user                                           |
+| `replay`                         | `{ from, maxBytes }`: `all` the chunks kept (default), from the last `sync` one, or `none`; the bytes kept          |
+| `onSlow`                         | A subscriber over `realtime.sendBufferLimit`: `close` (default), `drop` its chunks, or `skip-to-sync`               |
+| `coalesce`                       | Milliseconds the `text` or `binary` chunks are merged for, `0` (default) for none                                   |
+| `description`                    | Description in the OpenAPI document                                                                                 |
 
 The streaming actions take the same `codec`, `mimeType`, `chunk`, `replay`, `onSlow` and `coalesce` in their `stream`.
 
@@ -280,11 +308,11 @@ createRealtimeAction({
 });
 ```
 
-| Option     | Description                                                                                       |
-|------------|---------------------------------------------------------------------------------------------------|
-| `codec`    | `text` (default), `json` or `binary` (`Uint8Array` chunks)                                        |
-| `mimeType` | The media type of a `binary` input, told to the clients                                           |
-| `chunk`    | The TypeBox schema of the chunks of a `json` input, checked in every environment                  |
+| Option     | Description                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------ |
+| `codec`    | `text` (default), `json` or `binary` (`Uint8Array` chunks)                                                   |
+| `mimeType` | The media type of a `binary` input, told to the clients                                                      |
+| `chunk`    | The TypeBox schema of the chunks of a `json` input, checked in every environment                             |
 | `maxBytes` | The bytes the client may send in all, `realtime.streamInputMaxBytes` by default (`413 REALTIME_INPUT_LIMIT`) |
 
 - An input is sent over the WebSocket only: over HTTP the call fails with `REALTIME_MESSAGE_INVALID`.
@@ -303,12 +331,12 @@ createRealtimeAction({
 
 ### Costs
 
-| Per chunk                    | Streams                                                                    |
-|------------------------------|----------------------------------------------------------------------------|
-| Access checks                | None (once per subscription)                                               |
-| Encoding                     | One `JSON.stringify`, shared by every subscriber                           |
-| Pub/sub, Redis               | None locally; one publish per batch only while another instance subscribes |
-| Validation                   | The codec; the `chunk` schema of `json`, of a stream outside of `prod`     |
+| Per chunk      | Streams                                                                    |
+| -------------- | -------------------------------------------------------------------------- |
+| Access checks  | None (once per subscription)                                               |
+| Encoding       | One `JSON.stringify`, shared by every subscriber                           |
+| Pub/sub, Redis | None locally; one publish per batch only while another instance subscribes |
+| Validation     | The codec; the `chunk` schema of `json`, of a stream outside of `prod`     |
 
 The cost that remains is one message per subscriber per chunk on its socket: `coalesce` lowers it for the token
 streams, whose tokens arrive faster than a user reads them.
@@ -321,7 +349,11 @@ on a public part). The anonymous clients use the public parts once `realtime.ano
 
 ```jsonc
 // appweaver.json, or REALTIME_ANONYMOUS_ENABLED=true and REALTIME_MAX_ANONYMOUS_CONNECTIONS_PER_IP=5
-{ "config": { "realtime": { "anonymousEnabled": true, "maxAnonymousConnectionsPerIp": 5 } } }
+{
+  "config": {
+    "realtime": { "anonymousEnabled": true, "maxAnonymousConnectionsPerIp": 5 }
+  }
+}
 ```
 
 ```ts
@@ -330,7 +362,8 @@ export const stockPrice = createChannel({
   public: true,
   payload: Type.Object({ symbol: Type.String(), price: Type.Number() }),
   params: Type.Object({ symbol: Type.Optional(Type.String()) }),
-  deliver: (_, payload, params) => !params.symbol || params.symbol === payload.symbol
+  deliver: (_, payload, params) =>
+    !params.symbol || params.symbol === payload.symbol
 });
 ```
 
@@ -349,9 +382,15 @@ Every check of a stream runs once, when a client subscribes, and again when its 
 4. the `subscribe` callback of the stream, for any other rule.
 
 ```ts
-createPolicy({ modelName: 'chatRoom', readRestrictions: (user) => ({ members: { some: { userId: user?.id } } }) });
+createPolicy({
+  modelName: 'chatRoom',
+  readRestrictions: (user) => ({ members: { some: { userId: user?.id } } })
+});
 
-export const roomAnswer = createStream({ name: 'room.answer', resource: { model: 'ChatRoom' } });
+export const roomAnswer = createStream({
+  name: 'room.answer',
+  resource: { model: 'ChatRoom' }
+});
 // subscribe to 'stream:room.answer' with key '42': allowed while the user can read the room 42
 ```
 
@@ -364,12 +403,12 @@ the user does not (a member removed from a room) applies at the next subscriptio
 
 A change of a user reaches their connections and their calls on every instance, over the WebSocket and HTTP alike:
 
-| Change                                 | Subscriptions to streams                              | Calls (streaming actions, inputs)                                     |
-|----------------------------------------|-------------------------------------------------------|-----------------------------------------------------------------------|
-| Logout (`logoutAt`, a password change) | Their connections closed (`4401`), no reconnection    | Ended at once with `REALTIME_ACTION_DENIED`, never left to linger     |
-| Disabling, deletion                    | The same                                              | The same                                                              |
-| Other roles or permissions             | Checked again, the lost ones removed with an error    | Ended with `REALTIME_ACTION_DENIED` when the action is no longer allowed |
-| `revoke(userId)`, `refresh(userId)`    | The same as a logout, or as other roles               | The same                                                              |
+| Change                                 | Subscriptions to streams                           | Calls (streaming actions, inputs)                                        |
+| -------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------ |
+| Logout (`logoutAt`, a password change) | Their connections closed (`4401`), no reconnection | Ended at once with `REALTIME_ACTION_DENIED`, never left to linger        |
+| Disabling, deletion                    | The same                                           | The same                                                                 |
+| Other roles or permissions             | Checked again, the lost ones removed with an error | Ended with `REALTIME_ACTION_DENIED` when the action is no longer allowed |
+| `revoke(userId)`, `refresh(userId)`    | The same as a logout, or as other roles            | The same                                                                 |
 
 Ending a call aborts its `signal` and fails its `input`, so the generation of an LLM or the reading of an input stops;
 `inject(RealtimeGateway).calls` lists the calls running on the instance.
@@ -390,13 +429,13 @@ the readiness answers `503`, then the realtime part of the instance drains befor
 4. it waits for its calls to end, the ones over HTTP too, at most `realtime.shutdownGracePeriod` milliseconds
    (`30000`), ends the rest with `REALTIME_SHUTTING_DOWN`, and closes what remains with `1001`.
 
-| Part                                    | On a rolling update                                                                                     |
-|-----------------------------------------|---------------------------------------------------------------------------------------------------------|
-| Channels, resource events               | Subscribed again on another instance; the events published during the reconnection are lost            |
-| Streams of a key (`createStream`)       | Subscribed again, a stream of a surviving instance resumed from its last chunk; the producer of a stream on the stopping instance stops with it (`REALTIME_STREAM_LOST`) |
-| Streaming actions over the WebSocket    | Resumed on another instance, relayed from the draining one until they end, within the grace period      |
-| Streaming actions over HTTP             | Kept on their connection until they end, within the grace period                                        |
-| Inputs                                  | Their connection kept until the client ends the input, within the grace period                          |
+| Part                                 | On a rolling update                                                                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Channels, resource events            | Subscribed again on another instance; the events published during the reconnection are lost                                                                              |
+| Streams of a key (`createStream`)    | Subscribed again, a stream of a surviving instance resumed from its last chunk; the producer of a stream on the stopping instance stops with it (`REALTIME_STREAM_LOST`) |
+| Streaming actions over the WebSocket | Resumed on another instance, relayed from the draining one until they end, within the grace period                                                                       |
+| Streaming actions over HTTP          | Kept on their connection until they end, within the grace period                                                                                                         |
+| Inputs                               | Their connection kept until the client ends the input, within the grace period                                                                                           |
 
 Set the termination grace period of the platform (`terminationGracePeriodSeconds` of Kubernetes) above
 `realtime.shutdownGracePeriod`, and the generations to fit in it. A crash or a kill loses the calls of the instance:
@@ -410,11 +449,11 @@ with its credentials, used once and valid `realtime.ticketTtl` milliseconds on e
 with the user but never their password hash). The user is loaded again when the ticket is redeemed, refused once
 deleted, disabled or logged out since.
 
-| Route                                              | Description                                                                          |
-|----------------------------------------------------|--------------------------------------------------------------------------------------|
-| `POST <api>/realtime/ticket`                       | `{ ticket, expiresIn }`, any authentication                                          |
-| `GET <api>/realtime/ws?ticket=`                    | The WebSocket, described by the `x-appweaver-realtime` extension                     |
-| `GET <api>/realtime/events?ticket=&subscriptions=` | The SSE stream of the subscriptions of the query, a JSON array; a change reopens it  |
+| Route                                              | Description                                                                                                    |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `POST <api>/realtime/ticket`                       | `{ ticket, expiresIn }`, any authentication                                                                    |
+| `GET <api>/realtime/ws?ticket=`                    | The WebSocket, described by the `x-appweaver-realtime` extension                                               |
+| `GET <api>/realtime/events?ticket=&subscriptions=` | The SSE stream of the subscriptions of the query, a JSON array; a change reopens it                            |
 | `POST <api>/realtime/actions/:name?ack=`           | Calls an action, answers `{ result }`, or 202 with `ack=false`; a streaming action answers with its SSE stream |
 
 A connection without a ticket is anonymous, or refused (`REALTIME_TICKET_INVALID`). It closes with a `reauth` message
@@ -434,18 +473,18 @@ error. A change the auth model does not see, i.e. the permissions of a role, app
 
 Every message is a JSON object: a WebSocket text frame, or the `data` of an SSE event whose `id` is the `eventId`.
 
-| Client → server (WebSocket)                            | Answer                           |
-|--------------------------------------------------------|----------------------------------|
-| `{ type: 'subscribe', id, channel, params?, filter? }` | `{ type: 'subscribed', id }`     |
-| `{ type: 'subscribe', id, channel: 'stream:<name>', key?, params?, resume? }` | `{ type: 'subscribed', id }`, then the streams |
-| `{ type: 'unsubscribe', id }`                          | `{ type: 'unsubscribed', id }`   |
-| `{ type: 'action', id, action, payload }`              | `{ type: 'result', id, result }`, the stream of a streaming action |
-| `{ type: 'action', action, payload }`                  | nothing (fire-and-forget)        |
-| `{ type: 'cancel', id }`                               | `stream.end` with `cancelled`    |
-| `{ type: 'input', id, data }`, or a binary message     | `{ type: 'input.credit', id, bytes }` as the handler reads |
-| `{ type: 'input.end', id }`                            | The result, or the end of the stream |
-| `{ type: 'resume', id, streamId, seq }`                | The stream of a call, from `seq` |
-| `{ type: 'ping', id? }`                                | `{ type: 'pong', id? }`          |
+| Client → server (WebSocket)                                                   | Answer                                                             |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `{ type: 'subscribe', id, channel, params?, filter? }`                        | `{ type: 'subscribed', id }`                                       |
+| `{ type: 'subscribe', id, channel: 'stream:<name>', key?, params?, resume? }` | `{ type: 'subscribed', id }`, then the streams                     |
+| `{ type: 'unsubscribe', id }`                                                 | `{ type: 'unsubscribed', id }`                                     |
+| `{ type: 'action', id, action, payload }`                                     | `{ type: 'result', id, result }`, the stream of a streaming action |
+| `{ type: 'action', action, payload }`                                         | nothing (fire-and-forget)                                          |
+| `{ type: 'cancel', id }`                                                      | `stream.end` with `cancelled`                                      |
+| `{ type: 'input', id, data }`, or a binary message                            | `{ type: 'input.credit', id, bytes }` as the handler reads         |
+| `{ type: 'input.end', id }`                                                   | The result, or the end of the stream                               |
+| `{ type: 'resume', id, streamId, seq }`                                       | The stream of a call, from `seq`                                   |
+| `{ type: 'ping', id? }`                                                       | `{ type: 'pong', id? }`                                            |
 
 The server sends `{ type: 'welcome', connectionId, expiresAt, heartbeat }` once open, `{ type: 'event', id, channel,
 eventId, data }` for the subscription `id` (chosen by the client, `[\w.:-]{1,64}`), `{ type: 'error', id?, error }` with
@@ -460,7 +499,7 @@ receives the same encoded frame: `{ type: 'chunk', sid, seq, data, sync? }` (`da
 `resume: { streamId, seq }`, from the chunks kept.
 
 | Close code | Meaning                                          |
-|------------|--------------------------------------------------|
+| ---------- | ------------------------------------------------ |
 | `1001`     | The server shuts down                            |
 | `1012`     | The server restarts, reconnect at once elsewhere |
 | `1008`     | A binary message                                 |
@@ -481,7 +520,9 @@ const client = createClient({
 });
 
 client.realtime.subscribe('stock.price', show, { symbol: 'AAPL' });
-client.realtime.on('Product', ({ action, current }) => refresh(current), { action: 'update' });
+client.realtime.on('Product', ({ action, current }) => refresh(current), {
+  action: 'update'
+});
 await client.realtime.send('chat.typing', { roomId: 1 });
 client.realtime.emit('cursor.move', { x: 10, y: 20 });
 
@@ -489,14 +530,22 @@ const call = client.realtime.call('assistant.prompt', { prompt }); // a streamin
 for await (const token of call) output += token;
 const { stopReason } = await call.result;
 
-const voice = client.realtime.call('voice.transcribe', { language: 'en' }, { input: microphoneChunks }); // an input
+const voice = client.realtime.call(
+  'voice.transcribe',
+  { language: 'en' },
+  { input: microphoneChunks }
+); // an input
 for await (const text of voice) showCaption(text);
 
-client.realtime.stream('room.answer', {
-  onStart: ({ streamId }) => startMessage(streamId),
-  onChunk: (token, { streamId }) => append(streamId, token),
-  onEnd: (result, { streamId }) => finishMessage(streamId)
-}, { key: '42', params: { roomId: 42 } });
+client.realtime.stream(
+  'room.answer',
+  {
+    onStart: ({ streamId }) => startMessage(streamId),
+    onChunk: (token, { streamId }) => append(streamId, token),
+    onEnd: (result, { streamId }) => finishMessage(streamId)
+  },
+  { key: '42', params: { roomId: 42 } }
+);
 
 await login();
 await client.realtime.reconnect(); // the connection of the user, with the subscriptions

@@ -14,30 +14,30 @@ startup.
 
 ## Contents
 
-| Section                                                                     | CR           | Affects                          | Status  |
-|-----------------------------------------------------------------------------|--------------|----------------------------------|---------|
-| [1. Before you start](#1-before-you-start)                                  | -            | Everyone                         | pending |
-| [2. The project config](#2-the-project-config)                              | V3-TOOL-01   | Every project                    | done    |
-| [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)         | V3-TOOL-05   | Every scaffolded project         | done    |
-| [4. TypeBox 1.x](#4-typebox-1x)                                             | V3-TOOL-06   | Schemas, config sections, routes | pending |
-| [5. Durations and sizes](#5-durations-and-sizes)                            | V3-CONV-01   | `appweaver.json`, `.env`         | pending |
-| [6. Exposure: `actions` everywhere](#6-exposure-actions-everywhere)         | V3-CONV-02   | `createRoutes`, bulk env flags   | pending |
-| [7. Maintenance jobs](#7-maintenance-jobs)                                  | V3-CONV-03   | Retention and pruning keys       | pending |
-| [8. Secure defaults](#8-secure-defaults)                                    | V3-CONV-04   | JWT, redirects, CORS, body size  | pending |
-| [9. `database.keepTables`](#9-databasekeeptables)                           | V3-CONV-05   | `KEEP_DATABASE_TABLE` keys       | done    |
-| [10. Total count and offsets](#10-total-count-and-offsets)                  | V3-CONV-06   | `query` clients                  | done    |
-| [11. Aggregates](#11-aggregates)                                            | V3-CONV-07   | `aggregate` clients              | pending |
-| [12. Full names instead of abbreviations](#12-full-names-instead-of-abbreviations) | V3-CONV-08 | Config, routes, codes, types | pending |
-| [13. Duplicate models, services, policies and routes](#13-duplicate-models-services-policies-and-routes) | V3-DATA-01 | Projects redefining a framework model | pending |
-| [14. The system context of the application's own calls](#14-the-system-context-of-the-applications-own-calls) | V3-DATA-06 | Policies | pending |
-| [15. Cache scopes](#15-cache-scopes)                                        | V3-WEB-01    | `cache` of the routes            | pending |
-| [16. Forced 2FA](#16-forced-2fa)                                            | V3-WEB-02    | `forced` of the 2FA config       | pending |
-| [17. Generated client](#17-generated-client)                                | V3-CLIENT-01, V3-CLIENT-03 | `weaver-client generate` output | pending |
-| [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails) | V3-SEC-05 | OAuth2 providers           | done    |
-| [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101) | V3-SEC-01..04 | Filters, body size, CSV export | done |
-| [20. Smaller API changes](#20-smaller-api-changes)                          | per CR       | The utilities named              | done    |
-| [20b. Array environment variables](#20b-array-environment-variables)       | V3-COMMON-01 | Array keys set in `.env`         | done    |
-| [21. The skill package](#21-the-skill-package)                              | V3-TOOL-08   | Projects with agent files        | done    |
+| Section                                                                                                       | CR                         | Affects                               | Status  |
+| ------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------- | ------- |
+| [1. Before you start](#1-before-you-start)                                                                    | -                          | Everyone                              | pending |
+| [2. The project config](#2-the-project-config)                                                                | V3-TOOL-01                 | Every project                         | done    |
+| [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)                                           | V3-TOOL-05                 | Every scaffolded project              | done    |
+| [4. TypeBox 1.x](#4-typebox-1x)                                                                               | V3-TOOL-06                 | Schemas, config sections, routes      | pending |
+| [5. Durations and sizes](#5-durations-and-sizes)                                                              | V3-CONV-01                 | `appweaver.json`, `.env`              | pending |
+| [6. Exposure: `actions` everywhere](#6-exposure-actions-everywhere)                                           | V3-CONV-02                 | `createRoutes`, bulk env flags        | pending |
+| [7. Maintenance jobs](#7-maintenance-jobs)                                                                    | V3-CONV-03                 | Retention and pruning keys            | pending |
+| [8. Secure defaults](#8-secure-defaults)                                                                      | V3-CONV-04                 | JWT, redirects, CORS, body size       | pending |
+| [9. `database.keepTables`](#9-databasekeeptables)                                                             | V3-CONV-05                 | `KEEP_DATABASE_TABLE` keys            | done    |
+| [10. Total count and offsets](#10-total-count-and-offsets)                                                    | V3-CONV-06                 | `query` clients                       | done    |
+| [11. Aggregates](#11-aggregates)                                                                              | V3-CONV-07                 | `aggregate` clients                   | pending |
+| [12. Full names instead of abbreviations](#12-full-names-instead-of-abbreviations)                            | V3-CONV-08                 | Config, routes, codes, types          | pending |
+| [13. Duplicate models, services, policies and routes](#13-duplicate-models-services-policies-and-routes)      | V3-DATA-01                 | Projects redefining a framework model | pending |
+| [14. The system context of the application's own calls](#14-the-system-context-of-the-applications-own-calls) | V3-DATA-06                 | Policies                              | done    |
+| [15. Cache scopes](#15-cache-scopes)                                                                          | V3-WEB-01                  | `cache` of the routes                 | pending |
+| [16. Forced 2FA](#16-forced-2fa)                                                                              | V3-WEB-02                  | `forced` of the 2FA config            | pending |
+| [17. Generated client](#17-generated-client)                                                                  | V3-CLIENT-01, V3-CLIENT-03 | `weaver-client generate` output       | pending |
+| [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails)                          | V3-SEC-05                  | OAuth2 providers                      | done    |
+| [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101)                                | V3-SEC-01..04              | Filters, body size, CSV export        | done    |
+| [20. Smaller API changes](#20-smaller-api-changes)                                                            | per CR                     | The utilities named                   | done    |
+| [20b. Array environment variables](#20b-array-environment-variables)                                          | V3-COMMON-01               | Array keys set in `.env`              | done    |
+| [21. The skill package](#21-the-skill-package)                                                                | V3-TOOL-08                 | Projects with agent files             | done    |
 
 Each section follows the same layout: **What changed**, **Who is affected**, **Before**, **After**, **Steps**.
 
@@ -147,14 +147,14 @@ _pending_ (V3-CONV-01, D11): every duration key takes milliseconds or a unit str
 every size key bytes or a unit string (`'64KB'`, `'5MB'`). The keys in seconds today change their meaning, with no
 compatibility mode:
 
-| Key                                         | 2.x                   | 3.0                                   |
-|---------------------------------------------|-----------------------|---------------------------------------|
-| `security.jwt.expiresIn`                    | seconds (`604800`)    | `'7d'` or `604800000`                 |
-| `security.jwt.refreshExpiresIn`             | seconds               | a duration                            |
-| `cors.maxAge`                               | seconds               | a duration                            |
-| `queue.keepCompletedSeconds`                | seconds               | `queue.keepCompleted`, a duration     |
-| `queue.keepFailedSeconds`                   | seconds               | `queue.keepFailed`, a duration        |
-| `security.oauth2.apple.clientSecretExpiresIn` | seconds             | a duration                            |
+| Key                                           | 2.x                | 3.0                               |
+| --------------------------------------------- | ------------------ | --------------------------------- |
+| `security.jwt.expiresIn`                      | seconds (`604800`) | `'7d'` or `604800000`             |
+| `security.jwt.refreshExpiresIn`               | seconds            | a duration                        |
+| `cors.maxAge`                                 | seconds            | a duration                        |
+| `queue.keepCompletedSeconds`                  | seconds            | `queue.keepCompleted`, a duration |
+| `queue.keepFailedSeconds`                     | seconds            | `queue.keepFailed`, a duration    |
+| `security.oauth2.apple.clientSecretExpiresIn` | seconds            | a duration                        |
 
 The TOTP `period` keeps its integer seconds (RFC 6238).
 
@@ -172,14 +172,14 @@ _pending_ (V3-CONV-03, D9): `audit.retentionInterval`, `audit.retentionWorker`, 
 
 _pending_ (V3-CONV-04, D5):
 
-| Key                               | 2.x                  | 3.0                                                          |
-|-----------------------------------|----------------------|--------------------------------------------------------------|
-| `security.jwt.expiresIn`          | 7 days               | 15 minutes                                                   |
-| `security.jwt.refreshExpiresIn`   | 60 days              | 30 days, rotating, with reuse detection                      |
-| `security.jwt.autoGenerateKeys`   | `true`               | `true` in `dev` and `test` only, a startup failure otherwise |
-| `security.allowedRedirectHosts`   | `['*']`              | the host of `app.hostname`                                   |
-| `cors.origin`                     | `['*']`              | `['*']` with a warning in production                         |
-| `server.bodyMaxSize`              | `100M` (`10M` JSON since 2.10.1) | `1M` for JSON, uploads by their file fields' `maxSize` |
+| Key                             | 2.x                              | 3.0                                                          |
+| ------------------------------- | -------------------------------- | ------------------------------------------------------------ |
+| `security.jwt.expiresIn`        | 7 days                           | 15 minutes                                                   |
+| `security.jwt.refreshExpiresIn` | 60 days                          | 30 days, rotating, with reuse detection                      |
+| `security.jwt.autoGenerateKeys` | `true`                           | `true` in `dev` and `test` only, a startup failure otherwise |
+| `security.allowedRedirectHosts` | `['*']`                          | the host of `app.hostname`                                   |
+| `cors.origin`                   | `['*']`                          | `['*']` with a warning in production                         |
+| `server.bodyMaxSize`            | `100M` (`10M` JSON since 2.10.1) | `1M` for JSON, uploads by their file fields' `maxSize`       |
 
 ## 9. `database.keepTables`
 
@@ -188,13 +188,13 @@ one list of model names, `database.keepTables`.
 
 **Who is affected**: projects setting one of the removed keys.
 
-| Removed key (2.x)                                        | Name in `database.keepTables` (3.0)            |
-|----------------------------------------------------------|------------------------------------------------|
-| `security.apiKey.keepDatabaseTable`                      | `ApiKey`                                       |
-| `security.store.keepDatabaseTable`                       | `OneTimeToken`                                 |
-| `security.oauth2.connectedAccountsKeepDatabaseTable`     | `ConnectedAccount`                             |
-| `security.account.2fa.keepDatabaseTable`                 | `TwoFactorMethod` (with `TwoFactorRecoveryCode`) |
-| `audit.keepDatabaseTable`                                | `AuditLog` (with `AuditChange`)                |
+| Removed key (2.x)                                    | Name in `database.keepTables` (3.0)              |
+| ---------------------------------------------------- | ------------------------------------------------ |
+| `security.apiKey.keepDatabaseTable`                  | `ApiKey`                                         |
+| `security.store.keepDatabaseTable`                   | `OneTimeToken`                                   |
+| `security.oauth2.connectedAccountsKeepDatabaseTable` | `ConnectedAccount`                               |
+| `security.account.2fa.keepDatabaseTable`             | `TwoFactorMethod` (with `TwoFactorRecoveryCode`) |
+| `audit.keepDatabaseTable`                            | `AuditLog` (with `AuditChange`)                  |
 
 **Before**: `{ "security": { "apiKey": { "keepDatabaseTable": true } }, "audit": { "keepDatabaseTable": true } }`
 
@@ -239,8 +239,34 @@ model with `extendModel`, `extendService`, `extendPolicy` and `extendRoutes`.
 
 ## 14. The system context of the application's own calls
 
-_pending_ (V3-DATA-06, F39): a policy tells an anonymous request from the application's own calls (jobs, seeders,
-tasks, tests).
+**What changed** (V3-DATA-06, F39): a call of a resource or file service outside of a request and of `runAs` (a queue
+worker, a scheduled job, a seeder, a `weaver run` task, a test calling a service) is the application's own call and
+skips the policies, like `withoutPolicies`. A policy receives `null` only for an anonymous request (or for
+`runAs(null, fn)`), never for the application's own calls. `isSystemCall()` of `@appweaver/core` tells them apart.
+
+**Who is affected**: a policy telling an anonymous request from a job by `currentRequestScope()`, and code relying on
+the policies of an anonymous user outside of a request (a job, or a test calling a service directly).
+
+**Before**:
+
+```ts
+readRestrictions: (user) => {
+  if (!user) {
+    return currentRequestScope()?.source === 'http'
+      ? { status: 'Published' }
+      : null;
+  }
+};
+```
+
+**After**:
+
+```ts
+readRestrictions: (user) => (user ? null : { status: 'Published' });
+```
+
+**Steps**: drop the checks of the request scope from the policies. A job that should act as a user runs with
+`runAs(user, fn)`, and a test of a policy calls the service in `runAs(user, fn)` or `runAs(null, fn)`.
 
 ## 15. Cache scopes
 
@@ -316,4 +342,3 @@ instead of files bundled in `@appweaver/cli`. `weaver skill sync` copies them in
 
 **Steps**: `npm install --save-dev @appweaver/skill`, then `npx weaver skill sync`. A project created by
 `npm create @appweaver` with an agent has it already.
-

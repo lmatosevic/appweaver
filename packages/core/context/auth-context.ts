@@ -23,6 +23,18 @@ export function currentAuthUser(): AuthUser | null | undefined {
 }
 
 /**
+ * Checks whether the current call is the application's own: outside of an auth context, so neither an HTTP request,
+ * a realtime connection nor a call of {@link runAs}, i.e. a job, a seeder, a task or a test calling a service. The
+ * resource and file services skip their policies for it, a policy receiving `null` only for an anonymous request (or a
+ * call run as `runAs(null, ...)`).
+ *
+ * @return {boolean} True outside of an auth context.
+ */
+export function isSystemCall(): boolean {
+  return authStorage.getStore() === undefined;
+}
+
+/**
  * Retrieves the authentication type of the current call.
  *
  * @return {AuthType | null | undefined} The authentication type if available; otherwise, null or undefined.

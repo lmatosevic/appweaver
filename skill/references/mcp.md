@@ -96,7 +96,7 @@ provider without one shown by its name). A project with the `mcp` and `templates
 four templates and their `layouts/page.html` layout, in the card style of the email layout.
 
 | Page         | Data                                                                                                        |
-|--------------|-------------------------------------------------------------------------------------------------------------|
+| ------------ | ----------------------------------------------------------------------------------------------------------- |
 | `sign-in`    | `client`, `host`, `providers` (`{ name, label, url }`), `error`, and `action`, `state` of the password form |
 | `password`   | `action`, `state` (posted back as `state`), `error`                                                         |
 | `two-factor` | `action`, `state`, `error`, `hint`, `methods` (`{ value, label, selected }`)                                |
@@ -115,14 +115,14 @@ Opt a model in with the `mcp` key of `createRoutes`, like `events`:
 ```ts
 export default createRoutes({
   modelName: 'post',
-  defaults: { roles: ['editor'] },           // the API routes, and the tools by default
+  defaults: { roles: ['editor'] }, // the API routes, and the tools by default
   delete: { roles: ['admin'] },
   mcp: {
     description: 'The articles of the blog.',
     actions: ['find', 'query', 'aggregate', 'create', 'delete'],
-    exclude: ['internalNote'],               // fields left out of the results, filters and sorts
-    maxLimit: 20,                            // default: mcp.maxLimit
-    cache: 10_000                            // TTL in ms with mcp.cache.enabled, or false
+    exclude: ['internalNote'], // fields left out of the results, filters and sorts
+    maxLimit: 20, // default: mcp.maxLimit
+    cache: 10_000 // TTL in ms with mcp.cache.enabled, or false
   }
 });
 ```
@@ -134,7 +134,7 @@ may be excluded, the tool still runs. The resource events of `@appweaver/realtim
 of the `find` route.
 
 | Tool             | Arguments                                            | Kind        |
-|------------------|------------------------------------------------------|-------------|
+| ---------------- | ---------------------------------------------------- | ----------- |
 | `post_find`      | `{ id }`                                             | read-only   |
 | `post_query`     | `{ filter?, sort?, page?, size?, cursor? }`          | read-only   |
 | `post_aggregate` | `{ select, filter?, dateField?, from?, to?, step? }` | read-only   |
@@ -160,10 +160,11 @@ export const refundOrder = createMcpTool({
   name: 'refundOrder',
   description: 'Refunds a paid order',
   input: Type.Object({ orderId: Type.Integer(), reason: Type.String() }),
-  output: Type.Object({ refundId: Type.String() }),   // optional
-  roles: ['support'],                                 // or public / permissions
-  destructive: true,                                  // or readOnly: true
-  handler: ({ orderId, reason }, { user, signal }) => refunds.refund(orderId, reason)
+  output: Type.Object({ refundId: Type.String() }), // optional
+  roles: ['support'], // or public / permissions
+  destructive: true, // or readOnly: true
+  handler: ({ orderId, reason }, { user, signal }) =>
+    refunds.refund(orderId, reason)
 });
 
 createMcpTool({ ...getOrder, roles: ['support'] }); // an AI tool of createAiTool (parameters, execute)
@@ -183,7 +184,13 @@ tool, arguments and user for `mcp.cache.ttl` ms (default `5000`).
   `cache` without `readOnly` fails with `CONFIGURATION_INVALID`.
 
 ```ts
-createMcpTool({ name: 'topPosts', readOnly: true, cache: 30_000, cacheRelations: ['Post'], handler: () => top() });
+createMcpTool({
+  name: 'topPosts',
+  readOnly: true,
+  cache: 30_000,
+  cacheRelations: ['Post'],
+  handler: () => top()
+});
 ```
 
 ## Rate limiting
@@ -217,9 +224,13 @@ is a `tools/call <tool>` server span (`mcp.method.name`, `gen_ai.tool.name`) wit
 metric (`telemetry.instrumentations.mcp`).
 
 ```ts
-const mcp = createMcpClient((request) => app.server.inject(request), { headers: { 'x-api-key': key } });
+const mcp = createMcpClient((request) => app.server.inject(request), {
+  headers: { 'x-api-key': key }
+});
 const tools = await mcp.listTools();
-const { structuredContent, isError } = await mcp.callTool('post_find', { id: 1 });
+const { structuredContent, isError } = await mcp.callTool('post_find', {
+  id: 1
+});
 ```
 
 `createMcpClient` of `@appweaver/testing` sends the JSON-RPC requests through `inject`, as the user of the headers.

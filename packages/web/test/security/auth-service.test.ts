@@ -32,8 +32,11 @@ import {
 } from '@appweaver/data';
 import { AuthService } from '../../security/auth-service';
 import { OAuth2Service } from '../../security/oauth2/oauth2-service';
-import { resetContext } from '@appweaver/testing';
+import { resetContext, runTestsAsAnonymous } from '@appweaver/testing';
 import { prismaError } from '@appweaver/testing';
+
+// The policies apply to the calls of a request, not to the application's own calls
+runTestsAsAnonymous();
 
 describe('auth-service', () => {
   let authUserService: any;

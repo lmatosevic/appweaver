@@ -11,7 +11,7 @@ features are configurable and can be enabled/disabled independently.
 Appweaver supports four authentication methods that can be used independently or combined:
 
 | Method       | Config flag                | Header/mechanism                     |
-|--------------|----------------------------|--------------------------------------|
+| ------------ | -------------------------- | ------------------------------------ |
 | JWT (Bearer) | Always enabled             | `Authorization: Bearer <token>`      |
 | HTTP Basic   | `SECURITY_BASIC_ENABLED`   | `Authorization: Basic <base64>`      |
 | API Key      | `SECURITY_API_KEY_ENABLED` | `x-api-key: <id><delimiter><secret>` |
@@ -41,7 +41,6 @@ const config = {
     public: true
   }
 };
-
 ```
 
 ---
@@ -63,7 +62,7 @@ if `SECURITY_JWT_SECRET` is set.
 ### Token types and scopes
 
 | Scope     | Purpose               | Access                                                                      |
-|-----------|-----------------------|-----------------------------------------------------------------------------|
+| --------- | --------------------- | --------------------------------------------------------------------------- |
 | `Auth`    | Full API access       | All routes except `/refresh`, `/2fa/challenge`, `/2fa/verify`               |
 | `Refresh` | Token renewal only    | Only `POST /auth/refresh`                                                   |
 | `TwoFA`   | 2FA verification only | Only `POST /auth/account/2fa/challenge` and `POST /auth/account/2fa/verify` |
@@ -96,7 +95,7 @@ On every authenticated request, the server:
 ### Auth routes
 
 | Method | Path                    | Auth                | Description                                                                                                 |
-|--------|-------------------------|---------------------|-------------------------------------------------------------------------------------------------------------|
+| ------ | ----------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `POST` | `/auth/login`           | Public              | Login with email and password. Returns access + refresh tokens. Rate limited: 12/min per IP, shared.        |
 | `POST` | `/auth/refresh`         | JWT (Refresh scope) | Exchange a refresh token for a new access token. Rate limited: 12/window.                                   |
 | `POST` | `/auth/logout`          | JWT                 | Logout. Sets `logoutAt` timestamp to invalidate all existing tokens.                                        |
@@ -178,7 +177,7 @@ Default delimiter is `AK`, so a key looks like: `42AKa1b2c3d4e5f6...`
 ### API key model
 
 | Field         | Type          | Description                                          |
-|---------------|---------------|------------------------------------------------------|
+| ------------- | ------------- | ---------------------------------------------------- |
 | `id`          | int           | Auto-generated ID.                                   |
 | `key`         | string        | Whole at creation only, then masked (`a1b2...e5f6`). |
 | `keyHash`     | string        | SHA256 hash of the key (stored, hidden from API).    |
@@ -196,10 +195,9 @@ A key has the full access of its owner unless it lists a scope, its optional `ro
 ```ts
 // POST /api/api-keys, with the JWT of the owner
 const _ = {
-  'name':
-    'CI deploys', 'roles':
-    [3], 'permissions':
-    [12, { 'id': 15 }]
+  name: 'CI deploys',
+  roles: [3],
+  permissions: [12, { id: 15 }]
 };
 ```
 
@@ -313,7 +311,7 @@ Every provider is disabled by default and enabled with `SECURITY_OAUTH2_<NAME>_E
 with the provider.
 
 | `<name>`    | Scopes                                    | User info source                            |
-|-------------|-------------------------------------------|---------------------------------------------|
+| ----------- | ----------------------------------------- | ------------------------------------------- |
 | `google`    | `profile`, `email`                        | `googleapis.com/oauth2/v2/userinfo`         |
 | `facebook`  | `public_profile`, `email`                 | `graph.facebook.com/me`                     |
 | `x`         | `users.read`, `tweet.read`                | `api.x.com/2/users/me`                      |
@@ -369,13 +367,13 @@ A user **without a password** has nothing to confirm the link with, so a provide
 the provider verified the address (`UserInfo.emailVerified`), or the provider account is already linked to them;
 otherwise the callback fails with `403 OAUTH2_EMAIL_UNVERIFIED`. The providers report it as follows:
 
-| Provider                           | `emailVerified`                                                        |
-|------------------------------------|------------------------------------------------------------------------|
-| Google                             | `verified_email` (v2 user info) or `email_verified` (OpenID Connect)   |
-| Apple, LinkedIn, custom            | the `email_verified` claim (`true` or `"true"`), unverified without it |
-| GitLab                             | `confirmed_at` of the user                                             |
-| GitHub, Facebook, X                | always: they return only a verified (confirmed) address                |
-| Microsoft                          | never: Microsoft Graph does not say, and a tenant sets `mail` freely   |
+| Provider                | `emailVerified`                                                        |
+| ----------------------- | ---------------------------------------------------------------------- |
+| Google                  | `verified_email` (v2 user info) or `email_verified` (OpenID Connect)   |
+| Apple, LinkedIn, custom | the `email_verified` claim (`true` or `"true"`), unverified without it |
+| GitLab                  | `confirmed_at` of the user                                             |
+| GitHub, Facebook, X     | always: they return only a verified (confirmed) address                |
+| Microsoft               | never: Microsoft Graph does not say, and a tenant sets `mail` freely   |
 
 A user registered by an OAuth2 sign-in gets `verifiedEmail` from the provider, so a Microsoft user verifies the address
 through the account routes like a password user. A local `verifiedEmail: false` does not block the sign-in of an
@@ -473,7 +471,8 @@ registration, use [`FileService.saveBuffer()`](./storage.md#saving-an-in-memory-
 
 ```ts
 // 1. Redirect user to OAuth2 login
-window.location.href = 'https://api.myapp.com/auth/login/google?redirectToUrl=https://myapp.com/auth/callback';
+window.location.href =
+  'https://api.myapp.com/auth/login/google?redirectToUrl=https://myapp.com/auth/callback';
 
 // 2. On the callback page, extract the token from URL params
 const params = new URLSearchParams(window.location.search);
@@ -503,10 +502,7 @@ All redirect URLs (for OAuth2, email verification, password reset) are validated
 {
   "config": {
     "security": {
-      "allowedRedirectHosts": [
-        "myapp.com",
-        "admin.myapp.com"
-      ]
+      "allowedRedirectHosts": ["myapp.com", "admin.myapp.com"]
     }
   }
 }
@@ -531,12 +527,12 @@ Appweaver uses a role-permission model:
 ```ts
 // Require any of these roles (OR logic)
 create: {
-  roles: ['Admin', 'Editor']
+  roles: ['Admin', 'Editor'];
 }
 
 // Require any of these permissions (OR logic)
 update: {
-  permissions: ['product:update', 'product:manage']
+  permissions: ['product:update', 'product:manage'];
 }
 ```
 
@@ -554,27 +550,36 @@ On every authenticated request:
 
 ```ts
 import { currentAuthUser } from '@appweaver/core';
-import { hasRole, hasRoles, hasPermission, hasPermissions } from '@appweaver/data';
+import {
+  hasRole,
+  hasRoles,
+  hasPermission,
+  hasPermissions
+} from '@appweaver/data';
 
 const user = currentAuthUser();
 
-hasRole(user, 'Admin');                          // boolean
-hasRoles(user, ['Admin', 'Editor']);              // OR: has at least one
-hasRoles(user, ['Admin', 'Editor'], 'and');       // AND: has all
+hasRole(user, 'Admin'); // boolean
+hasRoles(user, ['Admin', 'Editor']); // OR: has at least one
+hasRoles(user, ['Admin', 'Editor'], 'and'); // AND: has all
 
-hasPermission(user, 'product:create');            // boolean
-hasPermissions(user, ['product:create', 'product:update']);        // OR
+hasPermission(user, 'product:create'); // boolean
+hasPermissions(user, ['product:create', 'product:update']); // OR
 hasPermissions(user, ['product:create', 'product:update'], 'and'); // AND
 ```
 
 ### Request context helpers
 
 ```ts
-import { currentAuthUser, currentAuthType, currentAuthSource } from '@appweaver/core';
+import {
+  currentAuthUser,
+  currentAuthType,
+  currentAuthSource
+} from '@appweaver/core';
 
-const user = currentAuthUser();       // Current authenticated user
-const type = currentAuthType();       // 'jwt' | 'apiKey' | 'basic'
-const source = currentAuthSource();   // 'Password' | 'OAuth2Google' | 'ApiKey' | etc.
+const user = currentAuthUser(); // Current authenticated user
+const type = currentAuthType(); // 'jwt' | 'apiKey' | 'basic'
+const source = currentAuthSource(); // 'Password' | 'OAuth2Google' | 'ApiKey' | etc.
 ```
 
 ---
@@ -585,7 +590,7 @@ When enabled, 2FA adds a second verification step to a sign-in, by a password or
 three methods, each one once:
 
 | Method  | The code                                                                                          | Available with                                 |
-|---------|---------------------------------------------------------------------------------------------------|------------------------------------------------|
+| ------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
 | `Email` | Sent by email (`emails/two-factor-code` template), to a verified email address                    | A mailer (`@appweaver/nodemailer`, or `json`)  |
 | `Sms`   | Sent by SMS (`sms.twoFactorCode` translation), to a verified phone number                         | An SMS sender (`@appweaver/twilio`, or `json`) |
 | `Totp`  | Generated by an authenticator app (TOTP of RFC 6238, Google Authenticator, Authy, 1Password, ...) | `security.account.2fa.totp.encryptionKey`      |
@@ -606,11 +611,7 @@ linked to the auth model and deleted with it, and managed by the 2FA routes only
           "enabled": true,
           "forced": false,
           "ottTtl": 300000,
-          "methods": [
-            "Email",
-            "Sms",
-            "Totp"
-          ],
+          "methods": ["Email", "Sms", "Totp"],
           "defaultMethod": "Email",
           "codeLength": 6,
           "maxAttempts": 5,
@@ -738,7 +739,7 @@ the user, enabled again for the new number. The routes are registered only with 
 ### 2FA routes
 
 | Method   | Path                                | Auth             | Rate limit | Description                                        |
-|----------|-------------------------------------|------------------|------------|----------------------------------------------------|
+| -------- | ----------------------------------- | ---------------- | ---------- | -------------------------------------------------- |
 | `POST`   | `/auth/account/2fa/challenge`       | JWT (2fa scope)  | 10/15min   | Send a 2FA challenge by a method.                  |
 | `POST`   | `/auth/account/2fa/verify`          | JWT (2fa scope)  | 12/window  | Verify a code, returns the OTT for token exchange. |
 | `GET`    | `/auth/account/2fa/methods`         | JWT (auth scope) | -          | List the enabled and the available methods.        |
@@ -784,9 +785,9 @@ Appweaver integrates Google reCAPTCHA v3 for bot protection on sensitive endpoin
 2. Client includes the token in the request header: `x-recaptcha-token: <token>`
 3. Server sends the token to Google's verification API along with the secret key and client IP
 4. Server validates:
-    - `success` flag is `true`
-    - `action` matches the expected action (if configured on the route)
-    - `score` is at or above `SECURITY_RECAPTCHA_MIN_SCORE`
+   - `success` flag is `true`
+   - `action` matches the expected action (if configured on the route)
+   - `score` is at or above `SECURITY_RECAPTCHA_MIN_SCORE`
 
 ### Using reCAPTCHA on custom routes
 
@@ -826,17 +827,12 @@ kebab-case: `login`, `refresh` and `change-password`. The route then documents t
     "recaptcha": {
       "enabled": true,
       "secret": "...",
-      "authRoutes": [
-        "login",
-        "changePassword"
-      ]
+      "authRoutes": ["login", "changePassword"]
     },
     "turnstile": {
       "enabled": true,
       "secret": "...",
-      "authRoutes": [
-        "login"
-      ]
+      "authRoutes": ["login"]
     }
   }
 }
@@ -891,7 +887,7 @@ described in [mailer.md](./mailer.md#account-emails).
 ### Email verification
 
 | Method | Path                                  | Auth   | Description                                                                                                                      |
-|--------|---------------------------------------|--------|----------------------------------------------------------------------------------------------------------------------------------|
+| ------ | ------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------- |
 | `POST` | `/auth/account/send-verify-email`     | JWT    | Send verification email. Takes `redirectToUrl` and optional `verificationType` (`'auto'` or `'manual'`). Rate limited: 10/15min. |
 | `POST` | `/auth/account/verify-email`          | Public | Verify email with token from body. Rate limited: 12/window.                                                                      |
 | `GET`  | `/auth/account/verify-email-redirect` | Public | Auto-verify and redirect. Token from query param. Redirects to `{redirectToUrl}?status=ok\|error&message=...`.                   |
@@ -904,7 +900,7 @@ described in [mailer.md](./mailer.md#account-emails).
 ### Password reset
 
 | Method | Path                                | Auth   | Bot check | Description                                                                           |
-|--------|-------------------------------------|--------|-----------|---------------------------------------------------------------------------------------|
+| ------ | ----------------------------------- | ------ | --------- | ------------------------------------------------------------------------------------- |
 | `POST` | `/auth/account/send-reset-password` | Public | Yes       | Send password reset email. Takes `email` and `redirectToUrl`. Rate limited: 10/15min. |
 | `POST` | `/auth/account/reset-password`      | Public | Yes       | Reset password with token and new password. Rate limited: 12/window.                  |
 
@@ -930,7 +926,7 @@ time-limited.
 ### Purposes
 
 | Purpose             | TTL config                                        | Used for                              |
-|---------------------|---------------------------------------------------|---------------------------------------|
+| ------------------- | ------------------------------------------------- | ------------------------------------- |
 | `Authentication`    | `SECURITY_AUTH_OTT_TTL` (120s)                    | OAuth2 token exchange, 2FA completion |
 | `EmailVerification` | `SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL` (2h)      | Email verification links              |
 | `PasswordReset`     | `SECURITY_ACCOUNT_RESET_PASSWORD_OTT_TTL` (30min) | Password reset links                  |
@@ -971,7 +967,7 @@ The security module automatically adds the following fields to the user model. `
 `verifiedPhone` are never accepted as input of the resource routes:
 
 | Field           | Type             | Default | Description                                                         |
-|-----------------|------------------|---------|---------------------------------------------------------------------|
+| --------------- | ---------------- | ------- | ------------------------------------------------------------------- |
 | `email`         | string (unique)  | -       | User's email address.                                               |
 | `passwordHash`  | string? (hidden) | -       | Argon2id password hash (never exposed in API).                      |
 | `verifiedEmail` | boolean          | `false` | Whether the user's email is verified.                               |
@@ -1000,7 +996,7 @@ export default createAuthModel({
 **Relations:**
 
 | Relation                 | Type                    | Description                                                                      |
-|--------------------------|-------------------------|----------------------------------------------------------------------------------|
+| ------------------------ | ----------------------- | -------------------------------------------------------------------------------- |
 | `roles`                  | Role[]                  | Assigned roles with nested permissions (always included in output).              |
 | `apiKeys`                | ApiKey[]                | User's API keys (if API key auth is enabled).                                    |
 | `twoFactorMethods`       | TwoFactorMethod[]       | The 2FA methods (if 2FA is enabled), managed by the 2FA routes, never in output. |
@@ -1042,7 +1038,7 @@ tokens across all devices. The `change-password` endpoint returns new tokens so 
 ## Rate limiting on security routes
 
 | Endpoint                                   | Limit             |
-|--------------------------------------------|-------------------|
+| ------------------------------------------ | ----------------- |
 | `POST /auth/login`                         | 12 per window     |
 | `POST /auth/refresh`                       | 12 per window     |
 | `POST /auth/change-password`               | 12 per window     |

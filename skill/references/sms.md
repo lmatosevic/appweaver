@@ -20,7 +20,7 @@ const smsService = inject(SmsService, false); // undefined without an SMS sender
 ```
 
 | Method                         | Returns                          | Description                                                                                |
-|--------------------------------|----------------------------------|--------------------------------------------------------------------------------------------|
+| ------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------ |
 | `sendSms(sms)`                 | `Promise<void>`                  | Queues the message and resolves once it is queued.                                         |
 | `sendSmsBulk(messages)`        | `Promise<void>`                  | Queues the messages at once. A template message failing to render is logged and left out.  |
 | `sendSmsAndWait(sms)`          | `Promise<boolean>`               | Queues the message and resolves once it is sent, rejects with the error of its last retry. |
@@ -30,7 +30,7 @@ const smsService = inject(SmsService, false); // undefined without an SMS sender
 Every method takes an `SmsMessage` or a `TemplateSms`:
 
 | Field             | Type                      | Required | Description                                                                      |
-|-------------------|---------------------------|----------|----------------------------------------------------------------------------------|
+| ----------------- | ------------------------- | -------- | -------------------------------------------------------------------------------- |
 | `to`              | `string`                  | Yes      | Recipient phone number in the E.164 format, i.e. `+385911234567`                 |
 | `text`            | `string`                  | Yes      | The text, of an `SmsMessage`                                                     |
 | `template`        | `string`                  | Yes      | The template without the format, of a `TemplateSms`, i.e. `sms/order-shipped`    |
@@ -40,7 +40,10 @@ Every method takes an `SmsMessage` or a `TemplateSms`:
 | `providerOptions` | `Record<string, unknown>` | No       | Options of the driver, i.e. the extra parameters of the Twilio Messages resource |
 
 ```ts
-await smsService.sendSms({ to: '+385911234567', text: 'Your order has shipped.' });
+await smsService.sendSms({
+  to: '+385911234567',
+  text: 'Your order has shipped.'
+});
 
 // Waits for the provider, i.e. to answer a request with a rejected number
 await smsService.sendSmsAndWait({
@@ -51,7 +54,10 @@ await smsService.sendSmsAndWait({
 });
 
 const results = await smsService.sendSmsBulkAndWait(
-  customers.map((customer) => ({ to: customer.phone, text: 'We are open on Sunday.' }))
+  customers.map((customer) => ({
+    to: customer.phone,
+    text: 'We are open on Sunday.'
+  }))
 );
 ```
 
@@ -70,7 +76,7 @@ live in `TEMPLATE_PATH` like the email ones, and translate with `{{t "key"}}`:
 
 ```hbs
 {{! templates/sms/order-shipped.txt.hbs }}
-{{t "sms.orderShipped" orderId=orderId}}
+{{t 'sms.orderShipped' orderId=orderId}}
 ```
 
 ### Account messages
@@ -80,7 +86,7 @@ the request with `SMS_SEND_FAILED`. Each one renders the template of the applica
 `sms.*` translation, which the framework defines in English and `locales/<locale>.json` overrides:
 
 | Template              | Translation         | Data                                  |
-|-----------------------|---------------------|---------------------------------------|
+| --------------------- | ------------------- | ------------------------------------- |
 | `sms/two-factor-code` | `sms.twoFactorCode` | `code`, `appName`, `expiresInMinutes` |
 | `sms/verify-phone`    | `sms.verifyPhone`   | `code`, `appName`, `expiresInMinutes` |
 

@@ -24,7 +24,7 @@ export default createModel({
 ```
 
 | Geo field option | Description                                                                                            |
-|------------------|--------------------------------------------------------------------------------------------------------|
+| ---------------- | ------------------------------------------------------------------------------------------------------ |
 | `type`           | `point`, `multiPoint`, `lineString`, `multiLineString`, `polygon`, `multiPolygon`, or `geometry` (any) |
 | `required`       | Required on creation, `false` makes it nullable (default: `true`, like a scalar)                       |
 | `hidden`         | Left out of the API input and output, the filters and the sorts                                        |
@@ -63,7 +63,7 @@ logical operators (`_and`, `_or`, `_not`, `_nor`) and in the filters of the rela
 on a sphere of the mean radius of the Earth.
 
 | Operator      | Value                                  | Matches the geometries                                     |
-|---------------|----------------------------------------|------------------------------------------------------------|
+| ------------- | -------------------------------------- | ---------------------------------------------------------- |
 | `_near`       | `{ point, maxDistance, minDistance? }` | Within `maxDistance` of the point (and from `minDistance`) |
 | `_within`     | A GeoJSON `Polygon` or `MultiPolygon`  | Covered by it, its boundary included                       |
 | `_withinBox`  | `[minLng, minLat, maxLng, maxLat]`     | Covered by the box                                         |
@@ -77,7 +77,9 @@ above its `maxLng` crosses the antimeridian, i.e. `[170, -20, -170, -10]`, as th
 ```ts
 // The stores within 5 km, nearest first
 const { items } = await storeService.query({
-  filter: { location: { _near: { point: { lat: 45.8, lng: 15.97 }, maxDistance: 5000 } } },
+  filter: {
+    location: { _near: { point: { lat: 45.8, lng: 15.97 }, maxDistance: 5000 } }
+  },
   sort: 'location'
 });
 items[0].locationDistance; // 412.7
@@ -130,7 +132,7 @@ fails with `RESOURCE_INVALID_SORT`. The pages, the cursors and the total count w
 Every geo field is stored in three or four columns, on every database:
 
 | Column                     | Holds                                                                              |
-|----------------------------|------------------------------------------------------------------------------------|
+| -------------------------- | ---------------------------------------------------------------------------------- |
 | `<field>`                  | The GeoJSON (`Json`, a `NVARCHAR(MAX)` serialized by the data layer on SQL Server) |
 | `<field>MinLng` … `MaxLat` | Its bounding box, four nullable floats with an index on the minimums               |
 | `<field>Geom`              | With the `postgis` provider, a `geometry(<Type>, 4326)` with a GiST index          |
@@ -142,7 +144,7 @@ The `spatial.provider` config selects how `_near`, `_within` and `_intersects` a
 schema, so run `weaver generate` and create a migration after changing it.
 
 | Provider   | Databases  | Matches with                                                                                    |
-|------------|------------|-------------------------------------------------------------------------------------------------|
+| ---------- | ---------- | ----------------------------------------------------------------------------------------------- |
 | `postgis`  | PostgreSQL | The functions of PostGIS on the geometry column (`ST_DWithin`, `ST_CoveredBy`, `ST_Intersects`) |
 | `database` | All        | The bounding box narrows the records in the database, the application matches each geometry     |
 
@@ -162,7 +164,7 @@ sets the triggers up too, after the migrations, as the user of `database.migrati
   before the next start replaces it.
 - Setting a trigger up needs the right to create functions and to own the table. With an application user that can
   only read and write the data (see [database](./database.md#separate-migration-and-application-users)), `weaver
-  migrate` sets them up, and a start finding a trigger out of date fails with `CONFIGURATION_INVALID`, asking to run
+migrate` sets them up, and a start finding a trigger out of date fails with `CONFIGURATION_INVALID`, asking to run
   `weaver migrate`.
 - A model that lost its geo fields, or a switch to the `database` provider, leaves a trigger doing nothing: drop it
   with `DROP FUNCTION "<table>_geo_sync" CASCADE`.
@@ -170,7 +172,7 @@ sets the triggers up too, after the migrations, as the user of `database.migrati
 ## Configuration
 
 | Key                     | Env                      | Default | Description                                                    |
-|-------------------------|--------------------------|---------|----------------------------------------------------------------|
+| ----------------------- | ------------------------ | ------- | -------------------------------------------------------------- |
 | `spatial.provider`      | `SPATIAL_PROVIDER`       | `auto`  | `auto`, `postgis` or `database`                                |
 | `spatial.maxCandidates` | `SPATIAL_MAX_CANDIDATES` | `10000` | Maximum records a `_near`, `_within` or `_intersects` matches  |
 | `spatial.maxVertices`   | `SPATIAL_MAX_VERTICES`   | `10000` | Maximum positions of a geometry, written or in a filter        |

@@ -14,13 +14,16 @@ import { AuditService } from '../../audit/audit-service';
 import { FileService } from '../../storage/file-service';
 import { DatabaseSpatialEngine } from '../../spatial/spatial-engine';
 import { SpatialService } from '../../spatial/spatial-service';
-import { resetContext } from '@appweaver/testing';
+import { resetContext, runTestsAsAnonymous } from '@appweaver/testing';
 import { linkModels } from '@appweaver/testing';
 import {
   createDatabaseStub,
   DatabaseStub,
   prismaError
 } from '@appweaver/testing';
+
+// The policies apply to the calls of a request, not to the application's own calls
+runTestsAsAnonymous();
 
 class PostService extends ResourceService<any, any, any, any, any> {
   constructor() {

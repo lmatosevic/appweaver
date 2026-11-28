@@ -6,3 +6,4 @@ export * from './contracts';
 export * from './cli-conventions';
 export * from './mcp-client';
 export * from './record-telemetry';
+export * from './anonymous-tests';

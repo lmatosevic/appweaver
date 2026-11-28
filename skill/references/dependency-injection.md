@@ -8,7 +8,7 @@ class constructors, and singleton instances are stored in the context and resolv
 Registers a value or class constructor in the application context.
 
 | Parameter     | Type                                                        | Description                                                                                           |
-|---------------|-------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| ------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `value`       | any                                                         | The value, instance, or class constructor to register                                                 |
 | `nameOrClass` | `string \| symbol \| Class \| Function`                     | Token used to look up this definition. Defaults to the value's class name or `RESOURCE_NAME` property |
 | `mode`        | `'ignore' \| 'override' \| 'append' \| 'fail' \| 'default'` | How to handle duplicates. Defaults to `'ignore'`                                                      |
@@ -79,7 +79,7 @@ Retrieves a definition from the application context. If the stored value is a cl
 first access, and the instance replaces the constructor in the context (singleton pattern).
 
 | Parameter     | Type                                    | Description                            |
-|---------------|-----------------------------------------|----------------------------------------|
+| ------------- | --------------------------------------- | -------------------------------------- |
 | `nameOrClass` | `string \| symbol \| Class \| Function` | Token that identifies the definition   |
 | `required`    | `boolean`                               | Throw if not found. Defaults to `true` |
 
@@ -123,7 +123,11 @@ import { Mailer } from '@appweaver/common';
 
 const mailer = inject(Mailer, false); // undefined if not registered, i.e. with MAILER_PROVIDER=none
 if (mailer) {
-  await mailer.sendEmail({ to: 'jane@example.com', subject: 'Welcome', text: 'Hello!' });
+  await mailer.sendEmail({
+    to: 'jane@example.com',
+    subject: 'Welcome',
+    text: 'Hello!'
+  });
 }
 ```
 
@@ -159,7 +163,11 @@ export class NotificationService {
   public async notify(email: string, message: string): Promise<void> {
     const key = `notification:${email}`;
     if (await this._cache.getCachedValue(key)) return;
-    await this._mailer.sendEmail({ to: email, subject: 'Notification', text: message });
+    await this._mailer.sendEmail({
+      to: email,
+      subject: 'Notification',
+      text: message
+    });
     await this._cache.addToCache(key, true, 60_000);
   }
 }
@@ -188,7 +196,9 @@ define(new SlackNotifier(), 'Notifier', 'append');
 define(new EmailNotifier(), 'Notifier', 'append');
 
 const notifiers = injectAll<Notifier>('Notifier'); // [SlackNotifier, EmailNotifier]
-const lifecycle = injectAllWhere((def) => typeof def.value?.onInit === 'function');
+const lifecycle = injectAllWhere(
+  (def) => typeof def.value?.onInit === 'function'
+);
 ```
 
 #### `loadProvider(baseDir, classPath, definition?, required?)`
@@ -199,7 +209,7 @@ resolved module is used. The infrastructure providers are defined by the modules
 class from a configurable path.
 
 | Parameter    | Type      | Description                                                                          |
-|--------------|-----------|--------------------------------------------------------------------------------------|
+| ------------ | --------- | ------------------------------------------------------------------------------------ |
 | `baseDir`    | `string`  | Base directory for resolving relative paths                                          |
 | `classPath`  | `string`  | Path to the module — relative to `baseDir`, project source path, or npm package name |
 | `definition` | `Class`   | Abstract class / token to register the loaded class under                            |
@@ -221,7 +231,12 @@ loadProvider(__dirname, './providers/postgres-database', Database);
 ```ts
 import { loadProvider } from '@appweaver/core';
 
-loadProvider(__dirname, '../notifications/notification-service', undefined, false);
+loadProvider(
+  __dirname,
+  '../notifications/notification-service',
+  undefined,
+  false
+);
 ```
 
 `selectedProvider(Contract)` returns the name of the provider the modules selected for a contract (`redis` for the
@@ -237,7 +252,7 @@ A class registered in the application context can run code when the application 
 interfaces of `@appweaver/common`, called in this order:
 
 | Hook           | Interface    | Runs                                                                                                                 |
-|----------------|--------------|----------------------------------------------------------------------------------------------------------------------|
+| -------------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
 | `onInit()`     | `OnInit`     | Once when the application starts.                                                                                    |
 | `onReady()`    | `OnReady`    | Once every `onInit` finished, i.e. to start serving requests (the server listens unless `SERVER_LISTEN` is `false`). |
 | `onShutdown()` | `OnShutdown` | First when the application stops, before any service is destroyed, i.e. to stop serving requests.                    |

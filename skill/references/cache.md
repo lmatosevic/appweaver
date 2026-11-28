@@ -42,7 +42,8 @@ const user = await cache.get<User>('user:42');
 Returns `true` if the key exists and has not expired.
 
 ```ts
-if (await cache.has('user:42')) { /* ... */
+if (await cache.has('user:42')) {
+  /* ... */
 }
 ```
 
@@ -111,7 +112,7 @@ Stores a value only if the key does not already exist. Pass `replace: true` to o
 existed and `replace` was not set.
 
 | Parameter | Type      | Default | Description                     |
-|-----------|-----------|---------|---------------------------------|
+| --------- | --------- | ------- | ------------------------------- |
 | `key`     | `string`  | —       | Cache key                       |
 | `value`   | `any`     | —       | Value to store                  |
 | `ttl`     | `number`  | config  | TTL in milliseconds             |
@@ -137,7 +138,7 @@ Expires cache entries related to a model based on `CACHE_INVALIDATION_STRATEGY`.
 after `create`, `update`, and `delete` actions.
 
 | Parameter   | Type                               | Description                          |
-|-------------|------------------------------------|--------------------------------------|
+| ----------- | ---------------------------------- | ------------------------------------ |
 | `modelName` | `string`                           | The resource model name              |
 | `action`    | `'create' \| 'update' \| 'delete'` | The mutation that triggered eviction |
 
@@ -150,7 +151,7 @@ await cacheService.invalidateCache('Product', 'update');
 Builds a structured cache key that encodes HTTP method, URL, body hash, relations, and optional user scope.
 
 | Field              | Type       | Description                                     |
-|--------------------|------------|-------------------------------------------------|
+| ------------------ | ---------- | ----------------------------------------------- |
 | `baseKey`          | `string`   | Required prefix                                 |
 | `method`           | `string`   | HTTP method                                     |
 | `url`              | `string`   | Request URL                                     |
@@ -175,7 +176,7 @@ const key = cacheService.buildCacheKey({
 ## Configuration
 
 | Key                           | Type     | Default            | Description                                        |
-|-------------------------------|----------|--------------------|----------------------------------------------------|
+| ----------------------------- | -------- | ------------------ | -------------------------------------------------- |
 | `CACHE_ENABLED`               | `bool`   | `true`             | Enables or disables the cache globally             |
 | `CACHE_PROVIDER`              | `string` | `'auto'`           | `auto`/`memory`, `none`, or a module path          |
 | `CACHE_KEY_PREFIX`            | `string` | `'cache:'`         | Prefix prepended to every key                      |

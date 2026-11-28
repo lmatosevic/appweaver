@@ -7,7 +7,7 @@ over OTLP. The config keys are listed in [configuration.md](./configuration.md#t
 Two parts, on purpose:
 
 - **Instrumentation** — in `@appweaver/common`, `core`, `data`, `web` and the drivers, through `@opentelemetry/api`
-  only. It records nothing, at no cost, until an SDK is registered, and reaches *any* registered SDK.
+  only. It records nothing, at no cost, until an SDK is registered, and reaches _any_ registered SDK.
 - **SDK** — `@appweaver/opentelemetry`, enabled by installing it (`weaver module add telemetry`, or
   `npm install @appweaver/opentelemetry`). It reads the `telemetry` config, exports over OTLP (HTTP), and is flushed
   and stopped with the application.
@@ -17,19 +17,19 @@ There is no telemetry contract and no provider per vendor: OTLP is the standard 
 
 ## What is recorded
 
-| Part (`telemetry.instrumentations.<key>`) | Spans                                                                                                                   | Metrics                                                              |
-|-------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
-| `http` (`@appweaver/web`)                 | A server span per request, `GET /api/posts/:id`, continuing the `traceparent` header, with the status and the `user.id` | `http.server.request.duration`, `http.server.active_requests`        |
-| `database` (`@appweaver/data`)            | A client span per Prisma operation, `findMany Post` or `$queryRaw`, without the query and its arguments                 | `db.client.operation.duration`                                       |
-| `queue` (`memory`, `bullmq`)              | A producer span `send <queue>` and a consumer span `process <queue>` per attempt, in the trace of the sender            | `messaging.client.sent.messages`, `messaging.process.duration`       |
-| `scheduler` (`@appweaver/cron`)           | The root span of a new trace per run, `scheduler <name>`                                                                | `appweaver.scheduler.job.duration`                                   |
-| `mailer`, `sms`                           | A client span per sent email (`mailer send`) and text message (`sms send`), inside the span of their queue job          | —                                                                    |
-| `cache`                                   | —                                                                                                                       | `appweaver.cache.requests` (`appweaver.cache.result`: `hit`, `miss`) |
-| `task` (`weaver run`)                     | The root span of the task, `task <name>`, exported when the task ends                                                   | —                                                                    |
+| Part (`telemetry.instrumentations.<key>`) | Spans                                                                                                                                                                                 | Metrics                                                                                                                                                                                                                                                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `http` (`@appweaver/web`)                 | A server span per request, `GET /api/posts/:id`, continuing the `traceparent` header, with the status and the `user.id`                                                               | `http.server.request.duration`, `http.server.active_requests`                                                                                                                                                                                                                                        |
+| `database` (`@appweaver/data`)            | A client span per Prisma operation, `findMany Post` or `$queryRaw`, without the query and its arguments                                                                               | `db.client.operation.duration`                                                                                                                                                                                                                                                                       |
+| `queue` (`memory`, `bullmq`)              | A producer span `send <queue>` and a consumer span `process <queue>` per attempt, in the trace of the sender                                                                          | `messaging.client.sent.messages`, `messaging.process.duration`                                                                                                                                                                                                                                       |
+| `scheduler` (`@appweaver/cron`)           | The root span of a new trace per run, `scheduler <name>`                                                                                                                              | `appweaver.scheduler.job.duration`                                                                                                                                                                                                                                                                   |
+| `mailer`, `sms`                           | A client span per sent email (`mailer send`) and text message (`sms send`), inside the span of their queue job                                                                        | —                                                                                                                                                                                                                                                                                                    |
+| `cache`                                   | —                                                                                                                                                                                     | `appweaver.cache.requests` (`appweaver.cache.result`: `hit`, `miss`)                                                                                                                                                                                                                                 |
+| `task` (`weaver run`)                     | The root span of the task, `task <name>`, exported when the task ends                                                                                                                 | —                                                                                                                                                                                                                                                                                                    |
 | `realtime` (`@appweaver/realtime`)        | A server span per action call, `realtime action <name>`, over the WebSocket or HTTP, until the end of a streaming action; a producer span per stream opened, `realtime stream <name>` | `appweaver.realtime.connections`, `appweaver.realtime.events` (`appweaver.realtime.outcome`: `delivered`, `denied`, `dropped`), `appweaver.realtime.messages`, `appweaver.realtime.streams`, `appweaver.realtime.stream.chunks`, `appweaver.realtime.stream.bytes`, `appweaver.realtime.input.bytes` |
-| `ai` (`@appweaver/ai`)                    | A client span per model call, `chat <model>` or `embeddings <model>`, with the `gen_ai.*` attributes, and an `execute_tool <name>` span per tool call | `gen_ai.client.token.usage` (`gen_ai.token.type`: `input`, `output`), `gen_ai.client.operation.duration` |
-| `mcp` (`@appweaver/mcp`)                  | A server span per tool call, `tools/call <tool>`, with `mcp.method.name` and `gen_ai.tool.name` | `mcp.server.operation.duration` |
-| `fetch` (`@appweaver/opentelemetry`)      | A client span per outbound `fetch` request, which also sends the `traceparent` header. Node.js only                     | `http.client.request.duration`                                       |
+| `ai` (`@appweaver/ai`)                    | A client span per model call, `chat <model>` or `embeddings <model>`, with the `gen_ai.*` attributes, and an `execute_tool <name>` span per tool call                                 | `gen_ai.client.token.usage` (`gen_ai.token.type`: `input`, `output`), `gen_ai.client.operation.duration`                                                                                                                                                                                             |
+| `mcp` (`@appweaver/mcp`)                  | A server span per tool call, `tools/call <tool>`, with `mcp.method.name` and `gen_ai.tool.name`                                                                                       | `mcp.server.operation.duration`                                                                                                                                                                                                                                                                      |
+| `fetch` (`@appweaver/opentelemetry`)      | A client span per outbound `fetch` request, which also sends the `traceparent` header. Node.js only                                                                                   | `http.client.request.duration`                                                                                                                                                                                                                                                                       |
 
 The names and the attributes follow the OpenTelemetry semantic conventions (`http.*`, `db.*`, `messaging.*`, `gen_ai.*`), the ones
 of the framework are prefixed with `appweaver.`.
@@ -87,24 +87,30 @@ The `log` config is untouched, telemetry adds two things to the logs:
 ```ts
 import { currentSpan, telemetryCounter, withSpan } from '@appweaver/common';
 
-const invoices = telemetryCounter('billing.invoices', { description: 'Invoices issued.' });
+const invoices = telemetryCounter('billing.invoices', {
+  description: 'Invoices issued.'
+});
 
 export async function issueInvoice(orderId: number) {
   // The span of the request or the job this runs in
   currentSpan()?.setAttribute('order.id', orderId);
 
   // Ends when the promise settles, an error is recorded on it and thrown again
-  return withSpan('invoice render', { attributes: { 'order.id': orderId } }, async (span) => {
-    const pdf = await render(orderId);
-    span.setAttribute('invoice.size', pdf.length);
-    invoices().add(1, { currency: 'EUR' });
-    return pdf;
-  });
+  return withSpan(
+    'invoice render',
+    { attributes: { 'order.id': orderId } },
+    async (span) => {
+      const pdf = await render(orderId);
+      span.setAttribute('invoice.size', pdf.length);
+      invoices().add(1, { currency: 'EUR' });
+      return pdf;
+    }
+  );
 }
 ```
 
 | Helper                                                               | Purpose                                                                                             |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | `withSpan(name, options, fn)`                                        | Runs `fn` in a span, the parent of what it calls. `options`: `kind`, `attributes`, `root`, `parent` |
 | `startSpan(name, options)` / `runInTraceContext(context, fn)`        | A span ended by the caller, and running code as its child                                           |
 | `currentSpan()` / `currentTraceId()`                                 | The active span and the id of its trace                                                             |
@@ -120,7 +126,7 @@ Keep span names free of ids and other high-cardinality values, put them into att
 ## Backends
 
 | Route                | How                                                                                           | Use for                                                                    |
-|----------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| -------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | OTLP config          | `telemetry.endpoint` and `telemetry.headers`, or the `OTEL_EXPORTER_OTLP_*` variables         | Honeycomb, Datadog, Sentry, Grafana, New Relic, an OpenTelemetry Collector |
 | `configureTelemetry` | Add or replace exporters, processors, the sampler, the id generator, instrumentations         | A vendor exporter, AWS X-Ray ids and propagator, Prisma engine spans       |
 | Own SDK              | Do not install `@appweaver/opentelemetry`, start the SDK of the vendor before the application | `dd-trace`, the Sentry SDK, the Azure Monitor distro, ADOT                 |
@@ -144,7 +150,9 @@ import { PrismaInstrumentation } from '@prisma/instrumentation';
 
 configureTelemetry((options) => {
   // The parts created from the config, changed in place
-  options.spanProcessors.push(new BatchSpanProcessor({ exporter: new MyVendorExporter() }));
+  options.spanProcessors.push(
+    new BatchSpanProcessor({ exporter: new MyVendorExporter() })
+  );
   options.instrumentations.push(new PrismaInstrumentation());
   options.resourceAttributes['service.namespace'] = 'shop';
 });
@@ -180,8 +188,12 @@ afterEach(() => telemetry.stop());
 test('traces the invoice', async () => {
   await issueInvoice(7);
 
-  expect(telemetry.span('invoice render').attributes).toMatchObject({ 'order.id': 7 });
-  expect((await telemetry.metric('billing.invoices'))?.dataPoints[0].value).toBe(1);
+  expect(telemetry.span('invoice render').attributes).toMatchObject({
+    'order.id': 7
+  });
+  expect(
+    (await telemetry.metric('billing.invoices'))?.dataPoints[0].value
+  ).toBe(1);
 });
 ```
 

@@ -12,7 +12,10 @@ import { context } from '@appweaver/core/internal';
 import { define, CacheService, currentAuthUser } from '@appweaver/core';
 import { FileService } from '../../storage/file-service';
 import { withoutPolicies } from '../../utils/policy-util';
-import { resetContext } from '@appweaver/testing';
+import { resetContext, runTestsAsAnonymous } from '@appweaver/testing';
+
+// The policies apply to the calls of a request, not to the application's own calls
+runTestsAsAnonymous();
 
 jest.mock('@appweaver/core/context/auth-context', () => ({
   ...jest.requireActual('@appweaver/core/context/auth-context'),
@@ -498,6 +501,16 @@ describe('file-service', () => {
         await expect(service.stream(file.name)).resolves.toMatchObject({
           mimeType: 'application/pdf'
         });
+      });
+
+      it("streams it for the application's own call, outside of a request", async () => {
+        jest.mocked(currentAuthUser).mockReturnValue(undefined);
+        canAccess.mockReturnValue(false);
+
+        await expect(service.stream(file.name)).resolves.toMatchObject({
+          mimeType: 'application/pdf'
+        });
+        expect(canAccess).not.toHaveBeenCalled();
       });
 
       test('denies an anonymous request', async () => {

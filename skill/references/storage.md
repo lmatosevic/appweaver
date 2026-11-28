@@ -22,7 +22,7 @@ Persists a readable stream under the given file name. Returns the stored file's 
 `STORAGE_NAME_PATTERN`), or `null` on failure.
 
 | Parameter  | Type           | Description                                                                                     |
-|------------|----------------|-------------------------------------------------------------------------------------------------|
+| ---------- | -------------- | ----------------------------------------------------------------------------------------------- |
 | `fileName` | `string`       | Original file name (used for name pattern)                                                      |
 | `data`     | `Readable`     | Node.js readable stream with the content                                                        |
 | `options`  | `StoreOptions` | `{ contentType?, size? }`, the MIME type and the byte size, kept as metadata by a cloud storage |
@@ -30,7 +30,10 @@ Persists a readable stream under the given file name. Returns the stored file's 
 ```ts
 import { createReadStream } from 'node:fs';
 
-const fileId = await storage.store('avatar.png', createReadStream('/tmp/upload.png'));
+const fileId = await storage.store(
+  'avatar.png',
+  createReadStream('/tmp/upload.png')
+);
 // fileId e.g. "avatar-a3f8bc12.png"
 ```
 
@@ -38,7 +41,9 @@ const fileId = await storage.store('avatar.png', createReadStream('/tmp/upload.p
 
 ```ts
 const upload = await req.file();
-const fileId = await storage.store(upload.filename, upload.file, { contentType: upload.mimetype });
+const fileId = await storage.store(upload.filename, upload.file, {
+  contentType: upload.mimetype
+});
 ```
 
 #### `storage.url(fileName, options?)`
@@ -54,7 +59,7 @@ server. The files route redirects (`302`) to the URL when there is one.
 Returns a `ContentStream` for the stored file, or `null` if the file does not exist. Supports range requests.
 
 | Parameter  | Type     | Description                                |
-|------------|----------|--------------------------------------------|
+| ---------- | -------- | ------------------------------------------ |
 | `fileName` | `string` | File ID returned by `store`                |
 | `start`    | `number` | Byte offset to start reading from          |
 | `end`      | `number` | Byte offset to stop reading at (inclusive) |
@@ -62,7 +67,7 @@ Returns a `ContentStream` for the stored file, or `null` if the file does not ex
 ```ts
 type ContentStream = {
   stream: Readable;
-  size: number;     // total file size in bytes
+  size: number; // total file size in bytes
 };
 ```
 
@@ -126,7 +131,7 @@ produces collision-resistant names while preserving the original extension.
 Available placeholders:
 
 | Placeholder   | Resolved to                 |
-|---------------|-----------------------------|
+| ------------- | --------------------------- |
 | `{name}`      | Base name without extension |
 | `{hash}`      | Short content hash          |
 | `{extension}` | Original file extension     |
@@ -160,7 +165,7 @@ time are rejected with a `400` error.
 ## Configuration
 
 | Key                          | Type       | Default                       | Description                                                                                  |
-|------------------------------|------------|-------------------------------|----------------------------------------------------------------------------------------------|
+| ---------------------------- | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------- |
 | `STORAGE_PATH`               | `string`   | `'./storage'`                 | Root directory where files are stored                                                        |
 | `STORAGE_RESERVED_PATHS`     | `string[]` | `['__keys__']`                | Paths inside the storage root that files cannot use                                          |
 | `STORAGE_NAME_PATTERN`       | `string`   | `'{name}-{hash}.{extension}'` | Template for deriving the stored file name                                                   |
@@ -194,7 +199,11 @@ import { Storage } from '@appweaver/common';
 export class AvatarService {
   private readonly _storage = inject(Storage);
 
-  async upload(userId: number, stream: Readable, originalName: string): Promise<string> {
+  async upload(
+    userId: number,
+    stream: Readable,
+    originalName: string
+  ): Promise<string> {
     const fileId = await this._storage.store(originalName, stream);
     if (!fileId) throw new Error('Upload failed');
 
@@ -333,12 +342,18 @@ or the content.
 
 ```ts
 // Streams a file while checking if the current user has access
-const fileStream = await fileService.stream('photo-c7d3a1f2.jpg', req.headers.range);
+const fileStream = await fileService.stream(
+  'photo-c7d3a1f2.jpg',
+  req.headers.range
+);
 
 reply
   .status(fileStream.start > 0 ? 206 : 200)
   .header('Content-Type', fileStream.mimeType)
-  .header('Content-Disposition', `attachment; filename="${fileStream.fileName}"`)
+  .header(
+    'Content-Disposition',
+    `attachment; filename="${fileStream.fileName}"`
+  )
   .send(fileStream.content.stream);
 ```
 
@@ -350,7 +365,7 @@ Deleting a file via `FileService` removes it from both the storage backend and t
 await fileService.deleteFile(
   'photo-c7d3a1f2.jpg',
   'image', // resource field name
-  post,    // resource instance
+  post, // resource instance
   postClient // ResourceClient
 );
 ```
@@ -360,7 +375,7 @@ await fileService.deleteFile(
 When a resource is deleted, its stored files are cleaned up automatically, as configured per file field:
 
 | Option                  | Applies to                                   | Default    |
-|-------------------------|----------------------------------------------|------------|
+| ----------------------- | -------------------------------------------- | ---------- |
 | `onResourceDeleted`     | A resource removed from the database         | `'delete'` |
 | `onResourceSoftDeleted` | A soft deleted resource (model `softDelete`) | `'keep'`   |
 
@@ -418,9 +433,9 @@ the newest one, the one linked to the resource.
 ```ts
 const config = {
   files: {
-    contract: { mimeType: 'application/pdf' },                    // the config: 10 versions, kept forever
+    contract: { mimeType: 'application/pdf' }, // the config: 10 versions, kept forever
     gallery: { array: true, versions: { maxCount: 3, maxAge: '30d' } },
-    avatar: { versions: false }                                    // replaced and deleted as without versions
+    avatar: { versions: false } // replaced and deleted as without versions
   }
 };
 ```
@@ -430,6 +445,7 @@ const config = {
   file being a new file of its own. A replace naming no current file of the field fails with
   `FILE_REPLACE_TARGET_INVALID`, and with `FILE_VERSIONING_DISABLED` on a field without versions. A replace does not
   count against `maxCount` of an array field. A failed upload restores the files it replaced.
+
   ```
   --boundary
   Content-Disposition: form-data; name="gallery:replace"
@@ -438,6 +454,7 @@ const config = {
   --boundary
   Content-Disposition: form-data; name="gallery"; filename="a.png"
   ```
+
 - **Download**: a previous version is served only by the name of the current file and its number,
   `GET /files/public/<current name>?version=2`. The name of a previous version answers `FILE_NOT_FOUND`, so an old URL
   stops working once its file is replaced, as without versions. The file policy applies to every version. A version
@@ -464,7 +481,11 @@ const current = await fileService.findByName('gallery/a-9c8d.png');
 const previous = await fileService.findVersion(current, 2);
 const versions = await fileService.listVersions(current.name, post, postClient);
 await fileService.saveBuffer('gallery', buffer, post, postClient, current.name); // a new version of the file
-await fileService.deleteVersions({ gallery: { name: current.name, version: 'latest' } }, post, postClient);
+await fileService.deleteVersions(
+  { gallery: { name: current.name, version: 'latest' } },
+  post,
+  postClient
+);
 ```
 
 ### Owning resource reference
