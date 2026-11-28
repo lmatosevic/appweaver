@@ -39,7 +39,8 @@
     "samples:lock": "node tools/lock-samples.js",
     "samples:manage": "node tools/manage-samples.js",
     "load": "node tools/load/run-load.js",
-    "load:probe": "node tools/load/probe.js"
+    "load:probe": "node tools/load/probe.js",
+    "check:unused": "knip --no-exit-code"
   },
   "dependencies": {
     "@fastify/ajv-compiler": "4.0.5",
@@ -139,6 +140,7 @@
     "ioredis-mock": "8.13.1",
     "jest": "30.5.2",
     "jest-junit": "17.0.0",
+    "knip": "6.45.1",
     "madge": "8.0.0",
     "prettier": "3.8.4",
     "rimraf": "6.1.4",

@@ -49,6 +49,30 @@ jobs:
       - uses: ./.github/actions/setup
       - run: npm run check:circular
 
+  # Not blocking (V3-TOOL-00 of PLAN-v3.md): the unused files, exports and dependencies, triaged phase by phase
+  unused:
+    name: Unused code
+    runs-on: ubuntu-latest
+    container: node:24
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: npm run check:unused
+
+  # Not blocking (V3-TOOL-00): the known vulnerabilities of the lockfiles of the monorepo and the samples
+  vulnerabilities:
+    name: Vulnerabilities
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.0 scan source --recursive .
+
   test:
     name: Unit tests
     needs: [format, lint, circular]
