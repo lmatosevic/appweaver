@@ -2,6 +2,9 @@
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
 > section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
+> **Revision 20**: phase 2 on `v3/phase-2-toolchain`: TypeScript 7.1 beta with the classic 5.9 kept for the API tools,
+> `tsx`, `@appweaver/skill`, `@appweaver/tooling` with ESLint 10, `generateToken` on `node:crypto`; TypeBox 1.x (V3-TOOL-06)
+> open, its spike recorded in phase 2 (section 6).
 > **Revision 19**: phases 0 and 1 implemented as the stacked pull requests of `v3/phase-0-preparation` and
 > `v3/phase-1-review`: the load harness, the probe and the baselines of every sample (phase 0, section 6), the review of
 > stage 1b with the findings F46 to F60 (section 4) and their fixes or change requests (section 8). knip is a blocking
@@ -493,6 +496,7 @@ high, medium, low, or a design or performance finding.
 | F58 | `MemoryQueue` scheduled its next pass even after a pass with nothing to do: an application on the in-process queue (every project without BullMQ) ran 900 to 1,700 timer callbacks a second while idle (`helpdesk-api`, `hr-api`) | Performance, idle | High | C, phase 0 probe | V3-PERF-06b (done) |
 | F59 | `_ilike` set the insensitive mode of Prisma, which only PostgreSQL has: on SQLite, MySQL and SQL Server the query answered `500` | Bug | Medium | C, edge cases | V3-BUG-04 (done) |
 | F60 | `JobResults.wait` (the `*AndWait` of the SMS and email services, `generateQueued`) waits forever when the `PubSub` cannot subscribe or the result never comes; the cause of F40, a request hanging instead of failing | Robustness | Medium | C | V3-CORE-01 |
+| F61 | `randomString` (the API keys) drew from `chance` through `generate-api-key`, a Mersenne Twister that is not cryptographically secure | Security | High | C | V3-SEC-06 |
 
 ---
 
@@ -1387,6 +1391,45 @@ above). Prisma on the latest 7.x.
 **Gate 2**: CI green on the TypeScript 7.1 beta and Prisma 7, its duration compared to E1 (target: the x4.7 build of E6), every
 sample and every scaffold combination building and passing its e2e tests on its database.
 
+**Implementation** on `v3/phase-2-toolchain` (pull request into `v3/phase-1-review`), one commit per CR:
+
+| CR           | Result                                                                                                  |
+|--------------|---------------------------------------------------------------------------------------------------------|
+| V3-TOOL-02   | The tool check on `7.1.0-beta` below; the compiler is the `@typescript/native` alias of the root, `typescript` the classic 5.9 the API tools load |
+| V3-TOOL-01   | TypeScript 7.1 for the monorepo, the samples and the scaffolds; `baseUrl` and the decorator flags removed, `types` and `rootDir` set, the client's CommonJS build off `node10`, `noImplicitAny` on (the symbol marks typed as `ResourceMarks`); `MIGRATION-v3.md` 2 |
+| V3-TOOL-03   | `tsx` (its CommonJS `register`) loads the models of `weaver generate`; the output of `cms-api` and `webshop-api` unchanged |
+| V3-SEC-06    | `generateToken` on `node:crypto`, found weaker than F35 said (F61); `npm audit --omit=dev` clean with `effect` 3.22.5 overridden in the monorepo, the rest in the dev tools only (Jest, autocannon, semantic-release) |
+| V3-TOOL-08   | `@appweaver/skill` (`packages/skill`, the `skill/` of the repository), `weaver skill sync`, run by `weaver upgrade`; a scaffolded project with an agent depends on it; `MIGRATION-v3.md` 21 |
+| V3-TOOL-05   | `@appweaver/tooling` (ESLint 10, typescript-eslint 8.74 with its own TypeScript 5.9, Prettier, Jest, SWC, jest-junit) with `eslintConfig`, the Prettier config and the Jest preset; `weaver lint`, `weaver format`, `weaver test` (`bun test` on Bun); the scaffolds and the module packages on it, a scaffolded project installed from the packed packages and its lint, format, unit and e2e tests and build run; the monorepo on ESLint 10; `MIGRATION-v3.md` 3 |
+| V3-TOOL-06   | **Open**, see below                                                                                     |
+
+The tool check (V3-TOOL-02, D12):
+
+| Tool                       | On TypeScript 7.1.0-beta                                                                              |
+|----------------------------|-------------------------------------------------------------------------------------------------------|
+| typescript-eslint 8.74     | The classic backend needs `typescript <6.1`: it runs on the 5.9 copy (the root, the nested one of `@appweaver/tooling`). Its tsgo backend is experimental and needs TypeScript 6.0 beside `@typescript/native` |
+| `openapi-typescript` 7.13  | Needs the compiler API (`ts.factory`, the printer): `@appweaver/client` keeps `typescript` 5.9.3 as its dependency, nested in a project on 7.1. TypeScript 7 rejects its CommonJS declarations (`export =` beside named exports), so the client types its values by the ESM ones |
+| `typebox-codegen` 0.11     | `ModelToTypeScript` runs without the compiler API (checked with 7.1 at the root of a project); replaced in V3-TOOL-06 anyway |
+| madge 8                    | Runs on the 5.9 copy                                                                                  |
+| `tsc-watch` 7.2            | Runs the `typescript/bin/tsc` of the project, 7.1, and parses its output (`weaver start --watch`)      |
+| `tsx`, `tsc-alias`, knip   | Need no TypeScript                                                                                    |
+
+Why 5.9 and not 6.0 as the copy: `openapi-typescript`, madge and `typebox-codegen` declare `typescript ^5`, so 6.0
+would need `overrides`; 5.9 satisfies every peer range.
+
+Measured against E1 (same machine): `tsc -b packages` 2.4 s (13.6 s), `tsc --noEmit` of the repository 1.0 s (11.8 s),
+`npm run build` 3.3 s (15 s), `npm test` 48 s (60 s; 324 suites, 4,983 tests, 89.2% of the branches), the full lint under
+ESLint 10 72 s.
+
+**V3-TOOL-06 (TypeBox 1.x), open**: a spike replacing the imports gave 199 type errors: `Type.Composite` is gone from
+`Type` (29 uses, `Type.Evaluate(Type.Intersect(...))` instead), `TSchema` has no index signature (`$id`, `type`,
+`properties` read in 141 places), `Kind`, `OptionalKind`, `TypeGuard`, `KindGuard`, `FormatRegistry` and
+`TypeCompiler` are replaced by `~kind`, the `Type.Is*` guards, `typebox/format` and `typebox/compile`, `Type.Date` is
+gone. TypeBox 1 is ESM only: Node 24 loads it with `require(esm)`, Jest needs the `.mjs` files transformed by SWC.
+`typebox-codegen` reads the `Kind` symbols of 0.x, so `weaver generate --types` needs its own emitter of the registry
+types. The value functions take a context first and report errors in the ajv form, which the config errors print.
+Left as the last step of the phase, on this branch, before gate 2.
+
 ### Phase 3: Conventions and defaults
 
 | Step | CR          | Work                                                                                                    |
@@ -1583,7 +1626,8 @@ All `proposed` until approved, except V3-SEC-01 to V3-SEC-04, V3-SAMPLE-01 and V
 (phase 1a), with parts of V3-PERF-03 and V3-PERF-06. **Done in phase 0** (pull request of `v3/phase-0-preparation`):
 V3-PROC-01, V3-PROC-02, V3-PERF-01, V3-PERF-02, V3-TOOL-00. **Done in phase 1** (pull request of
 `v3/phase-1-review`): V3-SEC-05, V3-SEC-07a, V3-SEC-07b, V3-BUG-02, V3-BUG-03, V3-BUG-04, V3-PERF-06b, V3-QA-01 (the first part, see
-phase 1), V3-QA-02, V3-QA-03, V3-CLI-06. Effort: S < 1 day, M days, L a week, XL more.
+phase 1), V3-QA-02, V3-QA-03, V3-CLI-06. **Done in phase 2** (pull request of `v3/phase-2-toolchain`): V3-TOOL-01,
+V3-TOOL-02, V3-TOOL-03, V3-TOOL-05, V3-TOOL-08, V3-SEC-06; V3-TOOL-06 open. Effort: S < 1 day, M days, L a week, XL more.
 
 | ID            | Title                                                                    | Phase | Prio | Effort | Breaking       |
 |---------------|--------------------------------------------------------------------------|-------|------|--------|----------------|
