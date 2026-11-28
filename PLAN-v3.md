@@ -1088,7 +1088,7 @@ a CR of its own, with its upgrade notes applied.
 |------|-------------|--------------------------------------------------------------------------------------------------------|
 | 0.1  | V3-PROC-01  | The stacked phase branches and pull requests (section 2); no change to `release.config.js`             |
 | 0.2  | V3-PROC-02  | `MIGRATION-v3.md` skeleton, one section per breaking CR                                                |
-| 0.3  | V3-PERF-01  | `tools/load/`: the seeder (10k, 100k, 1M rows per model shape), the scenarios of E2, autocannon, a JSON report; a `npm run load -- <sample>` entry |
+| 0.3  | V3-PERF-01  | `tools/load/`: the seeder (10k, 100k, 1M rows per model shape), the scenarios of E2, autocannon, a JSON report; the `load`, `probe` and `load-summary` operations of `npm run samples:manage`, the definitions in the samples (`test/load/load.js`) |
 | 0.4  | V3-PERF-01  | Baselines of every sample on its own database (PostgreSQL, MySQL, SQL Server, SQLite, libsql on Bun), with Docker; recorded in this file |
 | 0.5  | V3-PERF-02  | `tools/load/probe.js`: timer wake-ups and memory of an idle application (E5), heap snapshot diff after a soak |
 | 0.6  | V3-TOOL-00  | `knip` (unused exports, files, dependencies) and `osv-scanner` as non-blocking CI jobs                  |
@@ -1097,7 +1097,9 @@ a CR of its own, with its upgrade notes applied.
 
 **Done** on `v3/phase-0-preparation` (pull request into `main`), one commit per CR. Deviations from the steps above:
 `npm run check:unused` (knip) is a blocking check like `check:circular`, at the maintainer's request, its findings
-(F56) resolved in the same commit; osv-scanner stays non-blocking. `npm run load:summary` prints the tables below
+(F56) resolved in the same commit; osv-scanner stays non-blocking. The harness runs through the operations of
+`npm run samples:manage` (`load`, `probe`, `load-summary`), each sample holding its load definition
+(`test/load/load.js`), at the maintainer's request, rather than root scripts. `load-summary` prints the tables below
 from the JSON reports of `reports/load`.
 
 #### Phase 0 baselines (step 0.4)
@@ -1105,10 +1107,10 @@ from the JSON reports of `reports/load`.
 **Environment**: 4 vCPU (Xeon 2.3 GHz), 16 GB, Node 24.22.3, Bun 1.4.4, Docker 29 with the images of the compose
 files of the samples (TimescaleDB 2.31 on PostgreSQL 18, `timescaledb-ha` with PostGIS, MariaDB 11.4, SQL Server
 2022, Redis 7.4), `main` at 2.10.1 with the BullMQ shutdown fix of phase 1 (V3-BUG-02, which only changes the
-shutdown). Each sample was set up with `npm run load -- <sample> --setup`, started with `NODE_ENV=prod` and the rate
+shutdown). Each sample was set up with `npm run samples:manage -- load <sample> -- --setup`, started with `NODE_ENV=prod` and the rate
 limiter off, and loaded for 10 s per scenario: at 10k rows with 20 connections, then at 100k rows with 1 connection
 (the latency of one request) and 20. The rows are those of the main model of the sample (`seed` of
-`tools/load/samples/<sample>.js`); every request carries a random value, so the response cache answers only
+`test/load/load.js` of the sample); every request carries a random value, so the response cache answers only
 `query-cached` (on the routes declaring a cache: not those of `helpdesk-api`, `inbox-processor` and
 `vehicle-tracking-api`). The probe ran on the 100k database: 60 s of idle, then 60 s of soak with 10 connections.
 The numbers of `cms-api` differ from E2: since 2.10.1 its anonymous reads see the published posts only, with the

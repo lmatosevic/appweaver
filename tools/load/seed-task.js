@@ -1,5 +1,5 @@
 // The seeder of the load tests, run by tools/load/run-load.js in the directory of a sample with
-//   weaver run <this file> <sample> <rows>
+//   weaver run <this file> <rows>
 // so it inserts through the Prisma client of the application, on whatever database the sample uses. It tops the
 // main model of the sample up to the number of rows, and is a no-op once it holds that many.
 const { injectDatabaseClient } = require('@appweaver/core');
@@ -10,8 +10,9 @@ const { createSeedHelpers } = require('./lib/seed-helpers');
 
 const chunkSize = 10_000;
 
-module.exports = async function seedLoad([name, rows]) {
-  const sample = loadSample(name);
+module.exports = async function seedLoad([rows]) {
+  const sample = loadSample();
+  const name = sample.name;
   const target = Number(rows);
   const seed = sample.seed;
   if (!seed) {

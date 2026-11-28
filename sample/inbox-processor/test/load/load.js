@@ -1,7 +1,8 @@
 // The entries of the inbox processor on SQLite with Redis (BullMQ): the public reads of the processed entries.
-const { resourceScenarios, collectIds } = require('../lib/scenarios');
 
-module.exports = {
+// The load definition of the sample, run by `npm run samples:manage -- load` (tools/load/README.md), given the
+// scenario helpers of the harness
+module.exports = ({ resourceScenarios, collectIds }) => ({
   database: 'sqlite',
   services: ['redis'],
   port: 5007,
@@ -41,4 +42,4 @@ module.exports = {
     textSearch: true,
     aggregate: { select: { words: { sum: true, avg: true } }, auth: false }
   })
-};
+});

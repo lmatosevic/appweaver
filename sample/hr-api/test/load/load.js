@@ -1,7 +1,8 @@
 // The employees of the HR API on SQL Server, UUIDv7 IDs, read by the admin with the permissions of HR.
-const { resourceScenarios, collectIds } = require('../lib/scenarios');
 
-module.exports = {
+// The load definition of the sample, run by `npm run samples:manage -- load` (tools/load/README.md), given the
+// scenario helpers of the harness
+module.exports = ({ resourceScenarios, collectIds }) => ({
   database: 'sqlserver',
   services: ['sqlserver'],
   port: 5003,
@@ -44,4 +45,4 @@ module.exports = {
     textSearch: true,
     aggregate: { select: { hireDate: { count: true } }, dateField: 'hireDate' }
   })
-};
+});

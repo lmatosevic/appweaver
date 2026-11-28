@@ -1365,7 +1365,12 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
   run `npm run build` first or it generates the models of the last build. The samples run one after another, stopping at
   the first failure, or with `-p, --parallel` (anywhere before `--`) all at once, every output line prefixed with its
   sample and every failure reported at the end. A new operation is an entry of its `operations`, with the names of its
-  `params`.
+  `params`, and `options: true` when the words after `--` are optional options of its command.
+- The load tests of `PLAN-v3.md` are operations of `samples:manage` too, never root scripts: `load` seeds the main model
+  of a sample to a size and load-tests it with autocannon, `probe` measures its idle timer wake-ups and memory, and
+  `load-summary` prints the reports of `reports/load` as tables (`npm run samples:manage -- load cms-api -- --setup
+  --size 100k`). Each sample holds its load definition in `test/load/load.js`, the scripts are in `tools/load`
+  (`tools/load/README.md`). Never run them with `--parallel`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
 - The Bun sample runs its scripts with `bun run`. Bun runs every test file in one process, where the application
   context is frozen once an application starts, so its end-to-end files share one application instead of resetting the

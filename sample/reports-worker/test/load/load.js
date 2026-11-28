@@ -1,6 +1,7 @@
 // The reports worker has no server: it is probed (idle wake-ups, memory) on its health listener, with the
 // transactions its daily report and archive jobs read seeded to the size.
-module.exports = {
+// The load definition of the sample, run by `npm run samples:manage -- load` (tools/load/README.md)
+module.exports = () => ({
   database: 'sqlite',
   port: 5006,
 
@@ -23,4 +24,4 @@ module.exports = {
   },
 
   scenarios: []
-};
+});

@@ -1,16 +1,17 @@
 #!/usr/bin/env node
-// Prints the latest load and probe reports of every sample (reports/load) as the Markdown tables of PLAN-v3.md:
-// per sample, its scenarios at each size and connection count, then the idle and memory measures of the probes.
+// Prints the latest load and probe reports (reports/load) of the sample of the working directory as the Markdown tables
+// of PLAN-v3.md, run by the `load-summary` operation of tools/manage-samples.js: its scenarios at each size and
+// connection count, then the idle and memory measures of its probe.
 //
-//   npm run load:summary
-//   npm run load:summary -- --input-dir reports/load --sizes 10k,100k
+//   npm run samples:manage -- load-summary
+//   npm run samples:manage -- load-summary cms-api -- --sizes 10k,100k
 const fs = require('fs');
 const path = require('path');
 const { Command } = require('commander');
-const { rootDir, sizeLabel, parseSize } = require('./lib/samples');
+const { rootDir, loadSample, sizeLabel, parseSize } = require('./lib/samples');
 
 const program = new Command('summarize')
-  .description('Prints the latest load and probe reports of every sample as Markdown tables.')
+  .description('Prints the latest load and probe reports of the sample of the working directory as Markdown tables.')
   .option('--input-dir <dir>', 'The directory of the JSON reports.', path.join('reports', 'load'))
   .option('--sizes <list>', 'The sizes to print, comma separated.', '10k,100k')
   .action(main);
@@ -18,12 +19,17 @@ const program = new Command('summarize')
 program.parse();
 
 function main(options) {
+  const { name } = loadSample();
   const dir = path.resolve(rootDir, options.inputDir);
-  const reports = fs
-    .readdirSync(dir)
+  const reports = (fs.existsSync(dir) ? fs.readdirSync(dir) : [])
     .filter((file) => file.endsWith('.json'))
     .map((file) => JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8')))
+    .filter((report) => report.sample === name)
     .sort((a, b) => a.date.localeCompare(b.date));
+  if (reports.length === 0) {
+    console.log(`${name} has no load report in ${path.relative(rootDir, dir)}`);
+    return;
+  }
   const sizes = options.sizes.split(',').map(parseSize);
 
   // The latest report of each sample, size and connection count
