@@ -2,6 +2,8 @@
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
 > section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
+> **Revision 14**: no prerelease channel: one pull request per phase into `main`, stacked on the previous phase; 3.0.0 is
+> released from `main` once every phase is merged; a 2.x fix, if ever needed, branches from the `v2.10.1` tag (section 2).
 > **Revision 13**: the maintainer's decisions of section 9 recorded: no 2.x maintenance after 3.0.0, the defaults of D5
 > (Swagger stays on, configurable), the release held for TypeScript 7.1, every sample and both clients kept, `views`, the
 > `DatabaseType` suffixes of the SQL files.
@@ -57,8 +59,8 @@
   is mechanical.
 - **Measure before optimizing**: the numbers of section 3 are the v2.10.0 baseline every later change is compared to.
 - **Small steps**: one concern per change request (CR), reviewed and merged one at a time.
-- **Security fixes do not wait for v3**: until 3.0.0 is released, a confirmed vulnerability ships as a 2.10.x patch first
-  (section 6, phase 1). After 3.0.0, 2.x is not maintained: v3 replaces it as the latest release.
+- **2.x is not maintained**: v3 replaces it as the latest release. Phase 1a shipped as 2.10.1; a 2.x fix, if one is ever
+  needed, is a branch from the `v2.10.1` tag, published on its own.
 
 ---
 
@@ -68,8 +70,8 @@ Every phase runs in three stages, each ending with a review:
 
 1. **Phase plan**: the phase is detailed in this file, its CRs listed with their evidence. Each CR is approved,
    rejected or deferred by the maintainer.
-2. **Implementation**: one branch and pull request per CR (or per small group of tightly related CRs), named after the
-   work (`refactor/duration-config`), with conventional commits (`feat!:` or a `BREAKING CHANGE` footer when breaking).
+2. **Implementation**: one branch and pull request per phase, stacked (below), one conventional commit per CR inside it
+   (`feat!:` or a `BREAKING CHANGE` footer when breaking), so each CR reviews on its own and the phase merges at once.
 3. **Phase review**: tests, lint, circular check and the load-test baseline rerun; skill, docs and migration guide
    updated; the phase is closed.
 
@@ -91,9 +93,28 @@ Every phase runs in three stages, each ending with a review:
 `configuration.md`), samples and scaffold templates updated, a note in `MIGRATION-v3.md` when breaking, the load-test
 scenarios it touches rerun, docs.appweaver.co updated.
 
-**Branches and releases**: `release.config.js` releases `main` only (`branches: ['main']`), so breaking commits would
-reach a stable release one by one. v3 work goes to a `next` branch released as `3.0.0-next.N` on the `next` dist-tag
-(`branches: ['main', { name: 'next', prerelease: true }]`). 2.x fixes stay on `main` and are merged forward into `next`.
+**Branches, pull requests and releases** (revision 14):
+
+- **No prerelease channel**: the v3 work is merged into `main` directly; `release.config.js` is unchanged
+  (`branches: ['main']`).
+- **One pull request per phase, stacked**: the branch of a phase starts from the branch of the previous phase, and its
+  pull request targets it, so each pull request shows only the changes of its phase:
+
+  ```
+  main
+   └─ v3/phase-0-preparation         PR → main
+       └─ v3/phase-1-review           PR → v3/phase-0-preparation
+           └─ v3/phase-2-toolchain     PR → v3/phase-1-review
+               └─ ...                  up to v3/phase-7-docs
+  ```
+
+  When a phase merges into `main`, the next pull request is retargeted to `main` and its branch rebased onto it; a
+  change asked in the review of an earlier phase is made on its branch and the later branches are rebased.
+- **Releasing**: the Release workflow is run by hand, so `main` holds the merged phases unreleased; it is run once,
+  after the last phase and with TypeScript 7.1 stable (section 10), and the `feat!` commits make it 3.0.0. No release is
+  run between two phases.
+- **2.x**: not maintained (decision 1). If a fix is ever needed, a branch from the `v2.10.1` tag, released on its own
+  (added to the `branches` of `release.config.js` as a maintenance branch for that release only).
 
 ---
 
@@ -740,8 +761,8 @@ scheduled for the coming weeks (`7.1.0-beta` is on npm, and typescript-eslint 8.
 
 1. No intermediate step on TypeScript 6 or a split build: v3 moves from 5.9 straight to **TypeScript 7.1**, for the
    monorepo, the published packages and the scaffolded projects alike. Development starts now on the latest
-   `7.1.0-beta` (or RC), pinned exactly, on the `next` branch only; the stable 7.1.0 replaces it before 3.0.0 is
-   released, and no `3.0.0` (only `3.0.0-next.N`) is published on a beta. Prisma stays on 7.x (D16).
+   `7.1.0-beta` (or RC), pinned exactly; the stable 7.1.0 replaces it before 3.0.0 is released, and nothing is released
+   on a beta. Prisma stays on 7.x (D16).
 2. The config changes E6 found are made with it: `baseUrl` removed (the `paths` relative to the config), `types` and
    `typeRoots` listed explicitly, the decorator flags removed, the client's CommonJS build off `moduleResolution:
    node10`, the `WebSocket.send` typing fixed, and `noImplicitAny: true` (108 fixes). The config cleanup that is
@@ -1028,7 +1049,7 @@ CSV export streamed), the config examples, the skill and a load scenario with co
 
 | Phase | Name                          | Output                                                                    | Gate                                                  |
 |-------|-------------------------------|---------------------------------------------------------------------------|-------------------------------------------------------|
-| 0     | Preparation                   | Release channel, migration guide, load-test harness, baselines            | Baselines of every sample recorded                    |
+| 0     | Preparation                   | Migration guide, load-test harness, baselines            | Baselines of every sample recorded                    |
 | 1     | Security fixes and audit      | 2.10.1 (released) for F1-F4, F7, F9; per-module findings                  | Register reviewed, CRs ordered                        |
 | 2     | Toolchain and platform        | TypeScript 7.1, `tsx`, tooling package, TypeBox 1, skill package          | CI green, samples and scaffolds build |
 | 3     | Conventions and defaults      | Durations, exposure, maintenance jobs, secure defaults, query defaults    | Conventions applied in every package                  |
@@ -1036,23 +1057,23 @@ CSV export streamed), the config examples, the skill and a load scenario with co
 | 5     | Module-by-module              | The remaining approved CRs, in the order of section 7                     | Per module                                            |
 | 6     | Performance                   | Projection, counts, aggregates, FTS, idle, all databases and samples      | Budgets met or explained                              |
 | 7     | AI workflow, docs, migration  | Skill, AGENTS.md, CLI aids, docs site, migration guide, codemods          | Docs and samples on v3                                |
-| 8     | Release                       | `3.0.0-next.N`, then `3.0.0`                                              | Samples and every module combination run on it        |
+| 8     | Release                       | The Release workflow run once on `main`: `3.0.0`                          | Samples and every module combination run on it        |
 
 **Order**: security first (it ships to 2.x users), then the toolchain (every later pull request runs on it), then the
 conventions (the features adopt them), then the design work, then performance against the final design.
 
 **Pre-release for development**: **TypeScript 7.1** (the release shipping the compiler API) is scheduled as stable in
-the coming weeks. Phase 2 does not wait for it: it moves the `next` branch to the latest TypeScript `7.1.0-beta`, pinned
+the coming weeks. Phase 2 does not wait for it: it moves the phase branches to the latest TypeScript `7.1.0-beta`, pinned
 to an exact version, for development only. Prisma stays on 7.x (D16). No CR of phases 3 to 8
 is merged before phase 2, so nothing is written twice against the old toolchain. The stable TypeScript 7.1 is a gate of the
-release (section 10): `3.0.0-next.N` prereleases may run on the beta, `3.0.0` never does. A pre-release bump is
+release (section 10): the phases may merge into `main` on the beta, 3.0.0 is never released on it. A pre-release bump is
 a CR of its own, with its upgrade notes applied.
 
 ### Phase 0: Preparation (no behavior change)
 
 | Step | CR          | Work                                                                                                   |
 |------|-------------|--------------------------------------------------------------------------------------------------------|
-| 0.1  | V3-PROC-01  | `next` branch and prerelease channel in `release.config.js`                                            |
+| 0.1  | V3-PROC-01  | The stacked phase branches and pull requests (section 2); no change to `release.config.js`             |
 | 0.2  | V3-PROC-02  | `MIGRATION-v3.md` skeleton, one section per breaking CR                                                |
 | 0.3  | V3-PERF-01  | `tools/load/`: the seeder (10k, 100k, 1M rows per model shape), the scenarios of E2, autocannon, a JSON report; a `npm run load -- <sample>` entry |
 | 0.4  | V3-PERF-01  | Baselines of every sample on its own database (PostgreSQL, MySQL, SQL Server, SQLite, libsql on Bun), with Docker; recorded in this file |
@@ -1340,7 +1361,7 @@ week, XL more.
 
 | ID            | Title                                                                    | Phase | Prio | Effort | Breaking       |
 |---------------|--------------------------------------------------------------------------|-------|------|--------|----------------|
-| V3-PROC-01    | `next` prerelease channel                                                | 0     | P1   | S      | No             |
+| V3-PROC-01    | Stacked phase pull requests into `main` (section 2)                     | 0     | P1   | S      | No             |
 | V3-PROC-02    | `MIGRATION-v3.md`                                                        | 0     | P1   | S      | No             |
 | V3-PERF-01    | Load-test harness and baselines of every sample                          | 0     | P1   | M      | No             |
 | V3-PERF-02    | Idle and memory probe, soak test                                         | 0     | P1   | S      | No             |
@@ -1432,11 +1453,11 @@ All decided (revision 13):
 
 ## 10. Release plan
 
-1. Every approved CR done; every phase gate passed; **TypeScript 7.1.0 stable** replacing the beta development ran
-   on (the release waits for it, decision 3), Prisma on the latest 7.x, with the full test suite, the samples' e2e suites and the load tests rerun on
-   them.
-2. `3.0.0-next.N` prereleases on the `next` dist-tag; the samples and a scaffolded project of every module combination
-   run on them; the load-test budgets met.
+1. Every phase merged into `main` through its stacked pull request; every phase gate passed.
+2. **TypeScript 7.1.0 stable** replacing the beta development ran on (the release waits for it, decision 3), Prisma on
+   the latest 7.x; the full test suite, the samples' e2e suites, a scaffolded project of every module combination and
+   the load tests rerun on `main`, the load-test budgets met.
 3. `MIGRATION-v3.md` complete, with `weaver upgrade --target-version 3` applying the mechanical steps.
 4. docs.appweaver.co on v3, the v2 docs kept under a versioned path.
-5. `3.0.0` released from `main` (`next` merged) as the latest release; no `2.x` maintenance branch (decision 1).
+5. The Release workflow run on `main`: `3.0.0`, the latest release; no 2.x maintenance (decision 1), a 2.x fix if ever
+   needed branching from the `v2.10.1` tag.
