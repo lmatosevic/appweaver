@@ -6,6 +6,12 @@ export * from './export/export-service';
 export * from './factory/create-model';
 export * from './factory/create-policy';
 export * from './factory/create-service';
+export {
+  extendModel,
+  extendPolicy,
+  extendService,
+  ResourceExtensionMark
+} from './factory/extend-resources';
 export * from './resource/model-schema';
 export * from './resource/resource-loader';
 export * from './resource/resource-service';

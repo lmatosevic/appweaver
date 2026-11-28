@@ -5,5 +5,6 @@
  */
 export { context } from './context';
 export * from './context/transaction-scope';
+export * from './context/resource-extensions';
 export { LifecycleManager } from './app/lifecycle-manager';
 export { loadProviders } from './app/load-providers';

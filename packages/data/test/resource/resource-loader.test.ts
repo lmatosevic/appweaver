@@ -21,32 +21,20 @@ describe('resource-loader', () => {
   });
 
   describe('loadResources', () => {
-    test('loads the definitions the context holds when a name is defined twice', async () => {
-      const first = createModel({
-        name: 'Note',
-        scalars: { text: { type: 'string' }, color: { type: 'string' } }
-      });
-      const second = createModel({
-        name: 'Note',
-        scalars: { text: { type: 'string' } }
-      });
-      const firstPolicy = createPolicy({ modelName: 'Note' });
-      const secondPolicy = createPolicy({ modelName: 'Note' });
-      const firstService = createService({ modelName: 'Note' });
-      const secondService = createService({ modelName: 'Note' });
+    test('fails on a model, a policy or a service defined twice', () => {
+      createModel({ name: 'Note', scalars: { text: { type: 'string' } } });
+      createPolicy({ modelName: 'Note' });
+      createService({ modelName: 'Note' });
 
-      const loaded = await loadResources(__dirname, NO_FILES, [
-        async () => ({ first, firstPolicy, firstService }),
-        async () => ({ second, secondPolicy, secondService })
-      ]);
-
-      expect(context.resource.models.get('Note')).toBe(first);
-      expect(loaded.models.get('Note')).toBe(first);
-      expect(loaded.policies.get('Note')).toBe(firstPolicy);
-      expect(loaded.services.get('Note')).toBe(firstService);
-      // The model the context uses is the one linked into the schema module
-      expect(first.readOneModel).toHaveProperty('$ref');
-      expect(second.readOneModel).not.toHaveProperty('$ref');
+      for (const define of [
+        () => createModel({ name: 'Note' }),
+        () => createPolicy({ modelName: 'Note' }),
+        () => createService({ modelName: 'Note' })
+      ]) {
+        expect(define).toThrow(
+          expect.objectContaining({ code: 'CONTEXT_DEFINITION_DUPLICATE' })
+        );
+      }
     });
 
     test('loads the model defined with override', async () => {

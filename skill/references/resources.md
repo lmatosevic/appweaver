@@ -1841,6 +1841,54 @@ The internal access covers every call made while the function runs, including th
 
 ---
 
+## Extending a model defined elsewhere
+
+A model, service, policy or routes is defined once per model name: a second `createModel`, `createService`,
+`createPolicy` or `createRoutes` under a taken name fails at startup with `CONTEXT_DEFINITION_DUPLICATE`, naming the
+files of both (`override: true`, the last argument, replaces the first one entirely). A model of the framework or of a
+module (`ApiKey`, `File`, `Role`, `AuditLog`, ...) is extended instead, from a file the loaders find like any resource
+(`src/resources/api-key/model.ts`, `service.ts`, `policy.ts`, `routes.ts`):
+
+```ts
+import { extendModel, extendPolicy, extendService } from '@appweaver/data';
+import { extendRoutes } from '@appweaver/web';
+
+// model.ts: new fields must be optional or have a default, since the framework creates these records
+export default extendModel('ApiKey', {
+  scalars: { label: { type: 'string', required: false } },
+  index: ['label'],
+  read: { omit: ['createdById'] }
+});
+
+// service.ts: the hooks run after the ones of the framework
+export default extendService('ApiKey', {
+  afterCreate: async (key) => notifyOwner(key)
+});
+
+// policy.ts: both policies must allow, so an extension never loosens the framework's
+export default extendPolicy('ApiKey', {
+  checkAccess: (user) => !!user && hasRole(user, 'Integrator')
+});
+
+// routes.ts: merged option by option over the framework's routes
+export default extendRoutes('ApiKey', {
+  defaults: { roles: ['Admin', 'Integrator'] }
+});
+```
+
+| Function        | Merges                                                                                                                                                                                                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `extendModel`   | Field by field: a new field is added (optional or with a default), the options of an existing one overridden (its `type` never changes); `index` and `unique` added; the `omit`/`pick` lists, the update `operations` and the `export` merged. A field cannot be removed. |
+| `extendService` | The hooks run after the ones of the service (before and after hooks alike); `textSearch` replaces its own. Without a service, the model gets one with the hooks.                                                                                                          |
+| `extendPolicy`  | `checkAccess`, `events` and the file and series checks must all pass; the `readRestrictions` of both apply (`AND`); the `writeRestrictions` of the extended policy win. Without a policy, the extension is the policy.                                                    |
+| `extendRoutes`  | `defaults` and the config of every route merged option by option; `path`, `mcp` and `events` replaced. Without routes, the model gets the routes of the extension.                                                                                                        |
+
+The extensions apply once every resource is loaded, in the order they were declared, so the files of the application
+extend the models of the modules loaded after them. An extension of a model the application does not have (i.e. of
+`ApiKey` with `security.apiKey.enabled` off) is skipped with a warning. The auth model keeps `createAuthModel`.
+
+---
+
 ## registerRoute
 
 Registers a custom Fastify route handler outside the resource system. Use this for endpoints that don't map to a

@@ -83,10 +83,15 @@ describe('create-service', () => {
       expect(Service[RESOURCE_NAME]).toBe('Post');
     });
 
-    test('keeps the first service when the same model is registered twice', () => {
+    test('fails when the same model is registered twice', () => {
       const first = createService({ modelName: 'Post' });
-      createService({ modelName: 'Post' });
 
+      expect(() => createService({ modelName: 'Post' })).toThrow(
+        expect.objectContaining({
+          code: 'CONTEXT_DEFINITION_DUPLICATE',
+          message: expect.stringContaining("extendService('Post', ...)")
+        })
+      );
       expect(context.resource.services.get('Post')).toBe(first);
     });
 

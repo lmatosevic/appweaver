@@ -6,7 +6,9 @@ import {
   RESOURCE_POLICY_TYPE,
   RESOURCE_TYPE,
   ResourcePolicyConfig,
-  ResourceRecord
+  ResourceRecord,
+  callerSource,
+  RESOURCE_SOURCE
 } from '@appweaver/common';
 import { define } from '@appweaver/core';
 
@@ -26,6 +28,7 @@ export function createPolicy<N extends ModelName, T = ResourceRecord<N>>(
 ): ResourcePolicyConfig<T> {
   config[RESOURCE_NAME] = capitalize(config.modelName);
   config[RESOURCE_TYPE] = RESOURCE_POLICY_TYPE;
+  config[RESOURCE_SOURCE] = callerSource(createPolicy);
 
   logger.debug({ modelName: config.modelName }, 'Created resource policy');
 

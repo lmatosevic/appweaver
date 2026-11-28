@@ -23,7 +23,9 @@ import {
   ResourceEvent,
   ResourceId,
   ResourceServiceConfig,
-  ResourceMarks
+  ResourceMarks,
+  callerSource,
+  RESOURCE_SOURCE
 } from '@appweaver/common';
 import { define, injectPolicy, currentAuthUser } from '@appweaver/core';
 import { ResourceService } from '../resource/resource-service';
@@ -217,6 +219,7 @@ export function createService<
     value: `${name}Service`,
     configurable: true
   });
+  (Service as ResourceMarks)[RESOURCE_SOURCE] = callerSource(createService);
 
   logger.debug({ modelName: config.modelName }, 'Created resource service');
 

@@ -7,7 +7,9 @@ import {
   RESOURCE_ROUTES_TYPE,
   RESOURCE_TYPE,
   ResourceRoutes,
-  ResourceRoutesConfig
+  ResourceRoutesConfig,
+  callerSource,
+  RESOURCE_SOURCE
 } from '@appweaver/common';
 import { define } from '@appweaver/core';
 import { resourceRoutes } from '../resource/resource-routes';
@@ -37,6 +39,7 @@ export function createRoutes(
 
   routeData[RESOURCE_NAME] = name;
   routeData[RESOURCE_TYPE] = RESOURCE_ROUTES_TYPE;
+  routeData[RESOURCE_SOURCE] = callerSource(createRoutes);
 
   logger.debug({ modelName: config.modelName }, 'Created resource routes');
 

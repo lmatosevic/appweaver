@@ -37,7 +37,10 @@ import {
   geoColumns,
   distanceFieldName,
   parseDuration,
-  ResourceMarks
+  ResourceMarks,
+  callerSource,
+  RESOURCE_SOURCE,
+  RESOURCE_MODEL_EXTEND
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { define } from '@appweaver/core';
@@ -69,12 +72,10 @@ export function createModel<
   modelConfig: ResourceModelConfig<S, R, F, V, never, G>,
   override: boolean = false
 ): ResourceModel {
-  const config = normalizeRelations(modelConfig);
-  validateSeries(config);
-  validateGeo(config);
-  validateFileVersions(config);
-  validateWriteOperations(config);
+  let config = normalizeRelations(modelConfig);
+  validateModelConfig(config);
   const resourceModel = buildModel(config);
+  resourceModel[RESOURCE_SOURCE] = callerSource(createModel);
 
   logger.debug({ modelName: resourceModel.name }, 'Created resource model');
 
@@ -86,8 +87,23 @@ export function createModel<
   resourceModel[RESOURCE_MODEL_RELINK] = () => {
     Object.assign(resourceModel, buildModel(config));
   };
+  // An extension of extendModel, merged into the config before the models are linked
+  resourceModel[RESOURCE_MODEL_EXTEND] = (
+    merge: (base: ResourceModelConfig) => ResourceModelConfig
+  ) => {
+    config = normalizeRelations(merge(config));
+    validateModelConfig(config);
+    Object.assign(resourceModel, buildModel(config));
+  };
 
   return resourceModel;
+}
+
+function validateModelConfig(config: ResourceModelConfig): void {
+  validateSeries(config);
+  validateGeo(config);
+  validateFileVersions(config);
+  validateWriteOperations(config);
 }
 
 /**

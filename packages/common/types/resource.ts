@@ -2,8 +2,10 @@ import { TObject, TSchema } from '@sinclair/typebox';
 import {
   CONFIG,
   RESOURCE_AUTH,
+  RESOURCE_MODEL_EXTEND,
   RESOURCE_MODEL_RELINK,
   RESOURCE_NAME,
+  RESOURCE_SOURCE,
   RESOURCE_TYPE
 } from '../constants';
 import { ResourceModelConfig } from './model';
@@ -57,6 +59,8 @@ export type ResourceMarks = {
   [RESOURCE_TYPE]?: string;
   /** The config the resource was created with */
   [CONFIG]?: unknown;
+  /** The file the resource was created in */
+  [RESOURCE_SOURCE]?: string;
   /** Set on the model and the service of the auth model */
   [RESOURCE_AUTH]?: boolean;
 };
@@ -108,6 +112,10 @@ export type ResourceModel = ResourceMarks & {
   seriesModel: TObject;
   /** Builds the schemas again once every model is registered, see `relinkResourceModels` */
   [RESOURCE_MODEL_RELINK]?: () => void;
+  /** Merges an extension of `extendModel` into the config of the model and builds it again */
+  [RESOURCE_MODEL_EXTEND]?: (
+    merge: (config: ResourceModelConfig) => ResourceModelConfig
+  ) => void;
 };
 
 export type ResourceRoutes = ResourceMarks & {

@@ -1,4 +1,5 @@
 import {
+  capitalize,
   ConditionalOptional,
   Ctor,
   Database,
@@ -18,6 +19,8 @@ import {
   createLogger,
   RegistryType,
   RESOURCE_NAME,
+  RESOURCE_SOURCE,
+  RESOURCE_TYPE,
   ResourceModel,
   ResourcePolicyConfig,
   ResourceRoutes,
@@ -70,21 +73,26 @@ export function define<T = DefinitionValue, S extends T = T>(
         (value as any).name ??
         value.constructor?.name);
 
-  if (isResourceModel(value)) {
-    if (shouldAddDefinition(context.resource.models, definitionName, mode)) {
-      context.resource.models.set(definitionName, value);
+  const resourceStore = isResourceModel(value)
+    ? context.resource.models
+    : isResourceService(value)
+      ? context.resource.services
+      : isResourceRoutes(value)
+        ? context.resource.routes
+        : isResourcePolicy(value)
+          ? context.resource.policies
+          : undefined;
+  if (resourceStore) {
+    const existing = resourceStore.get(definitionName);
+    if (existing === value) {
+      return;
     }
-  } else if (isResourceService(value)) {
-    if (shouldAddDefinition(context.resource.services, definitionName, mode)) {
-      context.resource.services.set(definitionName, value);
+    // A second resource under a taken name extends it instead (extendModel, ...), or replaces it with 'override'
+    if (existing !== undefined && (mode === 'ignore' || mode === 'fail')) {
+      throw duplicateResourceError(definitionName, existing, value);
     }
-  } else if (isResourceRoutes(value)) {
-    if (shouldAddDefinition(context.resource.routes, definitionName, mode)) {
-      context.resource.routes.set(definitionName, value);
-    }
-  } else if (isResourcePolicy(value)) {
-    if (shouldAddDefinition(context.resource.policies, definitionName, mode)) {
-      context.resource.policies.set(definitionName, value);
+    if (shouldAddDefinition(resourceStore, definitionName, mode)) {
+      resourceStore.set(definitionName, value as never);
     }
   } else {
     const index = context.definitions.findIndex(
@@ -487,4 +495,24 @@ function checkClassAndInit(
     }
   }
   return value;
+}
+
+/** The error of a second resource defined under the name of another one, naming the files of both. */
+function duplicateResourceError(
+  name: string | symbol,
+  existing: object,
+  value: object
+): ContextError {
+  const kind = String(
+    (value as ResourceMarks)[RESOURCE_TYPE] ?? 'Resource'
+  ).toLowerCase();
+  const source = (resource: object) =>
+    (resource as ResourceMarks)[RESOURCE_SOURCE] ?? 'an unknown file';
+  const extend = `extend${capitalize(kind)}`;
+  return new ContextError(
+    ErrorCode.ContextDefinitionDuplicate,
+    `The ${kind} '${String(name)}' is defined twice, in ${source(existing)} and in ${source(value)}: extend the ` +
+      `first one with ${extend}('${String(name)}', ...), or pass override to replace it`,
+    { name: String(name) }
+  );
 }

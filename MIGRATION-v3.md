@@ -28,7 +28,7 @@ startup.
 | [10. Total count and offsets](#10-total-count-and-offsets)                                                           | V3-CONV-06                 | `query` clients                             | done    |
 | [11. Aggregates](#11-aggregates)                                                                                     | V3-CONV-07                 | `aggregate` clients                         | pending |
 | [12. Full names instead of abbreviations](#12-full-names-instead-of-abbreviations)                                   | V3-CONV-08                 | Config, routes, codes, types                | pending |
-| [13. Duplicate models, services, policies and routes](#13-duplicate-models-services-policies-and-routes)             | V3-DATA-01                 | Projects redefining a framework model       | pending |
+| [13. Duplicate models, services, policies and routes](#13-duplicate-models-services-policies-and-routes)             | V3-DATA-01                 | Projects redefining a framework model       | done    |
 | [14. The system context of the application's own calls](#14-the-system-context-of-the-applications-own-calls)        | V3-DATA-06                 | Policies                                    | done    |
 | [14b. Included relations follow the policy of their model](#14b-included-relations-follow-the-policy-of-their-model) | V3-DATA-12                 | Relations of models with `readRestrictions` | done    |
 | [15. Cache scopes](#15-cache-scopes)                                                                                 | V3-WEB-01                  | `cache` of the routes                       | done    |
@@ -235,8 +235,30 @@ one-time token, `csvAddSepRow` → `csvAddSeparatorRow`, the CLI aliases `mge` a
 
 ## 13. Duplicate models, services, policies and routes
 
-_pending_ (V3-DATA-01, D2): a second definition under a taken name fails at startup; extend a framework or module
-model with `extendModel`, `extendService`, `extendPolicy` and `extendRoutes`.
+**What changed** (V3-DATA-01, D2, F9): a second `createModel`, `createService`, `createPolicy` or `createRoutes` under
+a taken model name fails at startup with `CONTEXT_DEFINITION_DUPLICATE`, naming the files of both. In 2.x the context
+warned and kept the first one. A framework or module model is extended with `extendModel`, `extendService`,
+`extendPolicy` (`@appweaver/data`) and `extendRoutes` (`@appweaver/web`).
+
+**Who is affected**: an application defining a resource under the name of a framework or module one, or twice.
+
+**Before**:
+
+```ts
+// src/resources/api-key/model.ts, a copy of the framework model with one field more
+export default createModel({ name: 'ApiKey', scalars: { /* every field */, label: { type: 'string' } } });
+```
+
+**After**:
+
+```ts
+export default extendModel('ApiKey', {
+  scalars: { label: { type: 'string', required: false } }
+});
+```
+
+**Steps**: replace the second definition with the `extend*` function of its kind (`skill/references/resources.md`,
+"Extending a model defined elsewhere"), or pass `override: true` to replace the first one entirely.
 
 ## 14. The system context of the application's own calls
 

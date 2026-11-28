@@ -7,6 +7,12 @@ export const RESOURCE_AUTH = Symbol.for('appweaver.ResourceAuth');
 export const RESOURCE_MODEL_RELINK = Symbol.for(
   'appweaver.ResourceModelRelink'
 );
+/** Merges an extension into the config of a model and builds it again, set by `createModel`. */
+export const RESOURCE_MODEL_EXTEND = Symbol.for(
+  'appweaver.ResourceModelExtend'
+);
+/** The file a resource was created in, named by the error of a duplicate. */
+export const RESOURCE_SOURCE = Symbol.for('appweaver.ResourceSource');
 
 export const RESOURCE_MODEL_TYPE = 'Model';
 export const RESOURCE_SERVICE_TYPE = 'Service';

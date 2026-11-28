@@ -34,6 +34,18 @@ export type ResourceContext = {
   services: Map<string | symbol, IResourceService | Ctor<IResourceService>>;
   policies: Map<string | symbol, ResourcePolicyConfig>;
   routes: Map<string | symbol, ResourceRoutes>;
+  /** The extensions of the models, services, policies and routes of `extendModel`, `extendService`, `extendPolicy`
+   * and `extendRoutes`, by kind and model name, applied once every resource is loaded. */
+  extensions?: Map<ResourceExtensionKind, Map<string, ResourceExtension[]>>;
+};
+
+/** The kind of resource an extension extends. */
+export type ResourceExtensionKind = 'model' | 'service' | 'policy' | 'routes';
+
+/** An extension of a resource, with the file it was declared in. */
+export type ResourceExtension<T = unknown> = {
+  config: T;
+  source?: string;
 };
 
 export type ModuleContext = {

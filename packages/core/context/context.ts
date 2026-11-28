@@ -5,7 +5,8 @@ export const context: ApplicationContext = {
     models: new Map(),
     services: new Map(),
     policies: new Map(),
-    routes: new Map()
+    routes: new Map(),
+    extensions: new Map()
   },
   modules: {
     enabled: [],

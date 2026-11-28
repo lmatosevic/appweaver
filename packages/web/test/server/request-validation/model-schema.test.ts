@@ -120,10 +120,17 @@ describe('create-model', () => {
       expect((model.createOneModel as any)[RESOURCE_NAME]).toBe('Post');
     });
 
-    test('keeps the first model when the same name is registered twice', () => {
+    test('fails when the same name is registered twice, naming the files of both', () => {
       const first = createModel({ name: 'Post' });
-      createModel({ name: 'Post' });
 
+      expect(() => createModel({ name: 'Post' })).toThrow(
+        expect.objectContaining({
+          code: 'CONTEXT_DEFINITION_DUPLICATE',
+          message: expect.stringContaining(
+            `in ${__filename} and in ${__filename}: extend the first one with extendModel('Post', ...)`
+          )
+        })
+      );
       expect(context.resource.models.get('Post')).toBe(first);
     });
 

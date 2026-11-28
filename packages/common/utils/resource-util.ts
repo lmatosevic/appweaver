@@ -514,3 +514,29 @@ export function defaultScalarValue(scalar: ScalarField): FieldDefault {
       return scalar.values?.[0] ?? '';
   }
 }
+
+/**
+ * The file a function was called from, i.e. the file of the application calling `createModel`, read from the stack of
+ * the call.
+ *
+ * @param {Function} fn - The called function, whose frame and the ones above it are skipped.
+ * @return {string | undefined} The path of the file, or undefined when the stack does not name one.
+ */
+export function callerSource(
+  fn: (...args: never[]) => unknown
+): string | undefined {
+  const prepare = Error.prepareStackTrace;
+  const limit = Error.stackTraceLimit;
+  try {
+    Error.stackTraceLimit = 1;
+    Error.prepareStackTrace = (_, frames) => frames;
+    const holder: { stack?: NodeJS.CallSite[] } = {};
+    Error.captureStackTrace(holder, fn);
+    return holder.stack?.[0]?.getFileName() ?? undefined;
+  } catch {
+    return undefined;
+  } finally {
+    Error.prepareStackTrace = prepare;
+    Error.stackTraceLimit = limit;
+  }
+}

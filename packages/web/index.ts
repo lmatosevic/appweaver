@@ -1,6 +1,7 @@
 export * from './config';
 export * from './errors';
 export * from './factory/create-routes';
+export { extendRoutes } from './factory/extend-routes';
 export * from './health/health-routes';
 export * from './resource/resource-routes';
 export * from './resource/resource-schema';

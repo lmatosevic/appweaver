@@ -554,3 +554,21 @@ export type ResourceModelConfig<
    * files follow the `onResourceSoftDeleted` option of each file field. */
   softDelete?: boolean;
 };
+
+/** What `extendModel` adds to or changes on a model defined elsewhere, i.e. a framework or module model: new fields
+ * (optional or with a default) and the options of existing ones, indexes, and the operation and export configs. */
+export type ModelExtensionConfig = Pick<
+  ResourceModelConfig,
+  | 'scalars'
+  | 'relations'
+  | 'files'
+  | 'virtual'
+  | 'geo'
+  | 'series'
+  | 'index'
+  | 'unique'
+  | 'read'
+  | 'create'
+  | 'update'
+  | 'export'
+>;

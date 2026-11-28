@@ -7,6 +7,7 @@ import {
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { resourceConfig } from '@appweaver/data';
+import { applyRoutesExtensions } from '../factory/extend-routes';
 
 const logger = createLogger('resource');
 
@@ -36,6 +37,9 @@ export async function loadWebParts(setup: ModuleSetupContext): Promise<void> {
   for (const module of setup.modules) {
     await module.web?.();
   }
+
+  // The extensions of extendRoutes, once every route is defined
+  applyRoutesExtensions();
 
   // The routes of a model left out of the application, i.e. of the API keys
   // without an auth model, have no model to serve

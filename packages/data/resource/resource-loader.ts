@@ -25,6 +25,11 @@ import {
 import { ResourceContext } from '@appweaver/core';
 import { context } from '@appweaver/core/internal';
 import { pruneUnusedModels } from './utils/prune-util';
+import {
+  applyModelExtensions,
+  applyPolicyExtensions,
+  applyServiceExtensions
+} from '../factory/extend-resources';
 
 const logger = createLogger('resource');
 
@@ -63,12 +68,17 @@ export async function loadResources(
   const models = await loadModels(
     await exports(paths.modelPattern || resourceConfig.MODEL_PATTERN)
   );
-  const services = loadServices(
-    await exports(paths.servicePattern || resourceConfig.SERVICE_PATTERN)
+  const serviceExports = await exports(
+    paths.servicePattern || resourceConfig.SERVICE_PATTERN
   );
-  const policies = loadPolicies(
-    await exports(paths.policyPattern || resourceConfig.POLICY_PATTERN)
+  const policyExports = await exports(
+    paths.policyPattern || resourceConfig.POLICY_PATTERN
   );
+  // The extensions of extendService and extendPolicy, once every service and policy is defined
+  applyServiceExtensions();
+  applyPolicyExtensions();
+  const services = loadServices(serviceExports);
+  const policies = loadPolicies(policyExports);
 
   return {
     models: new Map(Object.entries(models)),
@@ -93,6 +103,9 @@ async function loadModels(
       }
     }
   }
+
+  // The extensions of extendModel, before the models are pruned and linked
+  applyModelExtensions(models);
 
   // Leave out the models of the framework the application does not use
   for (const name of pruneUnusedModels(models)) {

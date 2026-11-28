@@ -33,21 +33,24 @@ export function usePosts(
   mcp?: ResourceMcpConfig,
   routes: Partial<ResourceRoutesConfig> = {}
 ) {
-  createModel({
-    name: 'Post',
-    scalars: {
-      title: { type: 'string' },
-      views: { type: 'int' },
-      status: {
-        type: 'enum',
-        values: ['draft', 'published'],
-        default: 'draft'
-      },
-      secret: { type: 'string', hidden: true },
-      tags: { type: 'string', array: true },
-      meta: { type: 'json' }
-    }
-  } as any);
+  createModel(
+    {
+      name: 'Post',
+      scalars: {
+        title: { type: 'string' },
+        views: { type: 'int' },
+        status: {
+          type: 'enum',
+          values: ['draft', 'published'],
+          default: 'draft'
+        },
+        secret: { type: 'string', hidden: true },
+        tags: { type: 'string', array: true },
+        meta: { type: 'json' }
+      }
+    } as any,
+    true
+  );
   linkModels();
   context.resource.routes.set('Post', {
     config: { modelName: 'Post', ...routes, mcp },
