@@ -516,10 +516,6 @@
                 "provider": {
                   "default": "auto",
                   "type": "string"
-                },
-                "keepDatabaseTable": {
-                  "default": false,
-                  "type": "boolean"
                 }
               }
             }

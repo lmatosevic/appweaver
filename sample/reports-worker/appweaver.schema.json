@@ -141,10 +141,6 @@
               "default": false,
               "type": "boolean"
             },
-            "keepDatabaseTable": {
-              "default": false,
-              "type": "boolean"
-            },
             "retention": {
               "default": "90d",
               "type": "string"
@@ -382,6 +378,34 @@
             "migrationUrl": {
               "default": "",
               "type": "string"
+            },
+            "keepTables": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "const": "ApiKey",
+                    "type": "string"
+                  },
+                  {
+                    "const": "OneTimeToken",
+                    "type": "string"
+                  },
+                  {
+                    "const": "ConnectedAccount",
+                    "type": "string"
+                  },
+                  {
+                    "const": "TwoFactorMethod",
+                    "type": "string"
+                  },
+                  {
+                    "const": "AuditLog",
+                    "type": "string"
+                  }
+                ]
+              }
             },
             "schemaPath": {
               "default": "./database/schema.prisma",
@@ -843,6 +867,16 @@
               "default": 2000,
               "minimum": 1,
               "type": "integer"
+            },
+            "countLimit": {
+              "default": 10000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxOffset": {
+              "default": 10000,
+              "minimum": 0,
+              "type": "integer"
             }
           }
         },
@@ -862,28 +896,10 @@
         "security": {
           "type": "object",
           "properties": {
-            "account": {
-              "type": "object",
-              "properties": {
-                "2fa": {
-                  "type": "object",
-                  "properties": {
-                    "keepDatabaseTable": {
-                      "default": false,
-                      "type": "boolean"
-                    }
-                  }
-                }
-              }
-            },
             "apiKey": {
               "type": "object",
               "properties": {
                 "enabled": {
-                  "default": false,
-                  "type": "boolean"
-                },
-                "keepDatabaseTable": {
                   "default": false,
                   "type": "boolean"
                 },
@@ -897,15 +913,6 @@
                 "delimiter": {
                   "default": "AK",
                   "type": "string"
-                }
-              }
-            },
-            "oauth2": {
-              "type": "object",
-              "properties": {
-                "connectedAccountsKeepDatabaseTable": {
-                  "default": false,
-                  "type": "boolean"
                 }
               }
             },
@@ -948,10 +955,6 @@
                 "provider": {
                   "default": "auto",
                   "type": "string"
-                },
-                "keepDatabaseTable": {
-                  "default": false,
-                  "type": "boolean"
                 }
               }
             }
