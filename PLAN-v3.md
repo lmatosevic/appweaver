@@ -2,6 +2,8 @@
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
 > section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
+> **Revision 17**: every duration key accepts milliseconds or a unit string in v3, the former seconds keys included; no
+> compatibility mode for them (D11).
 > **Revision 16**: audit fields stay in the responses by default, removable per model, view or relation (D5, F10).
 > **Revision 15**: `weaver upgrade` stays a version and skill updater; it never rewrites the code or the config of a
 > project. The migration is the user's, guided by `MIGRATION-v3.md` and the warnings at startup.
@@ -750,10 +752,13 @@ milliseconds everywhere as integers only (`604800000` is unreadable).
 
 **Decision**: a duration key accepts an integer of milliseconds or a string with a unit (`'200ms'`, `'15m'`, `'7d'`);
 a size key accepts an integer of bytes or a string (`'64KB'`, `'5MB'`). Parsed once when the config loads; milliseconds
-and bytes in the code. The units leave the key names (`keepCompletedSeconds` -> `keepCompleted`). The 7 keys in seconds
-change meaning, and a silent one would be dangerous (`604800` seconds read as milliseconds is ten minutes): in v3
-those 7 keys refuse a bare integer at startup, naming the unit string to write (`expiresIn: 604800` -> "write `'7d'`"),
-until v4 lets them take milliseconds like every other key. The TOTP `period` stays an integer of seconds: RFC 6238 defines it so, and authenticator apps only take 30.
+and bytes in the code. The units leave the key names (`keepCompletedSeconds` -> `keepCompleted`, `keepFailedSeconds` -> `keepFailed`).
+
+**No exception (revision 17)**: the keys in seconds today (`security.jwt.expiresIn`, `refreshExpiresIn`, `cors.maxAge`,
+`queue.keepCompletedSeconds`, `keepFailedSeconds`, `security.oauth2.apple.clientSecretExpiresIn`) take milliseconds or a
+unit string in v3 like every other duration key, with no compatibility mode: a project upgrading writes `'7d'` (or
+`604800000`) where it wrote `604800`, listed in `MIGRATION-v3.md`. The only key keeping seconds is the TOTP `period`, an
+integer defined in seconds by RFC 6238, which authenticator apps only accept as 30.
 
 ### D12. TypeScript — **decided: wait for TypeScript 7.1, then move everything to it**
 
@@ -1172,7 +1177,7 @@ sample and every scaffold combination building and passing its e2e tests on its 
 
 | Step | CR          | Work                                                                                                    |
 |------|-------------|---------------------------------------------------------------------------------------------------------|
-| 3.1  | V3-CONV-01  | `Duration` and `Size` types, the keys renamed, the old ones warned about, the seconds keys strict       |
+| 3.1  | V3-CONV-01  | `Duration` and `Size` types on every duration and size key, the units out of the key names             |
 | 3.2  | V3-CONV-02  | `actions` on REST, events and MCP; the bulk flags removed; `weaver routes`                              |
 | 3.3  | V3-CONV-03  | The maintenance job registry, locks, `maintenance.*`, batched deletes                                   |
 | 3.4  | V3-CONV-04  | The defaults table of D5                                                                                |
