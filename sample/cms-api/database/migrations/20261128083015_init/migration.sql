@@ -383,6 +383,9 @@ CREATE INDEX "Post_categoryId_publishedAt_idx" ON "Post"("categoryId", "publishe
 CREATE INDEX "Post_createdAt_id_idx" ON "Post"("createdAt" DESC, "id" ASC);
 
 -- CreateIndex
+CREATE INDEX "Post_status_createdAt_id_idx" ON "Post"("status", "createdAt" DESC, "id" ASC);
+
+-- CreateIndex
 CREATE INDEX "Post_authorId_idx" ON "Post"("authorId");
 
 -- CreateIndex
