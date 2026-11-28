@@ -103,12 +103,12 @@ module.exports = () => ({
     },
     {
       name: 'query-deep-page',
-      description: '`query`, random deep page (offset)',
+      description: '`query`, random deep page (offset, within the 10,000 records of resource.maxOffset)',
       method: 'POST',
       path: '/api/posts/query',
       body: (c) => ({
         filter: { title: { _ne: c.random.token() } },
-        page: c.random.int(1, Math.max(1, Math.floor((c.lastId - c.firstId) / 50))),
+        page: c.random.int(1, Math.min(201, Math.max(1, Math.floor((c.lastId - c.firstId) / 50)))),
         totalCount: false
       })
     },

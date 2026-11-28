@@ -24,8 +24,8 @@ startup.
 | [6. Exposure: `actions` everywhere](#6-exposure-actions-everywhere)         | V3-CONV-02   | `createRoutes`, bulk env flags   | pending |
 | [7. Maintenance jobs](#7-maintenance-jobs)                                  | V3-CONV-03   | Retention and pruning keys       | pending |
 | [8. Secure defaults](#8-secure-defaults)                                    | V3-CONV-04   | JWT, redirects, CORS, body size  | pending |
-| [9. `database.keepTables`](#9-databasekeeptables)                           | V3-CONV-05   | `KEEP_DATABASE_TABLE` keys       | pending |
-| [10. Total count and offsets](#10-total-count-and-offsets)                  | V3-CONV-06   | `query` clients                  | pending |
+| [9. `database.keepTables`](#9-databasekeeptables)                           | V3-CONV-05   | `KEEP_DATABASE_TABLE` keys       | done    |
+| [10. Total count and offsets](#10-total-count-and-offsets)                  | V3-CONV-06   | `query` clients                  | done    |
 | [11. Aggregates](#11-aggregates)                                            | V3-CONV-07   | `aggregate` clients              | pending |
 | [12. Full names instead of abbreviations](#12-full-names-instead-of-abbreviations) | V3-CONV-08 | Config, routes, codes, types | pending |
 | [13. Duplicate models, services, policies and routes](#13-duplicate-models-services-policies-and-routes) | V3-DATA-01 | Projects redefining a framework model | pending |
@@ -36,6 +36,7 @@ startup.
 | [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails) | V3-SEC-05 | OAuth2 providers           | done    |
 | [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101) | V3-SEC-01..04 | Filters, body size, CSV export | done |
 | [20. Smaller API changes](#20-smaller-api-changes)                          | per CR       | The utilities named              | done    |
+| [20b. Array environment variables](#20b-array-environment-variables)       | V3-COMMON-01 | Array keys set in `.env`         | done    |
 | [21. The skill package](#21-the-skill-package)                              | V3-TOOL-08   | Projects with agent files        | done    |
 
 Each section follows the same layout: **What changed**, **Who is affected**, **Before**, **After**, **Steps**.
@@ -182,12 +183,43 @@ _pending_ (V3-CONV-04, D5):
 
 ## 9. `database.keepTables`
 
-_pending_ (V3-CONV-05): the five `*_KEEP_DATABASE_TABLE` keys replaced by one list, `database.keepTables`.
+**What changed** (V3-CONV-05, F18): the five keys keeping the table of a framework model while its feature is off are
+one list of model names, `database.keepTables`.
+
+**Who is affected**: projects setting one of the removed keys.
+
+| Removed key (2.x)                                        | Name in `database.keepTables` (3.0)            |
+|----------------------------------------------------------|------------------------------------------------|
+| `security.apiKey.keepDatabaseTable`                      | `ApiKey`                                       |
+| `security.store.keepDatabaseTable`                       | `OneTimeToken`                                 |
+| `security.oauth2.connectedAccountsKeepDatabaseTable`     | `ConnectedAccount`                             |
+| `security.account.2fa.keepDatabaseTable`                 | `TwoFactorMethod` (with `TwoFactorRecoveryCode`) |
+| `audit.keepDatabaseTable`                                | `AuditLog` (with `AuditChange`)                |
+
+**Before**: `{ "security": { "apiKey": { "keepDatabaseTable": true } }, "audit": { "keepDatabaseTable": true } }`
+
+**After**: `{ "database": { "keepTables": ["ApiKey", "AuditLog"] } }`, or `DATABASE_KEEP_TABLES=ApiKey,AuditLog`.
+
+**Steps**: move every removed key set to `true` into the list; run `weaver config check`, which reports a name outside
+the list.
 
 ## 10. Total count and offsets
 
-_pending_ (V3-CONV-06, D10): `query` answers no `totalCount` unless asked, a count beyond `resource.countLimit` is
-bounded (`totalCountExact: false`), and offsets beyond `resource.maxOffset` are refused.
+**What changed** (V3-CONV-06, D10, F19): `totalCount` of a query defaults to `false`, the response carrying
+`totalCount: null`. When asked, the count stops at `resource.countLimit` (10,000): beyond it the response has
+`totalCount: 10000` and the new `totalCountExact: false` (`true` for an exact count, `null` when not counted). An
+offset page skipping more than `resource.maxOffset` records (10,000) answers `400 RESOURCE_OFFSET_TOO_LARGE`.
+
+**Who is affected**: clients reading `totalCount` without asking for it, and clients paging by `page` past 10,000
+records.
+
+**Before**: `POST /posts/query { "size": 50 }` returns `"totalCount": 123456`.
+
+**After**: `POST /posts/query { "size": 50, "totalCount": true }` returns `"totalCount": 10000, "totalCountExact": false`.
+
+**Steps**: send `totalCount: true` on the first page where the number of pages is shown, and not on the next ones;
+follow `nextCursor` instead of `page` for deep pages; raise `resource.countLimit` or `resource.maxOffset` only where the
+database is known to answer them fast.
 
 ## 11. Aggregates
 
@@ -262,6 +294,13 @@ Released in 2.10.1 (phase 1a); listed here for a project upgrading from an older
   whose `string` tokens (the API keys of `randomString`) came from a generator that is not cryptographically secure. The
   `uuidv5` method is removed, and the options are `TokenOptions` (`{ pool }`) instead of the `DefaultGenerationOptions`
   of `generate-api-key`. A `base32` token is four groups of seven RFC 4648 characters separated by dashes.
+
+## 20b. Array environment variables
+
+An array key read from an environment variable (V3-COMMON-01, F36) takes a JSON array
+(`CORS_ORIGIN=["https://a.example.com","https://b.example.com"]`) besides the comma-separated list, whose items are now
+trimmed. A value that was silently one item fails the startup with `CONFIGURATION_INVALID`: a JSON array that does not
+parse, an empty item (`a,,b` or a trailing comma) or a quoted item (`"a","b"`). Fix the variable as the error names it.
 
 ## 21. The skill package
 

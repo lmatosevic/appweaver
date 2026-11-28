@@ -282,7 +282,7 @@ describe('helper', () => {
   describe('isTwoFactorEnabled', () => {
     afterEach(() => {
       delete configOverrides.SECURITY_ACCOUNT_2FA_ENABLED;
-      delete configOverrides.SECURITY_ACCOUNT_2FA_KEEP_DATABASE_TABLE;
+      delete configOverrides.DATABASE_KEEP_TABLES;
     });
 
     test('reports disabled by default', () => {
@@ -297,7 +297,7 @@ describe('helper', () => {
 
     test('reports enabled when the database table is kept', () => {
       configOverrides.SECURITY_ACCOUNT_2FA_ENABLED = false;
-      configOverrides.SECURITY_ACCOUNT_2FA_KEEP_DATABASE_TABLE = true;
+      configOverrides.DATABASE_KEEP_TABLES = ['TwoFactorMethod'];
 
       expect(isTwoFactorEnabled()).toBe(true);
     });

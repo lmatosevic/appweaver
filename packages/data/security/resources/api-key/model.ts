@@ -2,11 +2,11 @@ import { uncapitalize } from '@appweaver/common';
 import { apiKeyConfig } from '../../auth-config';
 import { createModel } from '../../../factory/create-model';
 import { resourceAuthModel } from '../../helper';
+import { keepsTable } from '../../../database/database-config';
 
 const authModel = resourceAuthModel();
 
-const shouldCreateModel =
-  apiKeyConfig.ENABLED || apiKeyConfig.KEEP_DATABASE_TABLE;
+const shouldCreateModel = apiKeyConfig.ENABLED || keepsTable('ApiKey');
 
 export default shouldCreateModel
   ? createModel({

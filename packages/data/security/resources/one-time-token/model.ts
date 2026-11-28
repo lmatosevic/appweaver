@@ -1,10 +1,11 @@
 import { securityStoreConfig } from '@appweaver/core';
 import { createModel } from '../../../factory/create-model';
+import { keepsTable } from '../../../database/database-config';
 
 // The database store is the one `auto` selects with a database
 const shouldCreateModel =
   ['auto', 'database'].includes(securityStoreConfig.PROVIDER) ||
-  securityStoreConfig.KEEP_DATABASE_TABLE;
+  keepsTable('OneTimeToken');
 
 export default shouldCreateModel
   ? createModel({

@@ -110,7 +110,9 @@ like the `DB_HOST` a docker-compose container sets to the database service name.
 ## Environment variable parsing
 
 - **Boolean**: `'true'`, `'on'`, `'yes'`, `'1'` (case-insensitive) are parsed as `true`; all others as `false`
-- **Array**: Comma-separated values are automatically split into arrays
+- **Array**: a JSON array (`["a,b", "c"]`, for items holding a comma), or a comma-separated list whose items are
+  trimmed (`a, b`). An ambiguous value fails the startup with `CONFIGURATION_INVALID` instead of becoming one item: a
+  JSON array that does not parse, an empty item (`a,,b`, a trailing comma) or a quoted item (`"a","b"`)
 - **Numbers**: Parsed as integers or floats based on schema type
 - **Strings**: Used as-is
 
@@ -137,7 +139,7 @@ databaseConfig.URL; // string
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|-------------------------|
 | `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | `APP_*`, `LOG_*`                 | `@appweaver/common`     |
 | `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_*`: `PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `smsConfig`, `storageConfig`, `templateConfig`                                                                                                                                                                                                                      | `CACHE_*`, `HEALTH_CHECK_*`, ... | `@appweaver/core`       |
-| `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `connectedAccountConfig` (`SECURITY_OAUTH2_CONNECTED_ACCOUNTS_*`), `twoFactorModelConfig` (`SECURITY_ACCOUNT_2FA_KEEP_DATABASE_TABLE`), `systemConfig`, `auditConfig`, `audit<Category>Config` (`AUDIT_CHANGES_*`, `AUDIT_AUTH_*`, `AUDIT_READ_*`, `AUDIT_WRITE_*`, `AUDIT_CUSTOM_*`)                                                                                                                                                                                                                                                             | `DATABASE_*`, `RESOURCE_*`, ...  | `@appweaver/data`       |
+| `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `systemConfig`, `auditConfig`, `audit<Category>Config` (`AUDIT_CHANGES_*`, `AUDIT_AUTH_*`, `AUDIT_READ_*`, `AUDIT_WRITE_*`, `AUDIT_CUSTOM_*`)                                                                                                                                                                                                                                                             | `DATABASE_*`, `RESOURCE_*`, ...  | `@appweaver/data`       |
 | `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `templatePreviewConfig`, `securityConfig` (`SECURITY_*` not elsewhere), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `totpConfig` (`SECURITY_ACCOUNT_2FA_TOTP_*`), `recoveryCodesConfig` (`SECURITY_ACCOUNT_2FA_RECOVERY_CODES_*`), `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `jwtConfig`, `oauth2Config`, `oauth2<Provider>Config` (`SECURITY_OAUTH2_<PROVIDER>_*`, i.e. `oauth2GoogleConfig`), `auditRequestConfig` (`AUDIT_EXCLUDE_PATHS`, `AUDIT_REQUEST_BODY`) | `SERVER_*`, `SECURITY_*`, ...    | `@appweaver/web`        |
 | `redisConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `MEMORY_REDIS_*`                 | `@appweaver/redis`      |
 | `smtpConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `MAILER_SMTP_*`                  | `@appweaver/nodemailer` |
@@ -457,6 +459,8 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | `RESOURCE_FILTER_MAX_CONDITIONS`    | integer | `1000`                                | Maximum conditions (field and operator keys) of a filter, nested filters included.      |
 | `RESOURCE_FILTER_MAX_DEPTH`         | integer | `10`                                  | Maximum nesting depth of a filter, every nested object or list counting as a level.     |
 | `RESOURCE_FILTER_MAX_LIST_VALUES`   | integer | `2000`                                | Maximum number of values of a list in a filter, i.e. of an `_in` list.                  |
+| `RESOURCE_COUNT_LIMIT`              | integer | `10000`                               | Records the `totalCount` of a query counts, `totalCountExact: false` beyond them.       |
+| `RESOURCE_MAX_OFFSET`               | integer | `10000`                               | Records an offset page skips, `400 RESOURCE_OFFSET_TOO_LARGE` beyond (use the cursors). |
 
 ### Data export (EXPORT\_\*)
 
@@ -480,7 +484,6 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | `SECURITY_AUTH_OTT_TTL`              | integer  | `120000`  | One-time token TTL for authentication (ms).                                          |
 | `SECURITY_ALLOWED_REDIRECT_HOSTS`    | string[] | `['*']`   | Allowed hosts for post-authentication redirects.                                     |
 | `SECURITY_STORE_PROVIDER`            | string   | `'auto'`  | `auto` (`database` with a database), `database`, `memory`, `none`, or a module path. |
-| `SECURITY_STORE_KEEP_DATABASE_TABLE` | boolean  | `false`   | Keep the one-time token table when another store is used.                            |
 
 #### Password policy
 
@@ -512,7 +515,6 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | `SECURITY_ACCOUNT_2FA_DEFAULT_METHOD`               | string   | `'Email'`                  | The method of a user without one when 2FA is forced.                                     |
 | `SECURITY_ACCOUNT_2FA_CODE_LENGTH`                  | integer  | `6`                        | Digits of the codes sent by email and SMS (4-10).                                        |
 | `SECURITY_ACCOUNT_2FA_MAX_ATTEMPTS`                 | integer  | `5`                        | Wrong codes of a challenge, revoked on the last one.                                     |
-| `SECURITY_ACCOUNT_2FA_KEEP_DATABASE_TABLE`          | boolean  | `false`                    | Keep the `TwoFactorMethod` table while 2FA is disabled.                                  |
 | `SECURITY_ACCOUNT_2FA_TOTP_ISSUER`                  | string?  | `app.name`                 | Issuer the authenticator apps show the account under.                                    |
 | `SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`          | string?  | -                          | Secret encrypting the TOTP secrets in the database, required by the `Totp` method.       |
 | `SECURITY_ACCOUNT_2FA_TOTP_DIGITS`                  | integer  | `6`                        | Digits of a TOTP code (6-8), `6` for every authenticator app.                            |
@@ -563,7 +565,6 @@ See [security](./security.md#two-factor-authentication-2fa).
 | Property                               | Type     | Default       | Description                                                                  |
 |----------------------------------------|----------|---------------|------------------------------------------------------------------------------|
 | `SECURITY_API_KEY_ENABLED`             | boolean  | `false`       | Enable API key authentication.                                               |
-| `SECURITY_API_KEY_KEEP_DATABASE_TABLE` | boolean  | `false`       | Keep API key database table after migrations.                                |
 | `SECURITY_API_KEY_HEADER_NAME`         | string   | `'x-api-key'` | Request header name for the API key.                                         |
 | `SECURITY_API_KEY_MAX_DURATION`        | integer? | -             | Maximum API key validity duration in milliseconds.                           |
 | `SECURITY_API_KEY_DELIMITER`           | string   | `'AK'`        | Prefix delimiter between key ID and secret value.                            |
@@ -587,7 +588,6 @@ See [security](./security.md#two-factor-authentication-2fa).
 | `SECURITY_OAUTH2_STATE_TTL`                              | integer | `600000` | OAuth2 state parameter TTL in milliseconds (default 10 min).                                                                                                                                                      |
 | `SECURITY_OAUTH2_REGISTRATION_ENABLED`                   | boolean | `true`   | Allow registering new users via OAuth2 login. When `false`, only already existing users (matched by email) can log in via OAuth2.                                                                                 |
 | `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED`                   | boolean | `true`   | Download the user's avatar from the OAuth2 provider during registration and pass it as `avatarFile` to `registrationData` and `registrationFiles`. Set to `false` to pass only `avatarUrl` and skip the download. |
-| `SECURITY_OAUTH2_CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE` | boolean | `false`  | Keep the `ConnectedAccount` table even when every OAuth2 provider is disabled, so the links are not dropped by the next migration.                                                                                |
 
 #### OAuth2 Google
 
@@ -698,6 +698,7 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 | `DATABASE_TYPE`                         | enum?    | -                            | Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`.                    |
 | `DATABASE_URL`                          | string   | `''`                         | Database connection URL/DSN the application queries the data with.                      |
 | `DATABASE_MIGRATION_URL`                | string   | `''`                         | Connection URL/DSN of the migrations and the `weaver migrate` setup, `''` for the URL.  |
+| `DATABASE_KEEP_TABLES`                  | array    | `[]`                         | Framework tables kept while their feature is off: `ApiKey`, `OneTimeToken`, `ConnectedAccount`, `TwoFactorMethod`, `AuditLog`. |
 | `DATABASE_SCHEMA_PATH`                  | string   | `'./database/schema.prisma'` | Path to Prisma schema file.                                                             |
 | `DATABASE_MIGRATIONS_DIR_PATH`          | string   | `'./database/migrations'`    | Path to database migrations directory.                                                  |
 | `DATABASE_SEEDERS_DIR_PATH`             | string   | `'./database/seeders'`       | Path to database seeders directory.                                                     |
@@ -842,7 +843,6 @@ The requests and the changes of the records, in the `AuditLog` and `AuditChange`
 | Property                    | Type     | Default     | Description                                                                                                                                                                   |
 |-----------------------------|----------|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `AUDIT_ENABLED`             | boolean  | `false`     | Record the requests and the changes of the records.                                                                                                                          |
-| `AUDIT_KEEP_DATABASE_TABLE` | boolean  | `false`     | Keep the `AuditLog` and `AuditChange` tables while the audit log is disabled.                                                                                                 |
 | `AUDIT_RETENTION`           | string   | `'90d'`     | How long the entries are kept, a duration, empty to keep them all.                                                                                                            |
 | `AUDIT_RETENTION_INTERVAL`  | string   | `'1h'`      | How often the expired entries are deleted, a duration.                                                                                                                        |
 | `AUDIT_RETENTION_WORKER`    | boolean  | `true`      | Delete the expired entries in this instance, `false` for the other instances (or a task calling `AuditService.purge`).                                                        |

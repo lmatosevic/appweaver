@@ -51,6 +51,7 @@ export enum ErrorCode {
   ResourceFilterTooComplex = 'RESOURCE_FILTER_TOO_COMPLEX',
   ResourceInvalidAggregate = 'RESOURCE_INVALID_AGGREGATE',
   ResourceInvalidCursor = 'RESOURCE_INVALID_CURSOR',
+  ResourceOffsetTooLarge = 'RESOURCE_OFFSET_TOO_LARGE',
   ResourceInvalidQueryParameter = 'RESOURCE_INVALID_QUERY_PARAMETER',
   ResourceInvalidRelation = 'RESOURCE_INVALID_RELATION',
   ResourceDeleteRestricted = 'RESOURCE_DELETE_RESTRICTED',

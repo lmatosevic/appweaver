@@ -52,7 +52,13 @@ export const resourceConfig = defineConfig(
     /** Maximum nesting depth of a filter, every nested object or list counting as a level. Default: `10`. */
     FILTER_MAX_DEPTH: Type.Integer({ default: 10, minimum: 1 }),
     /** Maximum number of values of a list in a filter, i.e. of an `_in` list. Default: `2000`. */
-    FILTER_MAX_LIST_VALUES: Type.Integer({ default: 2000, minimum: 1 })
+    FILTER_MAX_LIST_VALUES: Type.Integer({ default: 2000, minimum: 1 }),
+    /** Maximum number of records the total count of a query counts, beyond which it answers this number with
+     * `totalCountExact: false`. Default: `10000`. */
+    COUNT_LIMIT: Type.Integer({ default: 10000, minimum: 1 }),
+    /** Maximum number of records an offset page (`page`) skips, a deeper page being read with the cursors. Default:
+     * `10000`. */
+    MAX_OFFSET: Type.Integer({ default: 10000, minimum: 0 })
   },
   {
     // The path patterns are relative to the source directory of the application

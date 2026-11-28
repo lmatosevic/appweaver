@@ -65,7 +65,10 @@ describe('Soft deleting a post', () => {
       code: 'RESOURCE_NOT_FOUND'
     });
 
-    const result = await posts.query({ filter: { slug: 'hidden' } });
+    const result = await posts.query({
+      filter: { slug: 'hidden' },
+      totalCount: true
+    });
     expect(result.items).toEqual([]);
     expect(result.totalCount).toBe(0);
   });

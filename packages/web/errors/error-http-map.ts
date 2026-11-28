@@ -106,6 +106,10 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     status: 400,
     title: 'Invalid pagination cursor'
   },
+  [ErrorCode.ResourceOffsetTooLarge]: {
+    status: 400,
+    title: 'Page offset too large'
+  },
   [ErrorCode.ResourceInvalidQueryParameter]: {
     status: 400,
     title: 'Invalid query parameter'

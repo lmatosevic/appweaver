@@ -21,8 +21,6 @@ export const passwordConfig = defineConfig('security.password', {
 export const apiKeyConfig = defineConfig('security.apiKey', {
   /** Enable API key authentication. Default: `false`. */
   ENABLED: Type.Boolean({ default: false }),
-  /** Keep the API key database table after migrations. Default: `false`. */
-  KEEP_DATABASE_TABLE: Type.Boolean({ default: false }),
   /** Request the header name for the API key. Default: `'x-api-key'`. */
   HEADER_NAME: Type.String({ default: 'x-api-key' }),
   /** Maximum API key validity duration in milliseconds. */
@@ -36,15 +34,4 @@ export const systemConfig = defineConfig('system', {
   ADMIN_INITIAL_EMAIL: Type.String({ default: 'admin@appweaver.co' }),
   /** Initial admin account password. */
   ADMIN_INITIAL_PASSWORD: Type.Optional(Type.String())
-});
-
-export const connectedAccountConfig = defineConfig('security.oauth2', {
-  /** Keep the `ConnectedAccount` database table even when every OAuth2 provider is disabled. Default: `false`. */
-  CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE: Type.Boolean({ default: false })
-});
-
-export const twoFactorModelConfig = defineConfig('security.account.2fa', {
-  /** Keep the `TwoFactorMethod` database table even when the two-factor authentication is disabled. Default:
-   * `false`. */
-  KEEP_DATABASE_TABLE: Type.Boolean({ default: false })
 });

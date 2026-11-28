@@ -1,13 +1,11 @@
 import { uncapitalize } from '@appweaver/common';
-import { connectedAccountConfig } from '../../auth-config';
 import { createModel } from '../../../factory/create-model';
 import { isOAuth2Enabled, resourceAuthModel } from '../../helper';
+import { keepsTable } from '../../../database/database-config';
 
 const authModel = resourceAuthModel();
 
-const shouldCreateModel =
-  isOAuth2Enabled() ||
-  connectedAccountConfig.CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE;
+const shouldCreateModel = isOAuth2Enabled() || keepsTable('ConnectedAccount');
 
 export default shouldCreateModel
   ? createModel({

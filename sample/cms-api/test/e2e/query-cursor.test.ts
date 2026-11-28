@@ -45,7 +45,7 @@ describe('Query cursor pagination', () => {
     sort: PostSort = 'id',
     size: number = 2
   ) => {
-    const result = await posts.query({ size, sort, cursor, totalCount: false });
+    const result = await posts.query({ size, sort, cursor });
     return {
       slugs: result.items.map((item: any) => item.slug),
       next: result.nextCursor,
@@ -141,14 +141,11 @@ describe('Query cursor pagination', () => {
   });
 
   test('counts the matching records only when asked to', async () => {
-    const counted = await posts.query({ size: 2 });
+    const counted = await posts.query({ size: 2, totalCount: true });
     expect(counted.totalCount).toBe(6);
+    expect(counted.totalCountExact).toBe(true);
 
-    const uncounted = await posts.query({
-      size: 2,
-      sort: 'id',
-      totalCount: false
-    });
+    const uncounted = await posts.query({ size: 2, sort: 'id' });
     expect(uncounted.totalCount).toBeNull();
   });
 

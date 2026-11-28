@@ -6,8 +6,10 @@ import { ModelName } from './registry';
 export type QueryResponse<T> = {
   /** Number of items returned on this page */
   resultCount: number;
-  /** Total number of matching items, null when the query opted out of counting */
+  /** Total number of matching items, up to `resource.countLimit`; null unless the query asked for it */
   totalCount: number | null;
+  /** Whether the total count is exact, `false` when it stopped at `resource.countLimit`; null when not counted */
+  totalCountExact: boolean | null;
   /** Cursor fetching the page after this one, null on the last page */
   nextCursor: string | null;
   /** Cursor fetching the page before this one, null on the first page */
@@ -28,7 +30,7 @@ export type QueryOptions<T = any, Q = any> = {
   sort?: QuerySort<T>;
   /** The cursor of the page to return, as issued in an earlier response. Takes precedence over `page` */
   cursor?: string | null;
-  /** Whether to count all matching resources (default: `true`) */
+  /** Whether to count the matching resources, up to `resource.countLimit` (default: `false`); ask on the first page */
   totalCount?: boolean;
 };
 

@@ -712,7 +712,9 @@ const users = await injectService('User').query({ filter, page: 1, size: 50, sor
 ```
 
 `query` takes a single options object, the same shape as the `POST /query` body: `filter`, `page` (default `1`),
-`size` (default `50`), `sort` (default `-createdAt`), `cursor`, and `totalCount` (default `true`).
+`size` (default `50`), `sort` (default `-createdAt`), `cursor`, and `totalCount` (default `false`, bounded by
+`resource.countLimit`; ask for it on the first page only). An offset beyond `resource.maxOffset` is refused, page deeper
+with the cursors.
 
 Filters are typed by `QueryFilter<T>` from `@appweaver/common`, and `weaver generate` emits a
 `<Model>Query = QueryFilter<Model>` alias per model. Over HTTP, they are validated against a generated per-model

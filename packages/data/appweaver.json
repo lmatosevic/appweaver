@@ -1,11 +1,13 @@
 {
   "config": {
-    "security": {
-      "apiKey": { "keepDatabaseTable": true },
-      "store": { "keepDatabaseTable": true },
-      "oauth2": { "connectedAccountsKeepDatabaseTable": true },
-      "account": { "2fa": { "keepDatabaseTable": true } }
-    },
-    "audit": { "keepDatabaseTable": true }
+    "database": {
+      "keepTables": [
+        "ApiKey",
+        "OneTimeToken",
+        "ConnectedAccount",
+        "TwoFactorMethod",
+        "AuditLog"
+      ]
+    }
   }
 }

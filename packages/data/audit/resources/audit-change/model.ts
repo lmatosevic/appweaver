@@ -1,8 +1,8 @@
 import { createModel } from '../../../factory/create-model';
 import { auditConfig } from '../../audit-config';
+import { keepsTable } from '../../../database/database-config';
 
-const shouldCreateModel =
-  auditConfig.ENABLED || auditConfig.KEEP_DATABASE_TABLE;
+const shouldCreateModel = auditConfig.ENABLED || keepsTable('AuditLog');
 
 // Written by the AuditService with its audit log entry, exposed like it by the application
 export default shouldCreateModel

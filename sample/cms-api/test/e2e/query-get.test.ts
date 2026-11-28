@@ -142,7 +142,8 @@ describe('Query and aggregate GET routes', () => {
         filter,
         sort: '-firstName',
         size: 1,
-        page: 2
+        page: 2,
+        totalCount: true
       });
 
       expect(status).toBe(200);
@@ -154,8 +155,7 @@ describe('Query and aggregate GET routes', () => {
       const criteria = {
         filter,
         sort: { firstName: 'asc' },
-        size: 2,
-        totalCount: false
+        size: 2
       };
 
       const viaPost = await request('POST', '/api/users/query', criteria, auth);

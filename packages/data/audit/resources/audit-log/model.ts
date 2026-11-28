@@ -1,8 +1,8 @@
 import { createModel } from '../../../factory/create-model';
 import { auditConfig } from '../../audit-config';
+import { keepsTable } from '../../../database/database-config';
 
-const shouldCreateModel =
-  auditConfig.ENABLED || auditConfig.KEEP_DATABASE_TABLE;
+const shouldCreateModel = auditConfig.ENABLED || keepsTable('AuditLog');
 
 const text = (maxLength: number) =>
   ({ type: 'string', required: false, maxLength }) as const;

@@ -95,6 +95,27 @@ describe('define-config', () => {
       });
     });
 
+    test('reads a JSON array of the environment and rejects an ambiguous list', () => {
+      const section = uniqueSection('arrays');
+      const prefix = sectionPrefix(section);
+      setRawConfig({}, raw({ [`${prefix}HOSTS`]: '["a,b", "c"]' }));
+
+      expect(
+        defineConfig(section, { HOSTS: Type.Array(Type.String()) }).HOSTS
+      ).toEqual(['a,b', 'c']);
+
+      const ambiguous = uniqueSection('arrays');
+      setRawConfig(
+        {},
+        raw({ [`${sectionPrefix(ambiguous)}HOSTS`]: '"a","b"' })
+      );
+
+      expect(
+        () =>
+          defineConfig(ambiguous, { HOSTS: Type.Array(Type.String()) }).HOSTS
+      ).toThrow('is a quoted item of the comma-separated list');
+    });
+
     test('applies the defaults of the schema to the missing and empty values', () => {
       const section = uniqueSection('defaults');
       const prefix = sectionPrefix(section);

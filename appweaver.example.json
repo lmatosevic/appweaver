@@ -98,7 +98,9 @@
       "bulkReturnRecords": true,
       "filterMaxConditions": 1000,
       "filterMaxDepth": 10,
-      "filterMaxListValues": 2000
+      "filterMaxListValues": 2000,
+      "countLimit": 10000,
+      "maxOffset": 10000
     },
     "export": {
       "csvDelimiter": ";",
@@ -114,8 +116,7 @@
       "authOttTtl": 120000,
       "allowedRedirectHosts": ["*"],
       "store": {
-        "provider": "auto",
-        "keepDatabaseTable": false
+        "provider": "auto"
       },
       "password": {
         "enabled": true,
@@ -142,7 +143,6 @@
           "defaultMethod": "Email",
           "codeLength": 6,
           "maxAttempts": 5,
-          "keepDatabaseTable": false,
           "recoveryCodes": {
             "enabled": true,
             "count": 10,
@@ -181,7 +181,6 @@
       },
       "apiKey": {
         "enabled": false,
-        "keepDatabaseTable": false,
         "headerName": "x-api-key",
         "delimiter": "AK",
         "routesEnabled": true
@@ -198,7 +197,6 @@
         "stateTtl": 600000,
         "registrationEnabled": true,
         "fetchAvatarEnabled": true,
-        "connectedAccountsKeepDatabaseTable": false,
         "google": {
           "enabled": true,
           "clientId": "3255464567435-tzr346jsgh63462vdp234sodhpsfjzop.apps.googleusercontent.com",
@@ -284,6 +282,7 @@
       "type": "postgresql",
       "url": "postgresql://appweaver:appweaver@localhost:5432/appweaver-sample",
       "migrationUrl": "postgresql://appweaver-owner:appweaver@localhost:5432/appweaver-sample",
+      "keepTables": ["ApiKey", "AuditLog"],
       "schemaPath": "./database/schema.prisma",
       "migrationsDirPath": "./database/migrations",
       "seedersDirPath": "./database/seeders",
@@ -315,7 +314,6 @@
     },
     "audit": {
       "enabled": false,
-      "keepDatabaseTable": false,
       "retention": "90d",
       "retentionInterval": "1h",
       "retentionWorker": true,

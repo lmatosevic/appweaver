@@ -1,11 +1,12 @@
 import { configOverrides, ErrorCode } from '@appweaver/common';
-import { migrationUrl } from '../../database/database-config';
+import { keepsTable, migrationUrl } from '../../database/database-config';
 
 describe('database-config', () => {
   afterEach(() => {
     delete configOverrides.DATABASE_URL;
     delete configOverrides.DATABASE_MIGRATION_URL;
     delete configOverrides.DATABASE_TYPE;
+    delete configOverrides.DATABASE_KEEP_TABLES;
   });
 
   describe('migrationUrl', () => {
@@ -93,6 +94,20 @@ describe('database-config', () => {
       expect(() => migrationUrl()).toThrow(
         'the postgresql database, while DATABASE_URL'
       );
+    });
+  });
+
+  describe('keepsTable', () => {
+    test('keeps no table by default', () => {
+      expect(keepsTable('ApiKey')).toBe(false);
+    });
+
+    test('keeps the tables database.keepTables lists', () => {
+      configOverrides.DATABASE_KEEP_TABLES = ['ApiKey', 'AuditLog'];
+
+      expect(keepsTable('ApiKey')).toBe(true);
+      expect(keepsTable('AuditLog')).toBe(true);
+      expect(keepsTable('OneTimeToken')).toBe(false);
     });
   });
 });

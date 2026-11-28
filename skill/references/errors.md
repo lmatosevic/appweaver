@@ -161,6 +161,7 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `RESOURCE_FILTER_TOO_COMPLEX`        | 400    | Filter too complex                    |
 | `RESOURCE_INVALID_AGGREGATE`         | 400    | Invalid aggregation                   |
 | `RESOURCE_INVALID_CURSOR`            | 400    | Invalid pagination cursor             |
+| `RESOURCE_OFFSET_TOO_LARGE`          | 400    | Page offset too large                 |
 | `RESOURCE_INVALID_QUERY_PARAMETER`   | 400    | Invalid query parameter               |
 | `RESOURCE_INVALID_RELATION`          | 400    | Invalid relation                      |
 | `RESOURCE_DELETE_RESTRICTED`         | 409    | Delete restricted                     |

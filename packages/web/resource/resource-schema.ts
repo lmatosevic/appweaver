@@ -53,7 +53,7 @@ export const QueryRequestData = Type.Object({
   page: Type.Optional(Type.Number({ minimum: 1, example: 1 })),
   size: Type.Optional(Type.Number({ minimum: 0, maximum: 2000, example: 50 })),
   cursor: Nullable(Type.String({ example: CURSOR_EXAMPLE })),
-  totalCount: Type.Optional(Type.Boolean({ default: true, example: true }))
+  totalCount: Type.Optional(Type.Boolean({ default: false, example: true }))
 });
 
 // The absent values are returned as null rather than omitted, so a client reads
@@ -61,6 +61,8 @@ export const QueryRequestData = Type.Object({
 export const QueryResponseData = Type.Object({
   resultCount: Type.Number({ example: 10 }),
   totalCount: Nullable(Type.Number({ example: 100 })),
+  // false when the count stopped at resource.countLimit, null when not counted
+  totalCountExact: Nullable(Type.Boolean({ example: true })),
   nextCursor: Nullable(Type.String({ example: CURSOR_EXAMPLE })),
   prevCursor: Nullable(Type.String({ example: CURSOR_EXAMPLE }))
 });
@@ -320,6 +322,7 @@ export function createSchema(
           'query',
           ErrorCode.ResourceInvalidSort,
           ErrorCode.ResourceInvalidCursor,
+          ErrorCode.ResourceOffsetTooLarge,
           ...spatialFilterErrors
         )
       },
@@ -353,6 +356,7 @@ export function createSchema(
           'query',
           ErrorCode.ResourceInvalidSort,
           ErrorCode.ResourceInvalidCursor,
+          ErrorCode.ResourceOffsetTooLarge,
           ErrorCode.ResourceInvalidQueryParameter,
           ...spatialFilterErrors
         )

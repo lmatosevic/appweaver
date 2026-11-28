@@ -141,10 +141,10 @@ describe('resource-schema', () => {
       expect(body).toEqual({ size: 10, cursor: 'a-cursor', totalCount: false });
     });
 
-    test('defaults the count flag to counting', async () => {
+    test('defaults the count flag to not counting', async () => {
       const { body } = await post('/request', { size: 10 });
 
-      expect(body.totalCount).toBe(true);
+      expect(body.totalCount).toBe(false);
     });
 
     test('accepts the null cursor a response returned', async () => {
