@@ -28,7 +28,39 @@ function loadSample(sampleDir = process.cwd()) {
   const exported = require(file);
   const definition = typeof exported === 'function' ? exported(scenarioHelpers) : exported;
   const runtime = fs.existsSync(path.join(dir, 'bunfig.toml')) ? 'bun' : 'node';
-  return { name, dir, runtime, scenarios: [], env: {}, ...definition };
+  return {
+    name,
+    dir,
+    runtime,
+    scenarios: [],
+    ...definition,
+    env: { ...exampleEnv(dir), ...definition.env }
+  };
+}
+
+/**
+ * The values of the `.env.example` of a sample without a `.env`, i.e. the database password its Docker Compose file
+ * and its configuration read, given to the processes the harness starts instead of a `.env` written for them. The empty
+ * values are left out, so they never override the configuration (an empty `SECURITY_RECAPTCHA_SECRET`), and so is
+ * `NODE_ENV`, which the harness sets. A sample with a `.env` reads its own.
+ *
+ * @param {string} dir - The directory of the sample.
+ * @return {Record<string, string>} The variables.
+ */
+function exampleEnv(dir) {
+  const exampleFile = path.join(dir, '.env.example');
+  if (fs.existsSync(path.join(dir, '.env')) || !fs.existsSync(exampleFile)) {
+    return {};
+  }
+  const env = {};
+  for (const line of fs.readFileSync(exampleFile, 'utf8').split(/\r?\n/)) {
+    const match = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/.exec(line);
+    const value = match?.[2].replace(/^(['"])(.*)\1$/, '$2');
+    if (match && value && match[1] !== 'NODE_ENV') {
+      env[match[1]] = value;
+    }
+  }
+  return env;
 }
 
 /** The size argument (`10k`, `100k`, `1m` or a number) as a number of rows. */

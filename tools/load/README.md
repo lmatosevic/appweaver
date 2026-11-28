@@ -20,7 +20,7 @@ npm run samples:manage -- load-summary                                   # the r
 ## What a run does
 
 1. `--build`: `weaver build` in the sample (the Node samples load `dist/src`).
-2. `--setup`: copies `.env.example` to `.env` when the sample has none, starts the Docker Compose `services` of its
+2. `--setup`: starts the Docker Compose `services` of its
    definition (`docker compose up -d --wait`), then `weaver migrate` and `weaver seed` with the admin password
    `LOAD_ADMIN_PASSWORD` (default `Load-test-password-1`), so the scenarios can sign in.
 3. Seeding (unless `--no-seed`): `weaver run tools/load/seed-task.js <rows>` in the sample, which inserts
@@ -35,6 +35,11 @@ npm run samples:manage -- load-summary                                   # the r
 6. Writes `reports/load/<sample>-<size>-<date>.json` and prints the results as a Markdown table. `--teardown` stops
    the Docker Compose services afterwards, so the next sample can publish the same ports.
 
+
+Every command the harness runs in a sample (Docker Compose, `weaver`, the application) gets the values of its
+`.env.example` when the sample has no `.env`, in its environment only: the harness never writes a `.env`, which the
+end-to-end tests of the sample would then read. The empty values and `NODE_ENV` are left out. A sample with a `.env`
+reads its own.
 
 ## A sample definition
 
