@@ -53,6 +53,60 @@ describe('file-route', () => {
       expect(download).toHaveBeenCalledWith('a.txt', undefined, undefined);
     });
 
+    test('serves an upload sandboxed, whatever type its client declared', async () => {
+      download.mockResolvedValue({
+        content: { size: 2, stream: Readable.from(['<svg/>']) },
+        fileName: 'logo.svg',
+        mimeType: 'image/svg+xml',
+        start: 0,
+        end: 5
+      });
+      await server();
+
+      const response = await app!.inject({ url: '/public/logo.svg' });
+
+      expect(response.headers['content-security-policy']).toContain('sandbox');
+      expect(response.headers['content-security-policy']).toContain(
+        "default-src 'none'"
+      );
+      expect(response.headers['content-disposition']).toBe(
+        'inline; filename="logo.svg"'
+      );
+    });
+
+    test('leaves a PDF unsandboxed, which browsers would refuse to show', async () => {
+      download.mockResolvedValue({
+        content: { size: 2, stream: Readable.from(['%P']) },
+        fileName: 'report.pdf',
+        mimeType: 'application/pdf',
+        start: 0,
+        end: 1
+      });
+      await server();
+
+      const response = await app!.inject({ url: '/public/report.pdf' });
+
+      expect(response.headers['content-security-policy']).toBeUndefined();
+    });
+
+    test('serves a file whose name is outside Latin-1', async () => {
+      download.mockResolvedValue({
+        content: { size: 2, stream: Readable.from(['ok']) },
+        fileName: 'łódź 東京.txt',
+        mimeType: 'text/plain',
+        start: 0,
+        end: 1
+      });
+      await server();
+
+      const response = await app!.inject({ url: '/public/a.txt' });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.headers['content-disposition']).toBe(
+        'inline; filename="_odz __.txt"; filename*=UTF-8\'\'%C5%82%C3%B3d%C5%BA%20%E6%9D%B1%E4%BA%AC.txt'
+      );
+    });
+
     test('downloads the version of the query', async () => {
       configOverrides.STORAGE_VERSIONS_ENABLED = true;
       await server();

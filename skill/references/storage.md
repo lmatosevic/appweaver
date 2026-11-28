@@ -139,6 +139,13 @@ introduce a subdirectory, a `..` traversal or a hidden file.
 
 ---
 
+## Serving the files
+
+The file routes (`GET /files/public/*` and `/files/protected/*`) answer the stored type, which is the one the upload
+declared, inline, so every file but a PDF is served with a sandboxing content security policy (`default-src 'none'`,
+`sandbox`): an HTML page or an SVG image opened directly runs no script on the origin of the API. The file name is
+sent as RFC 6266 `filename` and, outside ASCII, `filename*`.
+
 ## Reserved paths
 
 `STORAGE_RESERVED_PATHS` (default `['__keys__']`, protecting the default JWT key location) lists paths inside
