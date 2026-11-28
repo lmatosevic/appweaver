@@ -14,7 +14,7 @@ describe('core resources barrel', () => {
     // Every conditional resource is switched on, so the barrel exposes its full surface
     Object.assign(process.env, {
       SECURITY_API_KEY_ENABLED: 'true',
-      SECURITY_STORE_KEEP_DATABASE_TABLE: 'true',
+      DATABASE_KEEP_TABLES: 'OneTimeToken',
       SECURITY_OAUTH2_GOOGLE_ENABLED: 'true',
       SECURITY_ACCOUNT_2FA_ENABLED: 'true',
       AUDIT_ENABLED: 'true'

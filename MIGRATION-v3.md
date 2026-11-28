@@ -24,7 +24,7 @@ startup.
 | [6. Exposure: `actions` everywhere](#6-exposure-actions-everywhere)         | V3-CONV-02   | `createRoutes`, bulk env flags   | pending |
 | [7. Maintenance jobs](#7-maintenance-jobs)                                  | V3-CONV-03   | Retention and pruning keys       | pending |
 | [8. Secure defaults](#8-secure-defaults)                                    | V3-CONV-04   | JWT, redirects, CORS, body size  | pending |
-| [9. `database.keepTables`](#9-databasekeeptables)                           | V3-CONV-05   | `KEEP_DATABASE_TABLE` keys       | pending |
+| [9. `database.keepTables`](#9-databasekeeptables)                           | V3-CONV-05   | `KEEP_DATABASE_TABLE` keys       | done    |
 | [10. Total count and offsets](#10-total-count-and-offsets)                  | V3-CONV-06   | `query` clients                  | done    |
 | [11. Aggregates](#11-aggregates)                                            | V3-CONV-07   | `aggregate` clients              | pending |
 | [12. Full names instead of abbreviations](#12-full-names-instead-of-abbreviations) | V3-CONV-08 | Config, routes, codes, types | pending |
@@ -200,7 +200,25 @@ _pending_ (V3-CONV-04, D5):
 
 ## 9. `database.keepTables`
 
-_pending_ (V3-CONV-05): the five `*_KEEP_DATABASE_TABLE` keys replaced by one list, `database.keepTables`.
+**What changed** (V3-CONV-05, F18): the five keys keeping the table of a framework model while its feature is off are
+one list of model names, `database.keepTables`.
+
+**Who is affected**: projects setting one of the removed keys.
+
+| Removed key (2.x)                                        | Name in `database.keepTables` (3.0)            |
+|----------------------------------------------------------|------------------------------------------------|
+| `security.apiKey.keepDatabaseTable`                      | `ApiKey`                                       |
+| `security.store.keepDatabaseTable`                       | `OneTimeToken`                                 |
+| `security.oauth2.connectedAccountsKeepDatabaseTable`     | `ConnectedAccount`                             |
+| `security.account.2fa.keepDatabaseTable`                 | `TwoFactorMethod` (with `TwoFactorRecoveryCode`) |
+| `audit.keepDatabaseTable`                                | `AuditLog` (with `AuditChange`)                |
+
+**Before**: `{ "security": { "apiKey": { "keepDatabaseTable": true } }, "audit": { "keepDatabaseTable": true } }`
+
+**After**: `{ "database": { "keepTables": ["ApiKey", "AuditLog"] } }`, or `DATABASE_KEEP_TABLES=ApiKey,AuditLog`.
+
+**Steps**: move every removed key set to `true` into the list; run `weaver config check`, which reports a name outside
+the list.
 
 ## 10. Total count and offsets
 

@@ -389,8 +389,8 @@ application (`createOAuth2Plugin`) returns `emailVerified` from its `extractUser
 provider account belongs to one user only — relinking it elsewhere fails with a 403, also when two first sign-ins race
 to create the link.
 
-The table exists when any OAuth2 provider is enabled; `SECURITY_OAUTH2_CONNECTED_ACCOUNTS_KEEP_DATABASE_TABLE=true`
-keeps it after disabling OAuth2, like `SECURITY_API_KEY_KEEP_DATABASE_TABLE` does for API keys.
+The table exists when any OAuth2 provider is enabled; `ConnectedAccount` in `database.keepTables` keeps it after
+disabling OAuth2, like `ApiKey` does for the API keys.
 
 ### OAuth2 registration control and hooks
 
@@ -943,7 +943,7 @@ time-limited.
 OTTs are stored in the security store set by `SECURITY_STORE_PROVIDER`. Only a hash of each token is stored.
 
 - **`database`** (selected by `auto`): stores the tokens in the `OneTimeToken` model, which is added to the schema only
-  while this store is configured (`auto` or `database`, or `SECURITY_STORE_KEEP_DATABASE_TABLE` is set) and the
+  while this store is configured (`auto` or `database`, or `database.keepTables` lists `OneTimeToken`) and the
   application has an auth model. The model has no routes.
 - **`memory`** (selected by name only): stores the tokens with a TTL in the `Memory` provider, as Redis keys with
   `MEMORY_PROVIDER=redis`, so the one-time token flows (OAuth2 login, 2FA, email verification, password reset) fail

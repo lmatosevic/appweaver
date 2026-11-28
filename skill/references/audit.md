@@ -16,8 +16,8 @@ and delete. It is off by default:
 ```
 
 Enabling it adds the `AuditLog` and `AuditChange` models, so run `weaver generate` and `weaver migration new
-add_audit_log` afterwards. `audit.keepDatabaseTable` keeps both tables while the audit log is disabled, like the
-`keepDatabaseTable` of the API keys, so the next migration does not drop the history.
+add_audit_log` afterwards. `AuditLog` in `database.keepTables` keeps both tables while the audit log is disabled, like `ApiKey` does
+for the API keys, so the next migration does not drop the history.
 
 ## Tables
 

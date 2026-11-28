@@ -13,7 +13,8 @@ import {
   AuthError,
   config
 } from '@appweaver/common';
-import { passwordConfig, twoFactorModelConfig } from './auth-config';
+import { passwordConfig } from './auth-config';
+import { keepsTable } from '../database/database-config';
 import { context } from '@appweaver/core/internal';
 import { injectService } from '@appweaver/core';
 
@@ -250,7 +251,7 @@ export function isTwoFactorEnabled(): boolean {
   // Read by the flattened key, since the 2FA config belongs to the web module
   return (
     config.bool('SECURITY_ACCOUNT_2FA_ENABLED', false) ||
-    twoFactorModelConfig.KEEP_DATABASE_TABLE
+    keepsTable('TwoFactorMethod')
   );
 }
 

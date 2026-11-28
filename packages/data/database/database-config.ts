@@ -17,6 +17,19 @@ export const databaseConfig = defineConfig('database', {
   /** Database connection URL/DSN of the migrations (`prisma.config.ts`) and of the database setup of `weaver migrate`,
    * i.e. a user owning the tables, or a direct connection beside the pooled one of `URL`. Default: `''` (the `URL`). */
   MIGRATION_URL: Type.String({ default: '' }),
+  /** The framework models whose tables are kept while their feature is off, so a migration does not drop them:
+   * `ApiKey`, `OneTimeToken`, `ConnectedAccount`, `TwoFactorMethod` (with `TwoFactorRecoveryCode`) and `AuditLog`
+   * (with `AuditChange`). Default: `[]`. */
+  KEEP_TABLES: Type.Array(
+    Type.Union([
+      Type.Literal('ApiKey'),
+      Type.Literal('OneTimeToken'),
+      Type.Literal('ConnectedAccount'),
+      Type.Literal('TwoFactorMethod'),
+      Type.Literal('AuditLog')
+    ]),
+    { default: [] }
+  ),
   /** Path to a Prisma schema file. Default: `'./database/schema.prisma'`. */
   SCHEMA_PATH: Type.String({
     default: './database/schema.prisma'
@@ -102,4 +115,17 @@ function databaseName(url: string): string | undefined {
     .split('?')[0]
     .replace(/\\/g, '/');
   return path.posix.normalize(file);
+}
+
+/** A framework model whose table `database.keepTables` may keep while its feature is off. */
+export type KeptTable = (typeof databaseConfig.KEEP_TABLES)[number];
+
+/**
+ * Checks if `database.keepTables` keeps the table of a framework model while its feature is off.
+ *
+ * @param {KeptTable} model - The framework model.
+ * @return {boolean} `true` when the table is kept.
+ */
+export function keepsTable(model: KeptTable): boolean {
+  return databaseConfig.KEEP_TABLES.includes(model);
 }

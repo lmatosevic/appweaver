@@ -189,7 +189,7 @@ the standard every backend ingests, and `configureTelemetry` covers the rest. Wh
 ### Audit log
 
 The audit log (`audit.enabled`) records every request and the changed fields of the records in the `AuditLog` and
-`AuditChange` framework models, kept by `audit.keepDatabaseTable` like the API keys. `AuditService` of
+`AuditChange` framework models, kept by `AuditLog` in `database.keepTables` like the API keys. `AuditService` of
 `packages/data/audit` buffers the entries and writes them in batches, deletes them after the retention of their
 category (`audit.auth`, `.read`, `.write`, `.changes`, `.custom`), and records the diff of every `create`, `update` and
 `delete` of `ResourceService` once its transaction commits. `web/audit/audit-hooks.ts` starts the entry of a request in
@@ -352,9 +352,9 @@ npm run generate      # refresh types/generated.ts, prisma/schema.prisma and pri
 npm run regenerate:db # drop dev.db and prisma/migrations, then recreate the init migration from the new schema
 ```
 
-The `appweaver.json` of `packages/data` (never published) turns on the `KEEP_DATABASE_TABLE` keys of the API keys,
-the security store, the connected accounts and the 2FA methods, so `npm run generate` emits every framework model
-whatever the environment.
+The `appweaver.json` of `packages/data` (never published) lists every framework model `database.keepTables` takes
+(`keepsTable` of `data/database/database-config.ts`), so `npm run generate` emits every framework model whatever the
+environment.
 
 A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown argument" naming an *unrelated* field
 (usually `createdById`) — suspect regeneration before the calling code.

@@ -19,10 +19,8 @@ import { exportConfig } from './export/export-config';
 import { resourceConfig } from './resource/resource-config';
 import {
   apiKeyConfig,
-  connectedAccountConfig,
   passwordConfig,
-  systemConfig,
-  twoFactorModelConfig
+  systemConfig
 } from './security/auth-config';
 import { spatialConfig } from './spatial/spatial-config';
 import { fileVersionsConfig } from './storage/file-versions-config';
@@ -41,8 +39,6 @@ export default defineModule({
     fileVersionsConfig,
     passwordConfig,
     apiKeyConfig,
-    connectedAccountConfig,
-    twoFactorModelConfig,
     systemConfig,
     databaseSeriesConfig,
     timescaleConfig,

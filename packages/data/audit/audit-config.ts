@@ -5,8 +5,6 @@ export const auditConfig = defineConfig('audit', {
   /** Record the requests and the changes of the records in the `AuditLog` and `AuditChange` tables. Default:
    * `false`. */
   ENABLED: Type.Boolean({ default: false }),
-  /** Keep the audit log database tables while the audit log is disabled. Default: `false`. */
-  KEEP_DATABASE_TABLE: Type.Boolean({ default: false }),
   /** How long the entries are kept, a duration (`90d`), overridden by the `retention` of a category, empty to keep
    * them all. Default: `'90d'`. */
   RETENTION: Type.String({ default: '90d' }),
