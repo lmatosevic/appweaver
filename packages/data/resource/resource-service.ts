@@ -225,8 +225,8 @@ export abstract class ResourceService<
    * - `cursor` The cursor of the page to return, as issued in the `nextCursor`
    *   or `prevCursor` of an earlier response, which also carries the direction
    *   the page runs in. Takes precedence over `page`.
-   * - `totalCount` Whether to count all matching resources, which costs a scan
-   *   of every one of them (default: `true`).
+   * - `totalCount` Whether to count the matching resources, which costs a scan
+   *   of them, up to `resource.countLimit` (default: `false`).
    * @return {Promise<QueryResponse<Object>>} The paged query response containing
    * the returned resources, the count of the returned items, the cursors of the
    * adjacent pages, and the total count unless it was opted out of. A resource
@@ -246,7 +246,7 @@ export abstract class ResourceService<
       size = 50,
       sort = '-createdAt',
       cursor,
-      totalCount = true
+      totalCount = false
     } = options;
 
     const distanceSort = this.distanceSort(sort);
@@ -263,6 +263,9 @@ export abstract class ResourceService<
     // cursor on a changed text search or read restriction
     const fingerprint = queryFingerprint(this._client.name, query, orderBy);
     const decodedCursor = decodeCursor(cursor, fingerprint);
+    if (!decodedCursor) {
+      this.checkOffset((page - 1) * size);
+    }
 
     // One record past the page tells whether a further page exists
     const backward = decodedCursor?.backward === true;
@@ -278,15 +281,17 @@ export abstract class ResourceService<
       orderBy
     });
 
+    const countLimit = resourceConfig.COUNT_LIMIT;
     let resources: ReadMany[];
     let count: number | undefined;
     try {
       if (totalCount) {
+        // One record past the limit tells whether the count stopped at it
         [resources, count] = await this._db
           .client()
           .$transaction([
             findMany,
-            this._client.count({ where: { ...query } })
+            this._client.count({ where: { ...query }, take: countLimit + 1 })
           ]);
       } else {
         resources = await findMany;
@@ -315,7 +320,7 @@ export abstract class ResourceService<
 
     return {
       resultCount: resources.length,
-      totalCount: count ?? null,
+      ...boundedCount(count, countLimit),
       ...pageCursors(resources, fingerprint, hasNext, hasPrev),
       items
     };
@@ -1387,7 +1392,7 @@ export abstract class ResourceService<
       page = 1,
       size = 50,
       cursor,
-      totalCount = true
+      totalCount = false
     } = options;
 
     const distances: SpatialDistances = new Map();
@@ -1414,6 +1419,8 @@ export abstract class ResourceService<
       [start, end] = decodedCursor.backward
         ? [Math.max(0, index - size), index]
         : [index + 1, index + 1 + size];
+    } else {
+      this.checkOffset(start);
     }
     const pageIds = size > 0 ? ids.slice(start, end) : [];
 
@@ -1432,7 +1439,10 @@ export abstract class ResourceService<
 
     return {
       resultCount: resources.length,
-      totalCount: totalCount ? ids.length : null,
+      ...boundedCount(
+        totalCount ? ids.length : undefined,
+        resourceConfig.COUNT_LIMIT
+      ),
       ...pageCursors(resources, fingerprint, hasNext, hasPrev),
       items
     };
@@ -1682,6 +1692,22 @@ export abstract class ResourceService<
   }
 
   /**
+   * Refuses an offset page beyond `resource.maxOffset`, whose skipped records the database reads one by one.
+   *
+   * @internal
+   */
+  private checkOffset(offset: number): void {
+    const max = resourceConfig.MAX_OFFSET;
+    if (offset > max) {
+      throw new ResourceError(
+        ErrorCode.ResourceOffsetTooLarge,
+        `The page skips ${offset} records, more than the ${max} of resource.maxOffset: follow the nextCursor of the pages instead`,
+        { model: this._client.name, offset, max }
+      );
+    }
+  }
+
+  /**
    * The model delegate of the current transaction, or of the connection outside
    * of one, resolved per call.
    *
@@ -1731,4 +1757,17 @@ function setDistances(resources: any[], distances: SpatialDistances): void {
 /** The model delegate of a Prisma client, or of the client of a transaction, by its model key. */
 function delegateOf(client: object, modelKey: string): ResourceClient {
   return (client as Record<string, ResourceClient>)[modelKey];
+}
+
+/** The total count of a query response, `count` being counted up to one record past the limit. */
+function boundedCount(
+  count: number | undefined,
+  limit: number
+): { totalCount: number | null; totalCountExact: boolean | null } {
+  if (count === undefined) {
+    return { totalCount: null, totalCountExact: null };
+  }
+  return count > limit
+    ? { totalCount: limit, totalCountExact: false }
+    : { totalCount: count, totalCountExact: true };
 }

@@ -98,7 +98,9 @@
       "bulkReturnRecords": true,
       "filterMaxConditions": 1000,
       "filterMaxDepth": 10,
-      "filterMaxListValues": 2000
+      "filterMaxListValues": 2000,
+      "countLimit": 10000,
+      "maxOffset": 10000
     },
     "export": {
       "csvDelimiter": ";",

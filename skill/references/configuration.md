@@ -459,6 +459,8 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | `RESOURCE_FILTER_MAX_CONDITIONS`    | integer | `1000`                                | Maximum conditions (field and operator keys) of a filter, nested filters included.      |
 | `RESOURCE_FILTER_MAX_DEPTH`         | integer | `10`                                  | Maximum nesting depth of a filter, every nested object or list counting as a level.     |
 | `RESOURCE_FILTER_MAX_LIST_VALUES`   | integer | `2000`                                | Maximum number of values of a list in a filter, i.e. of an `_in` list.                  |
+| `RESOURCE_COUNT_LIMIT`              | integer | `10000`                               | Records the `totalCount` of a query counts, `totalCountExact: false` beyond them.       |
+| `RESOURCE_MAX_OFFSET`               | integer | `10000`                               | Records an offset page skips, `400 RESOURCE_OFFSET_TOO_LARGE` beyond (use the cursors). |
 
 ### Data export (EXPORT\_\*)
 

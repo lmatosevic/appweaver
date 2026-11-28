@@ -126,14 +126,16 @@ describe('create-service', () => {
         filter: { title: 'First' },
         page: 2,
         size: 10,
-        sort: 'title'
+        sort: 'title',
+        totalCount: true
       });
 
       expect(beforeQuery).toHaveBeenCalledWith({
         filter: { title: 'First' },
         page: 2,
         size: 10,
-        sort: 'title'
+        sort: 'title',
+        totalCount: true
       });
       expect(afterQuery).toHaveBeenCalledWith(
         expect.objectContaining({ totalCount: 1 })

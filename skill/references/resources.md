@@ -1097,7 +1097,7 @@ The created service exposes the following methods:
 | `client`    | `ResourceClient` (property)                    | Database client of the model, for operations outside the model contract.                                                                   |
 
 `query` takes the options `filter`, `page` (default `1`), `size` (default `50`), `sort` (default `-createdAt`),
-`cursor`, and `totalCount` (default `true`), and `aggregate` the options `select` (required), `filter`, `dateField`
+`cursor`, and `totalCount` (default `false`), and `aggregate` the options `select` (required), `filter`, `dateField`
 (default `createdAt`), `from`, `to`, `step`, and `safeIncrement` (default `true`). Both are the same shape as the bodies
 of the `POST /query` and `POST /aggregate` routes, and as the query parameters of their GET variants:
 
@@ -1307,7 +1307,8 @@ const posts = await postService.query({ sort });
 ```ts
 const config = {
   resultCount: 50,   // Items in this page
-  totalCount: 123,   // Total items matching filter, omitted when totalCount is false
+  totalCount: 123,   // Items matching the filter, up to resource.countLimit; null unless totalCount was asked
+  totalCountExact: true, // false when the count stopped at resource.countLimit; null when not counted
   nextCursor: '...', // Cursor of the following page, absent on the last page
   prevCursor: '...', // Cursor of the preceding page, absent on the first page
   items: []          // Page data
@@ -1322,10 +1323,10 @@ later pages.
 
 ```ts
 // First page counted, the following ones skipping the count
-let result = await postService.query({ size: 50 });
+let result = await postService.query({ size: 50, totalCount: true });
 
 while (result.nextCursor) {
-  result = await postService.query({ size: 50, cursor: result.nextCursor, totalCount: false });
+  result = await postService.query({ size: 50, cursor: result.nextCursor });
 }
 ```
 
@@ -1337,13 +1338,14 @@ while (result.nextCursor) {
   },
   "size": 50,
   "sort": "-createdAt",
-  "cursor": "eyJpIjo0MiwiZiI6IkhkQjVfa2VMTVlyNyJ9",
-  "totalCount": false
+  "cursor": "eyJpIjo0MiwiZiI6IkhkQjVfa2VMTVlyNyJ9"
 }
 ```
 
-`totalCount` defaults to `true` and scans every matching record, so count once and send `false` afterward, which returns
-it as `null`.
+`totalCount` defaults to `false` (returned as `null`): ask for it on the first page only, since it scans the matching
+records. The count stops at `resource.countLimit` (10,000), answering that number with `totalCountExact: false`. An
+offset page skipping more than `resource.maxOffset` records (10,000) is refused with `400 RESOURCE_OFFSET_TOO_LARGE`:
+page deeper with the cursors, which never slow down.
 
 A cursor is opaque and bound to the query that issued it: reusing one under a different resource, filter, or sort is
 rejected with a 400.

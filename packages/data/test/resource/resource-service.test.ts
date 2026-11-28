@@ -239,9 +239,10 @@ describe('resource-service', () => {
     });
 
     test('returns the items with the result and total counts', async () => {
-      const result = await service.query();
+      const result = await service.query({ totalCount: true });
 
       expect(result.totalCount).toBe(1);
+      expect(result.totalCountExact).toBe(true);
       expect(result.resultCount).toBe(1);
       expect(result.items[0]).toMatchObject({ id: 1, title: 'First' });
     });
@@ -254,6 +255,46 @@ describe('resource-service', () => {
         skip: 40,
         take: 21
       });
+    });
+
+    test('counts nothing by default', async () => {
+      const result = await service.query();
+
+      expect(result.totalCount).toBeNull();
+      expect(result.totalCountExact).toBeNull();
+      expect(db.queries.some((query) => query.method === 'count')).toBe(false);
+    });
+
+    test('counts up to one record past resource.countLimit', async () => {
+      configOverrides.RESOURCE_COUNT_LIMIT = 100;
+      try {
+        db.setResult('Post', 'count', 101);
+
+        const result = await service.query({ totalCount: true });
+
+        expect(db.lastQuery('count').args.take).toBe(101);
+        expect(result.totalCount).toBe(100);
+        expect(result.totalCountExact).toBe(false);
+      } finally {
+        delete configOverrides.RESOURCE_COUNT_LIMIT;
+      }
+    });
+
+    test('refuses an offset page beyond resource.maxOffset', async () => {
+      configOverrides.RESOURCE_MAX_OFFSET = 100;
+      try {
+        await expect(service.query({ page: 3, size: 50 })).resolves.toEqual(
+          expect.objectContaining({ resultCount: 1 })
+        );
+        await expect(
+          service.query({ page: 4, size: 50 })
+        ).rejects.toMatchObject({
+          code: ErrorCode.ResourceOffsetTooLarge,
+          details: { model: 'Post', offset: 150, max: 100 }
+        });
+      } finally {
+        delete configOverrides.RESOURCE_MAX_OFFSET;
+      }
     });
 
     test('omits the total count when the query opts out of it', async () => {
@@ -2652,7 +2693,8 @@ describe('resource-service with geo fields', () => {
     const first = await service.query({
       filter: { location: near } as any,
       sort: 'location',
-      size: 2
+      size: 2,
+      totalCount: true
     });
     expect(first.items.map((item: any) => item.id)).toEqual([3, 1]);
     expect(first.items[1].locationDistance).toBe(20);

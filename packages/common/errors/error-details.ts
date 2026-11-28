@@ -59,6 +59,10 @@ export interface ErrorDetailsMap {
     field?: string;
     operator?: string;
   };
+  [ErrorCode.ResourceOffsetTooLarge]: ModelDetails & {
+    offset: number;
+    max: number;
+  };
   [ErrorCode.ResourceInvalidQueryParameter]: { parameter: string };
   [ErrorCode.ResourceInvalidRelation]: ModelDetails & {
     relation: string;

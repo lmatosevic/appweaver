@@ -237,7 +237,12 @@ describe('Bulk create, update, and delete routes', () => {
   test('invalidates the cached tag query', async () => {
     // The public tag query is cached, so it only sees the bulk changes once
     // they invalidate it
-    const before = await request('GET', '/api/tags/query', undefined, {});
+    const before = await request(
+      'GET',
+      '/api/tags/query?totalCount=true',
+      undefined,
+      {}
+    );
     expect(before.body.totalCount).toBe(0);
 
     await request('POST', '/api/tags/bulk', [
@@ -245,7 +250,12 @@ describe('Bulk create, update, and delete routes', () => {
       { name: 'Ocean', slug: 'ocean' }
     ]);
 
-    const after = await request('GET', '/api/tags/query', undefined, {});
+    const after = await request(
+      'GET',
+      '/api/tags/query?totalCount=true',
+      undefined,
+      {}
+    );
     expect(after.body.totalCount).toBe(2);
   });
 

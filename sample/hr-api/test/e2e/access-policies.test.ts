@@ -154,7 +154,7 @@ describe('Access policies', () => {
         as.payroll,
         'POST',
         '/compensations/query',
-        {}
+        { totalCount: true }
       );
 
       expect(body.totalCount).toBe(2);

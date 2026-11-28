@@ -25,7 +25,7 @@ startup.
 | [7. Maintenance jobs](#7-maintenance-jobs)                                  | V3-CONV-03   | Retention and pruning keys       | pending |
 | [8. Secure defaults](#8-secure-defaults)                                    | V3-CONV-04   | JWT, redirects, CORS, body size  | pending |
 | [9. `database.keepTables`](#9-databasekeeptables)                           | V3-CONV-05   | `KEEP_DATABASE_TABLE` keys       | pending |
-| [10. Total count and offsets](#10-total-count-and-offsets)                  | V3-CONV-06   | `query` clients                  | pending |
+| [10. Total count and offsets](#10-total-count-and-offsets)                  | V3-CONV-06   | `query` clients                  | done    |
 | [11. Aggregates](#11-aggregates)                                            | V3-CONV-07   | `aggregate` clients              | pending |
 | [12. Full names instead of abbreviations](#12-full-names-instead-of-abbreviations) | V3-CONV-08 | Config, routes, codes, types | pending |
 | [13. Duplicate models, services, policies and routes](#13-duplicate-models-services-policies-and-routes) | V3-DATA-01 | Projects redefining a framework model | pending |
@@ -209,8 +209,21 @@ _pending_ (V3-CONV-05): the five `*_KEEP_DATABASE_TABLE` keys replaced by one li
 
 ## 10. Total count and offsets
 
-_pending_ (V3-CONV-06, D10): `query` answers no `totalCount` unless asked, a count beyond `resource.countLimit` is
-bounded (`totalCountExact: false`), and offsets beyond `resource.maxOffset` are refused.
+**What changed** (V3-CONV-06, D10, F19): `totalCount` of a query defaults to `false`, the response carrying
+`totalCount: null`. When asked, the count stops at `resource.countLimit` (10,000): beyond it the response has
+`totalCount: 10000` and the new `totalCountExact: false` (`true` for an exact count, `null` when not counted). An
+offset page skipping more than `resource.maxOffset` records (10,000) answers `400 RESOURCE_OFFSET_TOO_LARGE`.
+
+**Who is affected**: clients reading `totalCount` without asking for it, and clients paging by `page` past 10,000
+records.
+
+**Before**: `POST /posts/query { "size": 50 }` returns `"totalCount": 123456`.
+
+**After**: `POST /posts/query { "size": 50, "totalCount": true }` returns `"totalCount": 10000, "totalCountExact": false`.
+
+**Steps**: send `totalCount: true` on the first page where the number of pages is shown, and not on the next ones;
+follow `nextCursor` instead of `page` for deep pages; raise `resource.countLimit` or `resource.maxOffset` only where the
+database is known to answer them fast.
 
 ## 11. Aggregates
 
