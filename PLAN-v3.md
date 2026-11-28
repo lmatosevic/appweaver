@@ -1117,7 +1117,10 @@ a CR of its own, with its upgrade notes applied.
 
 **Done** on `v3/phase-0-preparation` (pull request into `main`), one commit per CR. Deviations from the steps above:
 `npm run check:unused` (knip) is a blocking check like `check:circular`, at the maintainer's request, its findings
-(F56) resolved in the same commit; osv-scanner stays non-blocking. The harness runs through the operations of
+(F56) resolved in the same commit. osv-scanner runs in a workflow of its own (`Vulnerabilities`), every Monday and by
+hand, never on a pull request: its first run found 110 known vulnerabilities, nearly all in the transitive dependencies
+of the sample lockfiles (locked to the published 2.10.1), the root lockfile holding `effect` (through Prisma) and the
+dev-only `glob` and `minimatch`; they are triaged with the dependency upgrades of V3-SEC-06. The harness runs through the operations of
 `npm run samples:manage` (`load`, `probe`, `load-summary`), each sample holding its load definition
 (`test/load/load.js`), at the maintainer's request, rather than root scripts. `load-summary` prints the tables below
 from the JSON reports of `reports/load`.
@@ -1610,7 +1613,7 @@ phase 1), V3-QA-02, V3-QA-03, V3-CLI-06. Effort: S < 1 day, M days, L a week, XL
 | V3-TOOL-05    | `@appweaver/tooling`, `weaver lint|format|test`, ESLint 10               | 2     | P1   | M      | Projects       |
 | V3-TOOL-06    | TypeBox 1.x (F27)                                                        | 2     | P1   | L      | Yes            |
 | V3-TOOL-08    | `@appweaver/skill`, `weaver skill sync`                                  | 2     | P1   | M      | No             |
-| V3-SEC-06     | `generate-api-key` replaced, audit triage (F35)                          | 2     | P2   | S      | No             |
+| V3-SEC-06     | `generate-api-key` replaced, audit and osv-scanner triage (F35)          | 2     | P2   | S      | No             |
 | V3-CONV-01    | `Duration` and `Size` (F17)                                              | 3     | P1   | L      | Yes            |
 | V3-CONV-02    | `actions` everywhere, bulk flags removed, `weaver routes` (F14)          | 3     | P1   | M      | Yes            |
 | V3-CONV-03    | Maintenance job registry (F16)                                           | 3     | P1   | M      | Yes (keys)     |

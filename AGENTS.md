@@ -97,8 +97,9 @@ describe('Feature Verification', () => {
 - **Continuous integration**: the `CI` workflow (`.github/workflows/ci.yml`) runs on every pull request to `main`
   and every push to it, in `node:24` containers set up by `.github/actions/setup` (npm 12, `npm ci`):
   `npm run format:check`, `npm run lint` (after `npm run build`, since the samples import the built packages),
-  `npm run check:circular` and `npm run check:unused`, then `npm test`. A job of osv-scanner reports the known
-  vulnerabilities of the lockfiles of the monorepo and the samples without failing the workflow. The test job uploads the coverage to Codecov (the `CODECOV_TOKEN` secret),
+  `npm run check:circular` and `npm run check:unused`, then `npm test`. The `Vulnerabilities` workflow
+  (`.github/workflows/vulnerabilities.yml`) runs osv-scanner over the lockfiles of the monorepo and the samples every
+  Monday and by hand, never on a pull request. The test job uploads the coverage to Codecov (the `CODECOV_TOKEN` secret),
   which the coverage badge of the READMEs reads and which reports the coverage diff of every pull request in its
   informational status checks, never failing, and without a comment (`codecov.yml`).
 - **Branch names**: a new branch is named after the work it holds, in kebab-case (`fix/realtime-input-errors`), never
