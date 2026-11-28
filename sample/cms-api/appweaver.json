@@ -127,6 +127,9 @@
       "memory": {
         "provider": "memory"
       },
+      "pubsub": {
+        "provider": "memory"
+      },
       "queue": {
         "provider": "memory"
       },
