@@ -58,6 +58,8 @@ export function upgradeCommand(program: Command): void {
       const updateTooling = !!command.getOptionValue('tooling');
       const dryRun = !!command.getOptionValue('dryRun');
       const targetVersion = command.getOptionValue('targetVersion');
+      // The project the packages are installed in, given to the package manager explicitly
+      const projectDir = process.cwd();
 
       // Load all currently installed packages
       const installedPackages: Record<string, string> = {};
@@ -155,7 +157,8 @@ export function upgradeCommand(program: Command): void {
       const status = await upgradePackages(
         Object.fromEntries(updates.map(({ name, to }) => [name, to])),
         force,
-        quiet
+        quiet,
+        projectDir
       );
 
       if (status === 0) {

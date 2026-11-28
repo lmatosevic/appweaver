@@ -4,11 +4,12 @@ import { injectCreated } from '@appweaver/core';
 import type { HttpServer } from '../../server/http-server';
 import { UserInfo } from '@appweaver/data';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
-import { fetchUserInfo, requireEmail } from './oauth2-util';
+import { fetchUserInfo, isTrue, requireEmail } from './oauth2-util';
 
 export type OAuth2UserInfo = {
   sub: string;
   email?: string;
+  email_verified?: boolean | string;
   given_name?: string;
   family_name?: string;
   picture?: string;
@@ -50,6 +51,7 @@ export async function fetchCustomUser(accessToken: string): Promise<UserInfo> {
   return {
     id: data.sub,
     email: requireEmail('Custom OAuth2', data.email),
+    emailVerified: isTrue(data.email_verified),
     firstName: data.given_name ?? '',
     lastName: data.family_name ?? '',
     avatarUrl: data.picture

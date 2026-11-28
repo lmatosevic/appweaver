@@ -710,13 +710,30 @@ describe('auth-service', () => {
       securityStore.useOneTimeToken.mockResolvedValue({
         authUserId: 1,
         authSource: AuthSource.OAuth2Google,
-        providerAccountId: '42'
+        providerAccountId: '42',
+        emailVerified: true
       });
       authUserService.find.mockResolvedValue(user({ verifiedEmail: false }));
 
       await service.exchangeToken('ott-token');
 
       expect(authUserService.update).toHaveBeenCalledWith(1, {
+        verifiedEmail: true
+      });
+    });
+
+    test('leaves the email unverified when the provider did not verify it', async () => {
+      securityStore.useOneTimeToken.mockResolvedValue({
+        authUserId: 1,
+        authSource: AuthSource.OAuth2Microsoft,
+        providerAccountId: '42',
+        emailVerified: false
+      });
+      authUserService.find.mockResolvedValue(user({ verifiedEmail: false }));
+
+      await service.exchangeToken('ott-token');
+
+      expect(authUserService.update).not.toHaveBeenCalledWith(1, {
         verifiedEmail: true
       });
     });

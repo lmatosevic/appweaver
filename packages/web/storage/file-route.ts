@@ -9,6 +9,10 @@ import {
   FileVersionQuery
 } from './file-schema';
 import { Server } from '../types/server';
+import {
+  contentDisposition,
+  USER_CONTENT_SECURITY_POLICY
+} from '../utils/http-util';
 
 /**
  * Registers the routes streaming the public and the protected files, supporting byte range requests.
@@ -41,8 +45,12 @@ export function files(server: Server): void {
     reply.header('Content-Type', data.mimeType ?? 'application/octet-stream');
     reply.header(
       'Content-Disposition',
-      'inline; filename="' + data.fileName + '"'
+      contentDisposition('inline', data.fileName)
     );
+    // The type of an upload is the one its client declared
+    if (data.mimeType !== 'application/pdf') {
+      reply.header('Content-Security-Policy', USER_CONTENT_SECURITY_POLICY);
+    }
     reply.header('Pragma', 'public');
     reply.header(
       'Cache-Control',

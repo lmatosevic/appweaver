@@ -234,6 +234,14 @@ local database.
 | `check [options]` | Check whether the models need a new migration, print its SQL |
 | `reset [options]` | Reset the database                                           |
 
+### `weaver migration new`
+
+Runs `prisma migrate dev --name <name>`: creates the migration of the model changes and applies it to the local
+database. With `--create-only`, the migration is created without being applied, so its `migration.sql` can be edited
+first (custom SQL Prisma does not generate: a trigger, a view, an expression or partial index, an extension), then
+applied by `weaver migration new` again or `weaver migrate`. Prisma drops by the next migration what it can model but
+the Prisma schema does not declare (a column, a plain index), so only add objects Prisma cannot model this way.
+
 ### `weaver migration check`
 
 Tells whether the models changed without a migration, like `makemigrations --check` of Django. It builds the Prisma

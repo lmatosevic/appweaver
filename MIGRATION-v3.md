@@ -33,7 +33,7 @@ startup.
 | [15. Cache scopes](#15-cache-scopes)                                        | V3-WEB-01    | `cache` of the routes            | pending |
 | [16. Forced 2FA](#16-forced-2fa)                                            | V3-WEB-02    | `forced` of the 2FA config       | pending |
 | [17. Generated client](#17-generated-client)                                | V3-CLIENT-01, V3-CLIENT-03 | `weaver-client generate` output | pending |
-| [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails) | V3-SEC-05 | OAuth2 providers           | pending |
+| [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails) | V3-SEC-05 | OAuth2 providers           | done    |
 | [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101) | V3-SEC-01..04 | Filters, body size, CSV export | done |
 
 Each section follows the same layout: **What changed**, **Who is affected**, **Before**, **After**, **Steps**.
@@ -147,7 +147,25 @@ aliases derived from generic types, doc comments opt-in (`--comments`).
 
 ## 18. OAuth2 sign-in and unverified emails
 
-_pending_ (V3-SEC-05, F8): see the note of the phase 1 pull request; filled once the behavior is final.
+**What changed** (V3-SEC-05, F8): every provider reports whether it verified the email address
+(`UserInfo.emailVerified`). A provider account is linked to an existing user without a password only when the provider
+verified the address or the account is already linked to that user, otherwise the callback answers
+`403 OAUTH2_EMAIL_UNVERIFIED`. A user registered by an OAuth2 sign-in, and the exchange of an existing user's sign-in,
+mark the email verified only when the provider verified it.
+
+**Who is affected**: applications with OAuth2 users without a password who sign in with a second provider that does not
+verify addresses (Microsoft, an OpenID Connect issuer omitting `email_verified`), and applications defining their own
+provider with `createOAuth2Plugin`.
+
+**Before**: `extractUserInfo` returns `{ id, email, firstName, lastName }`; every OAuth2 registration has
+`verifiedEmail: true`.
+
+**After**: `extractUserInfo` returns `emailVerified: true` for an address the provider verified; Microsoft users are
+registered with `verifiedEmail: false`.
+
+**Steps**: return `emailVerified` from the `extractUserInfo` of your own providers; list `OAUTH2_EMAIL_UNVERIFIED` in
+the error handling of the OAuth2 sign-in page of the client; let the Microsoft users verify their address through
+`POST /auth/account/send-verify-email` where the application requires a verified one.
 
 ## 19. Changes already released in 2.10.1
 

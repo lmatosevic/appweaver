@@ -123,10 +123,30 @@ describe('filter-util', () => {
       });
 
       test('maps the case-insensitive like operator', () => {
-        expect(map({ title: { _ilike: '%avatar%' } })).toEqual({
-          title: { contains: 'avatar', mode: 'insensitive' }
-        });
+        configOverrides.DATABASE_TYPE = 'postgresql';
+        try {
+          expect(map({ title: { _ilike: '%avatar%' } })).toEqual({
+            title: { contains: 'avatar', mode: 'insensitive' }
+          });
+        } finally {
+          delete configOverrides.DATABASE_TYPE;
+        }
       });
+
+      // Prisma rejects the mode on the other databases, whose collation compares without the case by default
+      test.each(['sqlite', 'mysql', 'sqlserver'])(
+        'maps the case-insensitive like operator without a mode on %s',
+        (type) => {
+          configOverrides.DATABASE_TYPE = type;
+          try {
+            expect(map({ title: { _ilike: '%avatar%' } })).toEqual({
+              title: { contains: 'avatar' }
+            });
+          } finally {
+            delete configOverrides.DATABASE_TYPE;
+          }
+        }
+      );
 
       test('maps the string matching operators', () => {
         expect(

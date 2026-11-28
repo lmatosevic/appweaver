@@ -196,6 +196,7 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `ACCOUNT_2FA_TOO_MANY_ATTEMPTS`      | 429    | Too many 2FA attempts                 |
 | `OAUTH2_PROVIDER_ERROR`              | 502    | OAuth2 provider error                 |
 | `OAUTH2_EMAIL_UNAVAILABLE`           | 403    | OAuth2 email unavailable              |
+| `OAUTH2_EMAIL_UNVERIFIED`            | 403    | OAuth2 email unverified               |
 | `OAUTH2_REGISTRATION_DISABLED`       | 403    | OAuth2 registration disabled          |
 | `OAUTH2_ACCOUNT_CONFLICT`            | 409    | OAuth2 account linked to another user |
 | `OAUTH2_USER_REJECTED`               | 403    | OAuth2 user rejected                  |

@@ -1172,7 +1172,7 @@ request is validated; the service methods check the same limits. A JSON body is 
 | `_in`, `_nin`                   | Included / not included in the given list.                                                                                   |
 | `_between`                      | Inside the inclusive `[min, max]` range.                                                                                     |
 | `_like`                         | SQL LIKE pattern with `%` wildcards (`Luk%` → starts with, `%avatar%` → contains, `%png` → ends with, no wildcard → equals). |
-| `_ilike`                        | Case-insensitive `_like` (uses `mode: 'insensitive'`, PostgreSQL and MongoDB only).                                          |
+| `_ilike`                        | Case-insensitive `_like`: `mode: 'insensitive'` on PostgreSQL, the collation elsewhere (insensitive by default, ASCII only on SQLite). |
 | `_starts`, `_ends`, `_contains` | Starts with / ends with / contains the given string.                                                                         |
 | `_exists`                       | Not null (`true`) or null (`false`).                                                                                         |
 | `_not`                          | Negates a nested operator object or plain value.                                                                             |

@@ -10,6 +10,9 @@ export type UserInfo = {
   email: string;
   firstName: string;
   lastName: string;
+  /** Whether the provider verified the email address. An unverified one never links the provider account to an
+   * existing user without a password, and registers the user with an unverified email. */
+  emailVerified?: boolean;
   avatarUrl?: string;
   avatarFile?: AvatarFile;
 };

@@ -33,6 +33,7 @@ describe('fetchMicrosoftUser', () => {
     await expect(fetchMicrosoftUser('token-value')).resolves.toEqual({
       id: '9f4e-1234',
       email: 'ada@contoso.com',
+      emailVerified: false,
       firstName: 'Ada',
       lastName: 'Lovelace',
       avatarFile: {
@@ -45,7 +46,7 @@ describe('fetchMicrosoftUser', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://graph.microsoft.com/v1.0/me'
     );
-    expect(fetchMock.mock.calls[1][0]).toBe(
+    expect(String(fetchMock.mock.calls[1][0] as string | URL)).toBe(
       'https://graph.microsoft.com/v1.0/me/photo/$value'
     );
   });

@@ -35,6 +35,8 @@ export async function fetchFacebookUser(
   return {
     id: data.id,
     email: requireEmail('Facebook', data.email),
+    // The Graph API returns no `email` unless the account has a confirmed one
+    emailVerified: true,
     ...splitFullName(data.name),
     avatarUrl: data.picture?.data?.url
   };

@@ -219,6 +219,10 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     status: 403,
     title: 'OAuth2 email unavailable'
   },
+  [ErrorCode.OAuth2EmailUnverified]: {
+    status: 403,
+    title: 'OAuth2 email unverified'
+  },
   [ErrorCode.OAuth2RegistrationDisabled]: {
     status: 403,
     title: 'OAuth2 registration disabled'

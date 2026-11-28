@@ -39,6 +39,7 @@ import {
 } from '@appweaver/core';
 import { Server } from '../types/server';
 import { registerSeriesRoutes } from '../timeseries/series-routes';
+import { contentDisposition } from '../utils/http-util';
 
 type FullRouteConfig = RouteConfig &
   RouteCacheConfig &
@@ -376,7 +377,7 @@ export function resourceRoutes(
             .type(response.mimeType)
             .header(
               'Content-Disposition',
-              `attachment; filename="${response.fileName}"`
+              contentDisposition('attachment', response.fileName)
             )
             .send(response.stream);
         }

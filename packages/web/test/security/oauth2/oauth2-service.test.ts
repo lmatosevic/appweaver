@@ -172,6 +172,67 @@ describe('oauth2-service', () => {
     });
   });
 
+  describe('checkEmailVerified', () => {
+    const info = (emailVerified?: boolean) =>
+      ({ id: '42', email: 'user@test.com', emailVerified }) as any;
+
+    test('passes for an address the provider verified', async () => {
+      await expect(
+        service.checkEmailVerified(user(), AuthSource.OAuth2Google, info(true))
+      ).resolves.toBeUndefined();
+      expect(connectedAccountService.single).not.toHaveBeenCalled();
+    });
+
+    test('passes for a user with a password, who confirms the link with it', async () => {
+      await expect(
+        service.checkEmailVerified(
+          user({ passwordHash: 'hash' }),
+          AuthSource.OAuth2Microsoft,
+          info(false)
+        )
+      ).resolves.toBeUndefined();
+    });
+
+    test('passes for a provider account already linked to the user', async () => {
+      connectedAccountService.single.mockResolvedValue({ id: 3, userId: 1 });
+
+      await expect(
+        service.checkEmailVerified(user(), AuthSource.OAuth2Microsoft, info())
+      ).resolves.toBeUndefined();
+    });
+
+    test('rejects an unverified address of a user without a password', async () => {
+      await expect(
+        service.checkEmailVerified(
+          user(),
+          AuthSource.OAuth2Microsoft,
+          info(false)
+        )
+      ).rejects.toMatchObject({
+        code: ErrorCode.OAuth2EmailUnverified,
+        details: { provider: AuthSource.OAuth2Microsoft }
+      });
+    });
+
+    test('rejects it when the provider account is linked to another user', async () => {
+      connectedAccountService.single.mockResolvedValue({ id: 3, userId: 99 });
+
+      await expect(
+        service.checkEmailVerified(user(), AuthSource.OAuth2Gitlab, info())
+      ).rejects.toMatchObject({ code: ErrorCode.OAuth2EmailUnverified });
+    });
+
+    test('rejects it when there is no link table to remember a link', async () => {
+      await expect(
+        serviceWithoutConnectedAccounts().checkEmailVerified(
+          user(),
+          AuthSource.OAuth2Gitlab,
+          info(false)
+        )
+      ).rejects.toMatchObject({ code: ErrorCode.OAuth2EmailUnverified });
+    });
+  });
+
   describe('findConnectedAccount', () => {
     test('returns null when connected accounts are not tracked', async () => {
       await expect(

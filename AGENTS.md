@@ -46,6 +46,9 @@ Tests are located in `packages/*/test` and use **Jest** with **SWC** for fast ex
 - **Test helpers**: `resetContext`, `linkModels`, `createDatabaseStub`, `prismaError`, `sourceLoggerNames`,
   `cliConventionViolations` and `recordTelemetry` of `@appweaver/testing` (`packages/testing`), shared by the tests of
   every package
+- **Package installs**: a test never installs packages in the repository. `jest.setup.js` fails a spawned
+  `npm|bun|yarn|pnpm install|add|...` whose directory is inside it, so a command installing packages is mocked, or given
+  a temporary project as its explicit `cwd`, never one reached by `process.chdir()` alone
 - **Contract suites**: the test of a driver runs the suite of its contract from `@appweaver/testing`, i.e.
   `testStorageContract('FilesystemStorage', () => new FilesystemStorage())` (see `packages/testing`)
 
@@ -837,10 +840,11 @@ Database migration commands for development.
 Create a new database migration.
 
 ```
-weaver migration new <name>
+weaver migration new <name> [--create-only]
 ```
 
-Executes `prisma migrate dev --name <name>`.
+Executes `prisma migrate dev --name <name>`, with `--create-only` when given: the migration is created without being
+applied, so its `migration.sql` can be edited first (custom SQL Prisma does not generate, see D22 of `PLAN-v3.md`).
 
 #### `weaver migration check`
 

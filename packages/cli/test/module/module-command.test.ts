@@ -101,7 +101,7 @@ describe('module-command', () => {
       expect(runProcess).toHaveBeenCalledWith(
         'npm',
         ['install', '--ignore-scripts', '@acme/appweaver-gcs'],
-        expect.any(Object)
+        expect.objectContaining({ cwd: dir })
       );
       expect(logs).toContain('Package @acme/appweaver-gcs is not installed.');
     });
@@ -137,8 +137,10 @@ describe('module-command', () => {
       expect(
         fs.readFileSync(path.join(dir, 'docker-compose.yml'), 'utf8')
       ).toContain('image: redis:7.4.9');
+      // Given the project explicitly, never the directory a test or a shell happens to be in
       expect(runProcess).toHaveBeenCalledWith('npm', ['install'], {
-        quiet: true
+        quiet: true,
+        cwd: dir
       });
     });
 

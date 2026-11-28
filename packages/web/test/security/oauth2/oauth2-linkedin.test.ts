@@ -10,6 +10,7 @@ describe('fetchLinkedinUser', () => {
     mockUserInfoResponse({
       sub: 'aBcDeF',
       email: 'ada@example.com',
+      email_verified: true,
       given_name: 'Ada',
       family_name: 'Lovelace',
       picture: 'https://media.licdn.com/avatar.jpg'
@@ -18,6 +19,7 @@ describe('fetchLinkedinUser', () => {
     await expect(fetchLinkedinUser('token-value')).resolves.toEqual({
       id: 'aBcDeF',
       email: 'ada@example.com',
+      emailVerified: true,
       firstName: 'Ada',
       lastName: 'Lovelace',
       avatarUrl: 'https://media.licdn.com/avatar.jpg'
@@ -34,6 +36,14 @@ describe('fetchLinkedinUser', () => {
     await expect(fetchLinkedinUser('token-value')).resolves.toMatchObject({
       firstName: 'Ana',
       lastName: 'Maria da Silva'
+    });
+  });
+
+  test('should report an address without the email_verified claim as unverified', async () => {
+    mockUserInfoResponse({ sub: 'aBcDeF', email: 'ada@example.com' });
+
+    await expect(fetchLinkedinUser('token-value')).resolves.toMatchObject({
+      emailVerified: false
     });
   });
 

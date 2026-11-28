@@ -148,7 +148,9 @@ export const modules: Record<ModuleName, ModuleDefinition> = {
     requires: [],
     enabledConfig: () => [
       ['config.memory.redis.url', 'redis://${REDIS_HOST:-localhost}:6379/0'],
-      ['environments.test.memory.provider', 'memory']
+      // The tests run without a Redis, the pub/sub of the job results and the realtime events included
+      ['environments.test.memory.provider', 'memory'],
+      ['environments.test.pubsub.provider', 'memory']
     ],
     disabledConfig: []
   },

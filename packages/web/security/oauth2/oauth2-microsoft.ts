@@ -53,6 +53,9 @@ export async function fetchMicrosoftUser(
     id: data.id,
     // Work accounts expose `mail`, personal ones only the principal name.
     email: requireEmail('Microsoft', data.mail ?? data.userPrincipalName),
+    // Microsoft Graph does not report whether the address was verified, and the `mail` of a work account is whatever
+    // its tenant administrator set, so it never links an existing account by itself
+    emailVerified: false,
     firstName: data.givenName ?? firstName,
     lastName: data.surname ?? lastName,
     // Microsoft Graph serves the photo as authenticated binary content, so it has to be downloaded here.

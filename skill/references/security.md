@@ -365,9 +365,22 @@ password, and users being registered by the current sign-in, are never asked. Th
 check only ever fires where skipping it would hand the account over. Without a `ConnectedAccount` table there is nowhere
 to record the confirmation, so the password is asked on every sign-in instead.
 
-A local `verifiedEmail: false` does not block the sign-in — the provider vouches for the address and the password
-confirms the account, which together prove more than local verification would. The address is marked verified once the
-exchange succeeds.
+A user **without a password** has nothing to confirm the link with, so a provider account is linked to them only when
+the provider verified the address (`UserInfo.emailVerified`), or the provider account is already linked to them;
+otherwise the callback fails with `403 OAUTH2_EMAIL_UNVERIFIED`. The providers report it as follows:
+
+| Provider                           | `emailVerified`                                                        |
+|------------------------------------|------------------------------------------------------------------------|
+| Google                             | `verified_email` (v2 user info) or `email_verified` (OpenID Connect)   |
+| Apple, LinkedIn, custom            | the `email_verified` claim (`true` or `"true"`), unverified without it |
+| GitLab                             | `confirmed_at` of the user                                             |
+| GitHub, Facebook, X                | always: they return only a verified (confirmed) address                |
+| Microsoft                          | never: Microsoft Graph does not say, and a tenant sets `mail` freely   |
+
+A user registered by an OAuth2 sign-in gets `verifiedEmail` from the provider, so a Microsoft user verifies the address
+through the account routes like a password user. A local `verifiedEmail: false` does not block the sign-in of an
+existing user; the exchange marks the address verified only when the provider verified it. A provider of an
+application (`createOAuth2Plugin`) returns `emailVerified` from its `extractUserInfo`, unverified when left out.
 
 ### Connected accounts
 
@@ -427,7 +440,10 @@ export default createAuthService({
 `additionalData.avatarUrl` and the downloaded image as `additionalData.avatarFile`
 (`{ name, mimeType, size, data: Buffer }`). `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED=false` (JSON:
 `security.oauth2.fetchAvatarEnabled`) skips the download, leaving `avatarFile` `undefined`. The download is best-effort:
-failures are logged and registration proceeds without the file.
+failures are logged and registration proceeds without the file. Since the URL comes from a profile, it is fetched only
+over HTTPS, never from a local host or a private address literal (a host name resolving to one is not detected),
+following at most 3 redirects to such URLs (the access token of Microsoft only to the URL itself), within 10 seconds
+and 5 MB, and kept only as a JPEG, PNG, GIF, WebP or AVIF image.
 
 **`registrationFiles` callback** — an optional callback on `createAuthService` that attaches the avatar (or any other
 file) to a newly registered user. A file must be linked to an existing resource, so it cannot be part of the

@@ -1,6 +1,11 @@
 import fastify from 'fastify';
 import Wreck from '@hapi/wreck';
-import { AuthSource, SecurityStore } from '@appweaver/common';
+import {
+  AuthSource,
+  ErrorCode,
+  OAuth2Error,
+  SecurityStore
+} from '@appweaver/common';
 import { define } from '@appweaver/core';
 import { errorHandler } from '../../../errors/error-handler';
 import { ProblemDetailsSchema } from '../../../errors';
@@ -44,6 +49,7 @@ let findByUsername: jest.Mock;
 let useOneTimeToken: jest.Mock;
 let generateOneTimeToken: jest.Mock;
 let requiresPasswordConfirmation: jest.Mock;
+let checkEmailVerified: jest.Mock;
 let tokenRequest: jest.Mock;
 
 /** Creates a bare fastify instance with the same schema setup as `createServer`. */
@@ -104,12 +110,16 @@ beforeEach(() => {
   registerAuthUser = jest.fn().mockResolvedValue(authUser);
   useOneTimeToken = jest.fn().mockResolvedValue({ redirectToUrl: REDIRECT_TO });
   requiresPasswordConfirmation = jest.fn().mockResolvedValue(false);
+  checkEmailVerified = jest.fn().mockResolvedValue(undefined);
   generateOneTimeToken = jest
     .fn()
     .mockImplementation(async (purpose: string) => `${purpose}-token`);
 
   define({ findByUsername, registerAuthUser }, AuthService);
-  define({ requiresPasswordConfirmation, checkUser: jest.fn() }, OAuth2Service);
+  define(
+    { requiresPasswordConfirmation, checkEmailVerified, checkUser: jest.fn() },
+    OAuth2Service
+  );
   define({ generateOneTimeToken, useOneTimeToken }, SecurityStore);
 });
 
@@ -364,7 +374,8 @@ describe('createOAuth2Plugin', () => {
       AuthSource.OAuth2Microsoft,
       'ada@example.com',
       undefined,
-      expect.objectContaining({ avatarFile })
+      expect.objectContaining({ avatarFile }),
+      { verifiedEmail: false }
     );
     await server.close();
   });
@@ -398,7 +409,8 @@ describe('createOAuth2Plugin', () => {
       AuthSource.OAuth2Google,
       'ada@example.com',
       undefined,
-      expect.objectContaining({ avatarUrl, avatarFile })
+      expect.objectContaining({ avatarUrl, avatarFile }),
+      { verifiedEmail: false }
     );
     await server.close();
   });
@@ -420,7 +432,8 @@ describe('createOAuth2Plugin', () => {
         authSource: AuthSource.OAuth2Google,
         providerAccountId: '42',
         scope: 'profile email',
-        passwordRequired: false
+        passwordRequired: false,
+        emailVerified: false
       },
       expect.any(Number)
     );
@@ -474,6 +487,58 @@ describe('createOAuth2Plugin', () => {
     expect(callback.statusCode).toBe(302);
     expect(callback.headers.location).toBe(
       `${REDIRECT_TO}?token=authentication-token`
+    );
+    await server.close();
+  });
+
+  test('should register a user with the address the provider verified as verified', async () => {
+    findByUsername.mockResolvedValue(null);
+    const server = await startServer(AuthSource.OAuth2Google, {
+      extractUserInfo: async () => ({ ...userInfo, emailVerified: true })
+    });
+
+    await server.inject({
+      method: 'GET',
+      url: '/auth/login/google/callback?code=auth-code&state=oauth2state-token'
+    });
+
+    expect(registerAuthUser).toHaveBeenCalledWith(
+      AuthSource.OAuth2Google,
+      'ada@example.com',
+      undefined,
+      expect.any(Object),
+      { verifiedEmail: true }
+    );
+    expect(checkEmailVerified).not.toHaveBeenCalled();
+    await server.close();
+  });
+
+  test('should refuse to link an existing user by an address the provider did not verify', async () => {
+    checkEmailVerified.mockRejectedValue(
+      new OAuth2Error(
+        ErrorCode.OAuth2EmailUnverified,
+        'The provider has not verified the email address of this account',
+        { provider: AuthSource.OAuth2Microsoft }
+      )
+    );
+    const server = await startServer(AuthSource.OAuth2Microsoft);
+
+    const callback = await server.inject({
+      method: 'GET',
+      url: '/auth/login/microsoft/callback?code=auth-code&state=oauth2state-token'
+    });
+
+    expect(callback.statusCode).toBe(403);
+    expect(callback.json()).toMatchObject({ code: 'OAUTH2_EMAIL_UNVERIFIED' });
+    expect(checkEmailVerified).toHaveBeenCalledWith(
+      authUser,
+      AuthSource.OAuth2Microsoft,
+      userInfo
+    );
+    expect(generateOneTimeToken).not.toHaveBeenCalledWith(
+      'authentication',
+      expect.anything(),
+      expect.anything()
     );
     await server.close();
   });

@@ -1,12 +1,15 @@
 import {
+  DatabaseType,
   ErrorCode,
   extractResourceName,
   extractSchemaProperties,
   isArray,
   isPlainObject,
+  resolveDatabaseType,
   ResourceError
 } from '@appweaver/common';
 import { injectModel } from '@appweaver/core';
+import { databaseConfig } from '../../database/database-config';
 import { resourceConfig } from '../resource-config';
 import { liveRelationFilter } from './delete-util';
 
@@ -130,6 +133,17 @@ export class ResolvedFilterConditions {
 }
 
 /**
+ * The insensitive mode of Prisma, which only PostgreSQL has: SQLite, MySQL and SQL Server compare with the collation of
+ * the column, insensitive to the case by default (ASCII only on SQLite), and Prisma rejects the mode there.
+ */
+function insensitiveMode(): { mode?: 'insensitive' } {
+  return resolveDatabaseType(databaseConfig.TYPE, databaseConfig.URL) ===
+    DatabaseType.PostgreSQL
+    ? { mode: 'insensitive' }
+    : {};
+}
+
+/**
  * Field comparison operators mapped to their database query conditions.
  * Operators combined in the same object are merged into a single condition.
  */
@@ -144,7 +158,7 @@ const fieldOperators: Record<string, (value: any) => Record<string, any>> = {
   _nin: (value) => ({ notIn: asArray(value) }),
   _between: (value) => ({ gte: value?.[0], lte: value?.[1] }),
   _like: (value) => likePattern(value),
-  _ilike: (value) => ({ ...likePattern(value), mode: 'insensitive' }),
+  _ilike: (value) => ({ ...likePattern(value), ...insensitiveMode() }),
   _starts: (value) => ({ startsWith: value }),
   _ends: (value) => ({ endsWith: value }),
   _contains: (value) => ({ contains: value }),

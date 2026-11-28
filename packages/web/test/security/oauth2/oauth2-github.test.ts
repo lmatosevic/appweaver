@@ -18,6 +18,7 @@ describe('fetchGithubUser', () => {
     await expect(fetchGithubUser('token-value')).resolves.toEqual({
       id: '42',
       email: 'ada@example.com',
+      emailVerified: true,
       firstName: 'Ada',
       lastName: 'Lovelace',
       avatarUrl: 'https://avatars.githubusercontent.com/u/42'

@@ -357,8 +357,9 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     this.ignoreLateErrors(this._queue);
 
     for (const worker of this._workers) {
-      // Running jobs cannot finish while Redis is down
-      await worker.close(!connected);
+      // Running jobs cannot finish while Redis is down, nor while the worker
+      // reconnects its blocking connection
+      await worker.close(!connected || !(await this.isBlockingReady(worker)));
       this.ignoreLateErrors(worker);
     }
 
@@ -368,6 +369,24 @@ class BullQueueProcessor<Data = any, Response = any> extends QueueProcessor<
     } else {
       this._connection.disconnect();
     }
+  }
+
+  /**
+   * Whether the blocking connection of a worker, the one it waits for the jobs with, is connected. BullMQ drops it when
+   * a blocking command outlives its timeout, which a blocked event loop (i.e. the synchronous statements of SQLite)
+   * makes happen, and a worker closing while it reconnects never finishes closing unless forced, so the application
+   * would never stop. Its running jobs are then released, and retried as stalled ones.
+   *
+   * @internal
+   */
+  private async isBlockingReady(worker: Worker): Promise<boolean> {
+    const connection = (
+      worker as unknown as {
+        blockingConnection?: { client: Promise<RedisClient> };
+      }
+    ).blockingConnection;
+    const client = await connection?.client.catch(() => undefined);
+    return !client || client.status === 'ready';
   }
 
   /** BullMQ emits the failure of every attempt, the job is retried while it has attempts left. */

@@ -20,6 +20,7 @@ describe('fetchXUser', () => {
     await expect(fetchXUser('token-value')).resolves.toEqual({
       id: '1234567890',
       email: 'ada@gmail.com',
+      emailVerified: true,
       firstName: 'Ada',
       lastName: 'Lovelace',
       avatarUrl: 'https://pbs.twimg.com/pic_400x400.jpg'
