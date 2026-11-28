@@ -1095,6 +1095,150 @@ a CR of its own, with its upgrade notes applied.
 
 **Gate 0**: the numbers of every sample recorded; the harness reviewed.
 
+**Done** on `v3/phase-0-preparation` (pull request into `main`), one commit per CR. Deviations from the steps above:
+`npm run check:unused` (knip) is a blocking check like `check:circular`, at the maintainer's request, its findings
+(F56) resolved in the same commit; osv-scanner stays non-blocking. `npm run load:summary` prints the tables below
+from the JSON reports of `reports/load`.
+
+#### Phase 0 baselines (step 0.4)
+
+**Environment**: 4 vCPU (Xeon 2.3 GHz), 16 GB, Node 24.22.3, Bun 1.4.4, Docker 29 with the images of the compose
+files of the samples (TimescaleDB 2.31 on PostgreSQL 18, `timescaledb-ha` with PostGIS, MariaDB 11.4, SQL Server
+2022, Redis 7.4), `main` at 2.10.1 with the BullMQ shutdown fix of phase 1 (V3-BUG-02, which only changes the
+shutdown). Each sample was set up with `npm run load -- <sample> --setup`, started with `NODE_ENV=prod` and the rate
+limiter off, and loaded for 10 s per scenario: at 10k rows with 20 connections, then at 100k rows with 1 connection
+(the latency of one request) and 20. The rows are those of the main model of the sample (`seed` of
+`tools/load/samples/<sample>.js`); every request carries a random value, so the response cache answers only
+`query-cached` (on the routes declaring a cache: not those of `helpdesk-api`, `inbox-processor` and
+`vehicle-tracking-api`). The probe ran on the 100k database: 60 s of idle, then 60 s of soak with 10 connections.
+The numbers of `cms-api` differ from E2: since 2.10.1 its anonymous reads see the published posts only, with the
+`(status, createdAt, id)` index.
+
+##### `cms-api` (sqlite, node)
+
+| Scenario                | 10k, 20 conn.: req/s, p50, p99 | 100k, 1 conn.: req/s, p50, p99 | 100k, 20 conn.: req/s, p50, p99 |
+|-------------------------|--------------------------------|--------------------------------|---------------------------------|
+| `find`                  | 594.4, 29 ms, 67 ms            | 314.2, 2 ms, 16 ms             | 599, 28 ms, 71 ms               |
+| `query-count`           | 114.3, 166 ms, 280 ms          | 10.4, 98 ms, 127 ms            | 8.2, 1664 ms, 6927 ms           |
+| `query`                 | 194.6, 95 ms, 186 ms           | 145.2, 6 ms, 17 ms             | 201.3, 91 ms, 184 ms            |
+| `query-deep-page`       | 162.8, 118 ms, 224 ms          | 13.8, 78 ms, 121 ms            | 12.8, 1503 ms, 2351 ms          |
+| `query-filter-sort`     | 178.2, 105 ms, 168 ms          | 127.1, 6 ms, 20 ms             | 180, 101 ms, 704 ms             |
+| `query-text-search`     | 107.4, 180 ms, 328 ms          | 6.9, 139 ms, 214 ms            | 6.1, 2751 ms, 3558 ms           |
+| `query-relation-filter` | 154.3, 123 ms, 250 ms          | 104.9, 8 ms, 24 ms             | 120.2, 137 ms, 1553 ms          |
+| `query-cached`          | 1,280.8, 11 ms, 44 ms          | 809.9, 0 ms, 15 ms             | 1,493.7, 9 ms, 36 ms            |
+| `aggregate-year`        | 48.8, 394 ms, 507 ms           | 3.2, 300 ms, 377 ms            | 3.2, 4705 ms, 7036 ms           |
+
+##### `helpdesk-api` (mysql, node)
+
+| Scenario            | 10k, 20 conn.: req/s, p50, p99 | 100k, 1 conn.: req/s, p50, p99 | 100k, 20 conn.: req/s, p50, p99 |
+|---------------------|--------------------------------|--------------------------------|---------------------------------|
+| `find`              | 567.2, 34 ms, 58 ms            | 370.1, 2 ms, 6 ms              | 801.1, 24 ms, 44 ms             |
+| `query-count`       | 173, 110 ms, 180 ms            | 17.9, 52 ms, 86 ms             | 71.7, 276 ms, 367 ms            |
+| `query`             | 199.7, 95 ms, 163 ms           | 22.4, 41 ms, 63 ms             | 89.6, 212 ms, 403 ms            |
+| `query-deep-page`   | 134.6, 142 ms, 274 ms          | 4.4, 221 ms, 358 ms            | 16.1, 1193 ms, 2074 ms          |
+| `query-filter-sort` | 209.8, 88 ms, 164 ms           | 149.6, 6 ms, 13 ms             | 212.2, 84 ms, 165 ms            |
+| `query-text-search` | 383.5, 50 ms, 83 ms            | 13.9, 68 ms, 109 ms            | 55.4, 377 ms, 511 ms            |
+| `query-cached`      | 225.7, 85 ms, 136 ms           | 24.6, 37 ms, 61 ms             | 74.7, 227 ms, 842 ms            |
+| `aggregate-year`    | 119.8, 164 ms, 241 ms          | 3.9, 242 ms, 300 ms            | 12.7, 1467 ms, 2029 ms          |
+
+##### `hr-api` (sqlserver, node)
+
+| Scenario            | 10k, 20 conn.: req/s, p50, p99 | 100k, 1 conn.: req/s, p50, p99 | 100k, 20 conn.: req/s, p50, p99 |
+|---------------------|--------------------------------|--------------------------------|---------------------------------|
+| `find`              | 198.4, 94 ms, 239 ms           | 129, 7 ms, 16 ms               | 245.2, 78 ms, 127 ms            |
+| `query-count`       | 112.9, 171 ms, 253 ms          | 21.6, 44 ms, 68 ms             | 69.6, 286 ms, 421 ms            |
+| `query`             | 120.8, 161 ms, 250 ms          | 89, 10 ms, 18 ms               | 112.9, 168 ms, 252 ms           |
+| `query-deep-page`   | 51.5, 374 ms, 614 ms           | 2.5, 413 ms, 684 ms            | 6.1, 2550 ms, 5282 ms           |
+| `query-filter-sort` | 111.3, 171 ms, 456 ms          | 14, 66 ms, 114 ms              | 44.1, 398 ms, 1290 ms           |
+| `query-text-search` | 71.8, 262 ms, 444 ms           | 2.3, 400 ms, 574 ms            | 9.1, 1848 ms, 3470 ms           |
+| `query-cached`      | 1,966.8, 8 ms, 22 ms           | 1,334.4, 0 ms, 1 ms            | 1,659.7, 9 ms, 21 ms            |
+| `aggregate-year`    | 89.4, 219 ms, 301 ms           | 2.7, 363 ms, 447 ms            | 12.3, 1490 ms, 1974 ms          |
+
+##### `inbox-processor` (sqlite, node)
+
+| Scenario            | 10k, 20 conn.: req/s, p50, p99 | 100k, 1 conn.: req/s, p50, p99 | 100k, 20 conn.: req/s, p50, p99  |
+|---------------------|--------------------------------|--------------------------------|----------------------------------|
+| `find`              | 2,237, 7 ms, 22 ms             | 1,717.4, 0 ms, 1 ms            | 2,369.5, 7 ms, 18 ms             |
+| `query-count`       | 272.4, 69 ms, 149 ms           | 31.1, 31 ms, 47 ms             | 34.5, 532 ms, 3998 ms            |
+| `query`             | 357, 51 ms, 122 ms             | 57, 16 ms, 27 ms               | 59, 301 ms, 2234 ms              |
+| `query-deep-page`   | 77.8, 229 ms, 1035 ms          | 3.3, 286 ms, 499 ms            | 3.3, 1427 ms, 7975 ms            |
+| `query-filter-sort` | 442.6, 39 ms, 87 ms            | 67.3, 14 ms, 23 ms             | 25, 237 ms, 8547 ms              |
+| `query-text-search` | 323.4, 58 ms, 123 ms           | 36.8, 26 ms, 38 ms             | 32.5, 534 ms, 4539 ms            |
+| `query-cached`      | 409.3, 45 ms, 97 ms            | 62.7, 15 ms, 21 ms             | 61.6, 272 ms, 1836 ms            |
+| `aggregate-year`    | 42.6, 397 ms, 3021 ms          | 3.4, 287 ms, 345 ms            | 3, 1638 ms, 9942 ms, 12 timeouts |
+
+##### `movies-api-bun` (sqlite (libsql), bun)
+
+| Scenario                | 10k, 20 conn.: req/s, p50, p99 | 100k, 1 conn.: req/s, p50, p99 | 100k, 20 conn.: req/s, p50, p99 |
+|-------------------------|--------------------------------|--------------------------------|---------------------------------|
+| `find`                  | 630, 29 ms, 56 ms              | 546.6, 1 ms, 5 ms              | 614.3, 30 ms, 64 ms             |
+| `query-count`           | 80.1, 241 ms, 336 ms           | 15.3, 64 ms, 87 ms             | 13.8, 1438 ms, 1510 ms          |
+| `query`                 | 107.8, 176 ms, 314 ms          | 19.5, 50 ms, 73 ms             | 16.7, 1025 ms, 2420 ms          |
+| `query-deep-page`       | 41.9, 463 ms, 638 ms           | 4.2, 260 ms, 374 ms            | 3.2, 5198 ms, 7300 ms           |
+| `query-filter-sort`     | 232.6, 82 ms, 158 ms           | 236.4, 3 ms, 10 ms             | 152.4, 76 ms, 4231 ms           |
+| `query-text-search`     | 241, 80 ms, 154 ms             | 30.4, 32 ms, 46 ms             | 33.7, 579 ms, 663 ms            |
+| `query-relation-filter` | 106.7, 180 ms, 275 ms          | 14.2, 67 ms, 104 ms            | 13.7, 1351 ms, 1933 ms          |
+| `query-cached`          | 3,371.1, 5 ms, 13 ms           | 2,204.4, 0 ms, 0 ms            | 2,668.9, 5 ms, 15 ms            |
+| `aggregate-year`        | 36.5, 535 ms, 683 ms           | 3.8, 261 ms, 318 ms            | 3.9, 4960 ms, 5183 ms           |
+
+##### `vehicle-tracking-api` (postgresql, node)
+
+| Scenario            | 10k, 20 conn.: req/s, p50, p99 | 100k, 1 conn.: req/s, p50, p99 | 100k, 20 conn.: req/s, p50, p99 |
+|---------------------|--------------------------------|--------------------------------|---------------------------------|
+| `find`              | 1,044.3, 17 ms, 36 ms          | 397.2, 2 ms, 5 ms              | 892.3, 21 ms, 37 ms             |
+| `query-count`       | 243.7, 79 ms, 125 ms           | 21.6, 45 ms, 57 ms             | 62.1, 314 ms, 461 ms            |
+| `query`             | 302.9, 62 ms, 109 ms           | 37.1, 25 ms, 34 ms             | 73.1, 265 ms, 439 ms            |
+| `query-deep-page`   | 256.8, 74 ms, 122 ms           | 12.9, 81 ms, 147 ms            | 39.1, 509 ms, 851 ms            |
+| `query-filter-sort` | 332.9, 59 ms, 93 ms            | 89.1, 10 ms, 17 ms             | 260.5, 72 ms, 154 ms            |
+| `query-cached`      | 299.7, 64 ms, 105 ms           | 34.5, 28 ms, 38 ms             | 71.4, 273 ms, 458 ms            |
+| `aggregate-year`    | 260.9, 74 ms, 127 ms           | 12.9, 72 ms, 112 ms            | 61.9, 321 ms, 448 ms            |
+| `query-near`        | 237.4, 78 ms, 143 ms           | 32.3, 29 ms, 54 ms             | 119.3, 159 ms, 423 ms           |
+| `query-within-box`  | 299.4, 64 ms, 100 ms           | 85.5, 11 ms, 19 ms             | 286.1, 67 ms, 113 ms            |
+
+##### `webshop-api` (postgresql, node)
+
+| Scenario            | 10k, 20 conn.: req/s, p50, p99 | 100k, 1 conn.: req/s, p50, p99 | 100k, 20 conn.: req/s, p50, p99 |
+|---------------------|--------------------------------|--------------------------------|---------------------------------|
+| `find`              | 646.2, 29 ms, 58 ms            | 204, 4 ms, 8 ms                | 825.3, 23 ms, 39 ms             |
+| `query-count`       | 246, 78 ms, 143 ms             | 23.4, 40 ms, 73 ms             | 91.6, 217 ms, 298 ms            |
+| `query`             | 333.8, 57 ms, 100 ms           | 133.7, 7 ms, 12 ms             | 294.2, 64 ms, 138 ms            |
+| `query-deep-page`   | 257.6, 75 ms, 128 ms           | 10, 107 ms, 134 ms             | 34.2, 591 ms, 928 ms            |
+| `query-filter-sort` | 314.2, 60 ms, 103 ms           | 139.5, 6 ms, 11 ms             | 277.2, 67 ms, 124 ms            |
+| `query-text-search` | 153.5, 127 ms, 205 ms          | 8.7, 113 ms, 138 ms            | 12.5, 1527 ms, 2531 ms          |
+| `query-cached`      | 3,059.9, 6 ms, 12 ms           | 1,200.9, 0 ms, 1 ms            | 3,603.6, 4 ms, 10 ms            |
+| `aggregate-year`    | 213.6, 90 ms, 141 ms           | 9.2, 107 ms, 144 ms            | 38, 528 ms, 688 ms              |
+
+| Sample                 | Ready | RSS / heap after startup | Wake-ups in 60 s of idle (by origin)                 | Soak: heap, RSS                   |
+|------------------------|-------|--------------------------|------------------------------------------------------|-----------------------------------|
+| `cms-api`              | 2.8 s | 448 MB / 118 MB          | 13 (bullmq 10, node 2, cron 1)                       | 113 MB → 121 MB, 651 MB → 1398 MB |
+| `helpdesk-api`         | 2.3 s | 346 MB / 83 MB           | 102360 (@appweaver/core 102238, mariadb 120, node 2) | 79 MB → 82 MB, 494 MB → 837 MB    |
+| `hr-api`               | 2.3 s | 403 MB / 100 MB          | 52766 (@appweaver/core 52745, tarn 19, node 2)       | 98 MB → 146 MB, 577 MB → 1080 MB  |
+| `inbox-processor`      | 1.3 s | 235 MB / 56 MB           | 12 (bullmq 10, node 2)                               | 49 MB → 51 MB, 347 MB → 656 MB    |
+| `reports-worker`       | 0.5 s | 136 MB / 29 MB           | 2 (node 2)                                           | -                                 |
+| `vehicle-tracking-api` | 2.3 s | 394 MB / 93 MB           | 4 (node 2, cron 1, pg-pool 1)                        | 88 MB → 93 MB, 527 MB → 1038 MB   |
+| `webshop-api`          | 3.6 s | 423 MB / 109 MB          | 42 (bullmq 40, node 2)                               | 103 MB → 108 MB, 593 MB → 1096 MB |
+
+**What they show**
+
+- **The total count**, at 100k with one connection, divides the throughput of the first page by 4 to 14
+  (`cms-api` 145 → 10 req/s, `webshop-api` 134 → 23, `hr-api` 89 → 22): the default of D10.
+- **Offset pages** fall to 2.5 to 13 req/s at 100k on every database; SQL Server is the slowest (413 ms for one
+  request), then MySQL.
+- **Text search** (`contains`) costs 100 to 400 ms per request at 100k everywhere: F24.
+- **SQLite under concurrency**: with 20 connections every slow scenario of `cms-api`, `inbox-processor` and
+  `movies-api-bun` stalls the others (p99 of 4 to 10 s, `inbox-processor` timing out on `aggregate-year`), where the
+  database servers keep their p99 under 1 s for the same scenarios except the deep page and the text search: F23.
+- **`aggregate`** of one year: 3 to 4 req/s on SQLite, 3 to 13 on the servers at one connection: F20.
+- **Spatial**: `_withinBox` (the bounding box index) answers 85 req/s, `_near` 32 req/s at 100k alerts with one
+  connection, both on PostGIS.
+- **Idle**: the in-process queue of `helpdesk-api` and `hr-api` ran 900 to 1,700 timer callbacks a second while idle
+  (F58, fixed in phase 1); BullMQ wakes up 10 times a minute per worker (8 lock extensions, 2 stalled checks), so 42 for
+  the 4 queues of `webshop-api`; the audit flush is silent since 2.10.1.
+- **Memory**: 136 MB (`reports-worker`) to 448 MB (`cms-api`) of RSS after startup, 29 to 118 MB of heap; the RSS
+  doubles under the soak (a high-water mark), the heap grows by 2 to 8 MB, except `hr-api` (98 → 146 MB in 60 s),
+  to follow up with a longer soak in phase 6.
+
+
 ### Phase 1: Security fixes and audit
 
 **Stage 1a: patches for 2.10.x** (P0, released before any v3 work lands). **Released in v2.10.1**: the

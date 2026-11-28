@@ -10,6 +10,7 @@ npm run load -- cms-api --size 100k --connections 1,20  # once set up: the laten
 npm run load -- webshop-api --setup --teardown          # starts and stops its Docker Compose services
 npm run load -- --all --setup --teardown --size 10k     # every sample, one after another
 npm run load:probe -- cms-api --idle 60 --soak 120      # idle wake-ups and memory, heap growth over a soak
+npm run load:summary                                    # the latest reports as the Markdown tables of PLAN-v3.md
 ```
 
 ## What a run does
