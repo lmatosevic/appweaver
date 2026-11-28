@@ -1,10 +1,11 @@
-import { configOverrides, Database } from '@appweaver/common';
+import { configOverrides, Database, Queue } from '@appweaver/common';
 import { define, runAs, runInRequestScope } from '@appweaver/core';
 import { runInTransaction, settleTransaction } from '@appweaver/core/internal';
 import {
   createDatabaseStub,
   DatabaseStub,
   linkModels,
+  recordTelemetry,
   resetContext
 } from '@appweaver/testing';
 import { AuditService } from '../../audit/audit-service';
@@ -422,15 +423,111 @@ describe('audit-service', () => {
       expect(attempts).toHaveLength(2);
     });
 
-    test('drops the new entries while the buffer is full', async () => {
+    test('drops the oldest entries while the buffer is full, counted in a metric', async () => {
+      const telemetry = recordTelemetry();
       configOverrides.AUDIT_MAX_BUFFER = 1;
       configOverrides.AUDIT_BATCH_SIZE = 10;
 
-      expect(service.record({ category: 'custom' })).toBe(true);
-      expect(service.record({ category: 'custom' })).toBe(false);
+      expect(service.record({ category: 'custom', action: 'first' })).toBe(
+        true
+      );
+      expect(service.record({ category: 'custom', action: 'second' })).toBe(
+        true
+      );
+      await service.flush();
+
+      expect(written('AuditLog')).toEqual([
+        expect.objectContaining({ action: 'second' })
+      ]);
+      expect(
+        (await telemetry.metric('appweaver.audit.dropped'))?.dataPoints[0].value
+      ).toBe(1);
+      expect(
+        (await telemetry.metric('appweaver.audit.written'))?.dataPoints[0].value
+      ).toBe(1);
+      await telemetry.stop();
+    });
+
+    test('compares the states of a record when it writes them, off the request', async () => {
+      const previous = { id: 1, title: 'A' };
+      const current = { id: 1, title: 'B' };
+      service.recordChange('Post', 'update', previous, current);
+      expect(written('AuditChange')).toHaveLength(0);
+
+      await service.flush();
+
+      expect(written('AuditChange')).toEqual([
+        expect.objectContaining({
+          resourceId: '1',
+          action: 'update',
+          diff: { title: { from: 'A', to: 'B' } }
+        })
+      ]);
+    });
+
+    test('keeps the entry of a request whose update changed nothing, without the change', async () => {
+      service.open('req-1');
+      runInRequestScope({ source: 'http', auditId: 'req-1' }, () =>
+        service.recordChange(
+          'Post',
+          'update',
+          { id: 1, title: 'A' },
+          { id: 1, title: 'A' }
+        )
+      );
+      service.close('req-1', { category: 'write', action: 'update' });
       await service.flush();
 
       expect(written('AuditLog')).toHaveLength(1);
+      expect(written('AuditChange')).toHaveLength(0);
+    });
+  });
+
+  describe('writeVia queue', () => {
+    let queue: { sendJob: jest.Mock; addWorker: jest.Mock };
+    let jobs: any[];
+
+    beforeEach(() => {
+      jobs = [];
+      queue = {
+        sendJob: jest.fn(async (data) => {
+          jobs.push(data);
+        }),
+        addWorker: jest.fn()
+      };
+      define({ get: jest.fn(() => queue) } as any, Queue as any);
+      configOverrides.AUDIT_WRITE_VIA = 'queue';
+    });
+
+    test('sends the batches to the audit queue, written by its worker', async () => {
+      service.onReady();
+      service.record({ category: 'custom', action: 'sent' });
+      await service.flush();
+
+      expect(written('AuditLog')).toHaveLength(0);
+      expect(jobs).toEqual([
+        { logs: [expect.objectContaining({ action: 'sent' })], changes: [] }
+      ]);
+
+      const [worker] = queue.addWorker.mock.calls[0];
+      await worker({ data: jobs[0] });
+      expect(written('AuditLog')).toHaveLength(1);
+    });
+
+    test('adds no worker with audit.writeWorker off', () => {
+      configOverrides.AUDIT_WRITE_WORKER = false;
+      service.onReady();
+
+      expect(queue.addWorker).not.toHaveBeenCalled();
+    });
+
+    test('fails to start without a queue', () => {
+      resetContext();
+      define(db.database, Database as any);
+
+      expect(() => service.onReady()).toThrow(
+        expect.objectContaining({ code: 'CONFIGURATION_INVALID' })
+      );
     });
   });
 

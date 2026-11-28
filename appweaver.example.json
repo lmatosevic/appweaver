@@ -330,6 +330,8 @@
       "flushInterval": "1s",
       "batchSize": 100,
       "maxBuffer": 10000,
+      "writeVia": "direct",
+      "writeWorker": true,
       "excludeModels": [],
       "excludeActions": [],
       "excludePaths": [],
@@ -589,6 +591,7 @@
         "realtime": true,
         "ai": true,
         "mcp": true,
+        "audit": true,
         "fetch": true
       }
     },

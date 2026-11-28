@@ -107,7 +107,13 @@ The `email` and `phone` of the auth model take `redact` too, to keep the contact
 The entries are buffered and written in batches (`audit.flushInterval`, `audit.batchSize`), so a request never waits
 for its entry, and flushed when the application stops. The flush runs `audit.flushInterval` after an entry is buffered,
 so an idle application runs no timer. A batch failing is retried once with the next flush. Beyond
-`audit.maxBuffer` buffered entries the new ones are dropped with a warning.
+`audit.maxBuffer` buffered entries the oldest ones are dropped with a warning, counted in the `appweaver.audit.dropped`
+metric (`appweaver.audit.written` counts the written ones).
+
+A request only buffers the two states of a changed record: the diff is computed when the batch is written, so an
+update changing nothing is left out then. With `audit.writeVia: 'queue'` a batch is sent as a job of the `audit` queue
+(BullMQ across instances) instead of written, and the instances with `audit.writeWorker` (the default) write it, so the
+API instances run no insert: `audit.writeWorker: false` on them, `true` on a worker instance.
 
 A change is recorded once its transaction commits, so a rolled back change leaves no trace. Only the writes of the
 resource services are recorded: code writing through Prisma directly (`service.client`, `db.client()`) records its

@@ -34,6 +34,8 @@ export const telemetryInstrumentationsConfig = defineConfig(
     /** Trace and measure the calls of the AI models, their tokens and the tool calls. Default: `true`. */
     AI: Type.Boolean({ default: true }),
     /** Trace and measure the calls of the MCP server. Default: `true`. */
-    MCP: Type.Boolean({ default: true })
+    MCP: Type.Boolean({ default: true }),
+    /** Count the audit log entries written and dropped. Default: `true`. */
+    AUDIT: Type.Boolean({ default: true })
   }
 );

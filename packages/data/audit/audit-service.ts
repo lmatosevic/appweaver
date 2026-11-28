@@ -12,9 +12,13 @@ import {
   OnReady,
   OnShutdown,
   parseDuration,
+  Queue,
+  QueueProcessor,
   redactSecrets,
   removeUndefined,
   ResourceId,
+  telemetryCounter,
+  telemetryEnabled,
   uuidv7
 } from '@appweaver/common';
 import {
@@ -24,6 +28,7 @@ import {
   currentRequestScope,
   inject,
   injectModel,
+  isDefined,
   RequestScope
 } from '@appweaver/core';
 import { afterCommit, currentTransaction } from '@appweaver/core/internal';
@@ -54,18 +59,45 @@ type AuditLogRow = Prisma.AuditLogCreateManyInput & { id: string };
 /** A row of the `AuditChange` table. */
 type AuditChangeRow = Prisma.AuditChangeCreateManyInput;
 
+/** A change of a record, whose diff is computed when it is written, off the request. */
+type RecordChange = {
+  model: string;
+  resourceId: string;
+  action: AuditChangeEntry['action'];
+  previous?: Record<string, any>;
+  current?: Record<string, any>;
+  createdAt: Date;
+};
+
 /** A change of a request in flight, with the entry it gets when the request has none. */
 type PendingChange = {
-  row: Omit<AuditChangeRow, 'auditLogId'>;
+  change: RecordChange;
   standalone: AuditEntry;
 };
 
 /** An entry waiting to be written, with its changes. */
 type BufferedEntry = {
   log: AuditLogRow;
-  changes: AuditChangeRow[];
+  changes: RecordChange[];
+  /** The entry of a change made outside of a request, left out when the change changed nothing. */
+  standalone: boolean;
   attempts: number;
 };
+
+/** The rows of a batch, the job of the `audit` queue. */
+type AuditBatch = {
+  logs: AuditLogRow[];
+  changes: AuditChangeRow[];
+};
+
+const droppedEntries = telemetryCounter('appweaver.audit.dropped', {
+  description: 'Number of audit log entries dropped from a full buffer.',
+  unit: '{entry}'
+});
+const writtenEntries = telemetryCounter('appweaver.audit.written', {
+  description: 'Number of audit log entries written.',
+  unit: '{entry}'
+});
 
 /**
  * Keeps the audit log: the requests the web module records, the changes of the records the resource services make, and
@@ -91,6 +123,8 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
   private _purgeTimer?: NodeJS.Timeout;
   /** @internal */
   private _dropped = 0;
+  /** @internal The `audit` queue, with `audit.writeVia: 'queue'` */
+  private _queue?: QueueProcessor<AuditBatch, void>;
 
   /** Whether the audit log is enabled. */
   public get enabled(): boolean {
@@ -111,6 +145,7 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
 
     this._flushInterval =
       seconds(auditConfig.FLUSH_INTERVAL, 'flush interval') * 1000;
+    this.startQueue();
     // Entries recorded before the service was ready
     this.scheduleFlush();
 
@@ -220,25 +255,19 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
     ) {
       return;
     }
-    const config = injectModel(model, false)?.config;
     const resourceId = (current ?? previous)?.id as ResourceId | undefined;
-    if (!config || resourceId === undefined) {
+    if (!injectModel(model, false) || resourceId === undefined) {
       return;
     }
 
-    const diff = diffRecords(config, previous, current, {
-      redactKeys: auditConfig.REDACT_KEYS,
-      maxValueSize: auditConfig.MAX_VALUE_SIZE
-    });
-    if (action === 'update' && Object.keys(diff).length === 0) {
-      return;
-    }
-
-    const change: AuditChangeEntry = {
+    // The records are kept as they are, the services never change them, and compared when they are written
+    const change: RecordChange = {
       model,
       resourceId: String(resourceId),
       action,
-      diff
+      previous,
+      current,
+      createdAt: new Date()
     };
     // Captured now, since the commit may run in another context
     const standalone = this.standaloneEntry(change, scope);
@@ -278,19 +307,19 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
     }
     if (entry) {
       // A request changing one record of its model, i.e. a create, is about that record
-      const [change] = changes;
+      const [first] = changes;
       const resourceId =
         entry.resourceId ??
-        (changes.length === 1 && change.row.model === entry.model
-          ? change.row.resourceId
+        (changes.length === 1 && first.change.model === entry.model
+          ? first.change.resourceId
           : undefined);
       return this.enqueue(
         this.toRow(auditId, { ...entry, resourceId }),
-        changes.map(({ row }) => ({ ...row, auditLogId: auditId }))
+        changes.map(({ change }) => change)
       );
     }
-    for (const { row, standalone } of changes) {
-      this.enqueueChange(row, standalone);
+    for (const { change, standalone } of changes) {
+      this.enqueueChange(change, standalone);
     }
     return false;
   }
@@ -350,37 +379,26 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
 
   /** @internal */
   private addChange(
-    change: AuditChangeEntry,
+    change: RecordChange,
     auditId: string | undefined,
     standalone: AuditEntry
   ): void {
-    const row: PendingChange['row'] = {
-      model: change.model,
-      resourceId: change.resourceId,
-      action: change.action,
-      diff: change.diff as Prisma.InputJsonValue,
-      createdAt: new Date()
-    };
     const open = auditId ? this._open.get(auditId) : undefined;
     if (open) {
-      open.push({ row, standalone });
+      open.push({ change, standalone });
     } else {
-      this.enqueueChange(row, standalone);
+      this.enqueueChange(change, standalone);
     }
   }
 
   /** @internal A change with an entry of its own. */
-  private enqueueChange(
-    row: PendingChange['row'],
-    standalone: AuditEntry
-  ): void {
-    const id = uuidv7();
-    this.enqueue(this.toRow(id, standalone), [{ ...row, auditLogId: id }]);
+  private enqueueChange(change: RecordChange, standalone: AuditEntry): void {
+    this.enqueue(this.toRow(uuidv7(), standalone), [change], true);
   }
 
   /** @internal The entry of a change recorded without the entry of its request. */
   private standaloneEntry(
-    change: AuditChangeEntry,
+    change: RecordChange,
     scope: RequestScope | undefined
   ): AuditEntry {
     return {
@@ -451,18 +469,25 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
     }) as AuditLogRow;
   }
 
-  /** @internal */
-  private enqueue(log: AuditLogRow, changes: AuditChangeRow[]): boolean {
-    if (this._buffer.length >= auditConfig.MAX_BUFFER) {
+  /** @internal A full buffer drops its oldest entries, keeping the recent history. */
+  private enqueue(
+    log: AuditLogRow,
+    changes: RecordChange[],
+    standalone = false
+  ): boolean {
+    while (this._buffer.length >= auditConfig.MAX_BUFFER) {
+      this._buffer.shift();
       if (this._dropped++ === 0) {
         logger.warn(
           { maxBuffer: auditConfig.MAX_BUFFER },
-          'The audit log buffer is full, the new entries are dropped'
+          'The audit log buffer is full, the oldest entries are dropped'
         );
       }
-      return false;
+      if (telemetryEnabled('audit')) {
+        droppedEntries().add(1);
+      }
     }
-    this._buffer.push({ log, changes, attempts: 0 });
+    this._buffer.push({ log, changes, standalone, attempts: 0 });
     if (this._buffer.length >= auditConfig.BATCH_SIZE) {
       void this.flush();
     }
@@ -496,14 +521,12 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
     while (this._buffer.length > 0) {
       const batch = this._buffer.splice(0, auditConfig.BATCH_SIZE);
       try {
-        const client = this._db.client();
-        const changes = batch.flatMap((entry) => entry.changes);
-        await client.$transaction([
-          client.auditLog.createMany({ data: batch.map((entry) => entry.log) }),
-          ...(changes.length > 0
-            ? [client.auditChange.createMany({ data: changes })]
-            : [])
-        ]);
+        const rows = toBatch(batch);
+        if (this._queue) {
+          await this._queue.sendJob(rows);
+        } else {
+          await this.writeBatch(rows);
+        }
       } catch (error) {
         const retried = batch.filter((entry) => entry.attempts++ === 0);
         logger.error(
@@ -525,6 +548,50 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
         'Audit log entries were dropped while the buffer was full'
       );
       this._dropped = 0;
+    }
+  }
+
+  /**
+   * Writes the rows of a batch in one transaction, directly or as the worker of the `audit` queue.
+   *
+   * @internal
+   */
+  private async writeBatch({ logs, changes }: AuditBatch): Promise<void> {
+    if (logs.length === 0) {
+      return;
+    }
+    const client = this._db.client();
+    await client.$transaction([
+      client.auditLog.createMany({ data: logs }),
+      ...(changes.length > 0
+        ? [client.auditChange.createMany({ data: changes })]
+        : [])
+    ]);
+    if (telemetryEnabled('audit')) {
+      writtenEntries().add(logs.length);
+    }
+  }
+
+  /**
+   * Sends the batches to the `audit` queue with `audit.writeVia: 'queue'`, written by the instances with
+   * `audit.writeWorker`.
+   *
+   * @internal
+   * @throws {ConfigurationError} `CONFIGURATION_INVALID` without a queue.
+   */
+  private startQueue(): void {
+    if (auditConfig.WRITE_VIA !== 'queue' || this._queue) {
+      return;
+    }
+    if (!isDefined(Queue)) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        "The audit log writes through the queue (audit.writeVia: 'queue'), but no queue provider is enabled"
+      );
+    }
+    this._queue = inject(Queue).get<AuditBatch, void>('audit');
+    if (auditConfig.WRITE_WORKER) {
+      this._queue.addWorker((job) => this.writeBatch(job.data));
     }
   }
 
@@ -611,4 +678,42 @@ function text(
   return value === undefined || value === null
     ? undefined
     : clip(String(value), maxLength);
+}
+
+/**
+ * Builds the rows of the buffered entries, comparing the states of their records: a change that changed nothing (an
+ * update of the same values) is left out, and so is the entry of its own it had.
+ */
+function toBatch(entries: BufferedEntry[]): AuditBatch {
+  const options = {
+    redactKeys: auditConfig.REDACT_KEYS,
+    maxValueSize: auditConfig.MAX_VALUE_SIZE
+  };
+  const batch: AuditBatch = { logs: [], changes: [] };
+  for (const entry of entries) {
+    const changes: AuditChangeRow[] = [];
+    for (const change of entry.changes) {
+      const config = injectModel(change.model, false)?.config;
+      const diff = config
+        ? diffRecords(config, change.previous, change.current, options)
+        : {};
+      if (change.action === 'update' && Object.keys(diff).length === 0) {
+        continue;
+      }
+      changes.push({
+        auditLogId: entry.log.id,
+        model: change.model,
+        resourceId: change.resourceId,
+        action: change.action,
+        diff: diff as Prisma.InputJsonValue,
+        createdAt: change.createdAt
+      });
+    }
+    if (entry.standalone && changes.length === 0) {
+      continue;
+    }
+    batch.logs.push(entry.log);
+    batch.changes.push(...changes);
+  }
+  return batch;
 }

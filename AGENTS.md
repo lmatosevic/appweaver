@@ -177,7 +177,8 @@ an `onRequest` hook and made active in the `createAsyncResource` of the request 
 (`data/database/telemetry-extension.ts`, a `$allOperations` query extension), the queues (`memory`, `bullmq`), the
 `cron` scheduler, `EmailService`, `SmsService`, `CacheService` (metrics only), `weaver run`, the realtime
 connections of `@appweaver/realtime` (`realtime/utils/telemetry.ts`) and the AI model and tool calls of `@appweaver/ai`
-(`ai/utils/telemetry.ts`, the `gen_ai.*` conventions) and the tool calls of `@appweaver/mcp` (`mcp/utils/telemetry.ts`). The logger adds the
+(`ai/utils/telemetry.ts`, the `gen_ai.*` conventions) and the tool calls of `@appweaver/mcp` (`mcp/utils/telemetry.ts`), and the entries the `AuditService` writes and drops
+(metrics only). The logger adds the
 `trace_id` of the active span to every record, and `addLogDestination` lets the SDK module receive the records.
 
 The SDK is the `@appweaver/opentelemetry` module (`packages/opentelemetry`), never a contract with providers: OTLP is
@@ -191,7 +192,8 @@ the standard every backend ingests, and `configureTelemetry` covers the rest. Wh
 
 The audit log (`audit.enabled`) records every request and the changed fields of the records in the `AuditLog` and
 `AuditChange` framework models, kept by `AuditLog` in `database.keepTables` like the API keys. `AuditService` of
-`packages/data/audit` buffers the entries and writes them in batches, deletes them after the retention of their
+`packages/data/audit` buffers the entries (a bounded buffer dropping the oldest) and writes them in batches, directly or
+through the `audit` queue (`audit.writeVia`), computing the diffs of the changes when it writes them, deletes them after the retention of their
 category (`audit.auth`, `.read`, `.write`, `.changes`, `.custom`), and records the diff of every `create`, `update` and
 `delete` of `ResourceService` once its transaction commits. `web/audit/audit-hooks.ts` starts the entry of a request in
 the request scope of core (`runInRequestScope`, created with the auth context of the request) and records it once it

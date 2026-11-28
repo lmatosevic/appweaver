@@ -866,7 +866,9 @@ The requests and the changes of the records, in the `AuditLog` and `AuditChange`
 | `AUDIT_RETENTION_WORKER`   | boolean  | `true`      | Delete the expired entries in this instance, `false` for the other instances (or a task calling `AuditService.purge`).                                          |
 | `AUDIT_FLUSH_INTERVAL`     | string   | `'1s'`      | How often the buffered entries are written, a duration.                                                                                                         |
 | `AUDIT_BATCH_SIZE`         | integer  | `100`       | The buffered entries written at once without waiting for the flush interval.                                                                                    |
-| `AUDIT_MAX_BUFFER`         | integer  | `10000`     | The most entries buffered while the database is unavailable, the new ones dropped beyond it.                                                                    |
+| `AUDIT_MAX_BUFFER`         | integer  | `10000`     | The most entries buffered, the oldest ones dropped beyond it (`appweaver.audit.dropped`).                                                                       |
+| `AUDIT_WRITE_VIA`          | string   | `'direct'`  | How the batches are written: `direct` to the database, or `queue` as jobs of the `audit` queue.                                                                 |
+| `AUDIT_WRITE_WORKER`       | boolean  | `true`      | Write the batches of the `audit` queue in this instance (`audit.writeVia: 'queue'`).                                                                            |
 | `AUDIT_EXCLUDE_MODELS`     | string[] | `[]`        | Models whose requests and changes are left out.                                                                                                                 |
 | `AUDIT_EXCLUDE_ACTIONS`    | string[] | `[]`        | Actions left out, of every model (`find`, `export`, `auth.refresh`) or of one (`Post.update`).                                                                  |
 | `AUDIT_EXCLUDE_PATHS`      | string[] | `[]`        | URL paths left out, exact or a prefix ending with `*`. The health check, Swagger, static file and template preview routes always are.                           |
@@ -1053,6 +1055,7 @@ The OpenTelemetry instrumentation of the framework, and the SDK of `@appweaver/o
 | `TELEMETRY_INSTRUMENTATIONS_REALTIME`  | boolean  | `true`  | Trace the realtime actions and streams, and measure the realtime connections, events and streams. (realtime)      |
 | `TELEMETRY_INSTRUMENTATIONS_AI`        | boolean  | `true`  | Trace and measure the calls of the AI models, their tokens and the tool calls. (ai)                               |
 | `TELEMETRY_INSTRUMENTATIONS_MCP`       | boolean  | `true`  | Trace and measure the calls of the MCP server. (mcp)                                                              |
+| `TELEMETRY_INSTRUMENTATIONS_AUDIT`     | boolean  | `true`  | Count the audit log entries written and dropped. (audit)                                                          |
 | `TELEMETRY_HTTP_IGNORE_PATHS`          | string[] | `[]`    | URL paths left out of the traces and the metrics: an exact path, or a prefix ending with `*` (`/public/*`). (web) |
 | `TELEMETRY_HTTP_HEALTH_CHECK`          | boolean  | `false` | Trace and measure the requests of the health check routes. (web)                                                  |
 

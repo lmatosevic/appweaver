@@ -17,9 +17,17 @@ export const auditConfig = defineConfig('audit', {
   FLUSH_INTERVAL: Type.String({ default: '1s' }),
   /** The number of buffered entries written at once without waiting for the flush interval. Default: `100`. */
   BATCH_SIZE: Type.Integer({ minimum: 1, default: 100 }),
-  /** The most entries buffered while the database is unavailable, the new ones dropped beyond it. Default:
-   * `10000`. */
+  /** The most entries buffered, i.e. while the database is unavailable, the oldest ones dropped beyond it, counted in
+   * the `appweaver.audit.dropped` metric. Default: `10000`. */
   MAX_BUFFER: Type.Integer({ minimum: 1, default: 10000 }),
+  /** How the batches are written: `direct` to the database, or `queue` as a job of the `audit` queue, which the
+   * instances with `audit.writeWorker` write. Default: `'direct'`. */
+  WRITE_VIA: Type.Enum({ direct: 'direct', queue: 'queue' } as const, {
+    default: 'direct'
+  }),
+  /** Write the batches of the `audit` queue in this instance, with `audit.writeVia: 'queue'`, `false` for the instances
+   * only sending them. Default: `true`. */
+  WRITE_WORKER: Type.Boolean({ default: true }),
   /** Models whose requests and changes are left out, i.e. `['Session']`. Default: `[]`. */
   EXCLUDE_MODELS: Type.Array(Type.String(), { default: [] }),
   /** Actions left out, of every model (`find`, `export`, `auth.refresh`) or of one (`Post.update`). Default: `[]`. */
