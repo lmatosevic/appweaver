@@ -1,6 +1,8 @@
 # Appweaver v3.0.0 Plan
 
-> **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`).
+> **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
+> section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
+> **Revision 12**: phase 1a released in 2.10.1 (decision 7 closed).
 > **Revision 11**: response compression, configurable globally and per route (E15, D24, V3-WEB-04).
 > **Revision 10**: the spatial model key is `spatial` (decision 10 closed, D23).
 > **Revision 9**: full names instead of the framework's own abbreviations (`geo`, `2fa`, `OTT`, ...), D23, V3-CONV-08.
@@ -1022,7 +1024,7 @@ CSV export streamed), the config examples, the skill and a load scenario with co
 | Phase | Name                          | Output                                                                    | Gate                                                  |
 |-------|-------------------------------|---------------------------------------------------------------------------|-------------------------------------------------------|
 | 0     | Preparation                   | Release channel, migration guide, load-test harness, baselines            | Baselines of every sample recorded                    |
-| 1     | Security fixes and audit      | 2.10.x patches for F1-F4, F7; per-module findings                         | Register reviewed, CRs ordered                        |
+| 1     | Security fixes and audit      | 2.10.1 (released) for F1-F4, F7, F9; per-module findings                  | Register reviewed, CRs ordered                        |
 | 2     | Toolchain and platform        | TypeScript 7.1, `tsx`, tooling package, TypeBox 1, skill package          | CI green, samples and scaffolds build |
 | 3     | Conventions and defaults      | Durations, exposure, maintenance jobs, secure defaults, query defaults    | Conventions applied in every package                  |
 | 4     | Data model and API design     | Views, `extend*`, cache scopes, audit, forced 2FA                         | Each RFC approved before its code                     |
@@ -1056,10 +1058,12 @@ a CR of its own, with its upgrade notes applied.
 
 ### Phase 1: Security fixes and audit
 
-**Stage 1a: patches for 2.10.x** (P0, released before any v3 work lands). **Done** on the `fix/security-and-query-limits`
-branch, from `main`, in 10 commits (`fix:` and `perf:`, so a patch release); every test, lint and check passing (315
-suites, 4,896 tests, 89.1% branch coverage), and the `cms-api` e2e suite as on `main` (see F40). Verified on the
-running sample at 100k posts:
+**Stage 1a: patches for 2.10.x** (P0, released before any v3 work lands). **Released in v2.10.1**: the
+`fix/security-and-query-limits` branch ([lmatosevic/appweaver#49](https://github.com/lmatosevic/appweaver/pull/49), 10
+commits, merged as `bed401b`), with `@fastify/static` 10.1.12 (`1af4c5a`) and the sample migrations regenerated into one
+`init` migration each, the `cms-api` listing index included (`73742c2`). Every test, lint and check passed (315 suites,
+4,896 tests, 89.1% branch coverage), and the `cms-api` e2e suite as on 2.10.0 (see F40). Verified on the running sample
+at 100k posts:
 
 | Probe (E2, E10, E11)                                   | 2.10.0                         | The branch                               |
 |--------------------------------------------------------|--------------------------------|------------------------------------------|
@@ -1325,8 +1329,8 @@ ticked.
 
 ## 8. Change request register
 
-All `proposed` until approved, except V3-SEC-01 to V3-SEC-04, V3-SAMPLE-01 and V3-BUG-01, **done** on
-`fix/security-and-query-limits` (phase 1a), with parts of V3-PERF-03 and V3-PERF-06. Effort: S < 1 day, M days, L a
+All `proposed` until approved, except V3-SEC-01 to V3-SEC-04, V3-SAMPLE-01 and V3-BUG-01, **released in v2.10.1**
+(phase 1a), with parts of V3-PERF-03 and V3-PERF-06. Effort: S < 1 day, M days, L a
 week, XL more.
 
 | ID            | Title                                                                    | Phase | Prio | Effort | Breaking       |
@@ -1413,8 +1417,7 @@ The experiments settled most questions of revision 1. These remain:
 4. **Samples**: all nine stay in v3 (proposed); any to retire?
 5. **Angular client and untyped client** (`--no-types`): keep, or drop without usage data?
 6. **Views naming**: `views` and `view`, or `variants`?
-7. **2.x release of phase 1a**: `fix/security-and-query-limits` adds config keys and an error code under `fix:`
-   commits, so semantic-release makes it 2.10.1; rename the first commit `feat:` for a 2.11.0?
+7. ~~**2.x release of phase 1a**~~: released as v2.10.1.
 8. ~~**Prisma 8 and SQL Server**~~: decided in revision 7, Prisma 7 as used so far, no Prisma 8 plans (D16).
 9. **SQL migration file names** (D22): `<version>_<name>.<database>.sql` suffixes (proposed), or one directory per
    database (`database/sql/postgresql/...`)?
