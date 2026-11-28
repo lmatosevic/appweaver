@@ -20,6 +20,8 @@ describe('caching', () => {
   let store: Map<string, any>;
   let cacheService: Record<string, jest.Mock>;
   let handler: jest.Mock;
+  // The user of the next requests, when it changes between them
+  let setUser: AuthUser | undefined;
 
   /** Mounts the caching plugin over a route answering with its call count. */
   async function server(
@@ -33,17 +35,19 @@ describe('caching', () => {
       defaultStoreValues: { cached: undefined },
       createAsyncResource: () =>
         runInAuthContext(() => {
-          setAuthContext({ authUser });
+          setAuthContext({ authUser: setUser ?? authUser });
           return new AsyncResource('appweaver-request');
         })
     });
     app.register(caching);
-    app.route({
-      method,
-      url: '/posts',
-      config,
-      handler: async (_request, reply) =>
-        reply.code(status).send({ calls: handler() })
+    app.after(() => {
+      app.route({
+        method,
+        url: '/posts',
+        config,
+        handler: async (_request, reply) =>
+          reply.code(status).send({ calls: handler() })
+      });
     });
     await app.ready();
   }
@@ -55,6 +59,7 @@ describe('caching', () => {
 
   beforeEach(() => {
     resetContext();
+    setUser = undefined;
     store = new Map();
     let calls = 0;
     handler = jest.fn(() => ++calls);
@@ -116,7 +121,7 @@ describe('caching', () => {
   });
 
   test('serves a repeated request from the cache', async () => {
-    await server({ cache: true, cacheTTL: 5000 });
+    await server({ cache: { ttl: 5000 } });
 
     const first = await send();
     const second = await send();
@@ -134,8 +139,8 @@ describe('caching', () => {
 
   test.each([
     ['no cache option', {}, 'GET'],
-    ['caching disabled', { cache: false, cacheTTL: 5000 }, 'GET'],
-    ['a zero TTL', { cacheTTL: 0, cacheKey: 'posts' }, 'GET'],
+    ['caching disabled', { cache: false }, 'GET'],
+    ['a zero TTL', { cache: { ttl: 0, key: 'posts' } }, 'GET'],
     ['a write method', { cache: true }, 'PUT']
   ] as const)('skips a route with %s', async (_name, config, method) => {
     await server(config, method);
@@ -159,7 +164,7 @@ describe('caching', () => {
 
   test('uses the cache key of the route config', async () => {
     const cacheKey = jest.fn(() => 'posts:custom');
-    await server({ cacheKey });
+    await server({ cache: { key: cacheKey } });
 
     await send();
 
@@ -180,7 +185,7 @@ describe('caching', () => {
   });
 
   test('builds the key without the user on a public route', async () => {
-    await server({ cache: true, public: true, cacheModelName: 'Post' });
+    await server({ cache: { modelName: 'Post' }, public: true });
 
     await send();
 
@@ -191,6 +196,46 @@ describe('caching', () => {
         authUser: undefined
       })
     );
+  });
+
+  test('builds the key of the user scope with the user', async () => {
+    await server({ cache: { scope: 'user' } });
+
+    await send();
+
+    expect(cacheService.buildCacheKey).toHaveBeenCalledWith(
+      expect.objectContaining({ baseKey: 'req', authUser: user })
+    );
+  });
+
+  test('builds one key of the shared scope for every user', async () => {
+    await server({ cache: { scope: 'shared', ttl: 1000 } });
+
+    const first = await send();
+    setUser = { ...user, id: 2 };
+    const second = await send();
+
+    expect(second).toEqual(first);
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(cacheService.buildCacheKey).toHaveBeenCalledWith(
+      expect.objectContaining({ baseKey: 'req:shared', authUser: undefined })
+    );
+  });
+
+  test('refuses the public scope on an authenticated route', async () => {
+    app = Fastify({ logger: false });
+    app.register(caching);
+    app.register(async (scope) => {
+      scope.get(
+        '/posts',
+        { config: { cache: { scope: 'public' } } },
+        async () => ({})
+      );
+    });
+
+    await expect(app.ready()).rejects.toMatchObject({
+      code: 'CONFIGURATION_INVALID'
+    });
   });
 
   test('replays only the headers describing the payload', async () => {
@@ -232,7 +277,7 @@ describe('caching', () => {
   });
 
   test('builds the key of a request once', async () => {
-    await server({ cache: true, cacheTTL: 5000 });
+    await server({ cache: { ttl: 5000 } });
 
     await send();
 

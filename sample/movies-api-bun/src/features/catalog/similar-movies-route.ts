@@ -64,5 +64,5 @@ registerRoute(
       }
     );
   },
-  { public: true, cacheTTL: 300_000, cacheModelName: 'Movie' }
+  { public: true, cache: { ttl: 300_000, modelName: 'Movie' } }
 );

@@ -9,12 +9,12 @@ export default createRoutes({
   },
   query: {
     public: true,
-    cacheTTL: 60_000
+    cache: { ttl: 60_000 }
   },
   // The rating summary of a product page
   aggregate: {
     public: true,
-    cacheTTL: 60_000
+    cache: { ttl: 60_000 }
   },
   create: {
     rateLimit: { max: 10, timeWindow: '1 hour' }

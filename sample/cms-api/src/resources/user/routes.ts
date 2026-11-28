@@ -3,7 +3,7 @@ import { createRoutes } from '@appweaver/web';
 export default createRoutes({
   modelName: 'User',
   find: {
-    cacheTTL: 30000
+    cache: { ttl: 30000 }
   },
   query: {
     cache: true,

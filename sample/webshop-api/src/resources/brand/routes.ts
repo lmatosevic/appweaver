@@ -6,11 +6,11 @@ export default createRoutes({
   path: '/brands',
   find: {
     public: true,
-    cacheTTL: 3_600_000
+    cache: { ttl: 3_600_000 }
   },
   query: {
     public: true,
-    cacheTTL: 3_600_000
+    cache: { ttl: 3_600_000 }
   },
   aggregate: {
     exclude: true

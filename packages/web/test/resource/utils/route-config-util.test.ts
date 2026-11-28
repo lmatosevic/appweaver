@@ -9,8 +9,8 @@ describe('route-config-util', () => {
   describe('mergeRouteDefaults', () => {
     test('applies the defaults to a route without config', () => {
       expect(
-        mergeRouteDefaults('find', { roles: ['Admin'], cacheTTL: 5000 })
-      ).toEqual({ roles: ['Admin'], cacheTTL: 5000 });
+        mergeRouteDefaults('find', { roles: ['Admin'], cache: { ttl: 5000 } })
+      ).toEqual({ roles: ['Admin'], cache: { ttl: 5000 } });
     });
 
     test('prefers the options the route sets', () => {
@@ -35,12 +35,12 @@ describe('route-config-util', () => {
 
     test('ignores the route options left undefined', () => {
       expect(
-        mergeRouteDefaults('find', { cacheTTL: 5000 }, { cacheTTL: undefined })
-      ).toEqual({ cacheTTL: 5000 });
+        mergeRouteDefaults('find', { cache: true }, { cache: undefined })
+      ).toEqual({ cache: true });
     });
 
     test('skips the cache defaults on the routes that do not cache', () => {
-      const defaults = { cache: true, cacheTTL: 5000, roles: ['Admin'] };
+      const defaults = { cache: { ttl: 5000 }, roles: ['Admin'] };
 
       expect(mergeRouteDefaults('find', defaults)).toEqual(defaults);
       expect(mergeRouteDefaults('aggregate', defaults)).toEqual(defaults);
@@ -65,7 +65,7 @@ describe('route-config-util', () => {
       expect(
         mergeRouteDefaults(
           'create',
-          { public: true, auth: ['jwt'], cacheTTL: 5000, rateLimit: false },
+          { public: true, auth: ['jwt'], cache: true, rateLimit: false },
           { roles: ['Admin'] }
         )
       ).toEqual({ roles: ['Admin'], rateLimit: false });

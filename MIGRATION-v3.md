@@ -31,7 +31,7 @@ startup.
 | [13. Duplicate models, services, policies and routes](#13-duplicate-models-services-policies-and-routes)             | V3-DATA-01                 | Projects redefining a framework model       | pending |
 | [14. The system context of the application's own calls](#14-the-system-context-of-the-applications-own-calls)        | V3-DATA-06                 | Policies                                    | done    |
 | [14b. Included relations follow the policy of their model](#14b-included-relations-follow-the-policy-of-their-model) | V3-DATA-12                 | Relations of models with `readRestrictions` | done    |
-| [15. Cache scopes](#15-cache-scopes)                                                                                 | V3-WEB-01                  | `cache` of the routes                       | pending |
+| [15. Cache scopes](#15-cache-scopes)                                                                                 | V3-WEB-01                  | `cache` of the routes                       | done    |
 | [16. Forced 2FA](#16-forced-2fa)                                                                                     | V3-WEB-02                  | `forced` of the 2FA config                  | pending |
 | [17. Generated client](#17-generated-client)                                                                         | V3-CLIENT-01, V3-CLIENT-03 | `weaver-client generate` output             | pending |
 | [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails)                                 | V3-SEC-05                  | OAuth2 providers                            | done    |
@@ -284,7 +284,34 @@ read them through a route of their own.
 
 ## 15. Cache scopes
 
-_pending_ (V3-WEB-01, D7): `cache: { scope: 'public' | 'user' | 'shared', ttl }` on the routes.
+**What changed** (V3-WEB-01, D7, F15): the cache options of a route are one `cache` option, `true` or an object, and an
+entry has a scope. `public` (a route without authentication) and `user` (an entry per user, the default of an
+authenticated route) are what 2.x did; `shared` is new: one entry served to every user an authenticated route lets in,
+which a resource route accepts only when no policy it reads through has `readRestrictions` or `checkAccess`. A `public`
+scope on an authenticated route fails at startup.
+
+**Who is affected**: every route setting `cacheTTL`, `cacheKey`, `cacheSkipInvalidation`, `cacheModelName` or
+`cacheRelations`, which are removed.
+
+**Before**:
+
+```ts
+find: { public: true, cacheTTL: 60_000 },
+registerRoute(handler, { cacheTTL: 60_000, cacheModelName: 'Employee', cacheKey: 'report' });
+```
+
+**After**:
+
+```ts
+find: { public: true, cache: { ttl: 60_000 } },
+registerRoute(handler, { cache: { ttl: 60_000, modelName: 'Employee', key: 'report' } });
+// An authenticated report every manager reads alike
+registerRoute(handler, { permissions: ['report:read'], cache: { scope: 'shared', ttl: 60_000 } });
+```
+
+**Steps**: move the options into `cache` (`cacheTTL` → `ttl`, `cacheKey` → `key`, `cacheSkipInvalidation` →
+`skipInvalidation`, `cacheModelName` → `modelName`, `cacheRelations` → `relations`). A route setting only `cacheTTL`
+cached in 2.x, so it becomes `cache: { ttl }`.
 
 ## 16. Forced 2FA
 

@@ -10,11 +10,11 @@ export default createRoutes({
   },
   query: {
     public: true,
-    cacheTTL: 30_000
+    cache: { ttl: 30_000 }
   },
   aggregate: {
     public: true,
-    cacheTTL: 300_000
+    cache: { ttl: 300_000 }
   },
   create: {
     rateLimit: {

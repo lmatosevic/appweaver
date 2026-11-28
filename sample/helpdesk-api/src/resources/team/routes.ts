@@ -6,11 +6,11 @@ export default createRoutes({
   path: '/teams',
   find: {
     roles: staff,
-    cacheTTL: 300_000
+    cache: { ttl: 300_000 }
   },
   query: {
     roles: staff,
-    cacheTTL: 300_000
+    cache: { ttl: 300_000 }
   },
   aggregate: {
     exclude: true

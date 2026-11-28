@@ -5,10 +5,10 @@ export default createRoutes({
   modelName: 'Position',
   path: '/positions',
   find: {
-    cacheTTL: 300_000
+    cache: { ttl: 300_000 }
   },
   query: {
-    cacheTTL: 300_000
+    cache: { ttl: 300_000 }
   },
   aggregate: {
     permissions: [Permission.PayrollRead]

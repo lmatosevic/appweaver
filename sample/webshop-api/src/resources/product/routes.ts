@@ -7,11 +7,11 @@ export default createRoutes({
   path: '/products',
   find: {
     public: true,
-    cacheTTL: 60_000
+    cache: { ttl: 60_000 }
   },
   query: {
     public: true,
-    cacheTTL: 60_000
+    cache: { ttl: 60_000 }
   },
   aggregate: {
     roles: [Role.Admin]

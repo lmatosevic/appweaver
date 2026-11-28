@@ -6,7 +6,7 @@ export default createRoutes({
   // The cache options apply only to the read routes
   defaults: {
     roles: ['Admin'],
-    cacheTTL: 60_000
+    cache: { ttl: 60_000 }
   },
   find: {
     public: true

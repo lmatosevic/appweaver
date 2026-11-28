@@ -541,7 +541,7 @@ export default createRoutes({
     }
   },
   query: {
-    cacheTTL: 5000,
+    cache: { ttl: 5000 },
     // Also serve GET /products/query
     method: 'get-post'
   },
@@ -833,7 +833,7 @@ registerRoute(
       }
     });
   },
-  { public: true, cacheTTL: 15000 }
+  { public: true, cache: { ttl: 15000 } }
 );
 ```
 

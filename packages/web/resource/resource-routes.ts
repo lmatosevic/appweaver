@@ -40,6 +40,10 @@ import {
 import { Server } from '../types/server';
 import { registerSeriesRoutes } from '../timeseries/series-routes';
 import { contentDisposition } from '../utils/http-util';
+import { routeCache } from '../cache/caching';
+import { assertSharedCache } from '../cache/shared-cache';
+
+const READ_ROUTES: ResourceRouteName[] = ['find', 'query', 'aggregate'];
 
 type FullRouteConfig = RouteConfig &
   RouteCacheConfig &
@@ -70,14 +74,22 @@ export function resourceRoutes(
 ): (server: Server) => void {
   const routeConfig = (
     configName: ResourceRouteName
-  ): FullRouteConfig | undefined => ({
-    ...resolveRouteConfig(configName, routesConfig),
-    resourceRouteName: configName,
-    resourceModelName: name,
-    cacheModelName: ['find', 'query', 'aggregate'].includes(configName)
-      ? name
-      : undefined
-  });
+  ): FullRouteConfig | undefined => {
+    const config = resolveRouteConfig(configName, routesConfig);
+    // A read route caches its responses, evicted on the changes of its model and of the models it includes
+    const cache = READ_ROUTES.includes(configName)
+      ? routeCache(config)
+      : undefined;
+    if (cache?.scope === 'shared' && !config.exclude) {
+      assertSharedCache(name, configName);
+    }
+    return {
+      ...config,
+      cache: cache ? { ...cache, modelName: name } : undefined,
+      resourceRouteName: configName,
+      resourceModelName: name
+    };
+  };
 
   // The filter of a body is checked against the complexity limits before the request validation, which would walk
   // an oversized filter first

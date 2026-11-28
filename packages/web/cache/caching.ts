@@ -3,7 +3,10 @@ import fastifyPlugin from 'fastify-plugin';
 import { requestContext } from '@fastify/request-context';
 import {
   AuthUser,
+  ConfigurationError,
+  ErrorCode,
   isFunction,
+  RouteCache,
   RouteCacheConfig,
   RouteConfig
 } from '@appweaver/common';
@@ -34,15 +37,27 @@ const cacheKeys = new WeakMap<FastifyRequest, string>();
 export default fastifyPlugin((server: Server) => {
   const cacheService = inject(CacheService);
 
+  // A public scope on an authenticated route would serve one user's response to another
+  server.addHook('onRoute', (route) => {
+    const config: FullRouteConfig | undefined = route.config;
+    const cache = config ? routeCache(config) : undefined;
+    if (cache?.scope === 'public' && !config?.public) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `The cache of the authenticated route ${route.method} ${route.url} cannot have the public scope, use the ` +
+          `shared scope for a response that does not depend on the user`
+      );
+    }
+  });
+
   server.addHook('preHandler', async (request, reply) => {
     const config = getRouteConfig(request);
-    if (!shouldUseCache(request, config)) {
+    const cache = cacheOf(request, config);
+    if (!cache) {
       return;
     }
 
-    // No user on a route without authentication
-    const user = config.public ? undefined : (currentAuthUser() ?? undefined);
-    const key = buildCacheKey(request, config, cacheService, user);
+    const key = buildCacheKey(request, config, cache, cacheService);
     cacheKeys.set(request, key);
 
     const entry = await cacheService.getCachedValue<CacheEntry>(key);
@@ -56,38 +71,38 @@ export default fastifyPlugin((server: Server) => {
   });
 
   server.addHook('onSend', async (request, reply, payload) => {
-    const config = getRouteConfig(request);
-    if (!shouldUseCache(request, config)) {
+    const key = cacheKeys.get(request);
+    if (
+      key === undefined ||
+      reply.statusCode < 200 ||
+      reply.statusCode >= 300 ||
+      requestContext.get('cached')
+    ) {
       return payload;
     }
 
-    if (
-      reply.statusCode >= 200 &&
-      reply.statusCode < 300 &&
-      !requestContext.get('cached')
-    ) {
-      const key =
-        cacheKeys.get(request) ??
-        buildCacheKey(
-          request,
-          config,
-          cacheService,
-          config.public ? undefined : (currentAuthUser() ?? undefined)
-        );
-      await cacheService.addToCache(
-        key,
-        {
-          statusCode: reply.statusCode,
-          headers: cachedHeaders(reply.getHeaders()),
-          payload
-        },
-        config.cacheTTL
-      );
-    }
+    await cacheService.addToCache(
+      key,
+      {
+        statusCode: reply.statusCode,
+        headers: cachedHeaders(reply.getHeaders()),
+        payload
+      },
+      routeCache(getRouteConfig(request))?.ttl
+    );
 
     return payload;
   });
 });
+
+/** The cache of a route config: `true` for the defaults, an object for its options. */
+export function routeCache(config: RouteCacheConfig): RouteCache | undefined {
+  const { cache } = config;
+  if (!cache) {
+    return undefined;
+  }
+  return cache === true ? {} : cache;
+}
 
 function cachedHeaders(
   headers: Record<string, unknown>
@@ -106,35 +121,47 @@ function getRouteConfig(req: FastifyRequest): FullRouteConfig {
   return req.routeOptions.config;
 }
 
-function shouldUseCache(
+/** The cache of the request, for the reading methods of a route caching them. */
+function cacheOf(
   req: FastifyRequest,
-  config: RouteCacheConfig
-): boolean {
-  return !!(
-    (req.method === 'GET' || req.method === 'POST') &&
-    (config.cacheTTL || config.cacheKey || config.cache) &&
-    (config.cacheTTL === undefined || config.cacheTTL > 0) &&
-    config.cache !== false
-  );
+  config: FullRouteConfig
+): RouteCache | undefined {
+  const cache = routeCache(config);
+  if (
+    !cache ||
+    (req.method !== 'GET' && req.method !== 'POST') ||
+    (cache.ttl !== undefined && cache.ttl <= 0)
+  ) {
+    return undefined;
+  }
+  return cache;
 }
 
 function buildCacheKey(
   req: FastifyRequest,
-  config: RouteCacheConfig,
-  cacheService: CacheService,
-  user?: AuthUser
+  config: FullRouteConfig,
+  cache: RouteCache,
+  cacheService: CacheService
 ): string {
-  return isFunction(config.cacheKey)
-    ? config.cacheKey(req, user)
-    : config.cacheKey ||
-        cacheService.buildCacheKey({
-          baseKey: 'req',
-          method: req.method,
-          url: req.raw.url,
-          body: req.body as string,
-          modelName: config.cacheModelName,
-          relations: config.cacheRelations,
-          skipInvalidation: config.cacheSkipInvalidation,
-          authUser: user
-        });
+  // An entry per user only in the user scope, the default of an authenticated route
+  const scope = cache.scope ?? (config.public ? 'public' : 'user');
+  const user: AuthUser | undefined =
+    scope === 'user' ? (currentAuthUser() ?? undefined) : undefined;
+
+  if (isFunction(cache.key)) {
+    return cache.key(req, user);
+  }
+  return (
+    cache.key ||
+    cacheService.buildCacheKey({
+      baseKey: scope === 'shared' ? 'req:shared' : 'req',
+      method: req.method,
+      url: req.raw.url,
+      body: req.body as string,
+      modelName: cache.modelName,
+      relations: cache.relations,
+      skipInvalidation: cache.skipInvalidation,
+      authUser: user
+    })
+  );
 }

@@ -24,7 +24,8 @@ export function health(server: Server): void {
       schema: healthCheckSchema,
       onRequest: healthCheckConfig.AUTH ? authenticate() : undefined,
       config: {
-        cacheTTL: healthCheckConfig.CACHE_TTL,
+        // The same answer for every user
+        cache: { ttl: healthCheckConfig.CACHE_TTL, scope: 'shared' },
         rateLimit: {
           max: 12
         }

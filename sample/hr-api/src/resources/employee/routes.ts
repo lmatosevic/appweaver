@@ -7,7 +7,7 @@ export default createRoutes({
   modelName: 'Employee',
   path: '/employees',
   query: {
-    cacheTTL: 30_000
+    cache: { ttl: 30_000 }
   },
   aggregate: {
     permissions: [Permission.EmployeeManage]

@@ -225,7 +225,7 @@ import { createRoutes } from '@appweaver/web';
 export default createRoutes({
   modelName: 'Post',
   find: { roles: ['Admin', 'User'] },
-  query: { cacheTTL: 5000 },
+  query: { cache: { ttl: 5000 } },
   create: { permissions: ['post:create'] },
   delete: { exclude: true }
 });

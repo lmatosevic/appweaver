@@ -1533,7 +1533,7 @@ export default createRoutes({
   modelName: 'Product',
   path: '/products',
   find: { roles: ['Admin', 'User'], rateLimit: { max: 100 } },
-  query: { cache: true, cacheTTL: 5000 },
+  query: { cache: { ttl: 5000 } },
   create: { permissions: ['product:create'] },
   delete: { exclude: true }
 });
@@ -1616,17 +1616,31 @@ export default createRoutes({
 
 Extends RouteConfig with caching options (the global TTL and invalidation strategy are in [cache.md](./cache.md)):
 
-| Property                | Type    | Default | Description                                           |
-| ----------------------- | ------- | ------- | ----------------------------------------------------- |
-| `cache`                 | boolean | `false` | Enable response caching.                              |
-| `cacheTTL`              | number  | -       | Cache TTL in milliseconds (overrides global default). |
-| `cacheSkipInvalidation` | boolean | `false` | Skip automatic cache invalidation on writes.          |
+| Property | Type              | Default | Description                                                                 |
+| -------- | ----------------- | ------- | --------------------------------------------------------------------------- |
+| `cache`  | boolean \| object | `false` | Cache the responses: `true`, or `{ scope, ttl, skipInvalidation }` (below). |
 
-The cache key of a resource route is built from the model, the route, the request and the user, so the
-invalidation of the model's writes reaches it. A cached response replays only the headers describing its payload
-(`content-type`, `content-disposition`, `content-language`, `etag`, `last-modified`); the others, such as the CORS
-origin or the rate limit counters, are set again for every request. A custom `cacheKey`, with `cacheModelName` and `cacheRelations`, is an
-option of the custom routes of [`registerRoute`](#registerroute) only.
+| `cache` option     | Type                                 | Default                                      | Description                                    |
+| ------------------ | ------------------------------------ | -------------------------------------------- | ---------------------------------------------- |
+| `scope`            | `'public'` \| `'user'` \| `'shared'` | `public` on a public route, `user` otherwise | Who an entry is served to (below).             |
+| `ttl`              | number                               | `cache.defaultTtl`                           | Time to live in milliseconds.                  |
+| `skipInvalidation` | boolean                              | `false`                                      | Skip the automatic invalidation on the writes. |
+
+The scopes:
+
+- `public`: a route without authentication (`public: true`), one entry for every request. Refused on an authenticated
+  route, which would serve one user's response to another.
+- `user`: an entry per user, the default of an authenticated route.
+- `shared`: an authenticated route answering every user alike, one entry for all of them, served to every user the
+  route lets in. A resource route accepts it only when neither the policy of its model nor the one of a model its
+  responses include has `readRestrictions` or `checkAccess`, failing at startup otherwise; a virtual field reading the
+  current user must not be on it either. On a custom route the application is the judge.
+
+The cache key of a resource route is built from the model, the route and the request (and the user in the `user`
+scope), so the invalidation of the model's writes reaches it. A cached response replays only the headers describing
+its payload (`content-type`, `content-disposition`, `content-language`, `etag`, `last-modified`); the others, such as
+the CORS origin or the rate limit counters, are set again for every request. A custom `key`, with `modelName` and
+`relations`, is an option of the `cache` of the custom routes of [`registerRoute`](#registerroute) only.
 
 ### Query route config (query, aggregate)
 
@@ -1849,32 +1863,27 @@ registerRoute(
       }
     });
   },
-  { public: true, cacheTTL: 15000 }
+  { public: true, cache: { ttl: 15000 } }
 );
 ```
 
 ### Config options
 
-| Property                | Type                     | Description                                                                                            |
-| ----------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `exclude`               | boolean                  | Skip registration of this route.                                                                       |
-| `public`                | boolean                  | No authentication required.                                                                            |
-| `roles`                 | string[]                 | Required roles.                                                                                        |
-| `permissions`           | string[]                 | Required permissions.                                                                                  |
-| `auth`                  | AuthType[]               | Allowed authentication types.                                                                          |
-| `rateLimit`             | RateLimitConfig \| false | Rate limiting configuration.                                                                           |
-| `compress`              | boolean \| object        | Response compression: `false`, or `{ threshold, encodings, levels }` over `server.compression`.        |
-| `recaptcha`             | boolean                  | Require reCAPTCHA verification.                                                                        |
-| `recaptchaAction`       | string                   | Expected reCAPTCHA action.                                                                             |
-| `turnstile`             | boolean                  | Require Cloudflare Turnstile verification.                                                             |
-| `turnstileAction`       | string                   | Expected Turnstile action.                                                                             |
-| `cache`                 | boolean                  | Enable response caching.                                                                               |
-| `cacheKey`              | string \| function       | Custom cache key.                                                                                      |
-| `cacheTTL`              | number                   | Cache TTL in milliseconds.                                                                             |
-| `cacheSkipInvalidation` | boolean                  | Skip automatic cache invalidation.                                                                     |
-| `cacheModelName`        | string                   | Model name for cache invalidation tracking.                                                            |
-| `cacheRelations`        | string[]                 | Related model names for cache invalidation.                                                            |
-| `apiPrefix`             | boolean                  | Register under `server.apiPrefix` (`true`), or at the root (`false`, like the auth and health routes). |
+| Property          | Type                     | Description                                                                                            |
+| ----------------- | ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `exclude`         | boolean                  | Skip registration of this route.                                                                       |
+| `public`          | boolean                  | No authentication required.                                                                            |
+| `roles`           | string[]                 | Required roles.                                                                                        |
+| `permissions`     | string[]                 | Required permissions.                                                                                  |
+| `auth`            | AuthType[]               | Allowed authentication types.                                                                          |
+| `rateLimit`       | RateLimitConfig \| false | Rate limiting configuration.                                                                           |
+| `compress`        | boolean \| object        | Response compression: `false`, or `{ threshold, encodings, levels }` over `server.compression`.        |
+| `recaptcha`       | boolean                  | Require reCAPTCHA verification.                                                                        |
+| `recaptchaAction` | string                   | Expected reCAPTCHA action.                                                                             |
+| `turnstile`       | boolean                  | Require Cloudflare Turnstile verification.                                                             |
+| `turnstileAction` | string                   | Expected Turnstile action.                                                                             |
+| `cache`           | boolean \| object        | Cache the responses: `true`, or `{ scope, ttl, key, skipInvalidation, modelName, relations }`.         |
+| `apiPrefix`       | boolean                  | Register under `server.apiPrefix` (`true`), or at the root (`false`, like the auth and health routes). |
 
 The error codes a custom route responds with are listed in its `errorResponses`, see
 [errors.md](./errors.md#documenting-the-errors-of-a-route).

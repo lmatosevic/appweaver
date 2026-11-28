@@ -84,8 +84,7 @@ registerRoute(
   },
   {
     permissions: [Permission.EmployeeManage],
-    // Dropped whenever an employee changes
-    cacheTTL: 60_000,
-    cacheModelName: 'Employee'
+    // The same report for every manager, dropped whenever an employee changes
+    cache: { scope: 'shared', ttl: 60_000, modelName: 'Employee' }
   }
 );

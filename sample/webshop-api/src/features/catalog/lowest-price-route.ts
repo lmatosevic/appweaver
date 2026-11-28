@@ -49,5 +49,5 @@ registerRoute(
       }
     );
   },
-  { public: true, cacheTTL: 60_000 }
+  { public: true, cache: { ttl: 60_000 } }
 );

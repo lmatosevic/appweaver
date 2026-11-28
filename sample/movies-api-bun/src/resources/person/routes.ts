@@ -6,11 +6,11 @@ export default createRoutes({
   path: '/people',
   find: {
     public: true,
-    cacheTTL: 600_000
+    cache: { ttl: 600_000 }
   },
   query: {
     public: true,
-    cacheTTL: 600_000
+    cache: { ttl: 600_000 }
   },
   aggregate: {
     exclude: true

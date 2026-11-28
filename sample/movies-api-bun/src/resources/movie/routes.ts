@@ -7,11 +7,11 @@ export default createRoutes({
   path: '/movies',
   find: {
     public: true,
-    cacheTTL: 300_000
+    cache: { ttl: 300_000 }
   },
   query: {
     public: true,
-    cacheTTL: 60_000,
+    cache: { ttl: 60_000 },
     rateLimit: {
       max: 120,
       timeWindow: '1 minute'
@@ -19,7 +19,7 @@ export default createRoutes({
   },
   aggregate: {
     public: true,
-    cacheTTL: 300_000
+    cache: { ttl: 300_000 }
   },
   create: {
     roles: catalogEditors

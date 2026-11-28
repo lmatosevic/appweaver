@@ -39,7 +39,7 @@ const BULK_ROUTES: ResourceRouteName[] = [
   'bulkReplace',
   'bulkDelete'
 ];
-const CACHE_OPTIONS = ['cache', 'cacheTTL', 'cacheSkipInvalidation'] as const;
+const CACHE_OPTIONS = ['cache'] as const;
 
 const isBulkRoute = (route: ResourceRouteName): route is BulkRouteName =>
   BULK_ROUTES.includes(route);

@@ -107,24 +107,42 @@ export type RouteAuditConfig = {
   action?: string;
 };
 
-export type RouteCacheConfig = {
-  /** Enable or disable response caching. Caching for this route can also be
-   * enabled if `cacheKey` or `cacheTTL` value is provided */
-  cache?: boolean;
-  /** Custom cache key or factory */
-  cacheKey?: string | ((req: any, user: any) => string);
-  /** Cache TTL in milliseconds */
-  cacheTTL?: number;
+/** Who a cached response is served to. */
+export type RouteCacheScope = 'public' | 'user' | 'shared';
+
+/** The response cache of a route. */
+export type RouteCache = {
+  /** Who an entry is served to: `public` for a route without authentication, `user` for an entry per user (the
+   * default of an authenticated route), `shared` for one entry served to every user the route lets in, accepted
+   * only for a response that cannot depend on the user (default: `public` for a public route, otherwise `user`) */
+  scope?: RouteCacheScope;
+  /** Time to live in milliseconds (default: `cache.ttl` config) */
+  ttl?: number;
+  /** Custom cache key or factory, replacing the one built from the request */
+  key?: string | ((req: any, user: any) => string);
   /** Skip automatic cache invalidation */
-  cacheSkipInvalidation?: boolean;
-  /** Model name used to scope cache invalidation */
-  cacheModelName?: string;
-  /** Related model names that trigger cache invalidation */
-  cacheRelations?: string[];
+  skipInvalidation?: boolean;
+  /** Model whose changes, and the ones of the models it includes, evict the entries */
+  modelName?: string;
+  /** Model names whose changes evict the entries */
+  relations?: string[];
 };
 
-export type ReadRouteConfig = RouteConfig &
-  Omit<RouteCacheConfig, 'cacheKey' | 'cacheModelName' | 'cacheRelations'>;
+export type RouteCacheConfig = {
+  /** Cache the responses: `true` with the defaults, or the options of the cache */
+  cache?: boolean | RouteCache;
+};
+
+/** The cache options of a resource route, whose key and models the route sets. */
+export type ResourceRouteCache = Pick<
+  RouteCache,
+  'scope' | 'ttl' | 'skipInvalidation'
+>;
+
+export type ReadRouteConfig = RouteConfig & {
+  /** Cache the responses: `true` with the defaults, or the options of the cache */
+  cache?: boolean | ResourceRouteCache;
+};
 
 export type QueryRouteConfig = ReadRouteConfig & {
   /** HTTP methods the route is registered for (default: `RESOURCE_QUERY_METHOD`

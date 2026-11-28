@@ -154,7 +154,7 @@ import { createRoutes } from '@appweaver/web';
 export default createRoutes({
   modelName: 'Product',
   find: { cache: true, roles: ['Admin', 'User'], rateLimit: { max: 100 } },
-  query: { cacheTTL: 5000 },
+  query: { cache: { ttl: 5000 } },
   create: { permissions: ['product:create'] },
   delete: { exclude: true }
 });
@@ -236,7 +236,7 @@ registerRoute(
       handler: async () => ({ message: 'Hello, world!' })
     });
   },
-  { public: true, cacheTTL: 15000 }
+  { public: true, cache: { ttl: 15000 } }
 );
 ```
 
