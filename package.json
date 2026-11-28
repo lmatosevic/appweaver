@@ -40,7 +40,8 @@
     "samples:manage": "node tools/manage-samples.js",
     "load": "node tools/load/run-load.js",
     "load:probe": "node tools/load/probe.js",
-    "check:unused": "knip"
+    "check:unused": "knip",
+    "load:summary": "node tools/load/summarize.js"
   },
   "dependencies": {
     "@fastify/ajv-compiler": "4.0.5",
