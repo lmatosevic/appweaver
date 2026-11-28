@@ -1,6 +1,7 @@
 // The scenarios of E2 (PLAN-v3.md): the posts of the CMS, read anonymously through the public routes, every request
 // with a random value in its filter so the response cache never answers, except in `query-cached`.
-module.exports = {
+// The load definition of the sample, run by `npm run samples:manage -- load` (tools/load/README.md)
+module.exports = () => ({
   database: 'sqlite',
   services: ['redis'],
   port: 5001,
@@ -160,4 +161,4 @@ module.exports = {
       })
     }
   ]
-};
+});

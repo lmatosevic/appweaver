@@ -1,8 +1,9 @@
 // The product catalog of the webshop on PostgreSQL (TimescaleDB image) with Redis: the public reads see the active
 // products only, an admin aggregates the prices.
-const { resourceScenarios, collectIds } = require('../lib/scenarios');
 
-module.exports = {
+// The load definition of the sample, run by `npm run samples:manage -- load` (tools/load/README.md), given the
+// scenario helpers of the harness
+module.exports = ({ resourceScenarios, collectIds }) => ({
   database: 'postgresql',
   services: ['postgres', 'redis'],
   port: 5002,
@@ -50,4 +51,4 @@ module.exports = {
     textSearch: true,
     aggregate: { select: { price: { avg: true, min: true, max: true }, stock: { sum: true } } }
   })
-};
+});

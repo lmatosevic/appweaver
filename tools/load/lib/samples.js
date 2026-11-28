@@ -1,33 +1,32 @@
 const fs = require('fs');
 const path = require('path');
+const scenarioHelpers = require('./scenarios');
 
 const rootDir = path.resolve(__dirname, '..', '..', '..');
-const samplesDir = path.join(rootDir, 'sample');
-const definitionsDir = path.join(__dirname, '..', 'samples');
 
-/** The names of the samples with a load definition, in `tools/load/samples`. */
-function sampleNames() {
-  return fs
-    .readdirSync(definitionsDir)
-    .filter((file) => file.endsWith('.js'))
-    .map((file) => file.replace(/\.js$/, ''))
-    .sort();
+/** The load definition of a sample, relative to its directory. */
+const definitionPath = path.join('test', 'load', 'load.js');
+
+/** Whether a sample directory has a load definition. */
+function hasLoadDefinition(sampleDir) {
+  return fs.existsSync(path.join(sampleDir, definitionPath));
 }
 
 /**
- * Loads the load definition of a sample, with its directory and runtime.
+ * Loads the load definition of a sample (`test/load/load.js` of its directory, a function given the scenario helpers
+ * of the harness), with its name, directory and runtime.
  *
- * @param {string} name - The directory name of the sample, i.e. `cms-api`.
+ * @param {string} sampleDir - The directory of the sample, by default the working directory.
  */
-function loadSample(name) {
-  const file = path.join(definitionsDir, `${name}.js`);
+function loadSample(sampleDir = process.cwd()) {
+  const dir = path.resolve(sampleDir);
+  const name = path.basename(dir);
+  const file = path.join(dir, definitionPath);
   if (!fs.existsSync(file)) {
-    throw new Error(
-      `No load definition for ${name}, the samples with one: ${sampleNames().join(', ')}`
-    );
+    throw new Error(`${name} has no load definition (${definitionPath})`);
   }
-  const definition = require(file);
-  const dir = path.join(samplesDir, name);
+  const exported = require(file);
+  const definition = typeof exported === 'function' ? exported(scenarioHelpers) : exported;
   const runtime = fs.existsSync(path.join(dir, 'bunfig.toml')) ? 'bun' : 'node';
   return { name, dir, runtime, scenarios: [], env: {}, ...definition };
 }
@@ -53,4 +52,4 @@ function sizeLabel(count) {
   return String(count);
 }
 
-module.exports = { rootDir, samplesDir, sampleNames, loadSample, parseSize, sizeLabel };
+module.exports = { rootDir, hasLoadDefinition, loadSample, parseSize, sizeLabel };

@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn, spawnSync } = require('child_process');
+const { hasLoadDefinition } = require('./load/lib/samples');
 
 // Runs an operation in every sample project it applies to, or only in the
 // samples named after its parameters, one after another stopping at the first
@@ -13,9 +14,13 @@ const { spawn, spawnSync } = require('child_process');
 //   node tools/manage-samples.js run e2e --parallel
 //   node tools/manage-samples.js exec "docker compose up -d" cms-api hr-api
 //   node tools/manage-samples.js exec -p -- docker compose down -v
+//   node tools/manage-samples.js load cms-api -- --setup --size 100k
+//   node tools/manage-samples.js probe -- --idle 60 --soak 60
+//   node tools/manage-samples.js load-summary
 //
 // The words after `--` are the last parameter, so they may hold options of
-// their own, and the arguments before it are the samples.
+// their own, and the arguments before it are the samples. The operations with
+// `options` take them as options of their command instead, optional.
 
 const samplesDir = 'sample';
 
@@ -41,6 +46,31 @@ const operations = {
     description: 'Executes a shell command in every sample.',
     command: (sampleDir, [command]) => command,
     appliesTo: () => true
+  },
+  // The load tests of tools/load (tools/load/README.md), of the samples with a test/load/load.js
+  load: {
+    params: [],
+    options: true,
+    description:
+      'Seeds and load-tests the sample with its test/load/load.js, writing a report to reports/load.',
+    command: (sampleDir, [options]) => loadCommand('run-load.js', options),
+    appliesTo: hasLoadDefinition
+  },
+  probe: {
+    params: [],
+    options: true,
+    description:
+      'Measures the idle timer wake-ups and the memory of the sample, and the heap growth of a soak.',
+    command: (sampleDir, [options]) => loadCommand('probe.js', options),
+    appliesTo: hasLoadDefinition
+  },
+  'load-summary': {
+    params: [],
+    options: true,
+    description:
+      'Prints the latest load and probe reports of the sample as Markdown tables.',
+    command: (sampleDir, [options]) => loadCommand('summarize.js', options),
+    appliesTo: hasLoadDefinition
   }
 };
 
@@ -77,15 +107,22 @@ if (!operation) {
   process.exit(operationName ? 1 : 0);
 }
 
-if (lastParam.length && !operation.params.length) {
+if (lastParam.length && !operation.params.length && !operation.options) {
   console.error(`${operationName} takes no parameter after --\n`);
   printUsage();
   process.exit(1);
 }
-const positionalParams = operation.params.length - lastParam.length;
-const params = [...cliArgs.slice(0, positionalParams), ...lastParam];
+const positionalParams = operation.options
+  ? operation.params.length
+  : operation.params.length - lastParam.length;
+const params = operation.options
+  ? [...cliArgs.slice(0, positionalParams), lastParam[0] ?? '']
+  : [...cliArgs.slice(0, positionalParams), ...lastParam];
 const sampleNames = cliArgs.slice(positionalParams);
-if (params.length < operation.params.length || !params.every(Boolean)) {
+if (
+  params.length < operation.params.length ||
+  !params.slice(0, operation.params.length).every(Boolean)
+) {
   const missing = operation.params.filter((_, i) => !params[i]);
   console.error(`Missing ${missing.map((p) => `<${p}>`).join(' ')}\n`);
   printUsage();
@@ -101,7 +138,7 @@ if (unknownSamples.length) {
   process.exit(1);
 }
 
-const title = [operationName, ...params].join(' ');
+const title = [operationName, ...params].filter(Boolean).join(' ');
 const samples = (sampleNames.length ? sampleNames : allSamples).filter(
   (name) => {
     const applies = operation.appliesTo(path.join(samplesDir, name), params);
@@ -189,6 +226,12 @@ function prefixLines(prefix, stream) {
   return write;
 }
 
+/** The command of a script of the load tests, run in the directory of a sample. */
+function loadCommand(script, options) {
+  const file = path.join(__dirname, 'load', script);
+  return [quote(process.execPath), quote(file), options].filter(Boolean).join(' ');
+}
+
 function sampleCommand(name) {
   const sampleDir = path.join(samplesDir, name);
   return { sampleDir, command: operation.command(sampleDir, params) };
@@ -207,9 +250,12 @@ function printUsage() {
     'Usage: node tools/manage-samples.js <operation> [params...] [samples...] [-p|--parallel] [-- <last-param...>]\n'
   );
   console.log('Operations:');
-  for (const [name, { params, description }] of Object.entries(operations)) {
+  for (const [name, { params, options, description }] of Object.entries(
+    operations
+  )) {
     const usage = [name, ...params.map((p) => `<${p}>`)].join(' ');
-    console.log(`  ${usage.padEnd(18)}${description}`);
+    const withOptions = options ? `${usage} [-- <options>]` : usage;
+    console.log(`  ${withOptions.padEnd(28)}${description}`);
   }
   console.log('\nOptions:');
   console.log(

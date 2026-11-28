@@ -1,11 +1,12 @@
 // The alerts of the fleet on PostgreSQL with PostGIS and TimescaleDB, read by the admin: the spatial filters of the
 // `postgis` engine beside the plain ones.
-const { resourceScenarios, collectIds } = require('../lib/scenarios');
 
 // Around Zagreb, where the fleet of the seeders drives
 const area = { minLng: 15.8, minLat: 45.7, maxLng: 16.15, maxLat: 45.9 };
 
-module.exports = {
+// The load definition of the sample, run by `npm run samples:manage -- load` (tools/load/README.md), given the
+// scenario helpers of the harness
+module.exports = ({ resourceScenarios, collectIds }) => ({
   database: 'postgresql',
   services: ['postgres'],
   port: 5008,
@@ -93,4 +94,4 @@ module.exports = {
       }
     }
   ]
-};
+});

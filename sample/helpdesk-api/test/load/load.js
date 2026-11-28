@@ -1,7 +1,8 @@
 // The tickets of the helpdesk on MySQL (MariaDB), read by an agent: the staff reads every ticket.
-const { resourceScenarios, collectIds } = require('../lib/scenarios');
 
-module.exports = {
+// The load definition of the sample, run by `npm run samples:manage -- load` (tools/load/README.md), given the
+// scenario helpers of the harness
+module.exports = ({ resourceScenarios, collectIds }) => ({
   database: 'mysql',
   services: ['mysql'],
   port: 5004,
@@ -62,4 +63,4 @@ module.exports = {
     textSearch: true,
     aggregate: { select: { createdAt: { count: true } } }
   })
-};
+});

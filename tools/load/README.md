@@ -1,16 +1,20 @@
 # Load tests of the samples
 
 The load-test harness of `PLAN-v3.md` (V3-PERF-01, V3-PERF-02): the scenarios of every sample on its own database,
-the numbers each phase of v3 is compared to. It is run by hand, never by the CI of a pull request.
+the numbers each phase of v3 is compared to. It is run by hand, never by the CI of a pull request, through the `load`,
+`probe` and `load-summary` operations of `tools/manage-samples.js` (`npm run samples:manage`), which run the scripts of
+this directory in the directory of every sample having a load definition (`test/load/load.js`), or of the samples
+named. The options of a script come after `--`. Run the samples one at a time, never with `--parallel`: several share
+the ports of PostgreSQL and Redis, and the load of one would skew the numbers of another.
 
 ```bash
 npm run build                                           # the samples run on the built packages
-npm run load -- cms-api --build --setup --size 100k     # build, migrate and seed the sample, then load it
-npm run load -- cms-api --size 100k --connections 1,20  # once set up: the latency alone, then 20 connections
-npm run load -- webshop-api --setup --teardown          # starts and stops its Docker Compose services
-npm run load -- --all --setup --teardown --size 10k     # every sample, one after another
-npm run load:probe -- cms-api --idle 60 --soak 120      # idle wake-ups and memory, heap growth over a soak
-npm run load:summary                                    # the latest reports as the Markdown tables of PLAN-v3.md
+npm run samples:manage -- load cms-api -- --build --setup --size 100k   # build, migrate and seed, then load it
+npm run samples:manage -- load cms-api -- --size 100k --connections 1,20 # once set up: one connection, then 20
+npm run samples:manage -- load webshop-api -- --setup --teardown         # starts and stops its Compose services
+npm run samples:manage -- load -- --setup --teardown --size 10k          # every sample, one after another
+npm run samples:manage -- probe cms-api -- --idle 60 --soak 120          # idle wake-ups, memory, heap over a soak
+npm run samples:manage -- load-summary                                   # the reports as the tables of PLAN-v3.md
 ```
 
 ## What a run does
@@ -19,7 +23,7 @@ npm run load:summary                                    # the latest reports as 
 2. `--setup`: copies `.env.example` to `.env` when the sample has none, starts the Docker Compose `services` of its
    definition (`docker compose up -d --wait`), then `weaver migrate` and `weaver seed` with the admin password
    `LOAD_ADMIN_PASSWORD` (default `Load-test-password-1`), so the scenarios can sign in.
-3. Seeding (unless `--no-seed`): `weaver run tools/load/seed-task.js <sample> <rows>` in the sample, which inserts
+3. Seeding (unless `--no-seed`): `weaver run tools/load/seed-task.js <rows>` in the sample, which inserts
    through the Prisma client of the application, so it works on every database. It tops the main model up to
    `--size` rows (`10k`, `100k`, `1m`) and does nothing once the model holds that many, so a run at 100k after one at
    10k inserts the missing 90k.
@@ -31,11 +35,11 @@ npm run load:summary                                    # the latest reports as 
 6. Writes `reports/load/<sample>-<size>-<date>.json` and prints the results as a Markdown table. `--teardown` stops
    the Docker Compose services afterwards, so the next sample can publish the same ports.
 
-Run the samples one at a time: several share the ports of PostgreSQL and Redis.
 
 ## A sample definition
 
-`tools/load/samples/<sample>.js`, named after the directory of the sample:
+`test/load/load.js` in the directory of the sample, exporting a function that receives the scenario helpers of the
+harness (`resourceScenarios`, `collectIds`) and returns the definition:
 
 | Key         | Content                                                                                                     |
 |-------------|-------------------------------------------------------------------------------------------------------------|
@@ -54,7 +58,7 @@ carrying a random value so the response cache never answers, except in `query-ca
 
 ## The probe
 
-`npm run load:probe -- <sample>` starts the application with a preload (`lib/probe-preload.js`) that counts the timer
+The `probe` operation (`probe.js`) starts the application with a preload (`lib/probe-preload.js`) that counts the timer
 callbacks by the code that created each timer, and reports:
 
 - the time to readiness, the RSS and heap after startup and after the idle window (after a forced GC);

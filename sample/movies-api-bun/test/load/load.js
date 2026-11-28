@@ -1,7 +1,8 @@
 // The public catalog of the movies API, on Bun and SQLite through libsql: three genres per movie.
-const { resourceScenarios, collectIds } = require('../lib/scenarios');
 
-module.exports = {
+// The load definition of the sample, run by `npm run samples:manage -- load` (tools/load/README.md), given the
+// scenario helpers of the harness
+module.exports = ({ resourceScenarios, collectIds }) => ({
   database: 'sqlite (libsql)',
   port: 5005,
   auth: 'login',
@@ -54,4 +55,4 @@ module.exports = {
     relationFilterDescription: '`query`, `genres: { _some: { id } }`',
     aggregate: { select: { rating: { avg: true }, runtimeMinutes: { avg: true } }, auth: false }
   })
-};
+});

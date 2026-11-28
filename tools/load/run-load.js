@@ -1,26 +1,25 @@
 #!/usr/bin/env node
-// The load tests of the samples (V3-PERF-01 of PLAN-v3.md): seeds the main model of a sample to a size, starts the
-// built application, runs the scenarios of its definition (tools/load/samples/<sample>.js) with autocannon, and writes
-// a JSON report. See tools/load/README.md.
+// The load test of the sample of the working directory (V3-PERF-01 of PLAN-v3.md), run in every sample with a load
+// definition (test/load/load.js) by the `load` operation of tools/manage-samples.js: seeds the main model of the sample
+// to a size, starts the built application, runs the scenarios of its definition with autocannon, and writes a JSON
+// report. See tools/load/README.md.
 //
-//   npm run load -- cms-api
-//   npm run load -- cms-api --size 100k --connections 1,20
-//   npm run load -- webshop-api --setup --scenarios find,query
+//   npm run samples:manage -- load cms-api
+//   npm run samples:manage -- load cms-api -- --size 100k --connections 1,20
+//   npm run samples:manage -- load webshop-api -- --setup --scenarios find,query
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync, execSync } = require('child_process');
 const { Command } = require('commander');
-const { rootDir, sampleNames, loadSample, parseSize, sizeLabel } = require('./lib/samples');
+const { rootDir, loadSample, parseSize, sizeLabel } = require('./lib/samples');
 const { startApp } = require('./lib/app-process');
 const { adminEmail, adminPassword, authenticate, createApi, runScenario } = require('./lib/runner');
 const { createRandom } = require('./lib/seed-helpers');
 const { formatTable } = require('./lib/report');
 
 const program = new Command('load')
-  .description('Runs the load scenarios of the samples and writes a JSON report of each.')
-  .argument('[samples...]', `The samples to load, of: ${sampleNames().join(', ')}.`)
-  .option('--all', 'Load every sample with a load definition.')
+  .description('Runs the load scenarios of the sample of the working directory and writes a JSON report.')
   .option('--scenarios <names>', 'The scenarios to run, comma separated (default: every one).')
   .option('--size <rows>', 'The rows of the main model, i.e. 10k, 100k or 1m.', '10k')
   .option('--connections <list>', 'The connections of each run, comma separated, i.e. 1,20.', '20')
@@ -40,19 +39,10 @@ program.parseAsync().catch((error) => {
   process.exit(1);
 });
 
-async function main(names, options) {
-  const samples = options.all ? sampleNames() : names;
-  if (samples.length === 0) {
-    program.help();
-  }
-  const reports = [];
-  for (const name of samples) {
-    reports.push(await loadTest(loadSample(name), options));
-  }
-  for (const report of reports) {
-    console.log(`\n${report.sample} (${report.database}, ${sizeLabel(report.size)} rows)\n`);
-    console.log(formatTable(report));
-  }
+async function main(options) {
+  const report = await loadTest(loadSample(), options);
+  console.log(`\n${report.sample} (${report.database}, ${sizeLabel(report.size)} rows)\n`);
+  console.log(formatTable(report));
 }
 
 async function loadTest(sample, options) {
@@ -68,7 +58,7 @@ async function loadTest(sample, options) {
     weaver(sample, ['seed'], env, options);
   }
   if (options.seed && sample.seed) {
-    weaver(sample, ['run', path.join(__dirname, 'seed-task.js'), sample.name, String(size)], env, options);
+    weaver(sample, ['run', path.join(__dirname, 'seed-task.js'), String(size)], env, options);
   }
 
   const app = options.start

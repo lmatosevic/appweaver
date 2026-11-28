@@ -1,25 +1,26 @@
 #!/usr/bin/env node
-// The idle and memory probe of the samples (V3-PERF-02 of PLAN-v3.md, the measures of E5): starts the built
+// The idle and memory probe of the sample of the working directory (V3-PERF-02 of PLAN-v3.md, the measures of E5),
+// run by the `probe` operation of tools/manage-samples.js: starts the built
 // application with a preload counting the timer callbacks, records the memory after startup, the timer wake-ups of an
 // idle window by the code that created each timer, and optionally the heap growth over a soak of the load scenarios.
 // Node samples only: Bun implements neither `async_hooks.createHook` nor the IPC with a Node parent.
 //
-//   npm run load:probe -- cms-api
-//   npm run load:probe -- cms-api --idle 60 --soak 120
+//   npm run samples:manage -- probe cms-api
+//   npm run samples:manage -- probe cms-api -- --idle 60 --soak 120
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { Command } = require('commander');
-const { rootDir, sampleNames, loadSample } = require('./lib/samples');
+const { rootDir, loadSample } = require('./lib/samples');
 const { startApp, sleep } = require('./lib/app-process');
 const { adminEmail, adminPassword, authenticate, createApi, runScenario } = require('./lib/runner');
 const { createRandom } = require('./lib/seed-helpers');
 const { diffSnapshots } = require('./lib/heap-diff');
 
 const program = new Command('probe')
-  .description('Measures the idle timer wake-ups and the memory of the samples, and the heap growth of a soak.')
-  .argument('[samples...]', `The samples to probe, of: ${sampleNames().join(', ')}.`)
-  .option('--all', 'Probe every Node sample with a load definition.')
+  .description(
+    'Measures the idle timer wake-ups and the memory of the sample of the working directory, and the heap growth of a soak.'
+  )
   .option('--settle <seconds>', 'The wait after startup before measuring.', '10')
   .option('--idle <seconds>', 'The idle window the timer wake-ups are counted in.', '60')
   .option('--soak <seconds>', 'The duration of the soak of the load scenarios (default: no soak).')
@@ -34,22 +35,17 @@ program.parseAsync().catch((error) => {
   process.exit(1);
 });
 
-async function main(names, options) {
-  const samples = (options.all ? sampleNames() : names).map(loadSample);
-  if (samples.length === 0) {
-    program.help();
+async function main(options) {
+  const sample = loadSample();
+  if (sample.runtime === 'bun') {
+    console.log(`${sample.name}: skipped, the probe runs on Node only`);
+    return;
   }
-  for (const sample of samples) {
-    if (sample.runtime === 'bun') {
-      console.log(`${sample.name}: skipped, the probe runs on Node only`);
-      continue;
-    }
-    if (sample.port === undefined) {
-      console.log(`${sample.name}: skipped, it serves no readiness route`);
-      continue;
-    }
-    printReport(await probe(sample, options));
+  if (sample.port === undefined) {
+    console.log(`${sample.name}: skipped, it serves no readiness route`);
+    return;
   }
+  printReport(await probe(sample, options));
 }
 
 async function probe(sample, options) {
