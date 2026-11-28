@@ -38,7 +38,7 @@ describe('upgrade-packages', () => {
       expect(runProcess).toHaveBeenCalledWith(
         'npm',
         ['install', '@appweaver/core@1.2.3', '@appweaver/cli@1.2.3'],
-        { quiet: true }
+        { quiet: true, cwd: process.cwd() }
       );
     });
 
@@ -48,7 +48,7 @@ describe('upgrade-packages', () => {
       expect(runProcess).toHaveBeenCalledWith(
         'npm',
         ['install', '@appweaver/core@latest'],
-        { quiet: true }
+        { quiet: true, cwd: process.cwd() }
       );
     });
 
@@ -63,7 +63,7 @@ describe('upgrade-packages', () => {
       expect(runProcess).toHaveBeenCalledWith(
         'npm',
         ['install', '@appweaver/core@latest', 'prisma@7.9.1', 'bullmq@5.79.1'],
-        { quiet: true }
+        { quiet: true, cwd: process.cwd() }
       );
     });
 
@@ -73,7 +73,7 @@ describe('upgrade-packages', () => {
       expect(runProcess).toHaveBeenCalledWith(
         'npm',
         ['install', '@appweaver/core@1.2.3', '--legacy-peer-deps'],
-        { quiet: true }
+        { quiet: true, cwd: process.cwd() }
       );
     });
 
@@ -81,7 +81,22 @@ describe('upgrade-packages', () => {
       await upgradePackages({ '@appweaver/core': '1.2.3' }, false, false);
 
       expect(runProcess).toHaveBeenCalledWith('npm', expect.any(Array), {
-        quiet: false
+        quiet: false,
+        cwd: process.cwd()
+      });
+    });
+
+    test('installs in the directory of the project it is given', async () => {
+      await upgradePackages(
+        { '@appweaver/core': '1.2.3' },
+        false,
+        true,
+        '/projects/app'
+      );
+
+      expect(runProcess).toHaveBeenCalledWith('npm', expect.any(Array), {
+        quiet: true,
+        cwd: '/projects/app'
       });
     });
 
@@ -97,7 +112,8 @@ describe('upgrade-packages', () => {
       await upgradePackages({});
 
       expect(runProcess).toHaveBeenCalledWith('npm', ['install'], {
-        quiet: true
+        quiet: true,
+        cwd: process.cwd()
       });
     });
 
@@ -113,7 +129,7 @@ describe('upgrade-packages', () => {
       expect(runProcess).toHaveBeenCalledWith(
         'bun',
         ['add', '@appweaver/core@1.2.3'],
-        { quiet: true }
+        { quiet: true, cwd: process.cwd() }
       );
     });
 
@@ -127,7 +143,8 @@ describe('upgrade-packages', () => {
       await bunUpdatePackages({ '@appweaver/core': '1.2.3' });
 
       expect(runProcess).toHaveBeenCalledWith('npm', expect.any(Array), {
-        quiet: true
+        quiet: true,
+        cwd: process.cwd()
       });
     });
   });

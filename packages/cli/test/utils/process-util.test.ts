@@ -54,6 +54,27 @@ describe('process-util', () => {
       ).resolves.toBe(3);
     });
 
+    test('runs the command in the directory it is given', async () => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'appweaver-cwd-'));
+      try {
+        // Exits with 0 only when started in the directory
+        const script = `"process.exit(process.cwd() === ${JSON.stringify(fs.realpathSync(dir)).replace(/"/g, "'")} ? 0 : 1)"`;
+        await expect(
+          runProcess('node', ['-e', script], { quiet: true, cwd: dir })
+        ).resolves.toBe(0);
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    test('is refused installing packages in the repository under the tests', async () => {
+      const root = path.resolve(__dirname, '..', '..', '..', '..');
+
+      await expect(
+        runProcess('npm', ['install', 'left-pad'], { quiet: true, cwd: root })
+      ).rejects.toThrow('in the repository');
+    });
+
     test('runs a command without arguments', async () => {
       await expect(
         runProcess('node --version', [], { quiet: true })

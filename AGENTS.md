@@ -46,6 +46,9 @@ Tests are located in `packages/*/test` and use **Jest** with **SWC** for fast ex
 - **Test helpers**: `resetContext`, `linkModels`, `createDatabaseStub`, `prismaError`, `sourceLoggerNames`,
   `cliConventionViolations` and `recordTelemetry` of `@appweaver/testing` (`packages/testing`), shared by the tests of
   every package
+- **Package installs**: a test never installs packages in the repository. `jest.setup.js` fails a spawned
+  `npm|bun|yarn|pnpm install|add|...` whose directory is inside it, so a command installing packages is mocked, or given
+  a temporary project as its explicit `cwd`, never one reached by `process.chdir()` alone
 - **Contract suites**: the test of a driver runs the suite of its contract from `@appweaver/testing`, i.e.
   `testStorageContract('FilesystemStorage', () => new FilesystemStorage())` (see `packages/testing`)
 

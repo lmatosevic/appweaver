@@ -234,7 +234,8 @@ async function addPackageModules(
   }
 
   const status = await runProcess(packageManager, args, {
-    quiet: !command.getOptionValue('verbose')
+    quiet: !command.getOptionValue('verbose'),
+    cwd: project.files.dir
   });
   if (status !== 0) {
     console.error(
@@ -249,7 +250,7 @@ async function addPackageModules(
     return;
   }
   for (const name of packageNames) {
-    describePackageModule(process.cwd(), name).forEach((line) =>
+    describePackageModule(project.files.dir, name).forEach((line) =>
       console.log(line)
     );
   }
@@ -300,7 +301,10 @@ async function applyChanges(
   if (result.packagesChanged && install) {
     console.log('\nInstalling dependencies...');
     const packageManager = project.context.runtime === 'bun' ? 'bun' : 'npm';
-    const status = await runProcess(packageManager, ['install'], { quiet });
+    const status = await runProcess(packageManager, ['install'], {
+      quiet,
+      cwd: project.files.dir
+    });
     if (status !== 0) {
       console.error(
         `Installing the dependencies failed, run "${packageManager} install" to retry. ` +

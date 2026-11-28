@@ -10,14 +10,16 @@ import { config, appConfig } from '@appweaver/common';
  * @param {Object} [params={ quiet: false }] - Configurations for how the process should run.
  * @param {boolean} [params.quiet=false] - If true, suppresses the process output.
  * @param {AbortSignal} [params.signal] - Optional AbortSignal to terminate the running process.
+ * @param {string} [params.cwd] - The directory to run the command in, by default the working directory. A command
+ * changing the files of a project, i.e. installing packages, is always given the directory of its project.
  * @return {Promise<number>} A promise that resolves with the exit code of the process.
  */
 export function runProcess(
   cmd: string,
   args: string[] = [],
-  params: { quiet?: boolean; signal?: AbortSignal } = {}
+  params: { quiet?: boolean; signal?: AbortSignal; cwd?: string } = {}
 ): Promise<number> {
-  const { quiet = false, signal } = params;
+  const { quiet = false, signal, cwd } = params;
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       return resolve(0);
@@ -29,6 +31,7 @@ export function runProcess(
     const child = spawn(abortable ? `exec ${command}` : command, {
       stdio: quiet ? 'ignore' : 'inherit',
       shell: true,
+      cwd,
       env: { ...process.env, WEAVER_CLI: undefined }
     });
 
