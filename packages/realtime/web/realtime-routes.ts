@@ -129,7 +129,7 @@ export function registerRealtimeRoutes(): void {
         async (request) => issueTicket(request)
       );
     },
-    { auth: Object.values(AuthType) }
+    { auth: Object.values(AuthType), compress: false }
   );
 
   registerRoute(
@@ -181,7 +181,8 @@ export function registerRealtimeRoutes(): void {
           callAction(request as never, reply)) as never
       );
     },
-    { public: true }
+    // A ticket is a secret, an action or an event stream is written as it goes
+    { public: true, compress: false }
   );
 
   registerRoute(
@@ -243,7 +244,8 @@ export function registerRealtimeRoutes(): void {
         );
       }
     },
-    { public: true }
+    // A ticket is a secret, an action or an event stream is written as it goes
+    { public: true, compress: false }
   );
 
   registerSpecExtension('realtime', realtimeSpec);

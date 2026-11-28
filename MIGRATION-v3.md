@@ -295,6 +295,10 @@ Released in 2.10.1 (phase 1a); listed here for a project upgrading from an older
   `uuidv5` method is removed, and the options are `TokenOptions` (`{ pool }`) instead of the `DefaultGenerationOptions`
   of `generate-api-key`. A `base32` token is four groups of seven RFC 4648 characters separated by dashes.
 
+- **Response compression** (V3-WEB-04, D24): the responses of 1 KB and more are compressed with `zstd` or `gzip` when
+  the client accepts it (`server.compression`). Set `server.compression.enabled: false` when a reverse proxy or a CDN
+  compresses them already, or `compress: false` on a route sending a body a client reads as it comes.
+
 ## 20b. Array environment variables
 
 An array key read from an environment variable (V3-COMMON-01, F36) takes a JSON array

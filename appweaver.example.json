@@ -26,14 +26,24 @@
       "staticEnabled": true,
       "staticDirPath": "./public",
       "staticRoutePrefix": "/public",
-      "staticResponseHeaders": [
-        "Content-Security-Policy: script-src 'self'"
-      ],
+      "staticResponseHeaders": ["Content-Security-Policy: script-src 'self'"],
       "staticMaxAge": "30d",
       "trustProxy": true,
       "requestLoggingEnabled": false,
       "errorDatabaseMessageEnabled": false,
-      "errorResponseMaxCount": 20
+      "errorResponseMaxCount": 20,
+      "compression": {
+        "enabled": true,
+        "threshold": "1KB",
+        "encodings": ["zstd", "gzip"],
+        "levels": {
+          "zstd": 3,
+          "br": 4,
+          "gzip": 6
+        },
+        "syncThreshold": "64KB",
+        "respectNoTransform": true
+      }
     },
     "log": {
       "level": "info",

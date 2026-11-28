@@ -98,7 +98,7 @@ which include the variables of the `.env` files. Keep passwords and other secret
 reference them from the committed JSON files instead of writing them there:
 
 | Syntax                    | Expands to                                                     |
-|---------------------------|----------------------------------------------------------------|
+| ------------------------- | -------------------------------------------------------------- |
 | `${VAR_NAME}`             | The variable's value, or an empty string when it is not set    |
 | `${VAR_NAME:-default}`    | The variable's value, or `default` when it is not set or empty |
 | `\\${VAR_NAME}` (in JSON) | The literal `${VAR_NAME}`                                      |
@@ -135,15 +135,15 @@ appConfig.HOSTNAME; // string
 databaseConfig.URL; // string
 ```
 
-| Section variable                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Keys                             | Imported from           |
-|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|-------------------------|
-| `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | `APP_*`, `LOG_*`                 | `@appweaver/common`     |
-| `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_*`: `PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `smsConfig`, `storageConfig`, `templateConfig`                                                                                                                                                                                                                      | `CACHE_*`, `HEALTH_CHECK_*`, ... | `@appweaver/core`       |
-| `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `systemConfig`, `auditConfig`, `audit<Category>Config` (`AUDIT_CHANGES_*`, `AUDIT_AUTH_*`, `AUDIT_READ_*`, `AUDIT_WRITE_*`, `AUDIT_CUSTOM_*`)                                                                                                                                                                                                                                                             | `DATABASE_*`, `RESOURCE_*`, ...  | `@appweaver/data`       |
+| Section variable                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Keys                             | Imported from           |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ----------------------- |
+| `appConfig`, `logConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `APP_*`, `LOG_*`                 | `@appweaver/common`     |
+| `cacheConfig`, `eventsConfig`, `healthConfig` (`HEALTH_CHECK_*`: `PORT`, `HOST`, `PICK_INSTANCES`, `OMIT_INSTANCES`), `localeConfig`, `mailerConfig`, `memoryConfig`, `queueConfig`, `schedulerConfig`, `securityStoreConfig` (`SECURITY_STORE_*`), `smsConfig`, `storageConfig`, `templateConfig`                                                                                                                                                                                                                                                                                          | `CACHE_*`, `HEALTH_CHECK_*`, ... | `@appweaver/core`       |
+| `databaseConfig`, `resourceConfig`, `exportConfig`, `imageConfig`, `passwordConfig`, `apiKeyConfig`, `systemConfig`, `auditConfig`, `audit<Category>Config` (`AUDIT_CHANGES_*`, `AUDIT_AUTH_*`, `AUDIT_READ_*`, `AUDIT_WRITE_*`, `AUDIT_CUSTOM_*`)                                                                                                                                                                                                                                                                                                                                          | `DATABASE_*`, `RESOURCE_*`, ...  | `@appweaver/data`       |
 | `serverConfig`, `rateLimitConfig`, `swaggerConfig`, `corsConfig`, `healthCheckConfig`, `templatePreviewConfig`, `securityConfig` (`SECURITY_*` not elsewhere), `accountConfig`, `twoFactorConfig` (`SECURITY_ACCOUNT_2FA_*`), `totpConfig` (`SECURITY_ACCOUNT_2FA_TOTP_*`), `recoveryCodesConfig` (`SECURITY_ACCOUNT_2FA_RECOVERY_CODES_*`), `recaptchaConfig`, `turnstileConfig`, `basicAuthConfig`, `jwtConfig`, `oauth2Config`, `oauth2<Provider>Config` (`SECURITY_OAUTH2_<PROVIDER>_*`, i.e. `oauth2GoogleConfig`), `auditRequestConfig` (`AUDIT_EXCLUDE_PATHS`, `AUDIT_REQUEST_BODY`) | `SERVER_*`, `SECURITY_*`, ...    | `@appweaver/web`        |
-| `redisConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `MEMORY_REDIS_*`                 | `@appweaver/redis`      |
-| `smtpConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `MAILER_SMTP_*`                  | `@appweaver/nodemailer` |
-| `twilioConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | `SMS_TWILIO_*`                   | `@appweaver/twilio`     |
+| `redisConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | `MEMORY_REDIS_*`                 | `@appweaver/redis`      |
+| `smtpConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | `MAILER_SMTP_*`                  | `@appweaver/nodemailer` |
+| `twilioConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | `SMS_TWILIO_*`                   | `@appweaver/twilio`     |
 
 A section is parsed on the first access of one of its values, with the defaults of its schema, then kept frozen. A
 missing or invalid value throws a `ConfigurationError` (`CONFIGURATION_INVALID`) naming only the invalid keys of the
@@ -254,14 +254,14 @@ NODE_ENV=prod weaver config check              # validate every section, exit 1 
 Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation of a contract, and takes:
 
 | Value            | Selects                                                                                                                         |
-|------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `auto` (default) | The driver of an enabled module, otherwise the fallback of core, otherwise none.                                                |
 | `none`           | Nothing: the contract is not defined, and neither are the services requiring it (`EmailService` without a `Mailer`).            |
 | A provider name  | The provider of that name of any enabled module, i.e. `memory` or `json`. A name no enabled module provides fails the startup.  |
 | A module path    | A value with a `.`, `/` or `@` loads the class the file exports, i.e. `@/infra/my-storage` for a driver inside the application. |
 
 | Contract         | Key                       | Providers                         | `auto` selects                                                                                                                |
-|------------------|---------------------------|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| ---------------- | ------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `Memory`         | `MEMORY_PROVIDER`         | `memory`, `redis`                 | `redis` with `@appweaver/redis`, otherwise `memory`                                                                           |
 | `Cache`          | `CACHE_PROVIDER`          | `memory`                          | `memory`, stored in the selected `Memory` (so in Redis with `redis`)                                                          |
 | `Events`         | `EVENTS_PROVIDER`         | `node`                            | `node`                                                                                                                        |
@@ -315,7 +315,7 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 ### Application (APP\_\*)
 
 | Property                 | Type     | Default                            | Description                                                                                                                 |
-|--------------------------|----------|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| ------------------------ | -------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `APP_ENV`                | enum     | `'prod'`                           | Application environment. Values: `test`, `local`, `dev`, `staging`, `qa`, `prod`. Mapped from `NODE_ENV`.                   |
 | `APP_NAME`               | string   | `'Appweaver'`                      | Application name.                                                                                                           |
 | `APP_DESCRIPTION`        | string?  | -                                  | Application description.                                                                                                    |
@@ -335,7 +335,7 @@ Every `*_PROVIDER` key (`config.<section>.provider`) selects the implementation 
 ### Logging (LOG\_\*)
 
 | Property               | Type    | Default  | Description                                                                              |
-|------------------------|---------|----------|------------------------------------------------------------------------------------------|
+| ---------------------- | ------- | -------- | ---------------------------------------------------------------------------------------- |
 | `LOG_LEVEL`            | enum    | `'info'` | Minimum log level. Values: `silent`, `trace`, `debug`, `info`, `warn`, `error`, `fatal`. |
 | `LOG_LEVELS`           | record  | `{}`     | Level of each named logger, overriding `LOG_LEVEL`, i.e. `LOG_LEVELS=database:debug`.    |
 | `LOG_PATH`             | string? | -        | Path to log file. If unset, logs to console only.                                        |
@@ -353,7 +353,7 @@ See [logging](./logging.md) for the loggers and the levels per module.
 ### Server (SERVER\_\*)
 
 | Property                                | Type     | Default      | Description                                                                                          |
-|-----------------------------------------|----------|--------------|------------------------------------------------------------------------------------------------------|
+| --------------------------------------- | -------- | ------------ | ---------------------------------------------------------------------------------------------------- |
 | `SERVER_PORT`                           | integer  | `5000`       | HTTP server listening port.                                                                          |
 | `SERVER_HOST`                           | string   | `'0.0.0.0'`  | HTTP server listening host/IP.                                                                       |
 | `SERVER_LISTEN`                         | boolean  | `true`       | Listen when the app starts, `false` serves only `app.server.inject()` (e2e tests).                   |
@@ -371,10 +371,28 @@ See [logging](./logging.md) for the loggers and the levels per module.
 | `SERVER_ERROR_DATABASE_MESSAGE_ENABLED` | boolean  | `false`      | Append the message of the database to the detail of a database error response, in every environment. |
 | `SERVER_ERROR_RESPONSE_MAX_COUNT`       | integer  | `20`         | Maximum validation errors per response. Above `1` every failure is reported, else only the first.    |
 
-### Rate limiting (RATE_LIMIT_\*)
+### Response compression (SERVER_COMPRESSION\_\*)
+
+| Property                                  | Type     | Default            | Description                                                                                      |
+| ----------------------------------------- | -------- | ------------------ | ------------------------------------------------------------------------------------------------ |
+| `SERVER_COMPRESSION_ENABLED`              | boolean  | `true`             | Compress the responses, `false` when a reverse proxy or a CDN compresses them already.           |
+| `SERVER_COMPRESSION_THRESHOLD`            | string   | `'1KB'`            | The size from which a response is compressed.                                                    |
+| `SERVER_COMPRESSION_ENCODINGS`            | string[] | `['zstd', 'gzip']` | The encodings in the server's order of preference (`zstd`, `br`, `gzip`, `deflate`).             |
+| `SERVER_COMPRESSION_LEVELS`               | record   | `{}`               | The level of each encoding over `{ zstd: 3, br: 4, gzip: 6 }` (`gzip` also for `deflate`).       |
+| `SERVER_COMPRESSION_SYNC_THRESHOLD`       | string?  | by the CPUs        | The size up to which a response is compressed on the event loop, larger ones in the thread pool. |
+| `SERVER_COMPRESSION_RESPECT_NO_TRANSFORM` | boolean  | `true`             | Send a response with `Cache-Control: no-transform` as it is.                                     |
+
+A route overrides it with its `compress` option: `false`, or `{ threshold, encodings, levels }` over the config
+(`createRoutes({ defaults: { compress: { threshold: '4KB' } }, find: { compress: false } })`,
+`registerRoute(handler, { compress: false })`). The authentication routes (`security.routePrefix`,
+`security.account.routePrefix`), the MCP OAuth routes and the realtime routes are never compressed unless they set it:
+a token compressed beside reflected input is exposed to the BREACH attack, and a stream is written as it goes. The
+request bodies are never decompressed.
+
+### Rate limiting (RATE*LIMIT*\*)
 
 | Property                          | Type      | Default  | Description                                                                                                                             |
-|-----------------------------------|-----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------- | --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `RATE_LIMIT_ENABLED`              | boolean   | `true`   | Enable global rate limiting middleware.                                                                                                 |
 | `RATE_LIMIT_MAX`                  | integer   | `1000`   | Maximum requests allowed per time window.                                                                                               |
 | `RATE_LIMIT_WINDOW`               | integer   | `60000`  | Rate limit window in milliseconds.                                                                                                      |
@@ -390,12 +408,12 @@ calling an expensive service (SMS, LLM, payments) the same way. A route's `rateL
 ### Swagger / OpenAPI (SWAGGER\_\*)
 
 | Property                | Type    | Default      | Description                                 |
-|-------------------------|---------|--------------|---------------------------------------------|
+| ----------------------- | ------- | ------------ | ------------------------------------------- |
 | `SWAGGER_ENABLED`       | boolean | `true`       | Enable Swagger/OpenAPI documentation UI.    |
 | `SWAGGER_PATH`          | string  | `'/swagger'` | URL path for the Swagger UI.                |
 | `SWAGGER_HIDE_UNTAGGED` | boolean | `false`      | Hide untagged endpoints from documentation. |
 
-### Health check (HEALTH_CHECK_\*)
+### Health check (HEALTH*CHECK*\*)
 
 The route keys are the `healthCheck` section of `@appweaver/web` (`healthCheckConfig`), the instance filters and the
 health listener the `healthCheck` section of `@appweaver/core` (`healthConfig`). The filters are read by
@@ -407,7 +425,7 @@ of the shutdown on `{ "ready": false }` with 503 again, while the requests in fl
 with `HealthService.setReady`, so `checkReadiness()` reports the same state in code.
 
 | Property                      | Type      | Default     | Description                                                   |
-|-------------------------------|-----------|-------------|---------------------------------------------------------------|
+| ----------------------------- | --------- | ----------- | ------------------------------------------------------------- |
 | `HEALTH_CHECK_ENABLED`        | boolean   | `true`      | Enable the health check endpoint.                             |
 | `HEALTH_CHECK_AUTH`           | boolean   | `true`      | Require authentication for health check.                      |
 | `HEALTH_CHECK_ROUTE_PREFIX`   | string    | `'/health'` | URL prefix for health check routes.                           |
@@ -424,14 +442,14 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 `weaver run`, whose task may run beside an application listening on the port.
 
 | Property            | Type    | Default     | Description                                |
-|---------------------|---------|-------------|--------------------------------------------|
+| ------------------- | ------- | ----------- | ------------------------------------------ |
 | `HEALTH_CHECK_PORT` | integer | `0`         | Port of the health listener, `0` for none. |
 | `HEALTH_CHECK_HOST` | string  | `'0.0.0.0'` | Host of the health listener.               |
 
 ### CORS (CORS\_\*)
 
 | Property               | Type     | Default | Description                                   |
-|------------------------|----------|---------|-----------------------------------------------|
+| ---------------------- | -------- | ------- | --------------------------------------------- |
 | `CORS_ORIGIN`          | string[] | `['*']` | Allowed origins for CORS requests.            |
 | `CORS_METHODS`         | string[] | `['*']` | Allowed HTTP methods.                         |
 | `CORS_ALLOWED_HEADERS` | string[] | `['*']` | Allowed request headers.                      |
@@ -442,7 +460,7 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 ### Resources (RESOURCE\_\*)
 
 | Property                            | Type    | Default                               | Description                                                                             |
-|-------------------------------------|---------|---------------------------------------|-----------------------------------------------------------------------------------------|
+| ----------------------------------- | ------- | ------------------------------------- | --------------------------------------------------------------------------------------- |
 | `RESOURCE_MODEL_PATTERN`            | string  | `'<srcPath>/resources/*/*model.ts'`   | Glob pattern for resource model files.                                                  |
 | `RESOURCE_SERVICE_PATTERN`          | string  | `'<srcPath>/resources/*/*service.ts'` | Glob pattern for resource service files.                                                |
 | `RESOURCE_POLICY_PATTERN`           | string  | `'<srcPath>/resources/*/*policy.ts'`  | Glob pattern for resource policy files.                                                 |
@@ -464,31 +482,31 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 
 ### Data export (EXPORT\_\*)
 
-| Property                    | Type    | Default | Description                                      |
-|-----------------------------|---------|---------|--------------------------------------------------|
-| `EXPORT_BATCH_SIZE`         | integer | `1000`  | Number of records per batch during export.       |
-| `EXPORT_CSV_DELIMITER`      | string  | `';'`   | CSV field delimiter character.                   |
-| `EXPORT_CSV_JOIN_DELIMITER` | string  | `','`   | Delimiter for joining array values in CSV cells. |
-| `EXPORT_CSV_ADD_HEADERS`    | boolean | `true`  | Include a header row in CSV exports.             |
-| `EXPORT_CSV_ADD_SEP_ROW`    | boolean | `false` | Add separator row (BOM) for Excel compatibility. |
-| `EXPORT_CSV_ESCAPE_FORMULAS` | boolean | `true` | Prefix with `'` the text cells a spreadsheet would run as a formula (`=`, `+`, `-`, `@`, tab, carriage return), signed numeric text excepted. |
+| Property                     | Type    | Default | Description                                                                                                                                   |
+| ---------------------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPORT_BATCH_SIZE`          | integer | `1000`  | Number of records per batch during export.                                                                                                    |
+| `EXPORT_CSV_DELIMITER`       | string  | `';'`   | CSV field delimiter character.                                                                                                                |
+| `EXPORT_CSV_JOIN_DELIMITER`  | string  | `','`   | Delimiter for joining array values in CSV cells.                                                                                              |
+| `EXPORT_CSV_ADD_HEADERS`     | boolean | `true`  | Include a header row in CSV exports.                                                                                                          |
+| `EXPORT_CSV_ADD_SEP_ROW`     | boolean | `false` | Add separator row (BOM) for Excel compatibility.                                                                                              |
+| `EXPORT_CSV_ESCAPE_FORMULAS` | boolean | `true`  | Prefix with `'` the text cells a spreadsheet would run as a formula (`=`, `+`, `-`, `@`, tab, carriage return), signed numeric text excepted. |
 
 ### Security (SECURITY\_\*)
 
 #### General
 
-| Property                             | Type     | Default   | Description                                                                          |
-|--------------------------------------|----------|-----------|--------------------------------------------------------------------------------------|
-| `SECURITY_ROUTE_PREFIX`              | string   | `'/auth'` | Base path for authentication routes.                                                 |
-| `SECURITY_CACHE_TTL`                 | integer  | `300000`  | Security cache TTL in milliseconds.                                                  |
-| `SECURITY_AUTH_OTT_TTL`              | integer  | `120000`  | One-time token TTL for authentication (ms).                                          |
-| `SECURITY_ALLOWED_REDIRECT_HOSTS`    | string[] | `['*']`   | Allowed hosts for post-authentication redirects.                                     |
-| `SECURITY_STORE_PROVIDER`            | string   | `'auto'`  | `auto` (`database` with a database), `database`, `memory`, `none`, or a module path. |
+| Property                          | Type     | Default   | Description                                                                          |
+| --------------------------------- | -------- | --------- | ------------------------------------------------------------------------------------ |
+| `SECURITY_ROUTE_PREFIX`           | string   | `'/auth'` | Base path for authentication routes.                                                 |
+| `SECURITY_CACHE_TTL`              | integer  | `300000`  | Security cache TTL in milliseconds.                                                  |
+| `SECURITY_AUTH_OTT_TTL`           | integer  | `120000`  | One-time token TTL for authentication (ms).                                          |
+| `SECURITY_ALLOWED_REDIRECT_HOSTS` | string[] | `['*']`   | Allowed hosts for post-authentication redirects.                                     |
+| `SECURITY_STORE_PROVIDER`         | string   | `'auto'`  | `auto` (`database` with a database), `database`, `memory`, `none`, or a module path. |
 
 #### Password policy
 
 | Property                       | Type    | Default | Description                             |
-|--------------------------------|---------|---------|-----------------------------------------|
+| ------------------------------ | ------- | ------- | --------------------------------------- |
 | `SECURITY_PASSWORD_ENABLED`    | boolean | `true`  | Enable password-based authentication.   |
 | `SECURITY_PASSWORD_MIN_LENGTH` | integer | `8`     | Minimum password length.                |
 | `SECURITY_PASSWORD_MAX_LENGTH` | integer | `100`   | Maximum password length.                |
@@ -500,7 +518,7 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 #### Account management
 
 | Property                                            | Type     | Default                    | Description                                                                              |
-|-----------------------------------------------------|----------|----------------------------|------------------------------------------------------------------------------------------|
+| --------------------------------------------------- | -------- | -------------------------- | ---------------------------------------------------------------------------------------- |
 | `SECURITY_ACCOUNT_ROUTE_PREFIX`                     | string   | `'/auth/account'`          | Base path for account management routes.                                                 |
 | `SECURITY_ACCOUNT_VERIFY_EMAIL_ENABLED`             | boolean  | `true`                     | Enable email verification flow, its routes registered only with a mailer.                |
 | `SECURITY_ACCOUNT_VERIFY_EMAIL_OTT_TTL`             | integer  | `7200000`                  | Email verification token TTL (ms, default 2 hours).                                      |
@@ -528,13 +546,13 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 
 A method is available only with its service: `Email` with a mailer, `Sms` with an SMS sender (`@appweaver/twilio`, or
 `json`), and `Totp` with `SECURITY_ACCOUNT_2FA_TOTP_ENCRYPTION_KEY`. Changing the encryption key makes the enabled TOTP
-methods unusable, so keep it with the other secrets of the deployment. 
+methods unusable, so keep it with the other secrets of the deployment.
 See [security](./security.md#two-factor-authentication-2fa).
 
 #### reCAPTCHA
 
 | Property                         | Type     | Default                                             | Description                                                              |
-|----------------------------------|----------|-----------------------------------------------------|--------------------------------------------------------------------------|
+| -------------------------------- | -------- | --------------------------------------------------- | ------------------------------------------------------------------------ |
 | `SECURITY_RECAPTCHA_ENABLED`     | boolean  | `false`                                             | Enable Google reCAPTCHA verification.                                    |
 | `SECURITY_RECAPTCHA_SECRET`      | string?  | -                                                   | Google reCAPTCHA secret key.                                             |
 | `SECURITY_RECAPTCHA_HEADER_NAME` | string   | `'x-recaptcha-token'`                               | Request header name for the reCAPTCHA token.                             |
@@ -545,7 +563,7 @@ See [security](./security.md#two-factor-authentication-2fa).
 #### Cloudflare Turnstile
 
 | Property                         | Type     | Default                                                       | Description                                                              |
-|----------------------------------|----------|---------------------------------------------------------------|--------------------------------------------------------------------------|
+| -------------------------------- | -------- | ------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | `SECURITY_TURNSTILE_ENABLED`     | boolean  | `false`                                                       | Enable Cloudflare Turnstile verification.                                |
 | `SECURITY_TURNSTILE_SECRET`      | string?  | -                                                             | Cloudflare Turnstile secret key.                                         |
 | `SECURITY_TURNSTILE_HEADER_NAME` | string   | `'x-turnstile-token'`                                         | Request header name for the Turnstile token.                             |
@@ -555,25 +573,25 @@ See [security](./security.md#two-factor-authentication-2fa).
 #### HTTP Basic authentication
 
 | Property                    | Type    | Default | Description                       |
-|-----------------------------|---------|---------|-----------------------------------|
+| --------------------------- | ------- | ------- | --------------------------------- |
 | `SECURITY_BASIC_ENABLED`    | boolean | `false` | Enable HTTP Basic authentication. |
 | `SECURITY_BASIC_REALM`      | string? | -       | HTTP Basic auth realm name.       |
 | `SECURITY_BASIC_PROXY_MODE` | boolean | `false` | Enable proxy mode for Basic auth. |
 
 #### API key authentication
 
-| Property                               | Type     | Default       | Description                                                                  |
-|----------------------------------------|----------|---------------|------------------------------------------------------------------------------|
-| `SECURITY_API_KEY_ENABLED`             | boolean  | `false`       | Enable API key authentication.                                               |
-| `SECURITY_API_KEY_HEADER_NAME`         | string   | `'x-api-key'` | Request header name for the API key.                                         |
-| `SECURITY_API_KEY_MAX_DURATION`        | integer? | -             | Maximum API key validity duration in milliseconds.                           |
-| `SECURITY_API_KEY_DELIMITER`           | string   | `'AK'`        | Prefix delimiter between key ID and secret value.                            |
-| `SECURITY_API_KEY_ROUTES_ENABLED`      | boolean  | `true`        | Register the built-in `/api-keys` routes (JWT only), off to expose your own. |
+| Property                          | Type     | Default       | Description                                                                  |
+| --------------------------------- | -------- | ------------- | ---------------------------------------------------------------------------- |
+| `SECURITY_API_KEY_ENABLED`        | boolean  | `false`       | Enable API key authentication.                                               |
+| `SECURITY_API_KEY_HEADER_NAME`    | string   | `'x-api-key'` | Request header name for the API key.                                         |
+| `SECURITY_API_KEY_MAX_DURATION`   | integer? | -             | Maximum API key validity duration in milliseconds.                           |
+| `SECURITY_API_KEY_DELIMITER`      | string   | `'AK'`        | Prefix delimiter between key ID and secret value.                            |
+| `SECURITY_API_KEY_ROUTES_ENABLED` | boolean  | `true`        | Register the built-in `/api-keys` routes (JWT only), off to expose your own. |
 
 #### JWT (JSON Web Tokens)
 
 | Property                          | Type    | Default                            | Description                                                                   |
-|-----------------------------------|---------|------------------------------------|-------------------------------------------------------------------------------|
+| --------------------------------- | ------- | ---------------------------------- | ----------------------------------------------------------------------------- |
 | `SECURITY_JWT_SECRET`             | string? | -                                  | HMAC secret for symmetric JWT signing (HS256). If set, RSA keys are not used. |
 | `SECURITY_JWT_PUBLIC_KEY_PATH`    | string  | `'./storage/__keys__/public.key'`  | Path to RSA public key for JWT verification (RS256).                          |
 | `SECURITY_JWT_PRIVATE_KEY_PATH`   | string  | `'./storage/__keys__/private.key'` | Path to RSA private key for JWT signing (RS256).                              |
@@ -583,16 +601,16 @@ See [security](./security.md#two-factor-authentication-2fa).
 
 #### OAuth2 general
 
-| Property                                                 | Type    | Default  | Description                                                                                                                                                                                                       |
-|----------------------------------------------------------|---------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `SECURITY_OAUTH2_STATE_TTL`                              | integer | `600000` | OAuth2 state parameter TTL in milliseconds (default 10 min).                                                                                                                                                      |
-| `SECURITY_OAUTH2_REGISTRATION_ENABLED`                   | boolean | `true`   | Allow registering new users via OAuth2 login. When `false`, only already existing users (matched by email) can log in via OAuth2.                                                                                 |
-| `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED`                   | boolean | `true`   | Download the user's avatar from the OAuth2 provider during registration and pass it as `avatarFile` to `registrationData` and `registrationFiles`. Set to `false` to pass only `avatarUrl` and skip the download. |
+| Property                               | Type    | Default  | Description                                                                                                                                                                                                       |
+| -------------------------------------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SECURITY_OAUTH2_STATE_TTL`            | integer | `600000` | OAuth2 state parameter TTL in milliseconds (default 10 min).                                                                                                                                                      |
+| `SECURITY_OAUTH2_REGISTRATION_ENABLED` | boolean | `true`   | Allow registering new users via OAuth2 login. When `false`, only already existing users (matched by email) can log in via OAuth2.                                                                                 |
+| `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED` | boolean | `true`   | Download the user's avatar from the OAuth2 provider during registration and pass it as `avatarFile` to `registrationData` and `registrationFiles`. Set to `false` to pass only `avatarUrl` and skip the download. |
 
 #### OAuth2 Google
 
 | Property                                      | Type    | Default                                           | Description                                                                                                                                |
-|-----------------------------------------------|---------|---------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------------------- | ------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `SECURITY_OAUTH2_GOOGLE_ENABLED`              | boolean | `false`                                           | Enable Google OAuth2 provider.                                                                                                             |
 | `SECURITY_OAUTH2_GOOGLE_CLIENT_ID`            | string? | -                                                 | Google OAuth2 client ID.                                                                                                                   |
 | `SECURITY_OAUTH2_GOOGLE_CLIENT_SECRET`        | string? | -                                                 | Google OAuth2 client secret.                                                                                                               |
@@ -602,7 +620,7 @@ See [security](./security.md#two-factor-authentication-2fa).
 #### OAuth2 Facebook
 
 | Property                                        | Type    | Default                           | Description                                                                                                                                   |
-|-------------------------------------------------|---------|-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------------------------------------- | ------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SECURITY_OAUTH2_FACEBOOK_ENABLED`              | boolean | `false`                           | Enable Facebook OAuth2 provider.                                                                                                              |
 | `SECURITY_OAUTH2_FACEBOOK_CLIENT_ID`            | string? | -                                 | Facebook OAuth2 client ID.                                                                                                                    |
 | `SECURITY_OAUTH2_FACEBOOK_CLIENT_SECRET`        | string? | -                                 | Facebook OAuth2 client secret.                                                                                                                |
@@ -615,7 +633,7 @@ The app must be granted the email permission in the X developer portal, otherwis
 `confirmed_email` field and every login is rejected.
 
 | Property                                 | Type    | Default                          | Description                                                                                                  |
-|------------------------------------------|---------|----------------------------------|--------------------------------------------------------------------------------------------------------------|
+| ---------------------------------------- | ------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `SECURITY_OAUTH2_X_ENABLED`              | boolean | `false`                          | Enable X OAuth2 provider. The flow always uses PKCE, which X requires.                                       |
 | `SECURITY_OAUTH2_X_CLIENT_ID`            | string? | -                                | X OAuth2 client ID.                                                                                          |
 | `SECURITY_OAUTH2_X_CLIENT_SECRET`        | string? | -                                | X OAuth2 client secret.                                                                                      |
@@ -625,7 +643,7 @@ The app must be granted the email permission in the X developer portal, otherwis
 #### OAuth2 GitHub
 
 | Property                                      | Type    | Default                         | Description                                                                                                                                |
-|-----------------------------------------------|---------|---------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------------------- | ------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `SECURITY_OAUTH2_GITHUB_ENABLED`              | boolean | `false`                         | Enable GitHub OAuth2 provider.                                                                                                             |
 | `SECURITY_OAUTH2_GITHUB_CLIENT_ID`            | string? | -                               | GitHub OAuth2 client ID.                                                                                                                   |
 | `SECURITY_OAUTH2_GITHUB_CLIENT_SECRET`        | string? | -                               | GitHub OAuth2 client secret.                                                                                                               |
@@ -635,7 +653,7 @@ The app must be granted the email permission in the X developer portal, otherwis
 #### OAuth2 GitLab
 
 | Property                                      | Type    | Default                            | Description                                                                                                  |
-|-----------------------------------------------|---------|------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| --------------------------------------------- | ------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `SECURITY_OAUTH2_GITLAB_ENABLED`              | boolean | `false`                            | Enable GitLab OAuth2 provider.                                                                               |
 | `SECURITY_OAUTH2_GITLAB_CLIENT_ID`            | string? | -                                  | GitLab OAuth2 client ID.                                                                                     |
 | `SECURITY_OAUTH2_GITLAB_CLIENT_SECRET`        | string? | -                                  | GitLab OAuth2 client secret.                                                                                 |
@@ -646,7 +664,7 @@ The app must be granted the email permission in the X developer portal, otherwis
 #### OAuth2 LinkedIn
 
 | Property                                        | Type    | Default                                  | Description                                                                                                  |
-|-------------------------------------------------|---------|------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| ----------------------------------------------- | ------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `SECURITY_OAUTH2_LINKEDIN_ENABLED`              | boolean | `false`                                  | Enable LinkedIn OAuth2 provider.                                                                             |
 | `SECURITY_OAUTH2_LINKEDIN_CLIENT_ID`            | string? | -                                        | LinkedIn OAuth2 client ID.                                                                                   |
 | `SECURITY_OAUTH2_LINKEDIN_CLIENT_SECRET`        | string? | -                                        | LinkedIn OAuth2 client secret.                                                                               |
@@ -659,7 +677,7 @@ Apple expects the client secret to be a short-lived ES256 JWT: either set `SECUR
 you generated yourself, or provide the team ID, key ID and `.p8` private key and let the framework sign one at startup.
 
 | Property                                         | Type    | Default    | Description                                                                                                  |
-|--------------------------------------------------|---------|------------|--------------------------------------------------------------------------------------------------------------|
+| ------------------------------------------------ | ------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
 | `SECURITY_OAUTH2_APPLE_ENABLED`                  | boolean | `false`    | Enable Apple OAuth2 provider.                                                                                |
 | `SECURITY_OAUTH2_APPLE_CLIENT_ID`                | string? | -          | Apple OAuth2 client ID (the Services ID identifier, e.g. `com.example.service`).                             |
 | `SECURITY_OAUTH2_APPLE_CLIENT_SECRET`            | string? | -          | Pre-generated client secret JWT. Takes precedence over the signing key settings below.                       |
@@ -673,7 +691,7 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 #### OAuth2 Microsoft
 
 | Property                                         | Type    | Default                                 | Description                                                                                                                                |
-|--------------------------------------------------|---------|-----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------------------------------ | ------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `SECURITY_OAUTH2_MICROSOFT_ENABLED`              | boolean | `false`                                 | Enable Microsoft OAuth2 provider.                                                                                                          |
 | `SECURITY_OAUTH2_MICROSOFT_CLIENT_ID`            | string? | -                                       | Microsoft OAuth2 client ID (the Entra ID application ID).                                                                                  |
 | `SECURITY_OAUTH2_MICROSOFT_CLIENT_SECRET`        | string? | -                                       | Microsoft OAuth2 client secret.                                                                                                            |
@@ -684,7 +702,7 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 #### OAuth2 Custom (OpenID Connect)
 
 | Property                                      | Type    | Default | Description                                                                                                                       |
-|-----------------------------------------------|---------|---------|-----------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `SECURITY_OAUTH2_CUSTOM_ENABLED`              | boolean | `false` | Enable custom OpenID Connect provider.                                                                                            |
 | `SECURITY_OAUTH2_CUSTOM_CLIENT_ID`            | string? | -       | Custom OAuth2 client ID.                                                                                                          |
 | `SECURITY_OAUTH2_CUSTOM_CLIENT_SECRET`        | string? | -       | Custom OAuth2 client secret.                                                                                                      |
@@ -693,22 +711,22 @@ you generated yourself, or provide the team ID, key ID and `.p8` private key and
 
 ### Database (DATABASE\_\*)
 
-| Property                                | Type     | Default                      | Description                                                                             |
-|-----------------------------------------|----------|------------------------------|-----------------------------------------------------------------------------------------|
-| `DATABASE_TYPE`                         | enum?    | -                            | Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`.                    |
-| `DATABASE_URL`                          | string   | `''`                         | Database connection URL/DSN the application queries the data with.                      |
-| `DATABASE_MIGRATION_URL`                | string   | `''`                         | Connection URL/DSN of the migrations and the `weaver migrate` setup, `''` for the URL.  |
+| Property                                | Type     | Default                      | Description                                                                                                                    |
+| --------------------------------------- | -------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `DATABASE_TYPE`                         | enum?    | -                            | Database type. Values: `sqlite`, `postgresql`, `mysql`, `sqlserver`.                                                           |
+| `DATABASE_URL`                          | string   | `''`                         | Database connection URL/DSN the application queries the data with.                                                             |
+| `DATABASE_MIGRATION_URL`                | string   | `''`                         | Connection URL/DSN of the migrations and the `weaver migrate` setup, `''` for the URL.                                         |
 | `DATABASE_KEEP_TABLES`                  | array    | `[]`                         | Framework tables kept while their feature is off: `ApiKey`, `OneTimeToken`, `ConnectedAccount`, `TwoFactorMethod`, `AuditLog`. |
-| `DATABASE_SCHEMA_PATH`                  | string   | `'./database/schema.prisma'` | Path to Prisma schema file.                                                             |
-| `DATABASE_MIGRATIONS_DIR_PATH`          | string   | `'./database/migrations'`    | Path to database migrations directory.                                                  |
-| `DATABASE_SEEDERS_DIR_PATH`             | string   | `'./database/seeders'`       | Path to database seeders directory.                                                     |
-| `DATABASE_CLIENT_OUTPUT_DIR_PATH`       | string   | `'./database/client'`        | Path for generated Prisma client output.                                                |
-| `DATABASE_TRANSACTION_MAX_WAIT`         | integer  | `2000`                       | Max wait time for acquiring a transaction lock (ms).                                    |
-| `DATABASE_TRANSACTION_TIMEOUT`          | integer  | `5000`                       | Transaction timeout in milliseconds.                                                    |
-| `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` | boolean  | `true`                       | Allow an AI agent to run dangerous Prisma actions, i.e. reset (disable for production). |
-| `DATABASE_LOG_EVENTS`                   | string[] | `[]`                         | List of database events to log. Values: `query`, `info`, `warn`, `error`                |
-| `DATABASE_SLOW_QUERY_THRESHOLD`         | integer  | `0`                          | Duration (ms) from which a query is logged as a warning, `0` disables it.               |
-| `DATABASE_PROVIDER`                     | string   | `'auto'`                     | `auto` or `prisma`, or `none` for an application without a database.                    |
+| `DATABASE_SCHEMA_PATH`                  | string   | `'./database/schema.prisma'` | Path to Prisma schema file.                                                                                                    |
+| `DATABASE_MIGRATIONS_DIR_PATH`          | string   | `'./database/migrations'`    | Path to database migrations directory.                                                                                         |
+| `DATABASE_SEEDERS_DIR_PATH`             | string   | `'./database/seeders'`       | Path to database seeders directory.                                                                                            |
+| `DATABASE_CLIENT_OUTPUT_DIR_PATH`       | string   | `'./database/client'`        | Path for generated Prisma client output.                                                                                       |
+| `DATABASE_TRANSACTION_MAX_WAIT`         | integer  | `2000`                       | Max wait time for acquiring a transaction lock (ms).                                                                           |
+| `DATABASE_TRANSACTION_TIMEOUT`          | integer  | `5000`                       | Transaction timeout in milliseconds.                                                                                           |
+| `DATABASE_AI_DANGEROUS_ACTIONS_ENABLED` | boolean  | `true`                       | Allow an AI agent to run dangerous Prisma actions, i.e. reset (disable for production).                                        |
+| `DATABASE_LOG_EVENTS`                   | string[] | `[]`                         | List of database events to log. Values: `query`, `info`, `warn`, `error`                                                       |
+| `DATABASE_SLOW_QUERY_THRESHOLD`         | integer  | `0`                          | Duration (ms) from which a query is logged as a warning, `0` disables it.                                                      |
+| `DATABASE_PROVIDER`                     | string   | `'auto'`                     | `auto` or `prisma`, or `none` for an application without a database.                                                           |
 
 The application starts and keeps running while the database is unreachable, whatever its type. The connection is
 checked on startup, an unreachable database is logged as an error naming its URL without the password, and its queries
@@ -717,7 +735,7 @@ fail until it is reachable again.
 ### File storage (STORAGE\_\*)
 
 | Property                     | Type    | Default                       | Description                                                                                                                                                                                                                                                                               |
-|------------------------------|---------|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------------- | ------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `STORAGE_PATH`               | string  | `'./storage'`                 | Base directory for file storage.                                                                                                                                                                                                                                                          |
 | `STORAGE_RESERVED_PATHS`     | array   | `['__keys__']`                | Paths inside the storage directory that files can never be stored under. Each entry is a directory or a full file name relative to `STORAGE_PATH`, matched case-insensitively (no wildcards). Violations fail on startup for configured name patterns, and with a `400` error at runtime. |
 | `STORAGE_NAME_PATTERN`       | string  | `'{name}-{hash}.{extension}'` | File naming pattern for stored files.                                                                                                                                                                                                                                                     |
@@ -729,7 +747,7 @@ fail until it is reachable again.
 ### File versions (STORAGE_VERSIONS\_\*)
 
 | Property                          | Type    | Default | Description                                                                                                                                                                                                        |
-|-----------------------------------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `STORAGE_VERSIONS_ENABLED`        | boolean | `false` | Keep the previous versions of the files when a file is uploaded again, and register the routes listing and deleting them. The `versions` of a file field overrides the limits, `false` turns it off for the field. |
 | `STORAGE_VERSIONS_MAX_COUNT`      | integer | `10`    | The most versions of a file kept, the current one included, `0` for no limit.                                                                                                                                      |
 | `STORAGE_VERSIONS_MAX_AGE`        | string  | `''`    | How long a version is kept once replaced, a duration (`30d`), empty to keep it until `STORAGE_VERSIONS_MAX_COUNT` drops it.                                                                                        |
@@ -738,7 +756,7 @@ fail until it is reachable again.
 ### Image processing (IMAGE\_\*)
 
 | Property         | Type   | Default  | Description                                                                                                                                                  |
-|------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `IMAGE_PROVIDER` | string | `'auto'` | Image processor of the uploads: `auto` (`sharp` with `@appweaver/sharp`, otherwise none, keeping the images as uploaded), `sharp`, `none`, or a module path. |
 
 ### Memory (MEMORY\_\*)
@@ -747,7 +765,7 @@ The key-value store with locks behind the cache, the rate limit, the memory secu
 in the process (`memory`) or in Redis (`redis`).
 
 | Property                                 | Type    | Default                      | Description                                                                                        |
-|------------------------------------------|---------|------------------------------|----------------------------------------------------------------------------------------------------|
+| ---------------------------------------- | ------- | ---------------------------- | -------------------------------------------------------------------------------------------------- |
 | `MEMORY_PROVIDER`                        | string  | `'auto'`                     | `auto` (`redis` with `@appweaver/redis`, otherwise `memory`), `memory`, `redis`, or a module path. |
 | `MEMORY_MAX_SIZE`                        | string? | -                            | Maximum size of the in-process store.                                                              |
 | `MEMORY_REDIS_URL`                       | string  | `'redis://localhost:6379/0'` | Redis connection URL of the `redis` provider (`config.memory.redis.url`).                          |
@@ -767,7 +785,7 @@ connections have neither the timeout nor the breaker, which would fail their blo
 ### Cache (CACHE\_\*)
 
 | Property                      | Type    | Default            | Description                                                                     |
-|-------------------------------|---------|--------------------|---------------------------------------------------------------------------------|
+| ----------------------------- | ------- | ------------------ | ------------------------------------------------------------------------------- |
 | `CACHE_ENABLED`               | boolean | `true`             | Enable the caching system.                                                      |
 | `CACHE_CLEAN_START`           | boolean | `false`            | Clear all cache entries on application startup.                                 |
 | `CACHE_KEY_PREFIX`            | string  | `'cache:'`         | Prefix prepended to all cache keys.                                             |
@@ -787,7 +805,7 @@ connections have neither the timeout nor the breaker, which would fail their blo
 The store of the `series` fields of the models, see [timeseries.md](./timeseries.md).
 
 | Property                             | Type    | Default        | Description                                                                                                                                                      |
-|--------------------------------------|---------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------------------ | ------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `TIMESERIES_INGEST`                  | enum    | `'direct'`     | How the points are written: `direct`, `queue` (by a queue worker), or `auto` (queued on a durable queue only). A model overrides it with `seriesOptions.ingest`. |
 | `TIMESERIES_MAX_POINTS_PER_WRITE`    | integer | `5000`         | Maximum number of points a write accepts.                                                                                                                        |
 | `TIMESERIES_MAX_POINTS_PER_QUERY`    | integer | `10000`        | Maximum number of points a query returns, and its default limit.                                                                                                 |
@@ -805,7 +823,7 @@ The `database` provider (`config.timeseries.database`), of `@appweaver/data`. Th
 `seriesOptions.retention` of a model.
 
 | Property                                 | Type    | Default | Description                                                                                       |
-|------------------------------------------|---------|---------|---------------------------------------------------------------------------------------------------|
+| ---------------------------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------- |
 | `TIMESERIES_DATABASE_RETENTION`          | string  | `''`    | How long the points are kept, a duration (`365d`), empty to keep every point.                     |
 | `TIMESERIES_DATABASE_RETENTION_INTERVAL` | string  | `'1h'`  | How often the points older than their retention are deleted, a duration.                          |
 | `TIMESERIES_DATABASE_RETENTION_WORKER`   | boolean | `true`  | Delete the expired points in this instance, `false` on the others when one instance deletes them. |
@@ -816,7 +834,7 @@ The `timescale` provider (`config.timeseries.timescale`), of `@appweaver/data`. 
 `seriesOptions` of a model.
 
 | Property                              | Type    | Default | Description                                                                        |
-|---------------------------------------|---------|---------|------------------------------------------------------------------------------------|
+| ------------------------------------- | ------- | ------- | ---------------------------------------------------------------------------------- |
 | `TIMESERIES_TIMESCALE_CHUNK_INTERVAL` | string  | `'7d'`  | Time range of a chunk of the hypertables, a duration.                              |
 | `TIMESERIES_TIMESCALE_COMPRESS_AFTER` | string  | `''`    | Age from which the chunks are compressed, a duration, empty to compress none.      |
 | `TIMESERIES_TIMESCALE_RETENTION`      | string  | `''`    | Age from which the chunks are dropped, a duration, empty to keep every point.      |
@@ -828,7 +846,7 @@ How the `geo` fields of the models are queried, of `@appweaver/data`, see [spati
 provider changes the generated schema.
 
 | Property                 | Type    | Default  | Description                                                                                                                                                                       |
-|--------------------------|---------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------ | ------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SPATIAL_PROVIDER`       | enum    | `'auto'` | How `_near`, `_within` and `_intersects` are matched: `auto` (`postgis` on PostgreSQL, `database` otherwise), `postgis` (PostgreSQL with PostGIS) or `database` (every database). |
 | `SPATIAL_MAX_CANDIDATES` | integer | `10000`  | Maximum number of records a `_near`, `_within` or `_intersects` filter matches, at most `2000` on SQL Server.                                                                     |
 | `SPATIAL_MAX_VERTICES`   | integer | `10000`  | Maximum number of positions of a geometry, written or given to a spatial filter.                                                                                                  |
@@ -840,37 +858,37 @@ The requests and the changes of the records, in the `AuditLog` and `AuditChange`
 [audit.md](audit.md)). Every category has its own `ENABLED` and `RETENTION`, an empty retention falling back to
 `AUDIT_RETENTION`.
 
-| Property                    | Type     | Default     | Description                                                                                                                                                                   |
-|-----------------------------|----------|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `AUDIT_ENABLED`             | boolean  | `false`     | Record the requests and the changes of the records.                                                                                                                          |
-| `AUDIT_RETENTION`           | string   | `'90d'`     | How long the entries are kept, a duration, empty to keep them all.                                                                                                            |
-| `AUDIT_RETENTION_INTERVAL`  | string   | `'1h'`      | How often the expired entries are deleted, a duration.                                                                                                                        |
-| `AUDIT_RETENTION_WORKER`    | boolean  | `true`      | Delete the expired entries in this instance, `false` for the other instances (or a task calling `AuditService.purge`).                                                        |
-| `AUDIT_FLUSH_INTERVAL`      | string   | `'1s'`      | How often the buffered entries are written, a duration.                                                                                                                       |
-| `AUDIT_BATCH_SIZE`          | integer  | `100`       | The buffered entries written at once without waiting for the flush interval.                                                                                                  |
-| `AUDIT_MAX_BUFFER`          | integer  | `10000`     | The most entries buffered while the database is unavailable, the new ones dropped beyond it.                                                                                  |
-| `AUDIT_EXCLUDE_MODELS`      | string[] | `[]`        | Models whose requests and changes are left out.                                                                                                                               |
-| `AUDIT_EXCLUDE_ACTIONS`     | string[] | `[]`        | Actions left out, of every model (`find`, `export`, `auth.refresh`) or of one (`Post.update`).                                                                                |
-| `AUDIT_EXCLUDE_PATHS`       | string[] | `[]`        | URL paths left out, exact or a prefix ending with `*`. The health check, Swagger, static file and template preview routes always are.                                         |
-| `AUDIT_REDACT_KEYS`         | string[] | `['code']`  | Key and field names redacted besides the hidden and `redact` fields and the names of secrets (`password`, `token`, `apiKey`, ...), compared case-insensitively.              |
-| `AUDIT_ANONYMIZE_IP`        | boolean  | `false`     | Record the client addresses without their last octet (IPv4) or last 80 bits (IPv6).                                                                                           |
-| `AUDIT_MAX_VALUE_SIZE`      | integer  | `2048`      | The longest value of a field in a diff or a body, in characters of its JSON, a longer one truncated.                                                                          |
-| `AUDIT_REQUEST_BODY`        | boolean  | `false`     | Record the JSON bodies of the requests other than the reading ones, their secrets redacted.                                                                                   |
-| `AUDIT_CHANGES_ENABLED`     | boolean  | `true`      | Record the changed fields of the records the resource services create, update and delete (`AuditChange`).                                                                    |
-| `AUDIT_CHANGES_RETENTION`   | string   | `''`        | Retention of the entries of the changes made outside of a request (jobs, tasks).                                                                                              |
-| `AUDIT_AUTH_ENABLED`        | boolean  | `true`      | Record the requests of the authentication and account routes, failed ones included.                                                                                          |
-| `AUDIT_AUTH_RETENTION`      | string   | `''`        | Retention of the `auth` entries.                                                                                                                                              |
-| `AUDIT_READ_ENABLED`        | boolean  | `false`     | Record the reading requests: `find`, `query`, `aggregate`, `export` and the `GET` routes.                                                                                     |
-| `AUDIT_READ_RETENTION`      | string   | `''`        | Retention of the `read` entries.                                                                                                                                              |
-| `AUDIT_WRITE_ENABLED`       | boolean  | `true`      | Record the writing requests: create, update, delete, bulk, file and the routes of the other methods.                                                                         |
-| `AUDIT_WRITE_RETENTION`     | string   | `''`        | Retention of the `write` entries.                                                                                                                                             |
-| `AUDIT_CUSTOM_ENABLED`      | boolean  | `true`      | Record the entries the application adds with `AuditService.record`.                                                                                                           |
-| `AUDIT_CUSTOM_RETENTION`    | string   | `''`        | Retention of the `custom` entries.                                                                                                                                            |
+| Property                   | Type     | Default    | Description                                                                                                                                                     |
+| -------------------------- | -------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AUDIT_ENABLED`            | boolean  | `false`    | Record the requests and the changes of the records.                                                                                                             |
+| `AUDIT_RETENTION`          | string   | `'90d'`    | How long the entries are kept, a duration, empty to keep them all.                                                                                              |
+| `AUDIT_RETENTION_INTERVAL` | string   | `'1h'`     | How often the expired entries are deleted, a duration.                                                                                                          |
+| `AUDIT_RETENTION_WORKER`   | boolean  | `true`     | Delete the expired entries in this instance, `false` for the other instances (or a task calling `AuditService.purge`).                                          |
+| `AUDIT_FLUSH_INTERVAL`     | string   | `'1s'`     | How often the buffered entries are written, a duration.                                                                                                         |
+| `AUDIT_BATCH_SIZE`         | integer  | `100`      | The buffered entries written at once without waiting for the flush interval.                                                                                    |
+| `AUDIT_MAX_BUFFER`         | integer  | `10000`    | The most entries buffered while the database is unavailable, the new ones dropped beyond it.                                                                    |
+| `AUDIT_EXCLUDE_MODELS`     | string[] | `[]`       | Models whose requests and changes are left out.                                                                                                                 |
+| `AUDIT_EXCLUDE_ACTIONS`    | string[] | `[]`       | Actions left out, of every model (`find`, `export`, `auth.refresh`) or of one (`Post.update`).                                                                  |
+| `AUDIT_EXCLUDE_PATHS`      | string[] | `[]`       | URL paths left out, exact or a prefix ending with `*`. The health check, Swagger, static file and template preview routes always are.                           |
+| `AUDIT_REDACT_KEYS`        | string[] | `['code']` | Key and field names redacted besides the hidden and `redact` fields and the names of secrets (`password`, `token`, `apiKey`, ...), compared case-insensitively. |
+| `AUDIT_ANONYMIZE_IP`       | boolean  | `false`    | Record the client addresses without their last octet (IPv4) or last 80 bits (IPv6).                                                                             |
+| `AUDIT_MAX_VALUE_SIZE`     | integer  | `2048`     | The longest value of a field in a diff or a body, in characters of its JSON, a longer one truncated.                                                            |
+| `AUDIT_REQUEST_BODY`       | boolean  | `false`    | Record the JSON bodies of the requests other than the reading ones, their secrets redacted.                                                                     |
+| `AUDIT_CHANGES_ENABLED`    | boolean  | `true`     | Record the changed fields of the records the resource services create, update and delete (`AuditChange`).                                                       |
+| `AUDIT_CHANGES_RETENTION`  | string   | `''`       | Retention of the entries of the changes made outside of a request (jobs, tasks).                                                                                |
+| `AUDIT_AUTH_ENABLED`       | boolean  | `true`     | Record the requests of the authentication and account routes, failed ones included.                                                                             |
+| `AUDIT_AUTH_RETENTION`     | string   | `''`       | Retention of the `auth` entries.                                                                                                                                |
+| `AUDIT_READ_ENABLED`       | boolean  | `false`    | Record the reading requests: `find`, `query`, `aggregate`, `export` and the `GET` routes.                                                                       |
+| `AUDIT_READ_RETENTION`     | string   | `''`       | Retention of the `read` entries.                                                                                                                                |
+| `AUDIT_WRITE_ENABLED`      | boolean  | `true`     | Record the writing requests: create, update, delete, bulk, file and the routes of the other methods.                                                            |
+| `AUDIT_WRITE_RETENTION`    | string   | `''`       | Retention of the `write` entries.                                                                                                                               |
+| `AUDIT_CUSTOM_ENABLED`     | boolean  | `true`     | Record the entries the application adds with `AuditService.record`.                                                                                             |
+| `AUDIT_CUSTOM_RETENTION`   | string   | `''`       | Retention of the `custom` entries.                                                                                                                              |
 
 ### Job queue (QUEUE\_\*)
 
 | Property                       | Type     | Default   | Description                                                                                                   |
-|--------------------------------|----------|-----------|---------------------------------------------------------------------------------------------------------------|
+| ------------------------------ | -------- | --------- | ------------------------------------------------------------------------------------------------------------- |
 | `QUEUE_KEEP_COMPLETED_COUNT`   | integer  | `0`       | Number of completed jobs to retain in the queue.                                                              |
 | `QUEUE_KEEP_COMPLETED_SECONDS` | integer? | -         | Time to keep completed jobs in seconds.                                                                       |
 | `QUEUE_KEEP_FAILED_COUNT`      | integer  | `50`      | Number of failed jobs to retain in the queue.                                                                 |
@@ -883,14 +901,14 @@ The requests and the changes of the records, in the `AuditLog` and `AuditChange`
 ### Scheduler (SCHEDULER\_\*)
 
 | Property                   | Type    | Default  | Description                                                                               |
-|----------------------------|---------|----------|-------------------------------------------------------------------------------------------|
+| -------------------------- | ------- | -------- | ----------------------------------------------------------------------------------------- |
 | `SCHEDULER_AUTO_START_JOB` | boolean | `true`   | Auto-start scheduled jobs on application startup.                                         |
 | `SCHEDULER_PROVIDER`       | string  | `'auto'` | `auto` (`cron` with `@appweaver/cron`, otherwise none), `cron`, `none`, or a module path. |
 
 ### Events (EVENTS\_\*)
 
 | Property               | Type    | Default  | Description                             |
-|------------------------|---------|----------|-----------------------------------------|
+| ---------------------- | ------- | -------- | --------------------------------------- |
 | `EVENTS_MAX_LISTENERS` | integer | `20`     | Maximum event listeners per event type. |
 | `EVENTS_PROVIDER`      | string  | `'auto'` | `auto` or `node`, or a module path.     |
 
@@ -899,7 +917,7 @@ The requests and the changes of the records, in the `AuditLog` and `AuditChange`
 The publish/subscribe of the messages every instance receives, i.e. the events of the realtime connections.
 
 | Property                      | Type   | Default        | Description                                                                                                |
-|-------------------------------|--------|----------------|------------------------------------------------------------------------------------------------------------|
+| ----------------------------- | ------ | -------------- | ---------------------------------------------------------------------------------------------------------- |
 | `PUBSUB_PROVIDER`             | string | `'auto'`       | `auto` (`redis` with `@appweaver/redis`, otherwise `memory`), `memory`, `redis`, `none`, or a module path. |
 | `PUBSUB_REDIS_CHANNEL_PREFIX` | string | `'appweaver:'` | Prefix of the Redis channels the messages are published to, on the server of `MEMORY_REDIS_URL`. (redis)   |
 
@@ -908,7 +926,7 @@ The publish/subscribe of the messages every instance receives, i.e. the events o
 The realtime connections of `@appweaver/realtime` ([realtime.md](./realtime.md)).
 
 | Property                                    | Type    | Default       | Description                                                                                                                                         |
-|---------------------------------------------|---------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------------------------- | ------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `REALTIME_ENABLED`                          | boolean | `true`        | Enable the realtime routes: the tickets, the event streams, the WebSocket and the actions.                                                          |
 | `REALTIME_ROUTE_PREFIX`                     | string  | `'/realtime'` | Prefix of the realtime routes, under the API prefix.                                                                                                |
 | `REALTIME_SSE_ENABLED`                      | boolean | `true`        | Enable the Server-Sent Events transport (`GET <prefix>/events`).                                                                                    |
@@ -939,7 +957,7 @@ The realtime connections of `@appweaver/realtime` ([realtime.md](./realtime.md))
 The MCP server of `@appweaver/mcp` ([mcp.md](./mcp.md)).
 
 | Property                      | Type     | Default             | Description                                                                                                                                         |
-|-------------------------------|----------|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------------------- | -------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `MCP_ENABLED`                 | boolean  | `true`              | Enable the MCP endpoint.                                                                                                                            |
 | `MCP_ROUTE_PREFIX`            | string   | `'/mcp'`            | Path of the MCP endpoint, at the root (`'/api/mcp'` under the API).                                                                                 |
 | `MCP_AUTH`                    | string[] | `['jwt', 'apiKey']` | The authentication strategies of the endpoint.                                                                                                      |
@@ -969,7 +987,7 @@ the code calls the models by. A model reference is `<endpoint>:<model>` (`local:
 endpoint answering without a server.
 
 | Property                     | Type     | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-|------------------------------|----------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `AI_ENDPOINTS`               | record   | `{}`     | The endpoints by name, each with `preset` (`openai`, `openrouter`, `ollama`, `lmstudio`, `vllm`, `llamacpp`, `litellm`, `groq`, `together`, `fireworks`, `deepseek`, `mistral`, `xai`, `gemini`, `huggingface`, `mock`), `driver`, `baseUrl`, `apiKey`, `headers` (`Name: value`), `capabilities`, `timeout` and `maxRetries`. Each property is also its own variable, `AI_ENDPOINTS_<NAME>_<PROPERTY>` (`AI_ENDPOINTS_OPENROUTER_API_KEY`). |
 | `AI_DEFAULT_MODEL`           | string?  | -        | The model of a call naming none, a model reference or an alias.                                                                                                                                                                                                                                                                                                                                                                              |
 | `AI_DEFAULT_EMBEDDING_MODEL` | string?  | -        | The embedding model of a call naming none, a model reference or an alias.                                                                                                                                                                                                                                                                                                                                                                    |
@@ -988,7 +1006,7 @@ endpoint answering without a server.
 ### Mailer (MAILER\_\*)
 
 | Property                | Type    | Default       | Description                                                                                                                                                                                                                                                               |
-|-------------------------|---------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------------- | ------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `MAILER_SENDER_NAME`    | string? | -             | Display name of the default sender of the emails, which send from the bare address without one.                                                                                                                                                                           |
 | `MAILER_SENDER_ADDRESS` | string? | -             | Address of the default sender of the emails, required by an enabled mailer, which fails to start without it.                                                                                                                                                              |
 | `MAILER_PROVIDER`       | string  | `'auto'`      | `auto` (`smtp` with `@appweaver/nodemailer`, otherwise none), `smtp`, `json` (logs the emails, for development and tests), `none`, or a module path. Without a mailer the email features (email verification, password reset, the `email` 2FA method) respond with `501`. |
@@ -1003,7 +1021,7 @@ endpoint answering without a server.
 The messages are sent through the `sms` queue, see [sms](./sms.md).
 
 | Property                           | Type    | Default                                          | Description                                                                                                                                                                                                                       |
-|------------------------------------|---------|--------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------------------- | ------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SMS_SENDER`                       | string? | -                                                | Default sender of the text messages, a phone number in the E.164 format or an alphanumeric sender ID.                                                                                                                             |
 | `SMS_PROVIDER`                     | string  | `'auto'`                                         | `auto` (`twilio` with `@appweaver/twilio`, otherwise none), `twilio`, `json` (logs the messages, for development and tests), `none`, or a module path. Without one the SMS 2FA method and the phone verification are unavailable. |
 | `SMS_TWILIO_ACCOUNT_SID`           | string? | -                                                | Twilio account SID, required by the `twilio` provider.                                                                                                                                                                            |
@@ -1019,7 +1037,7 @@ The OpenTelemetry instrumentation of the framework, and the SDK of `@appweaver/o
 [telemetry](./telemetry.md). The keys of the first table belong to the framework, the others to the module.
 
 | Property                               | Type     | Default | Description                                                                                                       |
-|----------------------------------------|----------|---------|-------------------------------------------------------------------------------------------------------------------|
+| -------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
 | `TELEMETRY_ENABLED`                    | boolean  | `true`  | Enable the instrumentation, the log correlation and the SDK. Nothing is recorded until an SDK is registered.      |
 | `TELEMETRY_LOG_CORRELATION`            | boolean  | `true`  | Add the `trace_id`, `span_id` and `trace_flags` of the active span to every log record.                           |
 | `TELEMETRY_INSTRUMENTATIONS_HTTP`      | boolean  | `true`  | Trace and measure the requests of the HTTP server.                                                                |
@@ -1039,7 +1057,7 @@ The OpenTelemetry instrumentation of the framework, and the SDK of `@appweaver/o
 With `@appweaver/opentelemetry`:
 
 | Property                           | Type     | Default           | Description                                                                                                                                         |
-|------------------------------------|----------|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------------------- | -------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `TELEMETRY_SERVICE_NAME`           | string?  | `APP_NAME`        | Name of the service in the telemetry. The `OTEL_SERVICE_NAME` environment variable is used before `APP_NAME`.                                       |
 | `TELEMETRY_SERVICE_VERSION`        | string?  | `APP_VERSION`     | Version of the service in the telemetry.                                                                                                            |
 | `TELEMETRY_RESOURCE_ATTRIBUTES`    | string[] | `[]`              | Resource attributes as `name=value` entries, added to the ones of `OTEL_RESOURCE_ATTRIBUTES`.                                                       |
@@ -1062,7 +1080,7 @@ With `@appweaver/opentelemetry`:
 ### Template (TEMPLATE\_\*)
 
 | Property                        | Type    | Default         | Description                                                                                                 |
-|---------------------------------|---------|-----------------|-------------------------------------------------------------------------------------------------------------|
+| ------------------------------- | ------- | --------------- | ----------------------------------------------------------------------------------------------------------- |
 | `TEMPLATE_PATH`                 | string  | `'./templates'` | Directory of the template files (emails, pages, exports), see [templates](./templates.md).                  |
 | `TEMPLATE_CACHE`                | boolean | `true`          | Keep the loaded templates in memory. Disable it to reload the changed files on every render.                |
 | `TEMPLATE_PREVIEW_ENABLED`      | boolean | `false`         | Enable the route previewing a template rendered with the data of its query parameters.                      |
@@ -1073,14 +1091,14 @@ With `@appweaver/opentelemetry`:
 ### Locale (LOCALE\_\*)
 
 | Property         | Type   | Default       | Description                                                                        |
-|------------------|--------|---------------|------------------------------------------------------------------------------------|
+| ---------------- | ------ | ------------- | ---------------------------------------------------------------------------------- |
 | `LOCALE_DEFAULT` | string | `'en'`        | The locale used when none is given to a translation or a template render.          |
 | `LOCALE_PATH`    | string | `'./locales'` | Directory of the translation files, a nested JSON file per locale, i.e. `de.json`. |
 
 ### System (SYSTEM\_\*)
 
 | Property                        | Type    | Default                | Description                                       |
-|---------------------------------|---------|------------------------|---------------------------------------------------|
+| ------------------------------- | ------- | ---------------------- | ------------------------------------------------- |
 | `SYSTEM_ADMIN_INITIAL_EMAIL`    | string  | `'admin@appweaver.co'` | Initial admin account email created on first run. |
 | `SYSTEM_ADMIN_INITIAL_PASSWORD` | string? | -                      | Initial admin account password.                   |
 
@@ -1089,7 +1107,7 @@ With `@appweaver/opentelemetry`:
 ## Configuration files summary
 
 | File                    | Purpose                                                                         |
-|-------------------------|---------------------------------------------------------------------------------|
+| ----------------------- | ------------------------------------------------------------------------------- |
 | `appweaver.json`        | Global configuration (`config`) and the overrides of each env (`environments`)  |
 | `appweaver.{env}.json`  | Optional environment-specific overrides, loaded over the `environments` section |
 | `appweaver.schema.json` | The JSON Schema of the enabled modules' sections, from `weaver generate`        |

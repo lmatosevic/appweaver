@@ -46,6 +46,37 @@ export const serverConfig = defineConfig('server', {
   ERROR_RESPONSE_MAX_COUNT: Type.Integer({ default: 20 })
 });
 
+/** A content encoding of the response compression. */
+export enum CompressionEncodingType {
+  Zstd = 'zstd',
+  Brotli = 'br',
+  Gzip = 'gzip',
+  Deflate = 'deflate'
+}
+
+export const compressionConfig = defineConfig('server.compression', {
+  /** Compress the responses the client accepts compressed, `false` when a reverse proxy or a CDN compresses them
+   * already. Default: `true`. */
+  ENABLED: Type.Boolean({ default: true }),
+  /** The size from which a response is compressed, smaller ones are sent as they are. Default: `'1KB'`. */
+  THRESHOLD: Type.String({ default: '1KB' }),
+  /** The encodings in the server's order of preference, among those the client accepts. `br` compresses about half
+   * as fast as `zstd` and `gzip`. Default: `['zstd', 'gzip']`. */
+  ENCODINGS: Type.Array(Type.Enum(CompressionEncodingType), {
+    default: [CompressionEncodingType.Zstd, CompressionEncodingType.Gzip]
+  }),
+  /** The level of each encoding by its name (`zstd`, `br`, `gzip`, the last one also for `deflate`), over the
+   * defaults `{ zstd: 3, br: 4, gzip: 6 }`. Default: `{}`. */
+  LEVELS: Type.Record(Type.String(), Type.Integer({ minimum: 0 }), {
+    default: {}
+  }),
+  /** The size up to which a response is compressed on the event loop, the larger ones and the streams in the thread
+   * pool of libuv. Default: the plugin's, by the number of CPUs. */
+  SYNC_THRESHOLD: Type.Optional(Type.String()),
+  /** Send a response with `Cache-Control: no-transform` as it is. Default: `true`. */
+  RESPECT_NO_TRANSFORM: Type.Boolean({ default: true })
+});
+
 export const rateLimitConfig = defineConfig('rateLimit', {
   /** Enable global rate limiting middleware. Default: `true`. */
   ENABLED: Type.Boolean({ default: true }),

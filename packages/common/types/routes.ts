@@ -81,7 +81,23 @@ export type RouteConfig = {
   /** The audit log of the route: `false` leaves its requests and the changes they make out, an object sets the
    * category and the action of its entries (default: from the route and its method) */
   audit?: boolean | RouteAuditConfig;
+  /** The response compression of the route: `false` sends it as it is, an object overrides the `server.compression`
+   * config for it (default: the config; `false` for the authentication routes) */
+  compress?: boolean | RouteCompressConfig;
 } & CaptchaConfig;
+
+/** A content encoding of the response compression. */
+export type CompressionEncoding = 'zstd' | 'br' | 'gzip' | 'deflate';
+
+/** The response compression of a route, merged over the `server.compression` config. */
+export type RouteCompressConfig = {
+  /** The size from which a response is compressed, in bytes or with a unit (`'4KB'`) */
+  threshold?: number | string;
+  /** The encodings in the order of preference, among those the client accepts */
+  encodings?: CompressionEncoding[];
+  /** The level of each encoding (`gzip` also sets the one of `deflate`) */
+  levels?: Partial<Record<'zstd' | 'br' | 'gzip', number>>;
+};
 
 /** The audit log entries of the requests of a route. */
 export type RouteAuditConfig = {

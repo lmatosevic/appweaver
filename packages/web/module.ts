@@ -24,6 +24,7 @@ import {
   twoFactorConfig
 } from './security/security-config';
 import {
+  compressionConfig,
   corsConfig,
   rateLimitConfig,
   serverConfig,
@@ -38,6 +39,7 @@ export default defineModule({
   requires: ['@appweaver/data'],
   config: [
     serverConfig,
+    compressionConfig,
     rateLimitConfig,
     swaggerConfig,
     corsConfig,

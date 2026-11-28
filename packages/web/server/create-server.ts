@@ -30,7 +30,13 @@ import {
   runInRequestTrace
 } from '../telemetry/http-telemetry';
 import { healthCheckConfig } from '../health/health-check-config';
-import { corsConfig, rateLimitConfig, serverConfig } from './server-config';
+import {
+  compressionConfig,
+  corsConfig,
+  rateLimitConfig,
+  serverConfig
+} from './server-config';
+import { registerCompression } from './compression';
 import { context } from '@appweaver/core/internal';
 import { errorHandler, notFoundHandler } from '../errors';
 import { stashErrorResponses } from '../errors';
@@ -101,6 +107,11 @@ export function createServer(): Server {
 
   // Record the requests in the audit log, the ones every plugin rejects too
   registerAuditHooks(server);
+
+  // Compress the responses, registered before the static files it compresses
+  if (compressionConfig.ENABLED) {
+    registerCompression(server);
+  }
 
   // Register CORS rules
   server.register(fastifyCors, {

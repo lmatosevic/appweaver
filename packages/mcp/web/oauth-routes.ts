@@ -137,7 +137,8 @@ export function registerOAuthRoutes(): void {
         url,
         handler,
         schema: { hide: true },
-        ...(rateLimit ? { config: { rateLimit } } : {})
+        // Their bodies carry codes and tokens, never compressed (BREACH)
+        config: { compress: false, ...(rateLimit ? { rateLimit } : {}) }
       } as RouteOptions);
 
     route('GET', '/.well-known/oauth-protected-resource', resourceMetadata);

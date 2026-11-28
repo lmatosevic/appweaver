@@ -23,7 +23,7 @@ schemas.
 import { createModel } from '@appweaver/data';
 
 export default createModel({
-  name: 'Product',
+  name: 'Product'
   // ... configuration
 });
 ```
@@ -31,12 +31,14 @@ export default createModel({
 ### Configuration
 
 ```ts
-function createModel(config: ResourceModelConfig, override ?: Partial<ResourceModelConfig>) {
-}
+function createModel(
+  config: ResourceModelConfig,
+  override?: Partial<ResourceModelConfig>
+) {}
 ```
 
 | Property           | Type                           | Required | Default               | Description                                                         |
-|--------------------|--------------------------------|----------|-----------------------|---------------------------------------------------------------------|
+| ------------------ | ------------------------------ | -------- | --------------------- | ------------------------------------------------------------------- |
 | `name`             | string                         | yes      | -                     | Model name (PascalCase). Used as database table name and type name. |
 | `tableName`        | string                         | no       | (model name)          | Custom database table name override.                                |
 | `generateTypes`    | boolean                        | no       | `true`                | Generate TypeScript types for this model.                           |
@@ -77,7 +79,7 @@ const config = {
 ```
 
 | Property    | Type                                                                                          | Default                                       | Description                                          |
-|-------------|-----------------------------------------------------------------------------------------------|-----------------------------------------------|------------------------------------------------------|
+| ----------- | --------------------------------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------- |
 | `type`      | `'string'` \| `'int'` \| `'bigInt'`                                                           | `'int'`                                       | ID field data type.                                  |
 | `generator` | `'uuid()'` \| `'uuid(7)'` \| `'cuid()'` \| `'cuid(2)'` \| `'nanoid()'` \| `'autoincrement()'` | `'autoincrement()'` (`'uuid()'` for `string`) | Value generator. String types use UUID/CUID/Nano ID. |
 
@@ -89,7 +91,7 @@ String IDs are generated on creation like auto-incrementing integers, so no valu
 across models in the same project, and the choice flows through everywhere the primary key appears:
 
 | Where                          | Integer ID               | String ID                               |
-|--------------------------------|--------------------------|-----------------------------------------|
+| ------------------------------ | ------------------------ | --------------------------------------- |
 | Prisma column                  | `id Int @id`             | `id String @id`                         |
 | Generated TypeScript type      | `id: number`             | `id: string`                            |
 | Route path parameter           | `GET /posts/{id}` number | `GET /comments/{id}` string             |
@@ -104,7 +106,7 @@ Generated string columns are sized after the value they hold, on the primary key
 any string scalar with a `defaultGenerator`. SQLite keeps the plain column.
 
 | Generator           | PostgreSQL        | MySQL             | SQL Server             |
-|---------------------|-------------------|-------------------|------------------------|
+| ------------------- | ----------------- | ----------------- | ---------------------- |
 | `uuid()`, `uuid(7)` | `@db.Uuid`        | `@db.Char(36)`    | `@db.UniqueIdentifier` |
 | `cuid()`            | `@db.VarChar(25)` | `@db.VarChar(25)` | `@db.VarChar(25)`      |
 | `cuid(2)`           | `@db.VarChar(24)` | `@db.VarChar(24)` | `@db.VarChar(24)`      |
@@ -146,7 +148,7 @@ const config = {
 ```
 
 | Property      | Type    | Default | Description                                     |
-|---------------|---------|---------|-------------------------------------------------|
+| ------------- | ------- | ------- | ----------------------------------------------- |
 | `createdAt`   | boolean | `true`  | Add `createdAt` timestamp field.                |
 | `updatedAt`   | boolean | `true`  | Add `updatedAt` timestamp field.                |
 | `createdById` | boolean | `true`  | Add `createdById` foreign key to the auth user. |
@@ -158,7 +160,7 @@ the record with two extra columns. They are hidden fields: typed on the full gen
 server code can read them, but never part of any API request or response, nor of the OpenAPI document:
 
 | Column        | Type                | Description                                                            |
-|---------------|---------------------|------------------------------------------------------------------------|
+| ------------- | ------------------- | ---------------------------------------------------------------------- |
 | `deletedAt`   | `DateTime?`         | When the record was deleted, `null` for a live record.                 |
 | `deletedById` | auth model id (`?`) | The user who deleted the record. Only added when an auth model exists. |
 
@@ -203,7 +205,7 @@ which all share the same `deletedAt` value. Unique values of a deleted record st
 The delete follows the `onDelete` action of every relation referencing the record, mirroring a database delete:
 
 | `onDelete` of the referencing relation        | On soft delete                                                                              |
-|-----------------------------------------------|---------------------------------------------------------------------------------------------|
+| --------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `cascade`                                     | The referencing records are soft deleted with the same `deletedAt`, level by level.         |
 | `restrict`, `noAction` (default if required)  | The delete fails with `RESOURCE_DELETE_RESTRICTED` (409) while a live record references it. |
 | `setNull`, `setDefault` (default if optional) | The reference is kept, so a manual restore brings the link back.                            |
@@ -225,17 +227,17 @@ After enabling `softDelete` on a model, regenerate the schema and create a migra
 
 All scalar fields share these common properties:
 
-| Property            | Type                        | Default | Description                                                                                                                 |
-|---------------------|-----------------------------|---------|-----------------------------------------------------------------------------------------------------------------------------|
-| `required`          | boolean                     | `true`  | Whether the field is required.                                                                                              |
-| `unique`            | boolean                     | `false` | Add a unique constraint.                                                                                                    |
-| `hidden`            | boolean                     | `false` | Hide from API output (e.g. password hashes).                                                                                |
-| `redact`            | boolean                     | `false` | Keep the values out of the audit log, a change recorded as `[Redacted]` (hidden fields always are, see `audit.md`).        |
-| `default`           | varies                      | -       | Default static value.                                                                                                       |
-| `defaultGenerator`  | string                      | -       | Default is generated by function (e.g. uuid(), cuid(), autoincrement(), now(), ...).                                        |
-| `defaultExpression` | string                      | -       | Default is generated by database expression in supported database syntax (e.g. concat('token_', gen_random_uuid()))::TEXT). |
-| `array`             | boolean                     | `false` | Store as array (supported on string, int, float).                                                                           |
-| `example`           | string \| number \| boolean | -       | Example value for OpenAPI (Swagger) schema documentation.                                                                   |
+| Property            | Type                        | Default | Description                                                                                                                  |
+| ------------------- | --------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `required`          | boolean                     | `true`  | Whether the field is required.                                                                                               |
+| `unique`            | boolean                     | `false` | Add a unique constraint.                                                                                                     |
+| `hidden`            | boolean                     | `false` | Hide from API output (e.g. password hashes).                                                                                 |
+| `redact`            | boolean                     | `false` | Keep the values out of the audit log, a change recorded as `[Redacted]` (hidden fields always are, see `audit.md`).          |
+| `default`           | varies                      | -       | Default static value.                                                                                                        |
+| `defaultGenerator`  | string                      | -       | Default is generated by function (e.g. uuid(), cuid(), autoincrement(), now(), ...).                                         |
+| `defaultExpression` | string                      | -       | Default is generated by database expression in supported database syntax (e.g. concat('token\_', gen_random_uuid()))::TEXT). |
+| `array`             | boolean                     | `false` | Store as array (supported on string, int, float).                                                                            |
+| `example`           | string \| number \| boolean | -       | Example value for OpenAPI (Swagger) schema documentation.                                                                    |
 
 A `default` must satisfy the constraints declared on its own field (`minimum`, `maximum`, `minLength`, `maxLength`,
 `pattern`, enum `values`) and match its type. The application **refuses to start** otherwise, naming every offending
@@ -267,7 +269,7 @@ const config = {
 ```
 
 | Property    | Type                                                                                  | Description                          |
-|-------------|---------------------------------------------------------------------------------------|--------------------------------------|
+| ----------- | ------------------------------------------------------------------------------------- | ------------------------------------ |
 | `type`      | `'string'`                                                                            | String field type.                   |
 | `minLength` | number                                                                                | Minimum string length.               |
 | `maxLength` | number                                                                                | Maximum string length.               |
@@ -299,7 +301,7 @@ const config = {
 ```
 
 | Property  | Type                               | Description        |
-|-----------|------------------------------------|--------------------|
+| --------- | ---------------------------------- | ------------------ |
 | `type`    | `'int'` \| `'bigInt'` \| `'float'` | Number field type. |
 | `minimum` | number                             | Minimum value.     |
 | `maximum` | number                             | Maximum value.     |
@@ -318,7 +320,7 @@ const config = {
 ```
 
 | Property | Type        | Description         |
-|----------|-------------|---------------------|
+| -------- | ----------- | ------------------- |
 | `type`   | `'boolean'` | Boolean field type. |
 
 #### DateTime
@@ -337,7 +339,7 @@ const config = {
 ```
 
 | Property | Type                                  | Description          |
-|----------|---------------------------------------|----------------------|
+| -------- | ------------------------------------- | -------------------- |
 | `type`   | `'dateTime'`                          | DateTime field type. |
 | `format` | `'date-time'` \| `'time'` \| `'date'` | DateTime format.     |
 
@@ -355,7 +357,7 @@ const config = {
 ```
 
 | Property | Type     | Description                                          |
-|----------|----------|------------------------------------------------------|
+| -------- | -------- | ---------------------------------------------------- |
 | `type`   | `'json'` | JSON field type. Stores arbitrary objects or arrays. |
 
 On SQLite the default is written to the schema as the quoted SQL literal (`@default(dbgenerated("'{}'"))`), since the
@@ -379,7 +381,7 @@ const config = {
 ```
 
 | Property | Type     | Description                     |
-|----------|----------|---------------------------------|
+| -------- | -------- | ------------------------------- |
 | `type`   | `'enum'` | Enum field type.                |
 | `values` | string[] | Allowed enum values (required). |
 
@@ -446,7 +448,7 @@ const config = {
 ```
 
 | Property        | Type              | Default      | Description                                                              |
-|-----------------|-------------------|--------------|--------------------------------------------------------------------------|
+| --------------- | ----------------- | ------------ | ------------------------------------------------------------------------ |
 | `model`         | string            | **required** | Target model name.                                                       |
 | `type`          | RelationType      | **required** | `'oneToOne'`, `'oneToMany'`, `'manyToOne'`, or `'manyToMany'`.           |
 | `owner`         | boolean           | `false`      | This side owns the foreign key column (implied by `manyToOne`).          |
@@ -595,7 +597,7 @@ validation; an inverse field is generated automatically in the Prisma schema.
 #### Relation input
 
 | Property      | Type                                            | Description                                                                                           |
-|---------------|-------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| ------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `type`        | `'all'` \| `'create'` \| `'update'` \| `'none'` | When the relation field is available as input.                                                        |
 | `allowCreate` | boolean                                         | Allow creating related records inline (input objects without an `id`).                                |
 | `allowUpdate` | boolean                                         | Allow updating related records inline on parent update requests (input objects with a required `id`). |
@@ -627,10 +629,10 @@ Connect, create, and update inputs can be mixed within one list relation request
 // PATCH /api/users/1
 {
   posts: [
-    5,                                    // connect post 5 by id
-    { id: 7, title: 'Renamed' },          // update post 7 inline
-    { title: 'Fresh post', slug: 'new' }  // create a new post inline
-  ]
+    5, // connect post 5 by id
+    { id: 7, title: 'Renamed' }, // update post 7 inline
+    { title: 'Fresh post', slug: 'new' } // create a new post inline
+  ];
 }
 ```
 
@@ -644,7 +646,7 @@ an update keeps the current records the new value names by id or by unique key.
 #### Relation output
 
 | Property   | Type                                                 | Description                                                                                                                            |
-|------------|------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| ---------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `type`     | `'always'` \| `'single'` \| `'multiple'` \| `'none'` | When to include the relation in output. `always` = all reads, `single` = single record reads, `multiple` = list reads, `none` = never. |
 | `include`  | Record\<string, RelationOutput>                      | Nested relation output configuration.                                                                                                  |
 | `maxDepth` | number                                               | Levels of a relation pointing back at its own model. Default `1`.                                                                      |
@@ -678,7 +680,7 @@ const config = {
       output: { type: 'none', count: true }
     }
   }
-}
+};
 ```
 
 `omit` hides fields of the related model in this relation only (routes, MCP tools, realtime events), while its own
@@ -716,7 +718,7 @@ const config = {
       include: { parent: { type: 'always', maxDepth: 3 } }
     }
   }
-}
+};
 ```
 
 ### File fields
@@ -747,7 +749,7 @@ const config = {
 ```
 
 | Property                | Type                   | Description                                                                                                                                                                                 |
-|-------------------------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mimeType`              | string \| RegExp       | Allowed MIME types (glob patterns like `'image/*'` supported).                                                                                                                              |
 | `namePattern`           | string \| function     | File naming pattern or function (available variables are listed below).                                                                                                                     |
 | `array`                 | boolean                | Allow multiple files.                                                                                                                                                                       |
@@ -764,7 +766,7 @@ const config = {
 Default pattern is: `{name}-{hash}.{extension}`.
 
 | Variable        | Type   | Description                                 |
-|-----------------|--------|---------------------------------------------|
+| --------------- | ------ | ------------------------------------------- |
 | `name`          | string | Original filename without extension.        |
 | `extension`     | string | Original file extension.                    |
 | `resourceField` | string | Field name the file is assigned to.         |
@@ -794,7 +796,7 @@ applies to supported image MIME types: `image/jpeg`, `image/png`, `image/webp`, 
 are passed through unchanged.
 
 | Property    | Type     | Description                                                                                                    |
-|-------------|----------|----------------------------------------------------------------------------------------------------------------|
+| ----------- | -------- | -------------------------------------------------------------------------------------------------------------- |
 | `quality`   | number   | Compression quality (1-100). Applies to JPEG, PNG, WebP, AVIF, and TIFF.                                       |
 | `width`     | number   | Exact resize width in pixels.                                                                                  |
 | `height`    | number   | Exact resize height in pixels.                                                                                 |
@@ -827,7 +829,7 @@ const config = {
       image: { quality: 70, width: 200, height: 200, fit: 'inside' }
     }
   }
-}
+};
 ```
 
 ### Virtual fields
@@ -856,8 +858,8 @@ const config = {
 ```
 
 | Property         | Type                                                 | Description                                                |
-|------------------|------------------------------------------------------|------------------------------------------------------------|
-| *(scalar props)* | -                                                    | All scalar field properties (type, minLength, etc.) apply. |
+| ---------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| _(scalar props)_ | -                                                    | All scalar field properties (type, minLength, etc.) apply. |
 | `input.type`     | `'all'` \| `'create'` \| `'update'` \| `'none'`      | When the virtual field accepts input.                      |
 | `input.value`    | primitive \| function                                | Default value or transformer for input.                    |
 | `output.type`    | `'always'` \| `'single'` \| `'multiple'` \| `'none'` | When the virtual field appears in output.                  |
@@ -881,7 +883,7 @@ Control which fields appear in each DTO. Use `pick` for an allowlist or `omit` f
 ```ts
 const config = {
   create: {
-    omit: ['status']         // All fields except status
+    omit: ['status'] // All fields except status
   },
   update: {
     pick: ['title', 'price'] // Only title and price
@@ -890,7 +892,7 @@ const config = {
 ```
 
 | Property | Type     | Description                                    |
-|----------|----------|------------------------------------------------|
+| -------- | -------- | ---------------------------------------------- |
 | `omit`   | string[] | Fields to exclude from the DTO.                |
 | `pick`   | string[] | Fields to include in the DTO (overrides omit). |
 
@@ -933,7 +935,7 @@ const config = {
 ```
 
 | Property     | Type               | Description                        |
-|--------------|--------------------|------------------------------------|
+| ------------ | ------------------ | ---------------------------------- |
 | `headerName` | string             | Custom CSV column header name.     |
 | `exclude`    | boolean            | Exclude this field from exports.   |
 | `mapValue`   | string \| function | Transform the value during export. |
@@ -954,18 +956,18 @@ tab or a carriage return) is prefixed with `'`, numeric text such as a phone num
 Define database indexes as a flat array (single-field indexes) or nested arrays (composite indexes):
 
 ```ts
-index: ['title']                          // Single-field index on title
-index: [['status', 'categoryId']]         // Composite index on status + categoryId
-index: ['email', ['status', 'createdAt']] // Both single and composite
+index: ['title']; // Single-field index on title
+index: [['status', 'categoryId']]; // Composite index on status + categoryId
+index: ['email', ['status', 'createdAt']]; // Both single and composite
 ```
 
 Prefix a field name with `-` for a descending index or `+` for an ascending one. Without a prefix the database default
 order is used:
 
 ```ts
-index: ['-createdAt']                       // @@index(createdAt(sort: Desc))
-index: ['+title']                           // @@index(title(sort: Asc))
-index: [['status', '-createdAt']]           // @@index([status, createdAt(sort: Desc)])
+index: ['-createdAt']; // @@index(createdAt(sort: Desc))
+index: ['+title']; // @@index(title(sort: Asc))
+index: [['status', '-createdAt']]; // @@index([status, createdAt(sort: Desc)])
 ```
 
 The prefix is part of the index identity, so `['createdAt', '-createdAt']` emits two separate indexes.
@@ -996,7 +998,7 @@ The audit columns `createdById` and `deletedById` are always indexed.
 be unique together; a single column is better marked with the scalar's own `unique: true`:
 
 ```ts
-unique: [['provider', 'providerAccountId']] // @@unique([provider, providerAccountId])
+unique: [['provider', 'providerAccountId']]; // @@unique([provider, providerAccountId])
 ```
 
 A create or update breaking the constraint fails in the database, so handle the conflict where concurrent writes can
@@ -1012,7 +1014,7 @@ generated as a unique index of its values instead, `@@unique([coverId], where: {
 `createModel` produces the following TypeBox schema models used internally by routes and services:
 
 | Model                    | Purpose                                        |
-|--------------------------|------------------------------------------------|
+| ------------------------ | ---------------------------------------------- |
 | `readModel`              | Full model with all visible fields             |
 | `createModel`            | Request body for create operations             |
 | `updateModel`            | Request body for update operations             |
@@ -1053,12 +1055,14 @@ export default createService({
 ### Configuration
 
 ```ts
-function createService(config: ResourceServiceConfig, override ?: Partial<ResourceServiceConfig>) {
-}
+function createService(
+  config: ResourceServiceConfig,
+  override?: Partial<ResourceServiceConfig>
+) {}
 ```
 
 | Property          | Type                           | Description                                                                                                                     |
-|-------------------|--------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| ----------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | `modelName`       | string                         | Model name to bind this service to (required).                                                                                  |
 | `beforeFind`      | `(id) => void`                 | Hook called before finding a single resource.                                                                                   |
 | `beforeQuery`     | `(options) => void`            | Hook called before querying resources, with the query options as given. Mutate `options` to change the query.                   |
@@ -1083,7 +1087,7 @@ together ([database.md](./database.md#transactions)).
 The created service exposes the following methods:
 
 | Method      | Signature                                      | Description                                                                                                                                |
-|-------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `find`      | `(id) => Promise<ReadOne>`                     | Find a single resource by ID.                                                                                                              |
 | `single`    | `(filter?, sort?) => Promise<ReadOne \| null>` | Find the first resource matching the filter, ordered by `sort` (default `-createdAt`), or `null` when none matches.                        |
 | `query`     | `(options?) => Promise<QueryResponse>`         | Query resources with filtering, pagination, and sorting (see [Query sorting](#query-sorting) and [Cursor pagination](#cursor-pagination)). |
@@ -1103,7 +1107,11 @@ of the `POST /query` and `POST /aggregate` routes, and as the query parameters o
 
 ```ts
 const posts = injectService('Post');
-const page = await posts.query({ filter: { status: 'Published' }, size: 20, sort: '-publishedAt' });
+const page = await posts.query({
+  filter: { status: 'Published' },
+  size: 20,
+  sort: '-publishedAt'
+});
 const latest = await posts.single({ status: 'Published' }, '-publishedAt');
 const drafts = await posts.count({ status: 'Draft' });
 ```
@@ -1156,7 +1164,7 @@ request is validated; the service methods check the same limits. A JSON body is 
 **Logical operators** (filter level) — take a single filter object (each entry becomes one condition) or a list of them:
 
 | Operator | Description                               |
-|----------|-------------------------------------------|
+| -------- | ----------------------------------------- |
 | `_and`   | All nested conditions must match.         |
 | `_or`    | At least one nested condition must match. |
 | `_not`   | No nested condition may match.            |
@@ -1164,18 +1172,18 @@ request is validated; the service methods check the same limits. A JSON body is 
 
 **Comparison operators** (field level) — combined inside one object, all must match:
 
-| Operator                        | Description                                                                                                                  |
-|---------------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| `_eq`                           | Equal to the given value.                                                                                                    |
-| `_ne`                           | Not equal to the given value.                                                                                                |
-| `_gt`, `_gte`, `_lt`, `_lte`    | Greater/lower than (or equal to) the given value.                                                                            |
-| `_in`, `_nin`                   | Included / not included in the given list.                                                                                   |
-| `_between`                      | Inside the inclusive `[min, max]` range.                                                                                     |
-| `_like`                         | SQL LIKE pattern with `%` wildcards (`Luk%` → starts with, `%avatar%` → contains, `%png` → ends with, no wildcard → equals). |
+| Operator                        | Description                                                                                                                            |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `_eq`                           | Equal to the given value.                                                                                                              |
+| `_ne`                           | Not equal to the given value.                                                                                                          |
+| `_gt`, `_gte`, `_lt`, `_lte`    | Greater/lower than (or equal to) the given value.                                                                                      |
+| `_in`, `_nin`                   | Included / not included in the given list.                                                                                             |
+| `_between`                      | Inside the inclusive `[min, max]` range.                                                                                               |
+| `_like`                         | SQL LIKE pattern with `%` wildcards (`Luk%` → starts with, `%avatar%` → contains, `%png` → ends with, no wildcard → equals).           |
 | `_ilike`                        | Case-insensitive `_like`: `mode: 'insensitive'` on PostgreSQL, the collation elsewhere (insensitive by default, ASCII only on SQLite). |
-| `_starts`, `_ends`, `_contains` | Starts with / ends with / contains the given string.                                                                         |
-| `_exists`                       | Not null (`true`) or null (`false`).                                                                                         |
-| `_not`                          | Negates a nested operator object or plain value.                                                                             |
+| `_starts`, `_ends`, `_contains` | Starts with / ends with / contains the given string.                                                                                   |
+| `_exists`                       | Not null (`true`) or null (`false`).                                                                                                   |
+| `_not`                          | Negates a nested operator object or plain value.                                                                                       |
 
 **List (array scalar) operators**: `_has`, `_hasSome`, `_hasEvery`, `_isEmpty`.
 
@@ -1277,7 +1285,7 @@ field. In the object form a relation takes a nested object, and the only accepte
 and `desc`.
 
 | Field                  | String form         | Object form                         | Notes                                                                                  |
-|------------------------|---------------------|-------------------------------------|----------------------------------------------------------------------------------------|
+| ---------------------- | ------------------- | ----------------------------------- | -------------------------------------------------------------------------------------- |
 | Scalar, `id`, audit    | `title`, `-id`      | `{ title: 'asc' }`                  | Hidden scalars, array scalars, and virtual fields cannot be sorted by.                 |
 | To-one relation field  | `-author.createdAt` | `{ author: { createdAt: 'desc' } }` | The relation must be included in the response of the action, at any nesting depth.     |
 | To-many relation count | `-tagsCount`        | `{ tagsCount: 'desc' }`             | Sorts by the number of related records; the relation name alone (`-tags`) is an alias. |
@@ -1306,12 +1314,12 @@ const posts = await postService.query({ sort });
 
 ```ts
 const config = {
-  resultCount: 50,   // Items in this page
-  totalCount: 123,   // Items matching the filter, up to resource.countLimit; null unless totalCount was asked
+  resultCount: 50, // Items in this page
+  totalCount: 123, // Items matching the filter, up to resource.countLimit; null unless totalCount was asked
   totalCountExact: true, // false when the count stopped at resource.countLimit; null when not counted
   nextCursor: '...', // Cursor of the following page, absent on the last page
   prevCursor: '...', // Cursor of the preceding page, absent on the first page
-  items: []          // Page data
+  items: [] // Page data
 };
 ```
 
@@ -1333,12 +1341,12 @@ while (result.nextCursor) {
 ```json5
 // POST /posts/query
 {
-  "filter": {
-    "enabled": true
+  filter: {
+    enabled: true
   },
-  "size": 50,
-  "sort": "-createdAt",
-  "cursor": "eyJpIjo0MiwiZiI6IkhkQjVfa2VMTVlyNyJ9"
+  size: 50,
+  sort: '-createdAt',
+  cursor: 'eyJpIjo0MiwiZiI6IkhkQjVfa2VMTVlyNyJ9'
 }
 ```
 
@@ -1357,7 +1365,7 @@ the operators to apply per field. Only the fields the database can aggregate are
 date scalars of the model together with its numeric `id` and audit fields:
 
 | Field kind                         | Operators                                            |
-|------------------------------------|------------------------------------------------------|
+| ---------------------------------- | ---------------------------------------------------- |
 | Numeric (`int`, `bigInt`, `float`) | `count`, `sum`, `avg`, `min`, `max`, `first`, `last` |
 | Date (`dateTime`)                  | `count`, `min`, `max`, `first`, `last`               |
 
@@ -1396,7 +1404,10 @@ model:
 ```ts
 import { PostAggregate } from '@/types/generated';
 
-const select: PostAggregate = { counter: { sum: true }, createdAt: { max: true } };
+const select: PostAggregate = {
+  counter: { sum: true },
+  createdAt: { max: true }
+};
 const stats = await postService.aggregate({ select });
 ```
 
@@ -1405,12 +1416,14 @@ declared with `satisfies`, narrows the response to the fields it names, while on
 every aggregatable field of the model:
 
 ```ts
-const narrow = await postService.aggregate({ select: { counter: { sum: true } } });
+const narrow = await postService.aggregate({
+  select: { counter: { sum: true } }
+});
 narrow.total.counter?.sum; // typed
-narrow.total.createdAt;    // compile error, the field was not selected
+narrow.total.createdAt; // compile error, the field was not selected
 
 const select = { counter: { sum: true } } satisfies PostAggregate; // narrows and checks against the model
-const wide: PostAggregate = { counter: { sum: true } };            // keeps the whole model in the response type
+const wide: PostAggregate = { counter: { sum: true } }; // keeps the whole model in the response type
 ```
 
 ### Aggregate response
@@ -1421,7 +1434,7 @@ the operators the selection left out are `undefined`:
 
 ```ts
 const resp = {
-  total: AggregateValue,        // Overall aggregation
+  total: AggregateValue, // Overall aggregation
   items: Array<AggregateResult> // Per-period results
 };
 
@@ -1431,12 +1444,12 @@ const result = {
   result: {
     [field]: {
       count: 123,
-      min: 123,   // an ISO date string for a date field
-      max: 123,   // an ISO date string for a date field
-      avg: 123,   // numeric fields only
-      sum: 123,   // numeric fields only
+      min: 123, // an ISO date string for a date field
+      max: 123, // an ISO date string for a date field
+      avg: 123, // numeric fields only
+      sum: 123, // numeric fields only
       first: 123, // value of the earliest record of the period
-      last: 123   // value of the latest record of the period
+      last: 123 // value of the latest record of the period
     }
   }
 };
@@ -1509,12 +1522,14 @@ export default createRoutes({
 ### Configuration
 
 ```ts
-function createRoutes(config: ResourceRoutesConfig, override ?: Partial<ResourceRoutesConfig>) {
-}
+function createRoutes(
+  config: ResourceRoutesConfig,
+  override?: Partial<ResourceRoutesConfig>
+) {}
 ```
 
 | Property            | Type                   | Description                                                                                                                                                                                                                                                                            |
-|---------------------|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `modelName`         | string                 | Model name to bind routes to (required).                                                                                                                                                                                                                                               |
 | `path`              | string                 | Custom base URL path (default: derived from model name).                                                                                                                                                                                                                               |
 | `defaults`          | QueryRouteConfig       | Config applied to every route (see [Route defaults](#route-defaults)).                                                                                                                                                                                                                 |
@@ -1559,13 +1574,14 @@ export default createRoutes({
 ### Route config (all operations)
 
 | Property          | Type                     | Default | Description                                                                                                                   |
-|-------------------|--------------------------|---------|-------------------------------------------------------------------------------------------------------------------------------|
+| ----------------- | ------------------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `exclude`         | boolean                  | `false` | Exclude this operation entirely.                                                                                              |
 | `public`          | boolean                  | `false` | No authentication required.                                                                                                   |
 | `roles`           | string[]                 | -       | Required roles (OR logic by default).                                                                                         |
 | `permissions`     | string[]                 | -       | Required permissions (OR logic by default).                                                                                   |
 | `auth`            | AuthType[]               | -       | Allowed authentication types: `'jwt'`, `'apiKey'`, `'basic'`.                                                                 |
 | `rateLimit`       | RateLimitConfig \| false | -       | Per-operation rate limiting. `false` disables.                                                                                |
+| `compress`        | boolean \| object        | config  | Response compression: `false`, or `{ threshold, encodings, levels }` over `server.compression`.                               |
 | `recaptcha`       | boolean                  | `false` | Require reCAPTCHA verification.                                                                                               |
 | `recaptchaAction` | string                   | -       | Expected reCAPTCHA action name for score validation.                                                                          |
 | `turnstile`       | boolean                  | `false` | Require Cloudflare Turnstile verification.                                                                                    |
@@ -1581,7 +1597,7 @@ export default createRoutes({
 Extends RouteConfig with caching options (the global TTL and invalidation strategy are in [cache.md](./cache.md)):
 
 | Property                | Type    | Default | Description                                           |
-|-------------------------|---------|---------|-------------------------------------------------------|
+| ----------------------- | ------- | ------- | ----------------------------------------------------- |
 | `cache`                 | boolean | `false` | Enable response caching.                              |
 | `cacheTTL`              | number  | -       | Cache TTL in milliseconds (overrides global default). |
 | `cacheSkipInvalidation` | boolean | `false` | Skip automatic cache invalidation on writes.          |
@@ -1597,7 +1613,7 @@ option of the custom routes of [`registerRoute`](#registerroute) only.
 Extends ReadRouteConfig with the HTTP methods of the route:
 
 | Property | Type        | Default                                               | Description                                                   |
-|----------|-------------|-------------------------------------------------------|---------------------------------------------------------------|
+| -------- | ----------- | ----------------------------------------------------- | ------------------------------------------------------------- |
 | `method` | QueryMethod | `RESOURCE_QUERY_METHOD` / `RESOURCE_AGGREGATE_METHOD` | `'post'` (config default), `'get'`, or `'get-post'` for both. |
 
 The GET route takes the request body properties as query parameters: `filter` and `select` JSON-encoded, `sort` as a
@@ -1632,7 +1648,11 @@ createRoutes({
 });
 
 createRoutes({ modelName: 'Setting', replace: { exclude: true } }); // PATCH only
-createRoutes({ modelName: 'Profile', update: { exclude: true }, replace: { exclude: false } }); // PUT only
+createRoutes({
+  modelName: 'Profile',
+  update: { exclude: true },
+  replace: { exclude: false }
+}); // PUT only
 ```
 
 ### Bulk routes (bulkCreate, bulkUpdate, bulkReplace, bulkDelete)
@@ -1649,7 +1669,7 @@ When `replace` and `bulkUpdate` set the same option group (i.e. `roles`), `bulkU
 on `bulkReplace` to keep the replace one.
 
 | Route          | Body                             | Service method       |
-|----------------|----------------------------------|----------------------|
+| -------------- | -------------------------------- | -------------------- |
 | `POST /bulk`   | `[<Model>Create]`                | `bulkCreate(items)`  |
 | `PATCH /bulk`  | `[{ id, data: <Model>Update }]`  | `bulkUpdate(items)`  |
 | `PUT /bulk`    | `[{ id, data: <Model>Replace }]` | `bulkReplace(items)` |
@@ -1688,7 +1708,7 @@ const config = {
 ```
 
 | Property       | Type                         | Description                                                                         |
-|----------------|------------------------------|-------------------------------------------------------------------------------------|
+| -------------- | ---------------------------- | ----------------------------------------------------------------------------------- |
 | `max`          | number \| function           | Maximum requests per time window. Function: `(req, key) => number`.                 |
 | `timeWindow`   | number \| string \| function | Window duration in ms. Function: `(req, key) => number`.                            |
 | `allowList`    | string[] \| function         | IPs exempt from limiting. Function: `(req, key) => boolean`.                        |
@@ -1722,12 +1742,14 @@ export default createPolicy({
 ### Configuration
 
 ```ts
-function createPolicy(config: ResourcePolicyConfig, override ?: Partial<ResourcePolicyConfig>) {
-}
+function createPolicy(
+  config: ResourcePolicyConfig,
+  override?: Partial<ResourcePolicyConfig>
+) {}
 ```
 
 | Property            | Type                                  | Description                                                                                                                                                                                                                   |
-|---------------------|---------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `modelName`         | string                                | Model name to bind this policy to (required).                                                                                                                                                                                 |
 | `checkAccess`       | `(user, resource, action) => boolean` | Dynamic access check against a resource instance. Return `true` to allow, `false` to deny.                                                                                                                                    |
 | `readRestrictions`  | `(user, resource, action) => filter`  | Returns a Prisma filter object applied to all read queries (find, query, aggregate). Restricts which records are visible.                                                                                                     |
@@ -1743,7 +1765,7 @@ Every policy callback may be `async` (return a promise), e.g. to look up a team 
 ### File policy
 
 | Property     | Type                                       | Default       | Description                                                                                      |
-|--------------|--------------------------------------------|---------------|--------------------------------------------------------------------------------------------------|
+| ------------ | ------------------------------------------ | ------------- | ------------------------------------------------------------------------------------------------ |
 | `accessType` | `'public'` \| `'protected'` \| `'private'` | `'protected'` | File access level. `public` = anyone, `protected` = authenticated users, `private` = owner only. |
 | `canAccess`  | `(user, resource, file) => boolean`        | -             | Custom access check for reading files.                                                           |
 | `canCreate`  | `(user, resource, file) => boolean`        | -             | Custom access check for uploading files.                                                         |
@@ -1804,13 +1826,14 @@ registerRoute(
 ### Config options
 
 | Property                | Type                     | Description                                                                                            |
-|-------------------------|--------------------------|--------------------------------------------------------------------------------------------------------|
+| ----------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------ |
 | `exclude`               | boolean                  | Skip registration of this route.                                                                       |
 | `public`                | boolean                  | No authentication required.                                                                            |
 | `roles`                 | string[]                 | Required roles.                                                                                        |
 | `permissions`           | string[]                 | Required permissions.                                                                                  |
 | `auth`                  | AuthType[]               | Allowed authentication types.                                                                          |
 | `rateLimit`             | RateLimitConfig \| false | Rate limiting configuration.                                                                           |
+| `compress`              | boolean \| object        | Response compression: `false`, or `{ threshold, encodings, levels }` over `server.compression`.        |
 | `recaptcha`             | boolean                  | Require reCAPTCHA verification.                                                                        |
 | `recaptchaAction`       | string                   | Expected reCAPTCHA action.                                                                             |
 | `turnstile`             | boolean                  | Require Cloudflare Turnstile verification.                                                             |
@@ -1853,7 +1876,7 @@ registerModel(
 ```
 
 | Parameter | Type    | Description                                                  |
-|-----------|---------|--------------------------------------------------------------|
+| --------- | ------- | ------------------------------------------------------------ |
 | `schema`  | TObject | TypeBox object schema definition.                            |
 | `name`    | string? | Override schema name identifier for `Type.Ref()` references. |
 
@@ -1879,7 +1902,7 @@ registerPlugin(
 ```
 
 | Parameter      | Type                                | Description                                           |
-|----------------|-------------------------------------|-------------------------------------------------------|
+| -------------- | ----------------------------------- | ----------------------------------------------------- |
 | `name`         | string                              | Plugin name (used for dependency resolution).         |
 | `plugin`       | `(server) => void \| Promise<void>` | Fastify plugin function.                              |
 | `dependencies` | string[]                            | Optional list of plugin names this plugin depends on. |

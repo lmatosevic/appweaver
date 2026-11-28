@@ -8,7 +8,9 @@ import {
   setAuthContext,
   CacheService
 } from '@appweaver/core';
+import { gunzipSync } from 'node:zlib';
 import caching from '../../cache/caching';
+import { registerCompression } from '../../server/compression';
 import { resetContext } from '@appweaver/testing';
 
 const user: AuthUser = { id: 1, email: 'user@test.com', roles: [] };
@@ -72,6 +74,45 @@ describe('caching', () => {
 
   afterAll(() => {
     resetContext();
+  });
+
+  test('stores a payload uncompressed and compresses every reply of it', async () => {
+    const big = 'x'.repeat(4096);
+    app = Fastify({ logger: false });
+    registerCompression(app);
+    app.register(fastifyRequestContext, {
+      defaultStoreValues: { cached: undefined },
+      createAsyncResource: () =>
+        runInAuthContext(() => {
+          setAuthContext({ authUser: user });
+          return new AsyncResource('appweaver-request');
+        })
+    });
+    app.register(caching);
+    app.after(() => {
+      app.get('/posts', { config: { cache: true } }, async () => ({
+        calls: handler(),
+        big
+      }));
+    });
+    await app.ready();
+    const get = () =>
+      app.inject({ url: '/posts', headers: { 'accept-encoding': 'gzip' } });
+
+    const first = await get();
+    const second = await get();
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    for (const response of [first, second]) {
+      expect(response.headers['content-encoding']).toBe('gzip');
+      expect(JSON.parse(gunzipSync(response.rawPayload).toString())).toEqual({
+        calls: 1,
+        big
+      });
+    }
+    const [stored] = [...store.values()];
+    expect(JSON.parse(stored.payload)).toEqual({ calls: 1, big });
+    expect(stored.headers['content-encoding']).toBeUndefined();
   });
 
   test('serves a repeated request from the cache', async () => {

@@ -67,7 +67,7 @@ export function registerMcpRoutes(): void {
         notAllowed as never
       );
     },
-    { public: true, apiPrefix: false }
+    { public: true, apiPrefix: false, compress: false }
   );
 }
 
