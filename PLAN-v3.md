@@ -2,6 +2,7 @@
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
 > section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
+> **Revision 16**: audit fields stay in the responses by default, removable per model, view or relation (D5, F10).
 > **Revision 15**: `weaver upgrade` stays a version and skill updater; it never rewrites the code or the config of a
 > project. The migration is the user's, guided by `MIGRATION-v3.md` and the warnings at startup.
 > **Revision 14**: no prerelease channel: one pull request per phase into `main`, stacked on the previous phase; 3.0.0 is
@@ -432,7 +433,7 @@ high, medium, low, or a design or performance finding.
 | F7  | CSV export without formula escaping; arrays never joined (`isArray && isString` cannot hold)              | Security, bug | Medium | R      | V3-SEC-04   |
 | F8  | An OAuth-only account can be linked by another provider reporting the same, possibly unverified, email    | Security    | To verify | R     | V3-SEC-05   |
 | F9  | App model named like a framework model: silently inconsistent                                             | Bug         | Medium | C, E9    | V3-DATA-01  |
-| F10 | Audit fields (`createdById`) in every response, anonymous ones included                                   | Default     | Medium | C, E11   | V3-CONV-04  |
+| F10 | Audit fields (`createdById`) in every response, anonymous ones included                                   | Default     | Low    | C, E11   | Kept by default, removable (D5, revision 16) |
 | F11 | Access token valid 7 days by default                                                                      | Default     | Medium | R        | V3-CONV-04  |
 | F12 | Forced 2FA without enrolment: an unverified email or a missing phone locks the user out or adds nothing   | Design      | Medium | R        | V3-WEB-02   |
 | F13 | Field visibility is static per model; per-audience projection is spread over `read`, relation `output.omit`, `mcp.exclude` and `export` | Design | - | R | V3-DATA-02 |
@@ -599,7 +600,7 @@ createRoutes({
 
 | Key                                                | Today           | v3                                            | Why                     |
 |----------------------------------------------------|-----------------|-----------------------------------------------|-------------------------|
-| Audit fields in responses                          | shown           | hidden, shown per model or view (`read.audit`) | F10                    |
+| Audit fields in responses                          | shown           | shown (decided, revision 16); left out where a response should not carry them: per model (`read.omit`, as the framework's `Role` does), per view (`read.audit: false`, D1) or per relation (`output.omit`) | F10 |
 | `security.jwt.expiresIn` / `refreshExpiresIn`      | 7 d / 60 d      | 15 min / 30 d, refresh rotation with reuse detection (decided: short-lived tokens refreshed regularly) | F11 |
 | `security.jwt.autoGenerateKeys`                    | `true`          | `true` in `dev` and `test` only; otherwise fail at startup without keys or a secret | F6 |
 | `security.allowedRedirectHosts`                    | `['*']`         | the host of `app.hostname`                     | F5                     |
@@ -1392,7 +1393,7 @@ week, XL more.
 | V3-CONV-01    | `Duration` and `Size` (F17)                                              | 3     | P1   | L      | Yes            |
 | V3-CONV-02    | `actions` everywhere, bulk flags removed, `weaver routes` (F14)          | 3     | P1   | M      | Yes            |
 | V3-CONV-03    | Maintenance job registry (F16)                                           | 3     | P1   | M      | Yes (keys)     |
-| V3-CONV-04    | Secure defaults (F5, F6, F10, F11, F38)                                  | 3     | P1   | M      | Yes            |
+| V3-CONV-04    | Secure defaults (F5, F6, F11, F38)                                       | 3     | P1   | M      | Yes            |
 | V3-CONV-05    | `database.keepTables` (F18)                                              | 3     | P2   | S      | Yes            |
 | V3-CONV-06    | `totalCount` default, bounded count, `maxOffset` (F19)                   | 3     | P1   | S      | Yes            |
 | V3-CONV-07    | `aggregate` in one `GROUP BY`, no implicit window (F20)                  | 3     | P1   | M      | Yes            |
