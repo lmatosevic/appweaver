@@ -128,6 +128,34 @@ describe('bull-queue', () => {
       expect(await queue.close('emails')).toBe(false);
     });
 
+    test('waits for the running jobs of a worker whose connections are up', async () => {
+      const processor = queue.get('emails');
+      processor.addWorker(async () => true);
+      workers()[0].blockingConnection = Object.assign(new EventEmitter(), {
+        client: Promise.resolve({ status: 'ready' })
+      });
+
+      await queue.closeAll();
+
+      expect(workers()[0].close).toHaveBeenCalledWith(false);
+      expect(connection.quit).toHaveBeenCalled();
+    });
+
+    // BullMQ drops the blocking connection when a blocking command outlives its timeout, i.e. after a blocked event
+    // loop, and a worker closing while it reconnects never finishes closing unless forced
+    test('forces a worker to close while its blocking connection reconnects', async () => {
+      const processor = queue.get('emails');
+      processor.addWorker(async () => true);
+      workers()[0].blockingConnection = Object.assign(new EventEmitter(), {
+        client: Promise.resolve({ status: 'reconnecting' })
+      });
+
+      await queue.closeAll();
+
+      expect(workers()[0].close).toHaveBeenCalledWith(true);
+      expect(connection.quit).toHaveBeenCalled();
+    });
+
     test('drops the connection that is down, forcing the workers to close', async () => {
       const processor = queue.get('emails');
       processor.addWorker(async () => true);
