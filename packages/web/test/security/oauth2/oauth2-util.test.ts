@@ -134,8 +134,12 @@ describe('fetchAvatarFile', () => {
       data: Buffer.from('image-bytes')
     });
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://lh3.googleusercontent.com/a/photo=s96-c',
-      { method: 'GET', headers: {} }
+      new URL('https://lh3.googleusercontent.com/a/photo=s96-c'),
+      expect.objectContaining({
+        method: 'GET',
+        headers: {},
+        redirect: 'manual'
+      })
     );
   });
 
@@ -158,10 +162,12 @@ describe('fetchAvatarFile', () => {
       size: 11,
       data: Buffer.from('image-bytes')
     });
-    expect(fetchMock).toHaveBeenCalledWith('https://example.com/photo', {
-      method: 'GET',
-      headers: { authorization: 'Bearer token-value' }
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      new URL('https://example.com/photo'),
+      expect.objectContaining({
+        headers: { authorization: 'Bearer token-value' }
+      })
+    );
   });
 
   test('should return undefined when the provider answers with an error status', async () => {
@@ -171,6 +177,140 @@ describe('fetchAvatarFile', () => {
     jest
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(new Response('', { status: 404 }));
+
+    await expect(
+      fetchAvatarFile('https://example.com/photo', '42')
+    ).resolves.toBeUndefined();
+  });
+
+  test.each([
+    ['plain HTTP', 'http://example.com/photo'],
+    ['a local host', 'https://localhost/photo'],
+    ['a loopback address', 'https://127.0.0.1/photo'],
+    ['the cloud metadata address', 'https://169.254.169.254/latest/meta-data'],
+    ['a private network address', 'https://10.0.0.7/photo'],
+    ['an IPv6 loopback address', 'https://[::1]/photo'],
+    ['an IPv4 mapped private address', 'https://[::ffff:192.168.1.1]/photo'],
+    ['an unparsable URL', 'not a url']
+  ])('should never fetch %s', async (_, url) => {
+    const { fetchAvatarFile } = await loadUtil({
+      SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
+    });
+    const fetchMock = jest.spyOn(globalThis, 'fetch');
+
+    await expect(fetchAvatarFile(url, '42')).resolves.toBeUndefined();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  test('should follow a redirect to a public URL, without the access token', async () => {
+    const { fetchAvatarFile } = await loadUtil({
+      SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
+    });
+    const fetchMock = jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 302,
+          headers: { location: 'https://cdn.example.com/photo.png' }
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(Buffer.from('png'), {
+          status: 200,
+          headers: { 'content-type': 'image/png' }
+        })
+      );
+
+    await expect(
+      fetchAvatarFile('https://example.com/photo', '42', 'token-value')
+    ).resolves.toMatchObject({ name: 'avatar-42.png', size: 3 });
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      new URL('https://cdn.example.com/photo.png'),
+      expect.objectContaining({ headers: {} })
+    );
+  });
+
+  test('should not follow a redirect to a private address', async () => {
+    const { fetchAvatarFile } = await loadUtil({
+      SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
+    });
+    const fetchMock = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(null, {
+        status: 302,
+        headers: { location: 'https://169.254.169.254/latest/meta-data' }
+      })
+    );
+
+    await expect(
+      fetchAvatarFile('https://example.com/photo', '42')
+    ).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('should stop after three redirects', async () => {
+    const { fetchAvatarFile } = await loadUtil({
+      SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
+    });
+    const fetchMock = jest.spyOn(globalThis, 'fetch').mockImplementation(
+      async () =>
+        new Response(null, {
+          status: 302,
+          headers: { location: 'https://example.com/again' }
+        })
+    );
+
+    await expect(
+      fetchAvatarFile('https://example.com/photo', '42')
+    ).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  test('should refuse a response that is not a raster image', async () => {
+    const { fetchAvatarFile } = await loadUtil({
+      SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
+    });
+    jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('<svg onload="alert(1)"/>', {
+        status: 200,
+        headers: { 'content-type': 'image/svg+xml' }
+      })
+    );
+
+    await expect(
+      fetchAvatarFile('https://example.com/photo', '42')
+    ).resolves.toBeUndefined();
+  });
+
+  test('should refuse an image larger than 5 MB', async () => {
+    const { fetchAvatarFile } = await loadUtil({
+      SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
+    });
+    jest.spyOn(globalThis, 'fetch').mockImplementation(
+      async () =>
+        new Response(Buffer.alloc(5 * 1024 * 1024 + 1), {
+          status: 200,
+          headers: { 'content-type': 'image/jpeg' }
+        })
+    );
+
+    await expect(
+      fetchAvatarFile('https://example.com/photo', '42')
+    ).resolves.toBeUndefined();
+  });
+
+  test('should refuse an image declaring a length over 5 MB without reading it', async () => {
+    const { fetchAvatarFile } = await loadUtil({
+      SECURITY_OAUTH2_FETCH_AVATAR_ENABLED: 'true'
+    });
+    jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(Buffer.from('jpg'), {
+        status: 200,
+        headers: {
+          'content-type': 'image/jpeg',
+          'content-length': String(6 * 1024 * 1024)
+        }
+      })
+    );
 
     await expect(
       fetchAvatarFile('https://example.com/photo', '42')

@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as crypto from 'node:crypto';
+import { BlockList, isIP } from 'node:net';
 import {
   ConfigurationError,
   ErrorCode,
@@ -70,29 +71,170 @@ export async function fetchAvatarFile(
   }
 
   try {
-    const resp = await fetch(url, {
-      method: 'GET',
-      headers: accessToken ? { authorization: `Bearer ${accessToken}` } : {}
-    });
-    if (!resp.ok) {
-      logger.error({ url, status: resp.status }, 'OAuth2 avatar fetch failed');
+    const resp = await fetchPublicImage(url, accessToken);
+    if (!resp) {
       return undefined;
     }
 
-    const mimeType = resp.headers.get('content-type') ?? 'image/jpeg';
-    const data = Buffer.from(await resp.arrayBuffer());
-    const extension = mimeType.split('/')[1]?.split(';')[0] ?? 'jpg';
+    const mimeType = resp.mimeType;
+    const extension = mimeType.split('/')[1];
 
     return {
       name: `avatar-${id}.${extension}`,
       mimeType,
-      size: data.length,
-      data
+      size: resp.data.length,
+      data: resp.data
     };
   } catch (e) {
     logger.error({ url, err: e }, 'OAuth2 avatar fetch error');
     return undefined;
   }
+}
+
+/** The largest avatar downloaded, the redirects followed and the time a download may take. */
+const AVATAR_MAX_SIZE = 5 * 1024 * 1024;
+const AVATAR_MAX_REDIRECTS = 3;
+const AVATAR_TIMEOUT = 10_000;
+const AVATAR_TYPES = /^image\/(jpeg|png|gif|webp|avif)$/;
+
+// The addresses of the host, its network and the cloud metadata endpoints, never fetched from a URL a profile reports
+const privateAddresses = new BlockList();
+for (const [address, prefix] of [
+  ['0.0.0.0', 8],
+  ['10.0.0.0', 8],
+  ['100.64.0.0', 10],
+  ['127.0.0.0', 8],
+  ['169.254.0.0', 16],
+  ['172.16.0.0', 12],
+  ['192.168.0.0', 16]
+] as const) {
+  privateAddresses.addSubnet(address, prefix, 'ipv4');
+}
+for (const [address, prefix] of [
+  ['::', 128],
+  ['::1', 128],
+  ['fc00::', 7],
+  ['fe80::', 10]
+] as const) {
+  privateAddresses.addSubnet(address, prefix, 'ipv6');
+}
+
+/**
+ * Checks a URL a provider reported before it is fetched: HTTPS only, and never a local host or a private address
+ * literal. A host name resolving to a private address is not detected.
+ *
+ * @param {string} url - The URL to check.
+ * @return {URL | undefined} The parsed URL, or `undefined` when it must not be fetched.
+ */
+export function publicHttpsUrl(url: string): URL | undefined {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return undefined;
+  }
+  const host = parsed.hostname.replace(/^\[|\]$/g, '').toLowerCase();
+  if (
+    parsed.protocol !== 'https:' ||
+    host === 'localhost' ||
+    host.endsWith('.localhost')
+  ) {
+    return undefined;
+  }
+  const family = isIP(host);
+  if (family) {
+    const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(host)?.[1];
+    if (
+      mapped
+        ? privateAddresses.check(mapped, 'ipv4')
+        : privateAddresses.check(host, family === 4 ? 'ipv4' : 'ipv6')
+    ) {
+      return undefined;
+    }
+  }
+  return parsed;
+}
+
+/**
+ * Downloads an image from a URL a provider reported, following its redirects only to other public HTTPS URLs, within
+ * a size and a time limit, and only when it is a raster image.
+ */
+async function fetchPublicImage(
+  url: string,
+  accessToken?: string
+): Promise<{ mimeType: string; data: Buffer } | undefined> {
+  const signal = AbortSignal.timeout(AVATAR_TIMEOUT);
+  let target = publicHttpsUrl(url);
+  for (let redirects = 0; target; redirects++) {
+    const resp = await fetch(target, {
+      method: 'GET',
+      // The token is only ever sent to the URL the provider gave, never to a redirect
+      headers:
+        accessToken && redirects === 0
+          ? { authorization: `Bearer ${accessToken}` }
+          : {},
+      redirect: 'manual',
+      signal
+    });
+
+    const location = resp.headers.get('location');
+    if (resp.status >= 300 && resp.status < 400 && location) {
+      if (redirects >= AVATAR_MAX_REDIRECTS) {
+        break;
+      }
+      target = publicHttpsUrl(new URL(location, target).toString());
+      continue;
+    }
+
+    if (!resp.ok) {
+      logger.error({ url, status: resp.status }, 'OAuth2 avatar fetch failed');
+      return undefined;
+    }
+
+    const mimeType = (resp.headers.get('content-type') ?? '')
+      .split(';')[0]
+      .trim()
+      .toLowerCase();
+    if (!AVATAR_TYPES.test(mimeType)) {
+      logger.warn({ url, mimeType }, 'OAuth2 avatar is not an image');
+      return undefined;
+    }
+
+    const data = await readLimited(resp, AVATAR_MAX_SIZE);
+    if (!data) {
+      logger.warn({ url }, 'OAuth2 avatar is too large');
+      return undefined;
+    }
+    return { mimeType, data };
+  }
+
+  logger.warn(
+    { url },
+    'OAuth2 avatar URL is not a public HTTPS URL, or redirects too often'
+  );
+  return undefined;
+}
+
+/** Reads a response body, `undefined` once it exceeds the size. */
+async function readLimited(
+  resp: Response,
+  maxSize: number
+): Promise<Buffer | undefined> {
+  if (Number(resp.headers.get('content-length')) > maxSize) {
+    await resp.body?.cancel();
+    return undefined;
+  }
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of resp.body ?? []) {
+    size += chunk.length;
+    if (size > maxSize) {
+      await resp.body?.cancel().catch(() => undefined);
+      return undefined;
+    }
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
 }
 
 /**

@@ -46,7 +46,7 @@ describe('fetchMicrosoftUser', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://graph.microsoft.com/v1.0/me'
     );
-    expect(fetchMock.mock.calls[1][0]).toBe(
+    expect(String(fetchMock.mock.calls[1][0] as string | URL)).toBe(
       'https://graph.microsoft.com/v1.0/me/photo/$value'
     );
   });

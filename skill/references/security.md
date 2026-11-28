@@ -440,7 +440,10 @@ export default createAuthService({
 `additionalData.avatarUrl` and the downloaded image as `additionalData.avatarFile`
 (`{ name, mimeType, size, data: Buffer }`). `SECURITY_OAUTH2_FETCH_AVATAR_ENABLED=false` (JSON:
 `security.oauth2.fetchAvatarEnabled`) skips the download, leaving `avatarFile` `undefined`. The download is best-effort:
-failures are logged and registration proceeds without the file.
+failures are logged and registration proceeds without the file. Since the URL comes from a profile, it is fetched only
+over HTTPS, never from a local host or a private address literal (a host name resolving to one is not detected),
+following at most 3 redirects to such URLs (the access token of Microsoft only to the URL itself), within 10 seconds
+and 5 MB, and kept only as a JPEG, PNG, GIF, WebP or AVIF image.
 
 **`registrationFiles` callback** — an optional callback on `createAuthService` that attaches the avatar (or any other
 file) to a newly registered user. A file must be linked to an existing resource, so it cannot be part of the
