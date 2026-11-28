@@ -60,6 +60,7 @@
     "@parcel/watcher": false,
     "@prisma/engines": true,
     "@swc/core": true,
+    "esbuild": false,
     "better-sqlite3": true,
     "msgpackr-extract": true,
     "prisma": true,
