@@ -1,11 +1,16 @@
 import {
   AuthType,
+  ConfigurationError,
+  ErrorCode,
+  ResourceId,
+  toResourceId,
   TwoFactorChallengeMethod,
   TwoFactorMethodType
 } from '@appweaver/common';
+import { resourceAuthModel } from '@appweaver/data';
 import { currentAuthSource, inject } from '@appweaver/core';
 import { Server } from '../../types/server';
-import { recoveryCodesConfig } from '../security-config';
+import { recoveryCodesConfig, twoFactorConfig } from '../security-config';
 import { TwoFactorService } from './two-factor-service';
 import {
   twoFactorChallengeSchema,
@@ -14,6 +19,7 @@ import {
   twoFactorMethodsSchema,
   twoFactorOrderMethodsSchema,
   twoFactorRecoveryCodesSchema,
+  twoFactorResetSchema,
   twoFactorTotpConfirmSchema,
   twoFactorTotpSetupSchema,
   twoFactorVerifySchema
@@ -26,10 +32,11 @@ import {
  *
  * @param {Server} server - The server to register the routes on.
  */
-export function twoFactorRoutes(server: Server): void {
+export async function twoFactorRoutes(server: Server): Promise<void> {
   const { authenticate, currentUser } = server;
 
   const twoFactorService = inject(TwoFactorService);
+  assertForcedMethod(twoFactorService);
 
   server.post(
     '/challenge',
@@ -193,6 +200,22 @@ export function twoFactorRoutes(server: Server): void {
     );
   }
 
+  // An administrator resets the 2FA of a user who lost every method
+  server.delete(
+    '/users/:id',
+    {
+      schema: twoFactorResetSchema,
+      onRequest: authenticate([AuthType.Jwt]),
+      config: { roles: twoFactorConfig.RESET_ROLES }
+    },
+    async (request, reply) => {
+      await twoFactorService.resetTwoFactor(
+        toResourceId(request.params.id, resourceAuthModel()?.config.id)
+      );
+      return reply.code(204).send(null);
+    }
+  );
+
   if (recoveryCodesConfig.ENABLED) {
     server.post(
       '/recovery-codes',
@@ -216,4 +239,28 @@ export function twoFactorRoutes(server: Server): void {
       }
     );
   }
+}
+
+/**
+ * Fails the startup when 2FA is forced with a `defaultMethod` the application cannot send, so no user is challenged
+ * with a code that never comes.
+ *
+ * @throws {ConfigurationError} `CONFIGURATION_INVALID` naming the method and its missing service.
+ */
+function assertForcedMethod(service: TwoFactorService): void {
+  const method = twoFactorConfig.DEFAULT_METHOD;
+  if (
+    !twoFactorConfig.FORCED ||
+    method === TwoFactorMethodType.Totp ||
+    service.availableMethods().includes(method)
+  ) {
+    return;
+  }
+  const missing =
+    method === TwoFactorMethodType.Email ? 'a mailer' : 'an SMS sender';
+  throw new ConfigurationError(
+    ErrorCode.ConfigurationInvalid,
+    `2FA is forced with the default method ${method}, which needs ${missing} and security.account.2fa.methods ` +
+      `listing it`
+  );
 }

@@ -22,6 +22,10 @@ export type AuthTokens = {
   refreshExpiresIn: number;
   /** The 2FA methods the user verifies with, the first being the default, set on the tokens of the `2fa` scope. */
   twoFactorMethods?: `${TwoFactorMethodType}`[];
+  /** Set on the tokens of the `enroll` scope: 2FA is forced for the user, who must enrol a method first. */
+  twoFactorEnroll?: boolean;
+  /** The end of the grace period of a user 2FA is forced for, who has no method yet. */
+  enrollBy?: string;
 };
 
 export type AuthOTTData = {

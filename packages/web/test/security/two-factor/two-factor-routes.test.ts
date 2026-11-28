@@ -40,6 +40,7 @@ describe('two-factor-routes', () => {
         expiresIn: 600000
       }),
       confirmTotp: jest.fn().mockResolvedValue(['Totp']),
+      resetTwoFactor: jest.fn().mockResolvedValue(undefined),
       generateRecoveryCodes: jest.fn().mockResolvedValue({
         codes: ['7G2K-QX9M-4TZB-8HRW'],
         generatedAt: new Date('2026-11-01T12:00:00.000Z')
@@ -53,6 +54,8 @@ describe('two-factor-routes', () => {
   afterEach(async () => {
     await server.close();
     delete configOverrides.SECURITY_ACCOUNT_2FA_RECOVERY_CODES_ENABLED;
+    delete configOverrides.SECURITY_ACCOUNT_2FA_FORCED;
+    delete configOverrides.SECURITY_ACCOUNT_2FA_DEFAULT_METHOD;
   });
 
   const createServer = async (): Promise<Server> => {
@@ -88,6 +91,27 @@ describe('two-factor-routes', () => {
       expect(server.hasRoute({ method: 'POST', url })).toBe(false);
     }
     expect(server.hasRoute({ method: 'POST', url: '/challenge' })).toBe(true);
+  });
+
+  test('fails to start when 2FA is forced with a default method it cannot send', async () => {
+    await server.close();
+    configOverrides.SECURITY_ACCOUNT_2FA_FORCED = true;
+    configOverrides.SECURITY_ACCOUNT_2FA_DEFAULT_METHOD = 'Sms';
+
+    await expect(createServer()).rejects.toMatchObject({
+      code: 'CONFIGURATION_INVALID',
+      message: expect.stringContaining('an SMS sender')
+    });
+
+    configOverrides.SECURITY_ACCOUNT_2FA_DEFAULT_METHOD = 'Email';
+    server = await createServer();
+  });
+
+  test('resets the 2FA of a user', async () => {
+    const response = await inject('DELETE', '/users/7');
+
+    expect(response.statusCode).toBe(204);
+    expect(service.resetTwoFactor).toHaveBeenCalledWith(7);
   });
 
   test('leaves out the recovery codes while they are disabled', async () => {

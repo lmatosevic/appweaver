@@ -370,3 +370,21 @@ export const twoFactorRecoveryCodesSchema = {
   },
   body: createSchemaModel(TwoFactorRecoveryCodesRequest)
 };
+
+export const TwoFactorResetParams = Type.Object(
+  { id: Type.String({ description: 'The id of the user' }) },
+  { $id: 'TwoFactorResetParams' }
+);
+
+export const twoFactorResetSchema = {
+  ...jwtSecurity,
+  summary: 'Reset the 2FA of a user',
+  description:
+    'Remove every 2FA method and recovery code of a user who lost them, for the roles of ' +
+    '`security.account.2fa.resetRoles`. A user 2FA is forced for enrols a method again on their next sign-in',
+  params: TwoFactorResetParams,
+  response: {
+    204: Type.Null({ description: 'The 2FA of the user is reset' }),
+    ...errorResponses(...authErrorCodes([AuthType.Jwt]))
+  }
+};

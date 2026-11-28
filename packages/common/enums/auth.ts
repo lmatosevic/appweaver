@@ -36,5 +36,7 @@ export enum TwoFactorMethodType {
 export enum AuthScope {
   Auth = 'auth',
   TwoFA = '2fa',
+  /** A user who must enrol a 2FA method before anything else, allowed only on the 2FA setup routes */
+  Enroll = 'enroll',
   Refresh = 'refresh'
 }

@@ -148,6 +148,10 @@
         "2fa": {
           "enabled": false,
           "forced": false,
+          "forcedRoles": [],
+          "gracePeriod": "7d",
+          "forcedSince": "2026-12-01T00:00:00.000Z",
+          "resetRoles": ["Admin"],
           "ottTtl": 300000,
           "methods": ["Email", "Sms", "Totp"],
           "defaultMethod": "Email",

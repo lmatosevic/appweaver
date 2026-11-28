@@ -32,7 +32,7 @@ startup.
 | [14. The system context of the application's own calls](#14-the-system-context-of-the-applications-own-calls)        | V3-DATA-06                 | Policies                                    | done    |
 | [14b. Included relations follow the policy of their model](#14b-included-relations-follow-the-policy-of-their-model) | V3-DATA-12                 | Relations of models with `readRestrictions` | done    |
 | [15. Cache scopes](#15-cache-scopes)                                                                                 | V3-WEB-01                  | `cache` of the routes                       | done    |
-| [16. Forced 2FA](#16-forced-2fa)                                                                                     | V3-WEB-02                  | `forced` of the 2FA config                  | pending |
+| [16. Forced 2FA](#16-forced-2fa)                                                                                     | V3-WEB-02                  | `forced` of the 2FA config                  | done    |
 | [17. Generated client](#17-generated-client)                                                                         | V3-CLIENT-01, V3-CLIENT-03 | `weaver-client generate` output             | pending |
 | [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails)                                 | V3-SEC-05                  | OAuth2 providers                            | done    |
 | [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101)                                       | V3-SEC-01..04              | Filters, body size, CSV export              | done    |
@@ -337,8 +337,18 @@ cached in 2.x, so it becomes `cache: { ttl }`.
 
 ## 16. Forced 2FA
 
-_pending_ (V3-WEB-02, D6): `forced: false | true | { roles }`, an enrolment scope instead of the silent `Email`
-fallback, and a startup failure when a forced method has no service.
+**What changed** (V3-WEB-02, D6, F12): with `security.account.2fa.forced`, a user without a method of their own was
+challenged with the `defaultMethod` even without a verified address for it, or locked out without a phone for `Sms`.
+Now the `defaultMethod` serves only a user with its verified email or phone; any other user gets the tokens of the new
+`enroll` scope (`twoFactorEnroll: true`), which reach only the 2FA setup and the verification routes, until they enable
+a method and sign in again. `forcedRoles` limits it to some roles, `gracePeriod` (with `forcedSince` for the existing
+users) lets them sign in fully meanwhile (`enrollBy` in the tokens), `DELETE /auth/account/2fa/users/:id` resets the
+2FA of a user (`resetRoles`), and the startup fails when the `defaultMethod` has no mailer or SMS sender.
+
+**Who is affected**: applications forcing 2FA, and their clients, which handle the `enroll` scope.
+
+**Steps**: let the client handle `twoFactorEnroll: true` by sending the user to the 2FA setup; set `gracePeriod` and
+`forcedSince` to roll the forcing out to the existing users.
 
 ## 17. Generated client
 

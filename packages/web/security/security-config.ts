@@ -44,9 +44,20 @@ export const accountConfig = defineConfig('security.account', {
 export const twoFactorConfig = defineConfig('security.account.2fa', {
   /** Enable two-factor authentication, its routes and its models. Default: `false`. */
   ENABLED: Type.Boolean({ default: false }),
-  /** Force 2FA for all users, a user without a method of their own verifying with the `defaultMethod`. Default:
-   * `false`. */
+  /** Force 2FA for every user (or for the `forcedRoles`): a user without a method of their own verifies with the
+   * `defaultMethod` when they have its verified address or number, otherwise they must enrol a method first, their
+   * tokens of the `enroll` scope only reaching the 2FA setup and the verification routes. Default: `false`. */
   FORCED: Type.Boolean({ default: false }),
+  /** The roles 2FA is forced for, empty for every user. Default: `[]`. */
+  FORCED_ROLES: Type.Array(Type.String(), { default: [] }),
+  /** How long a forced user without a method still signs in fully, told to enrol by the `enrollBy` of the tokens,
+   * counted from the creation of the account or `forcedSince`, the later; empty for none. Default: `''`. */
+  GRACE_PERIOD: Type.String({ default: '' }),
+  /** When 2FA was forced, an ISO date, so the existing users get the `gracePeriod` from it. */
+  FORCED_SINCE: Type.Optional(Type.String()),
+  /** The roles allowed to reset the 2FA of a user (`DELETE /2fa/users/:id`), who lost every method. Default:
+   * `['Admin']`. */
+  RESET_ROLES: Type.Array(Type.String(), { default: ['Admin'] }),
   /** 2FA challenge TTL in milliseconds. Default: `300000` (5 min). */
   OTT_TTL: Type.Integer({ default: 300000 }),
   /** The methods users may enable, of `Email`, `Sms` and `Totp`. A method is available only with its service: a
@@ -55,7 +66,8 @@ export const twoFactorConfig = defineConfig('security.account.2fa', {
   METHODS: Type.Array(Type.Enum(TwoFactorMethodType), {
     default: Object.values(TwoFactorMethodType)
   }),
-  /** The method of a user without one of their own when 2FA is forced. Default: `'Email'`. */
+  /** The method of a user without one of their own when 2FA is forced, used only with its verified address or
+   * number (never `Totp`, which needs a setup). Default: `'Email'`. */
   DEFAULT_METHOD: Type.Enum(TwoFactorMethodType, {
     default: TwoFactorMethodType.Email
   }),

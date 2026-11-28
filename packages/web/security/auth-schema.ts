@@ -42,6 +42,21 @@ export const AuthenticationResponse = Type.Object(
           'The 2FA methods of the user, the first being the default, set on the tokens of the 2fa scope',
         example: ['Totp', 'Email']
       })
+    ),
+    twoFactorEnroll: Type.Optional(
+      Type.Boolean({
+        description:
+          'Set on the tokens of the enroll scope: 2FA is forced for the user, who must enable a 2FA method first, ' +
+          'then sign in again'
+      })
+    ),
+    enrollBy: Type.Optional(
+      Type.String({
+        format: 'date-time',
+        description:
+          'The end of the grace period of a user 2FA is forced for, who has no 2FA method yet and signs in fully ' +
+          'until then'
+      })
     )
   },
   { $id: 'AuthenticationResponse' }

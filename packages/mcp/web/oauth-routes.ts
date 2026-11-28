@@ -505,6 +505,13 @@ async function signIn(
       isAppweaverError(e) ? e.message : 'The sign-in failed'
     );
   }
+  if (payload.scope === AuthScope.Enroll) {
+    return deny(
+      reply,
+      pending,
+      'The user must enable a two-factor authentication method first'
+    );
+  }
   if (payload.scope === AuthScope.TwoFA) {
     if (!mcpOAuth2Config.FORMS_ENABLED) {
       return deny(

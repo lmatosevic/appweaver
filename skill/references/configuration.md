@@ -527,10 +527,14 @@ ready. The listener stays off beside the server of `@appweaver/web`, which answe
 | `SECURITY_ACCOUNT_VERIFY_PHONE_ENABLED`             | boolean  | `true`                     | Enable phone verification by an SMS code, its routes registered only with an SMS sender. |
 | `SECURITY_ACCOUNT_VERIFY_PHONE_OTT_TTL`             | integer  | `600000`                   | Phone verification code TTL (ms, default 10 min).                                        |
 | `SECURITY_ACCOUNT_2FA_ENABLED`                      | boolean  | `false`                    | Enable two-factor authentication, its routes and its models.                             |
-| `SECURITY_ACCOUNT_2FA_FORCED`                       | boolean  | `false`                    | Force 2FA for all users, a user without a method verifying with the default one.         |
+| `SECURITY_ACCOUNT_2FA_FORCED`                       | boolean  | `false`                    | Force 2FA for every user (or the forced roles), enrolling the ones without a method.     |
+| `SECURITY_ACCOUNT_2FA_FORCED_ROLES`                 | string[] | `[]`                       | The roles 2FA is forced for, empty for every user.                                       |
+| `SECURITY_ACCOUNT_2FA_GRACE_PERIOD`                 | string   | `''`                       | How long a forced user without a method still signs in fully (`enrollBy`).               |
+| `SECURITY_ACCOUNT_2FA_FORCED_SINCE`                 | string?  | -                          | When 2FA was forced (ISO date), the start of the grace period of the existing users.     |
+| `SECURITY_ACCOUNT_2FA_RESET_ROLES`                  | string[] | `['Admin']`                | The roles allowed to reset the 2FA of a user (`DELETE /2fa/users/:id`).                  |
 | `SECURITY_ACCOUNT_2FA_OTT_TTL`                      | integer  | `300000`                   | 2FA challenge TTL (ms, default 5 min).                                                   |
 | `SECURITY_ACCOUNT_2FA_METHODS`                      | string[] | `['Email', 'Sms', 'Totp']` | The methods users may enable, each available only with its service (see below).          |
-| `SECURITY_ACCOUNT_2FA_DEFAULT_METHOD`               | string   | `'Email'`                  | The method of a user without one when 2FA is forced.                                     |
+| `SECURITY_ACCOUNT_2FA_DEFAULT_METHOD`               | string   | `'Email'`                  | The method of a forced user without one, used only with its verified channel.            |
 | `SECURITY_ACCOUNT_2FA_CODE_LENGTH`                  | integer  | `6`                        | Digits of the codes sent by email and SMS (4-10).                                        |
 | `SECURITY_ACCOUNT_2FA_MAX_ATTEMPTS`                 | integer  | `5`                        | Wrong codes of a challenge, revoked on the last one.                                     |
 | `SECURITY_ACCOUNT_2FA_TOTP_ISSUER`                  | string?  | `app.name`                 | Issuer the authenticator apps show the account under.                                    |

@@ -549,12 +549,48 @@ describe('auth-service', () => {
     test('issues a 2FA scoped token with the default method when forced', async () => {
       configOverrides.SECURITY_ACCOUNT_2FA_FORCED = true;
       const passwordHash = await hashPassword('Str0ng!Pass');
-      authUserService.single.mockResolvedValue(user({ passwordHash }));
+      authUserService.single.mockResolvedValue(
+        user({ passwordHash, verifiedEmail: true })
+      );
 
       const tokens = await service.login('user@test.com', 'Str0ng!Pass');
 
       expect(signedTokens[0].payload.scope).toBe(AuthScope.TwoFA);
       expect(tokens.twoFactorMethods).toEqual(['Email']);
+    });
+
+    test('issues the tokens of the enroll scope to a forced user without a verified email', async () => {
+      configOverrides.SECURITY_ACCOUNT_2FA_FORCED = true;
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(
+        user({ passwordHash, verifiedEmail: false })
+      );
+
+      const tokens = await service.login('user@test.com', 'Str0ng!Pass');
+
+      expect(signedTokens[0].payload.scope).toBe(AuthScope.Enroll);
+      expect(signedTokens[1].payload.scope).toBe(AuthScope.Enroll);
+      expect(tokens).toMatchObject({ twoFactorEnroll: true });
+      expect(tokens.refreshExpiresIn).toBe(tokens.expiresIn);
+    });
+
+    test('issues full tokens with the end of the grace period of a forced user', async () => {
+      configOverrides.SECURITY_ACCOUNT_2FA_FORCED = true;
+      configOverrides.SECURITY_ACCOUNT_2FA_GRACE_PERIOD = '7d';
+      const passwordHash = await hashPassword('Str0ng!Pass');
+      authUserService.single.mockResolvedValue(
+        user({
+          passwordHash,
+          verifiedEmail: false,
+          createdAt: new Date()
+        })
+      );
+
+      const tokens = await service.login('user@test.com', 'Str0ng!Pass');
+
+      expect(signedTokens[0].payload.scope).toBe(AuthScope.Auth);
+      expect(tokens.enrollBy).toEqual(expect.any(String));
+      delete configOverrides.SECURITY_ACCOUNT_2FA_GRACE_PERIOD;
     });
 
     test('issues regular tokens with 2FA disabled', async () => {

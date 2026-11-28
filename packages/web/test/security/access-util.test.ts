@@ -40,6 +40,28 @@ describe('access-util', () => {
       expect(checkScopeAccess('/auth/me', AuthScope.Refresh)).toBe(false);
     });
 
+    test('allows only the 2FA setup and the verification routes for the enroll scope', () => {
+      for (const url of [
+        '/auth/account/2fa/methods',
+        '/auth/account/2fa/totp/setup',
+        '/auth/account/2fa/totp/confirm',
+        '/auth/account/verify-email',
+        '/auth/account/send-verify-phone',
+        '/auth/logout',
+        '/auth/me'
+      ]) {
+        expect(checkScopeAccess(url, AuthScope.Enroll)).toBe(true);
+      }
+      for (const url of [
+        '/api/posts',
+        '/auth/account/2fa/verify',
+        '/auth/refresh',
+        '/auth/change-password'
+      ]) {
+        expect(checkScopeAccess(url, AuthScope.Enroll)).toBe(false);
+      }
+    });
+
     test('allows the 2FA verification route only for the 2FA scope', () => {
       expect(
         checkScopeAccess('/auth/account/2fa/verify', AuthScope.TwoFA)

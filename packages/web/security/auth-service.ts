@@ -47,7 +47,7 @@ import {
 import { checkScopeAccess } from './access-util';
 import {
   effectiveTwoFactorMethods,
-  isTwoFactorRequired
+  twoFactorStatus
 } from './two-factor/utils/method-util';
 import { OAuth2Service } from './oauth2/oauth2-service';
 import type { HttpServer } from '../server/http-server';
@@ -411,11 +411,7 @@ export class AuthService {
   public async login(username: string, password: string): Promise<AuthTokens> {
     const authUser = await this.authenticate(username, password);
 
-    if (isTwoFactorRequired(authUser)) {
-      return this.generateAuthTokens(authUser, AuthScope.TwoFA);
-    }
-
-    return this.generateAuthTokens(authUser);
+    return this.generateAuthTokens(authUser, this.signInScope(authUser));
   }
 
   /**
@@ -475,11 +471,26 @@ export class AuthService {
 
     logger.debug({ id: authUser.id }, 'User token exchanged');
 
-    if (!twoFactorVerified && isTwoFactorRequired(authUser)) {
-      return this.generateAuthTokens(authUser, AuthScope.TwoFA, authSource);
-    }
+    return this.generateAuthTokens(
+      authUser,
+      twoFactorVerified ? AuthScope.Auth : this.signInScope(authUser),
+      authSource
+    );
+  }
 
-    return this.generateAuthTokens(authUser, AuthScope.Auth, authSource);
+  /**
+   * The scope of the tokens a sign-in of a user issues: `2fa` for a user passing a 2FA challenge, `enroll` for a user
+   * 2FA is forced for who has no method to pass one with, otherwise `auth`.
+   *
+   * @param {AuthUser} authUser - The user signing in, with their `twoFactorMethods`.
+   * @return {AuthScope} The scope.
+   */
+  public signInScope(authUser: AuthUser): AuthScope {
+    const status = twoFactorStatus(authUser);
+    if (status.methods.length > 0) {
+      return AuthScope.TwoFA;
+    }
+    return status.enroll ? AuthScope.Enroll : AuthScope.Auth;
   }
 
   /**
@@ -517,9 +528,9 @@ export class AuthService {
       sub: authUser.id
     };
 
-    // A token of the 2fa scope is never refreshed into the auth scope, so its refresh token keeps the 2fa scope and
-    // the expiration of the access token
-    const twoFactor = scope === AuthScope.TwoFA;
+    // A token of the 2fa or enroll scope is never refreshed into the auth scope, so its refresh token keeps its scope
+    // and the expiration of the access token
+    const twoFactor = scope === AuthScope.TwoFA || scope === AuthScope.Enroll;
     const expiresIn = jwtConfig.EXPIRES_IN;
     const refreshExpiresIn = twoFactor
       ? expiresIn
@@ -528,7 +539,7 @@ export class AuthService {
     // The signer sets the `iat` claim, in seconds like the expiration
     const accessToken = server.jwt.sign(jwtPayload, { expiresIn });
     const refreshToken = server.jwt.sign(
-      { ...jwtPayload, scope: twoFactor ? AuthScope.TwoFA : AuthScope.Refresh },
+      { ...jwtPayload, scope: twoFactor ? scope : AuthScope.Refresh },
       { expiresIn: refreshExpiresIn }
     );
 
@@ -539,9 +550,17 @@ export class AuthService {
 
     const tokens = { accessToken, refreshToken, expiresIn, refreshExpiresIn };
 
-    return twoFactor
-      ? { ...tokens, twoFactorMethods: effectiveTwoFactorMethods(authUser) }
-      : tokens;
+    if (scope === AuthScope.TwoFA) {
+      return {
+        ...tokens,
+        twoFactorMethods: effectiveTwoFactorMethods(authUser)
+      };
+    }
+    if (scope === AuthScope.Enroll) {
+      return { ...tokens, twoFactorEnroll: true };
+    }
+    const { enrollBy } = twoFactorStatus(authUser);
+    return enrollBy ? { ...tokens, enrollBy: enrollBy.toISOString() } : tokens;
   }
 
   /**

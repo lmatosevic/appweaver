@@ -12,7 +12,7 @@ import {
 import { basicAuthConfig } from '../security-config';
 import { inject, setAuthContext } from '@appweaver/core';
 import { AuthService } from '../auth-service';
-import { isTwoFactorRequired } from '../two-factor/utils/method-util';
+import { twoFactorStatus } from '../two-factor/utils/method-util';
 import { Server } from '../../types/server';
 
 export const basicAuth = fastifyPlugin(async (server: Server) => {
@@ -47,7 +47,8 @@ export const basicAuth = fastifyPlugin(async (server: Server) => {
       }
 
       // Basic auth sends the password alone with every request, so it would skip the second factor
-      if (isTwoFactorRequired(authUser)) {
+      const twoFactor = twoFactorStatus(authUser);
+      if (twoFactor.methods.length > 0 || twoFactor.enroll) {
         throw new AuthError(
           ErrorCode.AuthForbidden,
           'Basic authentication is not allowed for a user with two-factor authentication'

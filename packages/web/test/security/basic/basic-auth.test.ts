@@ -152,7 +152,7 @@ describe('basic-auth', () => {
       expect(response.json().code).toBe(ErrorCode.AuthForbidden);
     });
 
-    test('rejects every user when 2FA is forced', async () => {
+    test('rejects every user when 2FA is forced, the ones to enrol included', async () => {
       configOverrides.SECURITY_ACCOUNT_2FA_FORCED = true;
       await startServer();
 

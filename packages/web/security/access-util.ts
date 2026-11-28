@@ -67,6 +67,21 @@ export function checkScopeAccess(url: string, authScope: AuthScope): boolean {
     {
       scope: AuthScope.TwoFA,
       allowedPaths: [twoFAChallengePath, twoFAVerifyPath]
+    },
+    {
+      // A forced user without a method: the 2FA setup, the verification of the address or number a method needs
+      scope: AuthScope.Enroll,
+      allowedPaths: [
+        `${accountPrefix}/2fa/methods`,
+        `${accountPrefix}/2fa/totp/setup`,
+        `${accountPrefix}/2fa/totp/confirm`,
+        `${accountPrefix}/send-verify-email`,
+        `${accountPrefix}/verify-email`,
+        `${accountPrefix}/send-verify-phone`,
+        `${accountPrefix}/verify-phone`,
+        `${securityPrefix}/logout`,
+        `${securityPrefix}/me`
+      ]
     }
   ];
 

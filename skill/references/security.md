@@ -610,6 +610,8 @@ linked to the auth model and deleted with it, and managed by the 2FA routes only
         "2fa": {
           "enabled": true,
           "forced": false,
+          "forcedRoles": [],
+          "gracePeriod": "7d",
           "ottTtl": 300000,
           "methods": ["Email", "Sms", "Totp"],
           "defaultMethod": "Email",
@@ -628,7 +630,7 @@ linked to the auth model and deleted with it, and managed by the 2FA routes only
 
 - `enabled` - Enable 2FA, off by default: its routes, the `/auth/exchange-token` route and the `TwoFactorMethod` and
   `TwoFactorRecoveryCode` models exist only with it
-- `forced` - Require 2FA of every user, a user without a method of their own verifying with the `defaultMethod`
+- `forced` - Require 2FA of every user (or of the `forcedRoles`); see [forced 2FA](#forced-2fa) below
 - `methods` - The methods users may enable, offered only with their service (see the table above)
 - `maxAttempts` - Wrong codes of a challenge, revoked on the last one (`ACCOUNT_2FA_TOO_MANY_ATTEMPTS`)
 - `totp.encryptionKey` - Encrypts the TOTP secrets in the database (AES-256-GCM); changing it makes the enabled TOTP
@@ -637,6 +639,24 @@ linked to the auth model and deleted with it, and managed by the 2FA routes only
 A user with a method, or every user when 2FA is forced, is challenged on every sign-in. A user whose methods became
 unavailable (i.e. the SMS sender was removed) is still challenged, so 2FA never turns off on its own, and their
 challenge fails with `ACCOUNT_2FA_METHOD_UNAVAILABLE` until the method is available again.
+
+### Forced 2FA
+
+With `forced` (and `forcedRoles` for some roles only), a user without a method of their own:
+
+- verifies with the `defaultMethod` when they have its verified channel: a verified email for `Email`, a verified phone
+  for `Sms` (never `Totp`, which needs a setup), so no code is ever sent to an unverified address;
+- otherwise must enrol: the sign-in answers the tokens of the `enroll` scope with `twoFactorEnroll: true`, which reach
+  only the 2FA setup (`GET`/`POST /2fa/methods`, `/2fa/totp/setup`, `/2fa/totp/confirm`), the email and phone
+  verification routes, `/auth/me` and `/auth/logout`, and are never refreshed. Once a method is enabled, the client
+  signs in again and passes the challenge;
+- during the `gracePeriod` (a duration, from the creation of the account or `forcedSince`, the later) still signs in
+  fully, the tokens telling the end of it in `enrollBy`.
+
+The startup fails when the `defaultMethod` has no service (no mailer for `Email`, no SMS sender for `Sms`). An
+administrator (`resetRoles`, `['Admin']`) resets the 2FA of a user who lost every method with
+`DELETE /auth/account/2fa/users/:id`. API keys stay outside 2FA, basic auth refuses a user with 2FA or to enrol, and
+the MCP sign-in refuses a user to enrol.
 
 ### Sign-in flow with 2FA
 
