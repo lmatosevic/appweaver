@@ -1,8 +1,4 @@
-import type { OpenAPI3 } from 'openapi-typescript';
-import type * as OpenapiTypescript from 'openapi-typescript' with {
-  'resolution-mode': 'import'
-};
-import * as openapiTypescriptModule from 'openapi-typescript';
+import openapiTS, { astToString, OpenAPI3 } from 'openapi-typescript';
 import ts from 'typescript';
 import {
   hoistSharedTypes,
@@ -28,12 +24,6 @@ import {
   TWO_FACTOR_MODULE_TYPE,
   TWO_FACTOR_TYPES
 } from '../constants';
-
-// The CommonJS declarations of openapi-typescript mix `export =` with named exports, which TypeScript 7 rejects, so
-// the values are typed by its ESM declarations (the lint still runs on TypeScript 5.9, which accepts them)
-const { default: openapiTS, astToString } =
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  openapiTypescriptModule as unknown as typeof OpenapiTypescript;
 
 /**
  * Generates TypeScript types based on an OpenAPI V3 schema content.

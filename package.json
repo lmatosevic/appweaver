@@ -127,7 +127,6 @@
     "@types/ws": "8.18.2",
     "@typescript-eslint/eslint-plugin": "8.74.0",
     "@typescript-eslint/parser": "8.74.0",
-    "@typescript/native": "npm:typescript@7.1.0-beta",
     "autocannon": "8.0.0",
     "conventional-changelog-conventionalcommits": "9.3.1",
     "eslint": "10.16.0",
@@ -159,7 +158,7 @@
       "@prisma/client": "7.10.1",
       "@sinclair/typebox": "0.34.49",
       "prisma": "7.10.1",
-      "typescript": "7.1.0-beta"
+      "typescript": "5.9.3"
     },
     "tooling": {
       "@types/bun": "1.4.2"

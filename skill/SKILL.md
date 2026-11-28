@@ -43,7 +43,7 @@ The basic file structure of the Appweaver project:
 - `appweaver.json` - central library configuration file, with the overrides of each environment under `environments`
 - `appweaver.{env}.json` - environment specific configuration files, overriding the `environments` section (optional)
 - `Dockerfile` - the dockerfile used for building a docker image for deploying the application (`docker` module)
-- `tsconfig.json` - TypeScript 7.1: no `baseUrl` (the `paths` such as `@/*` are relative to the file), `rootDir: "./"`,
+- `tsconfig.json` - no `baseUrl` (the `paths` such as `@/*` are relative to the file), `rootDir: "./"`,
   the `types` listed (`["node", "jest"]`), and `strict`, so `noImplicitAny` is on: type every parameter, and an object
   built key by key as `Record<string, unknown>`
 

@@ -17,7 +17,7 @@ startup.
 | Section                                                                     | CR           | Affects                          | Status  |
 |-----------------------------------------------------------------------------|--------------|----------------------------------|---------|
 | [1. Before you start](#1-before-you-start)                                  | -            | Everyone                         | pending |
-| [2. TypeScript 7.1 and the project config](#2-typescript-71-and-the-project-config) | V3-TOOL-01 | Every project               | done    |
+| [2. The project config and TypeScript 7.1](#2-the-project-config-and-typescript-71) | V3-TOOL-01 | Every project               | done (7.1 pending) |
 | [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)         | V3-TOOL-05   | Every scaffolded project         | done    |
 | [4. TypeBox 1.x](#4-typebox-1x)                                             | V3-TOOL-06   | Schemas, config sections, routes | pending |
 | [5. Durations and sizes](#5-durations-and-sizes)                            | V3-CONV-01   | `appweaver.json`, `.env`         | pending |
@@ -48,14 +48,13 @@ _pending_ (V3-DOC-05): upgrade to the latest 2.10.x first and fix every startup 
 for every deployed environment; back up the database. Then apply the sections below in order, running `weaver config
 check` and the tests after each one.
 
-## 2. TypeScript 7.1 and the project config
+## 2. The project config and TypeScript 7.1
 
-**What changed** (V3-TOOL-01, D12): Appweaver is built with TypeScript 7.1 (`7.1.0-beta` until 7.1.0 is stable), and
-a project compiles with it too: `weaver build` and `weaver start --watch` run the `tsc` of the project. TypeScript 7
-removes `baseUrl` (TS5102), lists no `@types` package unless `types` names it, and requires `rootDir` when the output
-layout depends on it. The generated projects drop the decorator flags (Appweaver uses no decorators) and turn
-`noImplicitAny` on, the default of `strict`. `weaver generate` loads the models with `tsx` instead of `ts-node`, which
-applies the `paths` of the project's `tsconfig.json`.
+**What changed** (V3-TOOL-01, D12): the generated projects drop `baseUrl` (removed by TypeScript 7, TS5102), list their
+`types` and their `rootDir`, drop the decorator flags (Appweaver uses no decorators) and turn `noImplicitAny` on, the
+default of `strict`. `weaver generate` loads the models with `tsx` instead of `ts-node`, which applies the `paths` of the
+project's `tsconfig.json`. The projects stay on TypeScript 5.9; the move to TypeScript 7.1 comes once the tools needing
+its compiler API support it, and will be described here.
 
 **Who is affected**: every project.
 
@@ -87,20 +86,16 @@ applies the `paths` of the project's `tsconfig.json`.
 }
 ```
 
-**Steps**: set `typescript` to `7.1.0-beta` in the `devDependencies` (`weaver upgrade` does it for the projects that
-have it); remove `baseUrl`, keeping the `paths` relative to the config file (`./src/*`); add `rootDir: "./"` and the
+**Steps**: remove `baseUrl`, keeping the `paths` relative to the config file (`./src/*`); add `rootDir: "./"` and the
 `types` the project uses (`["node", "jest"]`, `["bun"]` on Bun); remove `emitDecoratorMetadata`,
 `experimentalDecorators` and `noImplicitAny: false`, then type the parameters and the indexed objects `tsc` reports
-(`Record<string, unknown>` for an object built key by key). A tool of the project that needs the compiler API of
-TypeScript (it calls `require('typescript')`, as typescript-eslint does) keeps a TypeScript 5.9 of its own; TypeScript 7
-has no such API before 7.1, and a new one from 7.1 on.
+(`Record<string, unknown>` for an object built key by key).
 
 ## 3. Lint, format and test tooling
 
 **What changed** (V3-TOOL-05, D15): the lint, format and test tools of a project (ESLint 10, typescript-eslint,
 Prettier, Jest, SWC, jest-junit and their types) are the dependencies of the `@appweaver/tooling` dev dependency, which
-carries their configs too. `weaver lint`, `weaver format` and `weaver test` run them. ESLint 10 replaces ESLint 9, and
-typescript-eslint keeps a TypeScript 5.9 of its own beside the TypeScript 7.1 compiler of the project.
+carries their configs too. `weaver lint`, `weaver format` and `weaver test` run them. ESLint 10 replaces ESLint 9.
 
 **Who is affected**: every project scaffolded by `npm create @appweaver` (Bun projects keep `bun test`).
 
@@ -137,7 +132,7 @@ typescript-eslint keeps a TypeScript 5.9 of its own beside the TypeScript 7.1 co
   "prettier": "@appweaver/tooling/prettier",
   "devDependencies": {
     "@appweaver/tooling": "3.0.0",
-    "typescript": "7.1.0-beta"
+    "typescript": "5.9.3"
   }
 }
 ```

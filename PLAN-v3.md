@@ -2,9 +2,10 @@
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
 > section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
-> **Revision 20**: phase 2 on `v3/phase-2-toolchain`: TypeScript 7.1 beta with the classic 5.9 kept for the API tools,
-> `tsx`, `@appweaver/skill`, `@appweaver/tooling` with ESLint 10, `generateToken` on `node:crypto`; TypeBox 1.x (V3-TOOL-06)
-> open, its spike recorded in phase 2 (section 6).
+> **Revision 21**: TypeScript 7.1 waits until every tool is compatible with it (maintainer's decision): the compiler
+> stays 5.9, with the config cleanup and `noImplicitAny` of V3-TOOL-01 kept (D12).
+> **Revision 20**: phase 2 on `v3/phase-2-toolchain`: `tsx`, `@appweaver/skill`, `@appweaver/tooling` with ESLint 10,
+> `generateToken` on `node:crypto`; TypeBox 1.x (V3-TOOL-06) open, its spike recorded in phase 2 (section 6).
 > **Revision 19**: phases 0 and 1 implemented as the stacked pull requests of `v3/phase-0-preparation` and
 > `v3/phase-1-review`: the load harness, the probe and the baselines of every sample (phase 0, section 6), the review of
 > stage 1b with the findings F46 to F60 (section 4) and their fixes or change requests (section 8). knip is a blocking
@@ -797,6 +798,10 @@ scheduled for the coming weeks (`7.1.0-beta` is on npm, and typescript-eslint 8.
 
 **Decision**:
 
+0. **Revision 21**: the move to 7.1 is made once every tool below is compatible with it, not on the beta with aliased
+   copies of 5.9. A spike on `7.1.0-beta` (phase 2) built and tested the monorepo with the compiler as the
+   `@typescript/native` alias and 5.9 for the tools; it was reverted. Until then the compiler is 5.9, with the config
+   changes of item 2 made already.
 1. No intermediate step on TypeScript 6 or a split build: v3 moves from 5.9 straight to **TypeScript 7.1**, for the
    monorepo, the published packages and the scaffolded projects alike. Development starts now on the latest
    `7.1.0-beta` (or RC), pinned exactly; the stable 7.1.0 replaces it before 3.0.0 is released, and nothing is released
@@ -1388,15 +1393,15 @@ above). Prisma on the latest 7.x.
 | 2.6  | V3-TOOL-08  | `@appweaver/skill` and `weaver skill sync`                                                              |
 | 2.7  | V3-SEC-06   | `generate-api-key` replaced; `npm audit` triaged (the `effect` advisory comes with Prisma 7's `@prisma/config`) |
 
-**Gate 2**: CI green on the TypeScript 7.1 beta and Prisma 7, its duration compared to E1 (target: the x4.7 build of E6), every
+**Gate 2**: CI green on TypeScript 5.9 and Prisma 7 (7.1 once its tools are compatible, revision 21), its duration compared to E1, every
 sample and every scaffold combination building and passing its e2e tests on its database.
 
 **Implementation** on `v3/phase-2-toolchain` (pull request into `v3/phase-1-review`), one commit per CR:
 
 | CR           | Result                                                                                                  |
 |--------------|---------------------------------------------------------------------------------------------------------|
-| V3-TOOL-02   | The tool check on `7.1.0-beta` below; the compiler is the `@typescript/native` alias of the root, `typescript` the classic 5.9 the API tools load |
-| V3-TOOL-01   | TypeScript 7.1 for the monorepo, the samples and the scaffolds; `baseUrl` and the decorator flags removed, `types` and `rootDir` set, the client's CommonJS build off `node10`, `noImplicitAny` on (the symbol marks typed as `ResourceMarks`); `MIGRATION-v3.md` 2 |
+| V3-TOOL-02   | The tool check on `7.1.0-beta` below: typescript-eslint, `openapi-typescript`, madge and `typebox-codegen` are not ready |
+| V3-TOOL-01   | The config part: `baseUrl` and the decorator flags removed, `types` and `rootDir` set, `noImplicitAny` on (the symbol marks typed as `ResourceMarks`), for the monorepo, the samples and the scaffolds; `MIGRATION-v3.md` 2. **The compiler stays 5.9** (revision 21): the 7.1 beta was built and tested in this phase, then reverted until the tools are compatible |
 | V3-TOOL-03   | `tsx` (its CommonJS `register`) loads the models of `weaver generate`; the output of `cms-api` and `webshop-api` unchanged |
 | V3-SEC-06    | `generateToken` on `node:crypto`, found weaker than F35 said (F61); `npm audit --omit=dev` clean with `effect` 3.22.5 overridden in the monorepo, the rest in the dev tools only (Jest, autocannon, semantic-release) |
 | V3-TOOL-08   | `@appweaver/skill` (`packages/skill`, the `skill/` of the repository), `weaver skill sync`, run by `weaver upgrade`; a scaffolded project with an agent depends on it; `MIGRATION-v3.md` 21 |
@@ -1414,12 +1419,15 @@ The tool check (V3-TOOL-02, D12):
 | `tsc-watch` 7.2            | Runs the `typescript/bin/tsc` of the project, 7.1, and parses its output (`weaver start --watch`)      |
 | `tsx`, `tsc-alias`, knip   | Need no TypeScript                                                                                    |
 
-Why 5.9 and not 6.0 as the copy: `openapi-typescript`, madge and `typebox-codegen` declare `typescript ^5`, so 6.0
-would need `overrides`; 5.9 satisfies every peer range.
+What the spike on the beta needed, reverted (revision 21): the compiler as the `@typescript/native` alias with the
+classic 5.9 as `typescript` (a peer of `openapi-typescript`, madge and `typebox-codegen` is `^5`, and npm cannot nest a
+peer of a direct dependency); the values of `openapi-typescript` typed by its ESM declarations, since TypeScript 7 rejects
+its CommonJS ones (`export =` beside named exports); a cast of `WebSocket.send` (its DOM typing takes no
+`SharedArrayBuffer`); `typescript-eslint` of a project nested with its own 5.9 (`@appweaver/tooling` does it already).
+The beta built the packages in 2.4 s (13.6 s on 5.9, E1) and type checked the repository in 1.0 s (11.8 s).
 
-Measured against E1 (same machine): `tsc -b packages` 2.4 s (13.6 s), `tsc --noEmit` of the repository 1.0 s (11.8 s),
-`npm run build` 3.3 s (15 s), `npm test` 48 s (60 s; 324 suites, 4,983 tests, 89.2% of the branches), the full lint under
-ESLint 10 72 s.
+On 5.9, after the phase: `npm test` 48 s (60 s in E1; 324 suites, 4,983 tests, 89.2% of the branches), the full lint
+under ESLint 10 72 s.
 
 **V3-TOOL-06 (TypeBox 1.x), open**: a spike replacing the imports gave 199 type errors: `Type.Composite` is gone from
 `Type` (29 uses, `Type.Evaluate(Type.Intersect(...))` instead), `TSchema` has no index signature (`$id`, `type`,
@@ -1626,8 +1634,8 @@ All `proposed` until approved, except V3-SEC-01 to V3-SEC-04, V3-SAMPLE-01 and V
 (phase 1a), with parts of V3-PERF-03 and V3-PERF-06. **Done in phase 0** (pull request of `v3/phase-0-preparation`):
 V3-PROC-01, V3-PROC-02, V3-PERF-01, V3-PERF-02, V3-TOOL-00. **Done in phase 1** (pull request of
 `v3/phase-1-review`): V3-SEC-05, V3-SEC-07a, V3-SEC-07b, V3-BUG-02, V3-BUG-03, V3-BUG-04, V3-PERF-06b, V3-QA-01 (the first part, see
-phase 1), V3-QA-02, V3-QA-03, V3-CLI-06. **Done in phase 2** (pull request of `v3/phase-2-toolchain`): V3-TOOL-01,
-V3-TOOL-02, V3-TOOL-03, V3-TOOL-05, V3-TOOL-08, V3-SEC-06; V3-TOOL-06 open. Effort: S < 1 day, M days, L a week, XL more.
+phase 1), V3-QA-02, V3-QA-03, V3-CLI-06. **Done in phase 2** (pull request of `v3/phase-2-toolchain`): V3-TOOL-01
+(the config part, the compiler staying 5.9), V3-TOOL-02, V3-TOOL-03, V3-TOOL-05, V3-TOOL-08, V3-SEC-06; V3-TOOL-06 open. Effort: S < 1 day, M days, L a week, XL more.
 
 | ID            | Title                                                                    | Phase | Prio | Effort | Breaking       |
 |---------------|--------------------------------------------------------------------------|-------|------|--------|----------------|
