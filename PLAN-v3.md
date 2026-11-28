@@ -2,6 +2,10 @@
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
 > section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
+> **Revision 19**: phases 0 and 1 implemented as the stacked pull requests of `v3/phase-0-preparation` and
+> `v3/phase-1-review`: the load harness, the probe and the baselines of every sample (phase 0, section 6), the review of
+> stage 1b with the findings F46 to F60 (section 4) and their fixes or change requests (section 8). knip is a blocking
+> check (`npm run check:unused`).
 > **Revision 18**: a clean switch: no aliases or compatibility code for the renamed keys, model options, routes and
 > codes; the old names stop working in v3, `MIGRATION-v3.md` lists them (D23).
 > **Revision 17**: every duration key accepts milliseconds or a unit string in v3, the former seconds keys included; no
@@ -474,6 +478,21 @@ high, medium, low, or a design or performance finding.
 | F44 | Prisma 8 migrations are TypeScript ES modules; Appweaver projects are CommonJS (D13) | Platform | Medium | C, E14 | None (D16) |
 | F45 | Abbreviations of the framework's own in the public API: `geo` (model key, 7 exported types, 6 functions), `2fa` (config section, routes, JWT scope, 5 error codes) beside `twoFactor` everywhere in the code, `OTT` (5 config keys, 2 exported types), `SEP` (`export.csvAddSepRow`), the confusable CLI aliases `mge` and `mgn` | Consistency | Low | R | V3-CONV-08 |
 | F41 | The `cms-api` listing had no index for the restricted public query: 7 req/s at 100k until one was added; the sample indexes are not checked against the queries their policies build | Sample | Low | C | V3-SAMPLE-02 |
+| F46 | A shutdown after a busy period never ends: BullMQ drops the blocking connection of a worker when a blocking command outlives its timeout (an event loop blocked by synchronous SQLite does it), and `Worker.close()` never resolves while that connection reconnects; `weaver run` hung after a 30 s task, a `SIGTERM` waits for the `SIGKILL` | Bug | High | C, phase 0 seeder | V3-BUG-02 (done) |
+| F47 | An upload keeps the type its client declared, and the file routes served it inline from the origin of the API under a policy allowing the scripts of that origin: an uploaded HTML page or SVG image runs a script there; a `Content-Disposition` of a name outside Latin-1 answered `500` | Security | Medium | R, test | V3-SEC-07a (done) |
+| F48 | The OAuth2 avatar download fetched the URL of the profile (which a user sets at a custom issuer or a self-managed GitLab) from any scheme and host, following redirects, without a timeout or a size limit, and stored the answer as the avatar the user reads: a server-side request forgery | Security | Medium | R, test | V3-SEC-07b (done) |
+| F49 | `weaver run` silences every log of the application and of its task (the CLI forces the level `silent`), so a task run by a cron job of Kubernetes leaves no log | Operations | Medium | C | V3-CLI-07 |
+| F50 | The wrong-code counter of a code challenge (2FA, phone verification) is a read-modify-write of the one-time token: parallel guesses all read the same count, bounded only by the 12 requests a minute of the route | Security | Low | R | V3-WEB-05 |
+| F51 | `security.jwt.secret` has no minimum length: a short HS256 secret is brute-forced offline from any issued token | Security | Medium | R | V3-CONV-04 |
+| F52 | `FileService.download` named a redirect after the first directory of the file name instead of its base name | Bug | Low | R, test | V3-BUG-03 (done) |
+| F53 | The type of an upload is the one its client declared; a file field without `mimeType` accepts any | Security | Low (after F47) | R | V3-DATA-10 |
+| F54 | The avatar guard of F48 checks the address literals only: a host name resolving to a private address passes | Security | Low | R | V3-WEB-06 |
+| F55 | No optimistic concurrency: of two concurrent updates of a field, the last one wins silently (edge case suite) | Design | - | C | V3-DATA-11 |
+| F56 | knip (phase 0): 2 unused files, 12 unused exports and 3 exported types used only in their own file, the driver adapters of the root reported unused (false positives: the samples run on them), `@hapi/wreck` unlisted in a test | Debt | Low | C | V3-TOOL-00 (done: the barrel removed, knip configured, `check:unused` blocking) |
+| F57 | An included relation (`output.type: 'always'` or `'single'`) applies the soft delete of the related model but not the `readRestrictions` of its policy: the rows a policy hides from a user are read through another model including them (`mapRelationInclusions` of `data/resource/utils/relation-util.ts`) | Security, design | Medium | R | V3-DATA-12 |
+| F58 | `MemoryQueue` scheduled its next pass even after a pass with nothing to do: an application on the in-process queue (every project without BullMQ) ran 900 to 1,700 timer callbacks a second while idle (`helpdesk-api`, `hr-api`) | Performance, idle | High | C, phase 0 probe | V3-PERF-06b (done) |
+| F59 | `_ilike` set the insensitive mode of Prisma, which only PostgreSQL has: on SQLite, MySQL and SQL Server the query answered `500` | Bug | Medium | C, edge cases | V3-BUG-04 (done) |
+| F60 | `JobResults.wait` (the `*AndWait` of the SMS and email services, `generateQueued`) waits forever when the `PubSub` cannot subscribe or the result never comes; the cause of F40, a request hanging instead of failing | Robustness | Medium | C | V3-CORE-01 |
 
 ---
 
@@ -619,6 +638,7 @@ createRoutes({
 | `export`, `aggregate`, bulk routes                 | on / env flags  | listed in `actions`                            | D4                     |
 | `security.account.2fa.forced`                      | boolean, `Email` fallback | see D6                               | F12                    |
 | Password `minLength`                               | 8               | 8, documenting 15 when the password is the only factor (NIST SP 800-63B-4), plus a breached-password hook | Realistic |
+| `security.jwt.secret` length                       | any             | at least 32 bytes, a startup failure otherwise | F51                    |
 
 ### D6. Forced 2FA lifecycle — **decided: an enrolment step instead of a silent fallback**
 
@@ -1298,6 +1318,51 @@ register (section 4) and become CRs. Specific items:
   across the antimeridian.
 - V3-QA-02: every test running a command that installs packages passes an explicit `cwd` (F32).
 
+**Stage 1b: done** on `v3/phase-1-review` (pull request into `v3/phase-0-preparation`), one commit per CR:
+
+| CR           | Result                                                                                                  |
+|--------------|---------------------------------------------------------------------------------------------------------|
+| V3-SEC-05    | F8 confirmed and fixed: every provider reports `emailVerified` (Google, Apple, LinkedIn and custom issuers by their claims, GitLab by `confirmed_at`, GitHub, Facebook and X always, Microsoft never); a provider account links to a user without a password only by a verified address (`403 OAUTH2_EMAIL_UNVERIFIED`), and a sign-in marks the email verified only when the provider did. Breaking for the `extractUserInfo` of an application's own provider (`MIGRATION-v3.md` 18) |
+| V3-SEC-07a   | F47 fixed: every uploaded file but a PDF served with a sandboxing CSP; the `Content-Disposition` of the files and the CSV export built per RFC 6266 |
+| V3-SEC-07b   | F48 fixed: the avatar fetched over HTTPS only, never from a local host or a private address literal, through at most 3 checked redirects (the token never sent to a redirect), within 10 s and 5 MB, a raster image only; F54 left for phase 5 |
+| V3-BUG-02    | F46 fixed in `@appweaver/bullmq`, found by the phase 0 seeder; the baselines of phase 0 ran with this fix, which only changes the shutdown |
+| V3-BUG-03    | F52 fixed                                                                                               |
+| V3-BUG-04    | F59, found by the edge cases, fixed: `_ilike` sets the insensitive mode on PostgreSQL only, the other databases compare with their collation |
+| V3-PERF-06b  | F58, found by the probe of phase 0, fixed: the memory queue schedules a pass only for a job, a worker or a delay, and after a pass that started jobs |
+| V3-QA-01     | First part: `sample/cms-api/test/e2e/edge-cases.test.ts` on SQLite. Concurrent creates of a unique value: one `201`, the others `409 DATABASE_UNIQUE_VIOLATION`, none `500`. Two concurrent updates of a field: the last write wins silently (F55); of two fields: both kept. Ties of a sort: paged without a duplicate or a gap (the `id` tie-breaker). `null` and `''` told apart, `_exists` matching `''`. A date with an offset compared by its instant. `_like` insensitive to the ASCII case on SQLite; `_ilike` answered `500` (F59, fixed). A removed role and a disabled user denied at once. A refresh token accepted twice (F11). The other edge cases of the list stay for phase 5, per package, on every database |
+| V3-QA-02     | The installs of `weaver module` and `weaver upgrade` run with the explicit `cwd` of their project; `jest.setup.js` fails a test spawning a package install inside the repository |
+| V3-QA-03     | F40 explained and fixed: the `test` environment of the `redis` module of `@appweaver/create`, and of `cms-api`, `inbox-processor` and `webshop-api`, left the pub/sub on `auto` (Redis), so without a Redis running the SMS of the phone verification waited for its job result forever (F60), failing the 2FA tests after it; it is set to `memory`. The 25 e2e files of `cms-api` pass without Redis (they need the secrets of a `.env`: reCAPTCHA, the OAuth2 clients, the TOTP key) |
+| V3-CLI-06    | `weaver migration new --create-only`                                                                     |
+
+The checklist, item by item (R: read in the code, T: covered by a test):
+
+| Item                                                                                  | Result                                     |
+|---------------------------------------------------------------------------------------|--------------------------------------------|
+| Counts and aggregates honor `readRestrictions` (`queryConditions` of every read)      | OK (R)                                     |
+| An included relation honors the policy of its model                                   | F57 → V3-DATA-12 (phase 4, with views)     |
+| Input: JSON bodies (`secure-json-parse` of Fastify), `_like` matched in memory without a regular expression (no ReDoS) | OK (R) |
+| JWT: the algorithm follows the key (RS256 keys, HS for a secret); secret length       | F51 → V3-CONV-04                           |
+| Refresh tokens: stateless, revoked by `logoutAt` only, reusable                       | Known (F11, D5) → V3-CONV-04 (T)           |
+| One-time tokens: stored hashed, single use by an atomic delete                        | OK (R)                                     |
+| Code challenges: the wrong-code counter                                               | F50 → V3-WEB-05                            |
+| TOTP: a code used once per step, by an atomic `lastUsedStep` update                  | OK (R)                                     |
+| A password change or reset revokes the sessions (`logoutAt`)                          | OK (R)                                     |
+| OAuth2: state single use, PKCE per provider, redirect allow list                      | OK, the allow list default is F5           |
+| OAuth2: `email_verified`                                                              | F8 → V3-SEC-05 (fixed, T)                  |
+| MCP OAuth: PKCE `S256` required, exact redirect URI, signed client IDs, `iss`         | OK (R)                                     |
+| Files: path traversal (two barriers of `resolveStoragePath`)                          | OK (R)                                     |
+| Files: content sniffing, inline serving                                               | F47 → V3-SEC-07a (fixed, T), F53           |
+| `sharp`: the default `limitInputPixels` (268 million pixels) applies                  | OK (R)                                     |
+| Outbound: the OAuth2 avatar                                                           | F48 → V3-SEC-07b (fixed, T), F54           |
+| Outbound: the AI endpoints and `weaver-client generate <url>` come from the config and the command line, not from users | OK (R) |
+| Output: Handlebars escapes (the `raw` mode for the text templates only, `cdata` escaped) | OK (R)                                  |
+| Output: problem details of a 5xx in production without the details and the messages of unknown errors | OK (R)                      |
+| Realtime: one-time tickets, connection, subscription, message size and rate limits; no `Origin` check, harmless since a connection authenticates by its ticket, never by a cookie | OK (R) |
+| Abuse: login, 2FA, account and MCP routes rate limited; `export` and `aggregate` only by the global limit | Known (F14) → V3-CONV-02 |
+| Shutdown after a busy period                                                          | F46 → V3-BUG-02 (fixed, T)                 |
+| Idle cost of the in-process queue                                                     | F58 → V3-PERF-06b (fixed, T)               |
+| Logs of a task                                                                        | F49 → V3-CLI-07                            |
+
 **Gate 1**: the register reviewed, every CR approved, rejected or deferred, and ordered.
 
 ### Phase 2: Toolchain and platform
@@ -1513,8 +1578,10 @@ ticked.
 ## 8. Change request register
 
 All `proposed` until approved, except V3-SEC-01 to V3-SEC-04, V3-SAMPLE-01 and V3-BUG-01, **released in v2.10.1**
-(phase 1a), with parts of V3-PERF-03 and V3-PERF-06. Effort: S < 1 day, M days, L a
-week, XL more.
+(phase 1a), with parts of V3-PERF-03 and V3-PERF-06. **Done in phase 0** (pull request of `v3/phase-0-preparation`):
+V3-PROC-01, V3-PROC-02, V3-PERF-01, V3-PERF-02, V3-TOOL-00. **Done in phase 1** (pull request of
+`v3/phase-1-review`): V3-SEC-05, V3-SEC-07a, V3-SEC-07b, V3-BUG-02, V3-BUG-03, V3-BUG-04, V3-PERF-06b, V3-QA-01 (the first part, see
+phase 1), V3-QA-02, V3-QA-03, V3-CLI-06. Effort: S < 1 day, M days, L a week, XL more.
 
 | ID            | Title                                                                    | Phase | Prio | Effort | Breaking       |
 |---------------|--------------------------------------------------------------------------|-------|------|--------|----------------|
@@ -1545,7 +1612,7 @@ week, XL more.
 | V3-CONV-01    | `Duration` and `Size` (F17)                                              | 3     | P1   | L      | Yes            |
 | V3-CONV-02    | `actions` everywhere, bulk flags removed, `weaver routes` (F14)          | 3     | P1   | M      | Yes            |
 | V3-CONV-03    | Maintenance job registry (F16)                                           | 3     | P1   | M      | Yes (keys)     |
-| V3-CONV-04    | Secure defaults (F5, F6, F11, F38)                                       | 3     | P1   | M      | Yes            |
+| V3-CONV-04    | Secure defaults (F5, F6, F11, F38, F51)                                  | 3     | P1   | M      | Yes            |
 | V3-CONV-05    | `database.keepTables` (F18)                                              | 3     | P2   | S      | Yes            |
 | V3-CONV-06    | `totalCount` default, bounded count, `maxOffset` (F19)                   | 3     | P1   | S      | Yes            |
 | V3-CONV-07    | `aggregate` in one `GROUP BY`, no implicit window (F20)                  | 3     | P1   | M      | Yes            |
@@ -1559,6 +1626,19 @@ week, XL more.
 | V3-DATA-07    | SQL migration layer: `database/sql`, per-database variants, repeatable files, `SqlMigration` tracking, module SQL, drop guard (D22, F42) | 4 | P1 | L | No (additive) |
 | V3-DATA-08    | Index `type`/`ops`/`where`/expression and generated fields in the model (D22 C) | 4 | P2 | M | No |
 | V3-CLI-06     | `weaver migration new --create-only` (D22 A; also a 2.x minor)           | 1     | P2   | S      | No             |
+| V3-BUG-02     | A BullMQ worker reconnecting its blocking connection is closed with force (F46) | 1 | P0   | S      | No             |
+| V3-SEC-07a    | Uploaded files served with a sandboxing CSP, RFC 6266 file names (F47)   | 1     | P0   | S      | No             |
+| V3-SEC-07b    | OAuth2 avatar fetched from public HTTPS URLs only, within limits (F48)    | 1     | P0   | S      | No             |
+| V3-BUG-03     | The redirect of a download named after the file (F52)                    | 1     | P2   | S      | No             |
+| V3-CLI-07     | `weaver run` logs like the application (F49)                             | 5     | P1   | S      | No             |
+| V3-WEB-05     | An atomic wrong-code counter of the code challenges (F50)                | 5     | P2   | S      | No             |
+| V3-WEB-06     | The avatar guard resolves the host and pins the checked address (F54)    | 5     | P2   | S      | No             |
+| V3-DATA-10    | The type of an upload read from its first bytes (F53)                    | 5     | P2   | M      | Maybe          |
+| V3-DATA-11    | Optimistic concurrency: `If-Match` with `updatedAt` on the updates (F55) | 4     | P2   | M      | No (opt-in)    |
+| V3-DATA-12    | Included relations filtered by the read restrictions of their policy, with views (F57) | 4 | P1 | M  | Yes (fewer rows) |
+| V3-PERF-06b   | The memory queue idle without a timer (F58)                              | 1     | P0   | S      | No             |
+| V3-BUG-04     | `_ilike` on every database (F59)                                         | 1     | P1   | S      | No             |
+| V3-CORE-01    | A timeout on `JobResults.wait` and the pub/sub subscription (F60)        | 5     | P1   | S      | No             |
 | V3-DATA-06    | A system context for the application's own calls, distinct from anonymous (F39) | 4 | P1 | M      | Yes            |
 | V3-WEB-01     | Cache scopes, key once, JSON storage (F15, F22)                          | 4     | P1   | M      | Yes (config)   |
 | V3-WEB-02     | Forced 2FA lifecycle (F12)                                               | 4     | P1   | L      | Yes            |
