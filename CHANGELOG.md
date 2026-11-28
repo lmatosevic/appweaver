@@ -1,3 +1,10 @@
+## [2.10.1](https://github.com/lmatosevic/appweaver/compare/v2.10.0...v2.10.1) (2026-11-28)
+
+### Bug Fixes
+
+* bound the query filters and fix the security issues found by the load tests ([bed401b](https://github.com/lmatosevic/appweaver/commit/bed401b7f390e9597129dbb01940b7ddc4aef8b2))
+* security updates ([1af4c5a](https://github.com/lmatosevic/appweaver/commit/1af4c5a27a10605b4b019617500ef16a63d2dd20))
+
 ## [2.10.0](https://github.com/lmatosevic/appweaver/compare/v2.9.0...v2.10.0) (2026-11-21)
 
 ### Features
