@@ -212,6 +212,8 @@ export class AuthService {
    * @param {string} [password] - The optional password for the user, used when the authentication type requires it.
    * @param {Partial<UserAdditionalData>} [data] - Optional additional data related to the user to be stored during
    * registration.
+   * @param {object} [options] - `verifiedEmail`: whether the email address is verified, by default for every source
+   * but the password, i.e. `false` for an OAuth2 provider that did not verify it.
    * @return {Promise<AuthUser>} A promise resolving to the registered authentication user object.
    * @throws {DatabaseError} If the registration fails, i.e. `DATABASE_UNIQUE_VIOLATION` for a taken username.
    */
@@ -219,7 +221,8 @@ export class AuthService {
     source: AuthSource,
     email: string,
     password?: string,
-    data?: Partial<UserAdditionalData>
+    data?: Partial<UserAdditionalData>,
+    options: { verifiedEmail?: boolean } = {}
   ): Promise<AuthUser> {
     let authUser: AuthUser;
 
@@ -237,7 +240,7 @@ export class AuthService {
       authUser = await withoutPolicies(() =>
         this._authUserService.create({
           ...registrationData,
-          verifiedEmail: source !== AuthSource.Password
+          verifiedEmail: options.verifiedEmail ?? source !== AuthSource.Password
         })
       );
     } catch (e) {
@@ -435,6 +438,7 @@ export class AuthService {
       providerAccountId,
       scope,
       passwordRequired,
+      emailVerified,
       twoFactorVerified
     } = await this._securityStore.useOneTimeToken<AuthOTTData>(
       token,
@@ -461,9 +465,9 @@ export class AuthService {
         scope
       );
 
-      // The provider confirmed the address, and ownership of the local account was proven by the password whenever it
+      // The provider verified the address, and ownership of the local account was proven by the password whenever it
       // had one, so an address that was never verified locally is settled by this sign-in
-      if (!authUser.verifiedEmail) {
+      if (emailVerified && !authUser.verifiedEmail) {
         await this.updateAuthUser(authUser.id, { verifiedEmail: true });
       }
     }

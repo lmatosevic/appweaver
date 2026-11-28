@@ -9,6 +9,7 @@ type GitlabUser = {
   username: string;
   name?: string;
   email?: string;
+  confirmed_at?: string | null;
   avatar_url?: string;
 };
 
@@ -42,6 +43,7 @@ export async function fetchGitlabUser(accessToken: string): Promise<UserInfo> {
   return {
     id: String(data.id),
     email: requireEmail('GitLab', data.email),
+    emailVerified: Boolean(data.confirmed_at),
     ...splitFullName(data.name ?? data.username),
     avatarUrl: data.avatar_url
   };

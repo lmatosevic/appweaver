@@ -117,6 +117,40 @@ export class OAuth2Service {
   }
 
   /**
+   * Asserts that an OAuth2 sign-in may link a provider account to an existing user without a password, which has no
+   * password to confirm the link with: only when the provider verified the email address, or the provider account is
+   * already linked to that user. Otherwise anyone able to create a provider account carrying the address, at a
+   * provider that does not verify it, could sign in as the user.
+   *
+   * @param {AuthUser} authUser - The local user matched by email address.
+   * @param {AuthSource} source - The OAuth2 authentication source.
+   * @param {UserInfo} userInfo - The user info reported by the provider.
+   * @return {Promise<void>} A promise that resolves when the link is allowed.
+   * @throws {OAuth2Error} `OAUTH2_EMAIL_UNVERIFIED` if the provider did not verify the address of a user without a
+   * password, who is not linked to this provider account yet.
+   */
+  public async checkEmailVerified(
+    authUser: AuthUser,
+    source: AuthSource,
+    userInfo: UserInfo
+  ): Promise<void> {
+    if (userInfo.emailVerified || authUser.passwordHash) {
+      return;
+    }
+
+    const account = await this.findConnectedAccount(source, userInfo.id);
+    if (account && this.connectedAccountOwnerId(account) === authUser.id) {
+      return;
+    }
+
+    throw new OAuth2Error(
+      ErrorCode.OAuth2EmailUnverified,
+      'The provider has not verified the email address of this account',
+      { provider: source }
+    );
+  }
+
+  /**
    * Finds the connected account linking an OAuth2 provider account to a local user.
    *
    * @param {AuthSource} source - The OAuth2 authentication source.

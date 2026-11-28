@@ -92,6 +92,7 @@ export enum ErrorCode {
   // OAuth2
   OAuth2ProviderError = 'OAUTH2_PROVIDER_ERROR',
   OAuth2EmailUnavailable = 'OAUTH2_EMAIL_UNAVAILABLE',
+  OAuth2EmailUnverified = 'OAUTH2_EMAIL_UNVERIFIED',
   OAuth2RegistrationDisabled = 'OAUTH2_REGISTRATION_DISABLED',
   OAuth2AccountConflict = 'OAUTH2_ACCOUNT_CONFLICT',
   OAuth2UserRejected = 'OAUTH2_USER_REJECTED',

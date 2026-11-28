@@ -25,6 +25,7 @@ describe('extractAppleUser', () => {
     ).resolves.toEqual({
       id: '000123.abc.0001',
       email: 'ada@privaterelay.appleid.com',
+      emailVerified: false,
       firstName: 'Ada',
       lastName: 'Lovelace'
     });
@@ -33,11 +34,17 @@ describe('extractAppleUser', () => {
   test('should return empty name parts on subsequent authorizations', async () => {
     await expect(
       extractAppleUser(
-        context({ sub: '000123.abc.0001', email: 'ada@example.com' })
+        context({
+          sub: '000123.abc.0001',
+          email: 'ada@example.com',
+          // Apple sends the boolean claims of the id token as strings
+          email_verified: 'true'
+        })
       )
     ).resolves.toEqual({
       id: '000123.abc.0001',
       email: 'ada@example.com',
+      emailVerified: true,
       firstName: '',
       lastName: ''
     });

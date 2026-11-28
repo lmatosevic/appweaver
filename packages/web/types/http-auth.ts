@@ -30,6 +30,8 @@ export type AuthOTTData = {
   providerAccountId?: string;
   scope?: string;
   passwordRequired?: boolean;
+  /** Whether the OAuth2 provider verified the email address, which its exchange then marks as verified. */
+  emailVerified?: boolean;
   /** Set on the token issued by a passed 2FA challenge, so its exchange is not challenged again. */
   twoFactorVerified?: boolean;
 };

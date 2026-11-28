@@ -12,12 +12,14 @@ describe('fetchGitlabUser', () => {
       username: 'ada',
       name: 'Ada Lovelace',
       email: 'ada@example.com',
+      confirmed_at: '2026-01-05T09:00:00Z',
       avatar_url: 'https://gitlab.com/uploads/avatar.png'
     });
 
     await expect(fetchGitlabUser('token-value')).resolves.toEqual({
       id: '7',
       email: 'ada@example.com',
+      emailVerified: true,
       firstName: 'Ada',
       lastName: 'Lovelace',
       avatarUrl: 'https://gitlab.com/uploads/avatar.png'
@@ -30,6 +32,19 @@ describe('fetchGitlabUser', () => {
     await expect(fetchGitlabUser('token-value')).resolves.toMatchObject({
       firstName: 'ada',
       lastName: ''
+    });
+  });
+
+  test('should report an address the account never confirmed as unverified', async () => {
+    mockUserInfoResponse({
+      id: 7,
+      username: 'ada',
+      email: 'ada@example.com',
+      confirmed_at: null
+    });
+
+    await expect(fetchGitlabUser('token-value')).resolves.toMatchObject({
+      emailVerified: false
     });
   });
 

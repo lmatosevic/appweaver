@@ -45,6 +45,8 @@ export async function fetchGithubUser(accessToken: string): Promise<UserInfo> {
   return {
     id: String(data.id),
     email: data.email ?? (await fetchGithubEmail(accessToken)),
+    // The public email of a profile can only be one of its verified addresses, and the fallback picks a verified one
+    emailVerified: true,
     ...splitFullName(data.name ?? data.login),
     avatarUrl: data.avatar_url
   };

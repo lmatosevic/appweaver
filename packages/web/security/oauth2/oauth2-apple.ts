@@ -6,6 +6,7 @@ import { createOAuth2Plugin } from './create-oauth2-plugin';
 import {
   createAppleClientSecret,
   decodeJwtPayload,
+  isTrue,
   requireEmail
 } from './oauth2-util';
 
@@ -55,6 +56,7 @@ export async function extractAppleUser({
   return {
     id: claims.sub,
     email: requireEmail('Apple', claims.email),
+    emailVerified: isTrue(claims.email_verified),
     firstName: name?.firstName ?? '',
     lastName: name?.lastName ?? ''
   };

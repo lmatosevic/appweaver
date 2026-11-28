@@ -89,6 +89,7 @@ export interface ErrorDetailsMap {
 
   [ErrorCode.OAuth2ProviderError]: { provider: string; status?: number };
   [ErrorCode.OAuth2EmailUnavailable]: { provider: string };
+  [ErrorCode.OAuth2EmailUnverified]: { provider: string };
 
   [ErrorCode.RecaptchaMissing]: { header: string };
 

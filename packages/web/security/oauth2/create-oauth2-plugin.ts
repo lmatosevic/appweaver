@@ -216,6 +216,10 @@ export function createOAuth2Plugin(
 
       await oauth2Service.checkUser(authSource, userInfo, authUser);
 
+      if (authUser) {
+        await oauth2Service.checkEmailVerified(authUser, authSource, userInfo);
+      }
+
       // Decided before the user is (possibly) registered, so a freshly created account is never asked to confirm
       const passwordRequired =
         !!authUser &&
@@ -242,7 +246,8 @@ export function createOAuth2Plugin(
             avatarFile:
               userInfo.avatarFile ??
               (await fetchAvatarFile(userInfo.avatarUrl, userInfo.id))
-          }
+          },
+          { verifiedEmail: userInfo.emailVerified === true }
         );
       }
 
@@ -255,7 +260,8 @@ export function createOAuth2Plugin(
           authSource,
           providerAccountId: userInfo.id,
           scope: (token.scope as string) ?? oAuth2Config.scope.join(' '),
-          passwordRequired
+          passwordRequired,
+          emailVerified: userInfo.emailVerified === true
         },
         securityConfig.AUTH_OTT_TTL
       );

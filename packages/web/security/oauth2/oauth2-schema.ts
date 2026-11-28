@@ -83,6 +83,7 @@ export function createOAuth2CallbackSchema(
         ErrorCode.AuthInvalidToken,
         ErrorCode.OAuth2ProviderError,
         ErrorCode.OAuth2EmailUnavailable,
+        ErrorCode.OAuth2EmailUnverified,
         ErrorCode.OAuth2RegistrationDisabled,
         ErrorCode.OAuth2AccountConflict,
         ErrorCode.OAuth2UserRejected

@@ -33,6 +33,7 @@ describe('fetchMicrosoftUser', () => {
     await expect(fetchMicrosoftUser('token-value')).resolves.toEqual({
       id: '9f4e-1234',
       email: 'ada@contoso.com',
+      emailVerified: false,
       firstName: 'Ada',
       lastName: 'Lovelace',
       avatarFile: {

@@ -112,6 +112,16 @@ export function splitFullName(fullName?: string): {
 }
 
 /**
+ * Reads a boolean claim, which some providers send as a string (Apple's `email_verified` is `"true"`).
+ *
+ * @param {unknown} value - The value of the claim.
+ * @return {boolean} `true` for `true` or `"true"` only.
+ */
+export function isTrue(value: unknown): boolean {
+  return value === true || value === 'true';
+}
+
+/**
  * Asserts that the provider returned an email address, which the framework needs to match or register the user.
  *
  * @param {string} providerName - Provider name used in the error message.

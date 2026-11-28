@@ -2,11 +2,17 @@ import { AuthSource } from '@appweaver/common';
 import { oauth2LinkedinConfig } from '../security-config';
 import { UserInfo } from '@appweaver/data';
 import { createOAuth2Plugin } from './create-oauth2-plugin';
-import { fetchUserInfo, requireEmail, splitFullName } from './oauth2-util';
+import {
+  fetchUserInfo,
+  isTrue,
+  requireEmail,
+  splitFullName
+} from './oauth2-util';
 
 type LinkedinUser = {
   sub: string;
   email?: string;
+  email_verified?: boolean | string;
   name?: string;
   given_name?: string;
   family_name?: string;
@@ -39,6 +45,7 @@ export async function fetchLinkedinUser(
   return {
     id: data.sub,
     email: requireEmail('LinkedIn', data.email),
+    emailVerified: isTrue(data.email_verified),
     firstName: data.given_name ?? firstName,
     lastName: data.family_name ?? lastName,
     avatarUrl: data.picture

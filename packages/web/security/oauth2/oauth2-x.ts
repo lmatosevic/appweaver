@@ -50,6 +50,7 @@ export async function fetchXUser(accessToken: string): Promise<UserInfo> {
   return {
     id: data.id,
     email: data.confirmed_email,
+    emailVerified: true,
     ...splitFullName(data.name),
     // The profile image URL points at the 48px variant; ask for the largest one X keeps.
     avatarUrl: data.profile_image_url?.replace('_normal.', '_400x400.')
