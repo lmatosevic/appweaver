@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ES2024",
+    "baseUrl": "./",
     "outDir": "./dist",
     "strict": true,
     "sourceMap": true,
@@ -15,7 +16,6 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "noUnusedLocals": false,
-    "types": ["node", "jest", "bun"],
     "paths": {
       "@appweaver/common": ["./packages/common"],
       "@appweaver/common/*": ["./packages/common/*"],

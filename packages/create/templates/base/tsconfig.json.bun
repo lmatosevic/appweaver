@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ES2024",
+    "baseUrl": "./",
     "rootDir": "./",
     "outDir": "./dist",
     "strict": true,
