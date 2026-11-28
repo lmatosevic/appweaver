@@ -7,6 +7,7 @@
   "include": [
     "packages/**/*.test.ts",
     "packages/*/test/fixtures/*.ts",
+    "packages/cli/types/*.d.ts",
     "packages/web/types/fastify-extensions.ts",
     "packages/web/security/jwt/jwt-auth.ts"
   ],

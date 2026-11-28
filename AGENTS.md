@@ -4,13 +4,10 @@
 
 The project is a TypeScript monorepo using `tsc -b` for builds.
 
-- **TypeScript**: the compiler is TypeScript 7.1 (`7.1.0-beta` until 7.1.0 is stable), the `@typescript/native` alias of
-  the root `package.json`, which the `tsc` of `node_modules/.bin` runs. The root `typescript` is the classic 5.9 the
-  tools needing the compiler API load (typescript-eslint, `openapi-typescript` of the client generator, madge), since
-  TypeScript 7 has none they can use; `@appweaver/client` depends on it for the same reason. The samples and the
-  scaffolded projects have only the compiler, as their `typescript`. `noImplicitAny` is on (from `strict`): an object
-  built key by key is typed `Record<string, unknown>`, and a symbol a factory sets is a key of `ResourceMarks`.
-
+- **TypeScript**: TypeScript 5.9 until every tool needing the compiler API (typescript-eslint, `openapi-typescript` of
+  the client generator, madge) supports TypeScript 7.1 (`PLAN-v3.md`, phase 2). The configs are ready for it: no
+  `baseUrl`, `types` and `rootDir` listed, no decorator flags. `noImplicitAny` is on (from `strict`): an object built key
+  by key is typed `Record<string, unknown>`, and a symbol a factory sets is a key of `ResourceMarks`.
 - **Initial Setup**: Run `npm install` to install all dependencies.
 - **Building**: Run `npm run build` from the root. This performs:
     - `prebuild`: Removes the `dist` folders of all packages (`clean:packages`).
@@ -692,10 +689,9 @@ both variants render the same text.
 
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
-(packages the framework uses as a peer: Prisma and its driver adapters, TypeBox, TypeScript; the `typescript` of a
-project is the TypeScript 7 compiler) and `tooling` (`@types/bun`, since the lint, format and test tools of a project
-are the dependencies of `@appweaver/tooling`, whose versions equal the root ones; its `typescript` is the classic 5.9 of
-typescript-eslint). The base template receives them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}` variables, and
+(packages the framework uses as a peer: Prisma and its driver adapters, TypeBox, TypeScript) and `tooling`
+(`@types/bun`, since the lint, format and test tools of a project are the dependencies of `@appweaver/tooling`, whose
+versions equal the root ones). The base template receives them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}` variables, and
 the modules write theirs into `package.json`, so bump versions there, not in the templates. Keep the versions equal
 to the root `dependencies` and `devDependencies`, which a test checks. The libraries of the drivers (BullMQ, Cron,
 Handlebars, IoRedis, Nodemailer, Sharp) are not among them, since they are dependencies of the driver packages.

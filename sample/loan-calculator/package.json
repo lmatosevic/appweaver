@@ -38,7 +38,7 @@
     "jest": "30.5.2",
     "jest-junit": "17.0.0",
     "prettier": "3.8.4",
-    "typescript": "7.1.0-beta",
+    "typescript": "5.9.3",
     "typescript-eslint": "8.74.0"
   },
   "allowScripts": {

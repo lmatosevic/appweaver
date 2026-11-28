@@ -23,12 +23,6 @@ const cliVersion = JSON.parse(
 const rootPkg = JSON.parse(
   fs.readFileSync(path.join(packageRoot, '..', '..', 'package.json'), 'utf8')
 );
-// The monorepo builds with the TypeScript 7 compiler of the `@typescript/native` alias, its `typescript` being the
-// classic one the tools needing the compiler API load; a project and a sample have only the compiler, as `typescript`
-const compilerVersion = rootPkg.devDependencies['@typescript/native'].replace(
-  'npm:typescript@',
-  ''
-);
 
 describe('scaffoldDependencies', () => {
   test('match the versions the monorepo is built with', () => {
@@ -41,12 +35,7 @@ describe('scaffoldDependencies', () => {
       ([name]) => rootVersions[name]
     );
 
-    expect(shared).toEqual(
-      shared.map(([name]) => [
-        name,
-        name === 'typescript' ? compilerVersion : rootVersions[name]
-      ])
-    );
+    expect(shared).toEqual(shared.map(([name]) => [name, rootVersions[name]]));
   });
 
   test('match the versions of the packages and the samples', () => {
@@ -66,10 +55,7 @@ describe('scaffoldDependencies', () => {
       const pkg = JSON.parse(
         fs.readFileSync(path.join(repoRoot, file), 'utf8')
       );
-      const expected = (name: string) =>
-        name === 'typescript' && file.startsWith('sample')
-          ? compilerVersion
-          : rootVersions[name];
+      const expected = (name: string) => rootVersions[name];
       return [
         'dependencies',
         'devDependencies',
