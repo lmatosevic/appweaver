@@ -39,10 +39,16 @@ import { resourceConfig } from './resource-config';
 import {
   inject,
   injectModel,
+  injectService,
   CacheService,
   TimeSeriesService
 } from '@appweaver/core';
 import { arePoliciesSkipped } from '../utils/policy-util';
+import {
+  hideRestrictedRelations,
+  InclusionRestrictions,
+  restrictInclusions
+} from './utils/inclusion-util';
 import { liveRecordFilter } from '../utils/model-util';
 import { projectVirtualFields } from '../utils/virtual-util';
 import { PrismaDatabase } from '../database/prisma-database';
@@ -157,7 +163,8 @@ export abstract class ResourceService<
    */
   public async find(id: ResourceId): Promise<ReadOne> {
     const restrictions = await this.applyReadRestrictions('find', id);
-    const includeRelations = mapRelationInclusions(this._client.name, 'find');
+    const inclusions = await this.relationInclusions('find');
+    const includeRelations = inclusions.include;
 
     let resource: ReadOne;
     try {
@@ -186,7 +193,8 @@ export abstract class ResourceService<
       );
     }
 
-    const projected = this.projectResource(resource);
+    const [visible] = await this.hideRestricted([resource], inclusions);
+    const projected = this.projectResource(visible);
     this._events.emitResourceEvent(this._client.name, 'find', {
       current: projected
     });
@@ -256,7 +264,8 @@ export abstract class ResourceService<
 
     const distances: SpatialDistances = new Map();
     const query = await this.queryConditions('query', filter, distances);
-    const includeRelations = mapRelationInclusions(this._client.name, 'query');
+    const inclusions = await this.relationInclusions('query');
+    const includeRelations = inclusions.include;
     const orderBy = mapStableSortValues(sort, this._client.name, 'query');
 
     // Binding to the mapped query rather than the filter also invalidates a
@@ -313,7 +322,9 @@ export abstract class ResourceService<
     const hasPrev = backward ? hasMore : !!decodedCursor || page > 1;
 
     setDistances(resources, distances);
-    const items = resources.map((resource) => this.projectResource(resource));
+    const items = (await this.hideRestricted(resources, inclusions)).map(
+      (resource) => this.projectResource(resource)
+    );
     this._events.emitResourceEvent(this._client.name, 'query', {
       current: items
     });
@@ -349,7 +360,8 @@ export abstract class ResourceService<
     filter: Query = {} as Query,
     sort: QuerySort<ReadOne> = '-createdAt'
   ): Promise<ReadOne | null> {
-    const includeRelations = mapRelationInclusions(this._client.name, 'find');
+    const inclusions = await this.relationInclusions('find');
+    const includeRelations = inclusions.include;
     const distanceSort = this.distanceSort(sort);
 
     const distances: SpatialDistances = new Map();
@@ -391,7 +403,8 @@ export abstract class ResourceService<
       );
     }
 
-    const projected = this.projectResource(resource);
+    const [visible] = await this.hideRestricted([resource], inclusions);
+    const projected = this.projectResource(visible);
     this._events.emitResourceEvent(this._client.name, 'find', {
       current: projected
     });
@@ -607,7 +620,8 @@ export abstract class ResourceService<
       'create',
       sanitizedData
     );
-    const includeRelations = mapRelationInclusions(this._client.name, 'create');
+    const inclusions = await this.relationInclusions('create');
+    const includeRelations = inclusions.include;
 
     await assertLiveRelationTargets(
       this._db.client(),
@@ -631,7 +645,8 @@ export abstract class ResourceService<
 
     await this._cacheService.invalidateCache(this._client.name, 'create');
 
-    const projected = this.projectResource(resource);
+    const [visible] = await this.hideRestricted([resource], inclusions);
+    const projected = this.projectResource(visible);
     this._events.emitResourceEvent(this._client.name, 'create', {
       current: projected
     });
@@ -727,7 +742,8 @@ export abstract class ResourceService<
   public async delete(id: ResourceId): Promise<ReadOne> {
     const restrictions = await this.applyReadRestrictions('delete', id);
     const softDelete = hasSoftDelete(injectModel(this._client.name).config);
-    const includeRelations = mapRelationInclusions(this._client.name, 'delete');
+    const inclusions = await this.relationInclusions('delete');
+    const includeRelations = inclusions.include;
 
     let resource: ReadOne;
     let deleted: DeletedRecords;
@@ -793,7 +809,8 @@ export abstract class ResourceService<
 
     await this.cleanupDeletedRecords(deleted);
 
-    const projected = this.projectResource(resource);
+    const [visible] = await this.hideRestricted([resource], inclusions);
+    const projected = this.projectResource(visible);
     this._events.emitResourceEvent(this._client.name, 'delete', {
       current: projected
     });
@@ -945,7 +962,8 @@ export abstract class ResourceService<
 
     const sanitizedData = this.sanitizeData('update', updateData);
 
-    const includeRelations = mapRelationInclusions(this._client.name, 'update');
+    const inclusions = await this.relationInclusions('update');
+    const includeRelations = inclusions.include;
 
     let updateResource: ReadOne;
     let resource: ReadOne;
@@ -1016,9 +1034,13 @@ export abstract class ResourceService<
     await this._cacheService.invalidateCache(this._client.name, 'update');
     await this.cleanupDeletedRecords(orphans);
 
+    const [previous, current] = await this.hideRestricted(
+      [updateResource, resource],
+      inclusions
+    );
     const projected = {
-      previous: this.projectResource(updateResource),
-      current: this.projectResource(resource)
+      previous: this.projectResource(previous),
+      current: this.projectResource(current)
     };
     this._events.emitResourceEvent(this._client.name, 'update', projected);
     this.auditChange('update', updateResource, resource);
@@ -1193,6 +1215,61 @@ export abstract class ResourceService<
    */
   protected textSearchQuery(searchText: string): any {
     return {};
+  }
+
+  /**
+   * Returns the read restrictions of a `query` of this model for the current
+   * user, which the other models apply to the records of this model they
+   * include, or none when the call runs with internal access.
+   *
+   * @return {Promise<Object>} The restrictions, in the native Prisma filter
+   * syntax.
+   */
+  public async inclusionRestrictions(): Promise<Record<string, any>> {
+    return (await this.applyReadRestrictions('query', {})) ?? {};
+  }
+
+  /**
+   * Builds the `include` clause of an action, its relations restricted to the
+   * related records their policies let the current user read.
+   *
+   * @internal
+   */
+  private async relationInclusions(action: ActionType): Promise<{
+    include: Record<string, any>;
+    restrictions: InclusionRestrictions;
+  }> {
+    const include = mapRelationInclusions(this._client.name, action);
+    if (arePoliciesSkipped()) {
+      return { include, restrictions: new Map() };
+    }
+    return restrictInclusions(include, this._client.name, async (model) =>
+      (
+        injectService(model, false) as ResourceService | undefined
+      )?.inclusionRestrictions?.()
+    );
+  }
+
+  /**
+   * Clears the single relations of the records their policies hide from the
+   * current user (see {@link ResourceService.relationInclusions}).
+   *
+   * @internal
+   */
+  private async hideRestricted<T>(
+    records: T[],
+    inclusions: { restrictions: InclusionRestrictions }
+  ): Promise<T[]> {
+    return hideRestrictedRelations(
+      records,
+      this._client.name,
+      inclusions.restrictions,
+      (modelKey, where) =>
+        delegateOf(this._db.client(), modelKey).findMany({
+          where,
+          select: { id: true }
+        })
+    );
   }
 
   /**
@@ -1424,15 +1501,18 @@ export abstract class ResourceService<
     }
     const pageIds = size > 0 ? ids.slice(start, end) : [];
 
+    const inclusions = await this.relationInclusions('query');
     const resources = await this.findByIds<ReadMany>(
       pageIds,
-      mapRelationInclusions(this._client.name, 'query')
+      inclusions.include
     );
     const hasNext = end < ids.length;
     const hasPrev = start > 0;
 
     setDistances(resources, distances);
-    const items = resources.map((resource) => this.projectResource(resource));
+    const items = (await this.hideRestricted(resources, inclusions)).map(
+      (resource) => this.projectResource(resource)
+    );
     this._events.emitResourceEvent(this._client.name, 'query', {
       current: items
     });

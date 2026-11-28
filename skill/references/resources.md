@@ -1782,6 +1782,11 @@ function createPolicy(
 Every policy callback may be `async` (return a promise), e.g. to look up a team membership in the database. The
 `user` is `null` for an unauthenticated request.
 
+The `readRestrictions` of a model also apply where another model includes its records (`output.type: 'always'` or
+`'single'`), called with the `query` action: a list relation and its count read only the records they let the user
+read, and a single relation they hide is `null` (matched in memory, or with one query per related model for a
+relation filter). Its `checkAccess` is not called for the included records.
+
 ### File policy
 
 | Property     | Type                                       | Default       | Description                                                                                      |

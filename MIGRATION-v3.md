@@ -14,30 +14,31 @@ startup.
 
 ## Contents
 
-| Section                                                                                                       | CR                         | Affects                               | Status  |
-| ------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------- | ------- |
-| [1. Before you start](#1-before-you-start)                                                                    | -                          | Everyone                              | pending |
-| [2. The project config](#2-the-project-config)                                                                | V3-TOOL-01                 | Every project                         | done    |
-| [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)                                           | V3-TOOL-05                 | Every scaffolded project              | done    |
-| [4. TypeBox 1.x](#4-typebox-1x)                                                                               | V3-TOOL-06                 | Schemas, config sections, routes      | pending |
-| [5. Durations and sizes](#5-durations-and-sizes)                                                              | V3-CONV-01                 | `appweaver.json`, `.env`              | pending |
-| [6. Exposure: `actions` everywhere](#6-exposure-actions-everywhere)                                           | V3-CONV-02                 | `createRoutes`, bulk env flags        | pending |
-| [7. Maintenance jobs](#7-maintenance-jobs)                                                                    | V3-CONV-03                 | Retention and pruning keys            | pending |
-| [8. Secure defaults](#8-secure-defaults)                                                                      | V3-CONV-04                 | JWT, redirects, CORS, body size       | pending |
-| [9. `database.keepTables`](#9-databasekeeptables)                                                             | V3-CONV-05                 | `KEEP_DATABASE_TABLE` keys            | done    |
-| [10. Total count and offsets](#10-total-count-and-offsets)                                                    | V3-CONV-06                 | `query` clients                       | done    |
-| [11. Aggregates](#11-aggregates)                                                                              | V3-CONV-07                 | `aggregate` clients                   | pending |
-| [12. Full names instead of abbreviations](#12-full-names-instead-of-abbreviations)                            | V3-CONV-08                 | Config, routes, codes, types          | pending |
-| [13. Duplicate models, services, policies and routes](#13-duplicate-models-services-policies-and-routes)      | V3-DATA-01                 | Projects redefining a framework model | pending |
-| [14. The system context of the application's own calls](#14-the-system-context-of-the-applications-own-calls) | V3-DATA-06                 | Policies                              | done    |
-| [15. Cache scopes](#15-cache-scopes)                                                                          | V3-WEB-01                  | `cache` of the routes                 | pending |
-| [16. Forced 2FA](#16-forced-2fa)                                                                              | V3-WEB-02                  | `forced` of the 2FA config            | pending |
-| [17. Generated client](#17-generated-client)                                                                  | V3-CLIENT-01, V3-CLIENT-03 | `weaver-client generate` output       | pending |
-| [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails)                          | V3-SEC-05                  | OAuth2 providers                      | done    |
-| [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101)                                | V3-SEC-01..04              | Filters, body size, CSV export        | done    |
-| [20. Smaller API changes](#20-smaller-api-changes)                                                            | per CR                     | The utilities named                   | done    |
-| [20b. Array environment variables](#20b-array-environment-variables)                                          | V3-COMMON-01               | Array keys set in `.env`              | done    |
-| [21. The skill package](#21-the-skill-package)                                                                | V3-TOOL-08                 | Projects with agent files             | done    |
+| Section                                                                                                              | CR                         | Affects                                     | Status  |
+| -------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------- | ------- |
+| [1. Before you start](#1-before-you-start)                                                                           | -                          | Everyone                                    | pending |
+| [2. The project config](#2-the-project-config)                                                                       | V3-TOOL-01                 | Every project                               | done    |
+| [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)                                                  | V3-TOOL-05                 | Every scaffolded project                    | done    |
+| [4. TypeBox 1.x](#4-typebox-1x)                                                                                      | V3-TOOL-06                 | Schemas, config sections, routes            | pending |
+| [5. Durations and sizes](#5-durations-and-sizes)                                                                     | V3-CONV-01                 | `appweaver.json`, `.env`                    | pending |
+| [6. Exposure: `actions` everywhere](#6-exposure-actions-everywhere)                                                  | V3-CONV-02                 | `createRoutes`, bulk env flags              | pending |
+| [7. Maintenance jobs](#7-maintenance-jobs)                                                                           | V3-CONV-03                 | Retention and pruning keys                  | pending |
+| [8. Secure defaults](#8-secure-defaults)                                                                             | V3-CONV-04                 | JWT, redirects, CORS, body size             | pending |
+| [9. `database.keepTables`](#9-databasekeeptables)                                                                    | V3-CONV-05                 | `KEEP_DATABASE_TABLE` keys                  | done    |
+| [10. Total count and offsets](#10-total-count-and-offsets)                                                           | V3-CONV-06                 | `query` clients                             | done    |
+| [11. Aggregates](#11-aggregates)                                                                                     | V3-CONV-07                 | `aggregate` clients                         | pending |
+| [12. Full names instead of abbreviations](#12-full-names-instead-of-abbreviations)                                   | V3-CONV-08                 | Config, routes, codes, types                | pending |
+| [13. Duplicate models, services, policies and routes](#13-duplicate-models-services-policies-and-routes)             | V3-DATA-01                 | Projects redefining a framework model       | pending |
+| [14. The system context of the application's own calls](#14-the-system-context-of-the-applications-own-calls)        | V3-DATA-06                 | Policies                                    | done    |
+| [14b. Included relations follow the policy of their model](#14b-included-relations-follow-the-policy-of-their-model) | V3-DATA-12                 | Relations of models with `readRestrictions` | done    |
+| [15. Cache scopes](#15-cache-scopes)                                                                                 | V3-WEB-01                  | `cache` of the routes                       | pending |
+| [16. Forced 2FA](#16-forced-2fa)                                                                                     | V3-WEB-02                  | `forced` of the 2FA config                  | pending |
+| [17. Generated client](#17-generated-client)                                                                         | V3-CLIENT-01, V3-CLIENT-03 | `weaver-client generate` output             | pending |
+| [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails)                                 | V3-SEC-05                  | OAuth2 providers                            | done    |
+| [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101)                                       | V3-SEC-01..04              | Filters, body size, CSV export              | done    |
+| [20. Smaller API changes](#20-smaller-api-changes)                                                                   | per CR                     | The utilities named                         | done    |
+| [20b. Array environment variables](#20b-array-environment-variables)                                                 | V3-COMMON-01               | Array keys set in `.env`                    | done    |
+| [21. The skill package](#21-the-skill-package)                                                                       | V3-TOOL-08                 | Projects with agent files                   | done    |
 
 Each section follows the same layout: **What changed**, **Who is affected**, **Before**, **After**, **Steps**.
 
@@ -267,6 +268,19 @@ readRestrictions: (user) => (user ? null : { status: 'Published' });
 
 **Steps**: drop the checks of the request scope from the policies. A job that should act as a user runs with
 `runAs(user, fn)`, and a test of a policy calls the service in `runAs(user, fn)` or `runAs(null, fn)`.
+
+## 14b. Included relations follow the policy of their model
+
+**What changed** (V3-DATA-12, F57): a relation a response includes (`output.type: 'always'` or `'single'`) reads only
+the related records the `readRestrictions` of their model's policy let the user read, called with the `query` action.
+A list relation and its count leave the others out, and a single relation the policy hides is `null`. Before, only
+the soft deleted records were left out, so a model including another one read past its policy.
+
+**Who is affected**: clients reading a relation whose model has `readRestrictions`, i.e. the comments of a post an
+anonymous user cannot read, which now come with `post: null`.
+
+**Steps**: none, unless a client relied on the hidden records: let the policy of the related model allow them, or
+read them through a route of their own.
 
 ## 15. Cache scopes
 
