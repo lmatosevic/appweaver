@@ -12,12 +12,9 @@
     "resolveJsonModule": true,
     "incremental": true,
     "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
-    "noImplicitAny": false,
     "noUnusedLocals": false,
     "paths": {
       "@/*": ["./src/*"],

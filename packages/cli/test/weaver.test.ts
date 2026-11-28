@@ -21,8 +21,10 @@ import { moduleCommand } from '../module';
 import { openapiCommand } from '../openapi';
 import { runCommand } from '../run';
 import { seedCommand } from '../seed';
+import { skillCommand } from '../skill';
 import { startCommand } from '../start';
 import { testingCommand } from '../testing';
+import { formatCommand, lintCommand } from '../tooling';
 import { upgradeCommand } from '../upgrade';
 
 /** Registers every command the way `weaver.ts` does. */
@@ -31,13 +33,16 @@ function createProgram(): Command {
   for (const register of [
     buildCommand,
     configCommand,
+    formatCommand,
     generateCommand,
+    lintCommand,
     migrateCommand,
     migrationCommand,
     moduleCommand,
     openapiCommand,
     runCommand,
     seedCommand,
+    skillCommand,
     startCommand,
     testingCommand,
     upgradeCommand
@@ -84,6 +89,7 @@ describe('weaver', () => {
     [['seed'], '--continue-on-error', 'continueOnError'],
     [['seed'], '--fix-warnings', 'fixWarnings'],
     [['upgrade'], '--dry-run', 'dryRun'],
+    [['skill', 'sync'], '--dry-run', 'dryRun'],
     [['upgrade'], '--target-version', 'targetVersion'],
     [['module', 'add'], '--dry-run', 'dryRun'],
     [['module', 'remove'], '--dry-run', 'dryRun'],
@@ -117,5 +123,42 @@ describe('weaver', () => {
     await program.parseAsync(['upgrade', ...args], { from: 'user' });
 
     expect(action.mock.calls[0][1]).toMatchObject(expected);
+  });
+});
+
+describe('weaver test', () => {
+  const parseTest = async (args: string[]) => {
+    const program = createProgram();
+    const test = program.commands.find((c) => c.name() === 'test')!;
+    const run = jest.fn();
+    const setup = jest.fn();
+    test.action(run);
+    test.commands.find((c) => c.name() === 'setup')!.action(setup);
+
+    await program.parseAsync(['test', ...args], { from: 'user' });
+
+    return { run, setup };
+  };
+
+  test('runs the tests without a subcommand', async () => {
+    const { run, setup } = await parseTest(['--e2e', '--coverage']);
+
+    expect(setup).not.toHaveBeenCalled();
+    expect(run.mock.calls[0][0]).toEqual([]);
+    expect(run.mock.calls[0][1]).toMatchObject({ e2e: true, coverage: true });
+  });
+
+  test('passes the test patterns', async () => {
+    const { run } = await parseTest(['test/unit/a.test.ts', '-w']);
+
+    expect(run.mock.calls[0][0]).toEqual(['test/unit/a.test.ts']);
+    expect(run.mock.calls[0][1]).toMatchObject({ watch: true });
+  });
+
+  test('dispatches a subcommand', async () => {
+    const { run, setup } = await parseTest(['setup', '--temp-dir', './tmp']);
+
+    expect(run).not.toHaveBeenCalled();
+    expect(setup.mock.calls[0][0]).toMatchObject({ tempDir: './tmp' });
   });
 });

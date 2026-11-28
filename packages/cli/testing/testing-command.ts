@@ -13,6 +13,7 @@ import {
   seriesInDatabase,
   setAiDangerousActionConsent
 } from '../utils';
+import { runTestsAction } from '../tooling/tooling-commands';
 
 /**
  * Registers the `test` command, setting up, resetting, and tearing down the test environment.
@@ -23,7 +24,11 @@ export function testingCommand(program: Command): void {
   const testCommand = program
     .command('test')
     .alias('t')
-    .description('Set up, reset and tear down the test environment.');
+    .description(
+      'Run the tests, or set up, reset and tear down the test environment.'
+    );
+
+  runTestsAction(testCommand);
 
   testCommand
     .command('setup')

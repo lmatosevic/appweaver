@@ -1,0 +1,5 @@
+# build info file
+*.tsbuildinfo
+
+# env file
+.env

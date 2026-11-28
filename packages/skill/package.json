@@ -1,0 +1,41 @@
+{
+  "name": "@appweaver/skill",
+  "version": "2.10.1",
+  "description": "Appweaver - the backend framework for AI-first development (@skill)",
+  "author": "Luka Matosevic",
+  "license": "MIT",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "../../skill"
+  ],
+  "keywords": [
+    "appweaver",
+    "agent-skill"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lmatosevic/appweaver.git",
+    "directory": "packages/skill"
+  },
+  "maintainers": [
+    {
+      "name": "Luka Matosevic",
+      "email": "lukamatosevic5@gmail.com",
+      "web": "https://lukamatosevic.com"
+    }
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">= 24.7"
+  }
+}

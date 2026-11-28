@@ -104,7 +104,19 @@ describe('string-util', () => {
     });
 
     test('supports base32 tokens', () => {
-      expect(generateToken('base32')).toMatch(/^[A-Z2-7-]+$/);
+      expect(generateToken('base32')).toMatch(/^[A-Z2-7]{7}(-[A-Z2-7]{7}){3}$/);
+    });
+
+    test('supports an odd length of the bytes method', () => {
+      expect(generateToken('bytes', 7)).toMatch(/^[\da-f]{7}$/);
+    });
+
+    test('draws a string token from the default pool', () => {
+      expect(generateToken('string', 64)).toMatch(/^[\w.~+/-]{64}$/);
+    });
+
+    test('draws a base62 token of the requested length', () => {
+      expect(generateToken('base62', 40)).toMatch(/^[\da-zA-Z]{40}$/);
     });
 
     test('supports fixed length string tokens from a custom pool', () => {

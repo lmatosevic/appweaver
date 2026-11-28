@@ -649,7 +649,8 @@ export function createSchema(
   }
 
   for (const schemaConfig of Object.values(resourceSchemaConfig)) {
-    schemaConfig[`x-${CONFIG_NAME}-resource`] = name;
+    (schemaConfig as Record<string, unknown>)[`x-${CONFIG_NAME}-resource`] =
+      name;
   }
 
   return resourceSchemaConfig;

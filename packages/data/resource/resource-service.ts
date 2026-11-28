@@ -31,7 +31,9 @@ import {
   ResourceEvent,
   uncapitalize,
   isAppweaverError,
-  ResourceError
+  ResourceError,
+  CONFIG,
+  RESOURCE_NAME
 } from '@appweaver/common';
 import { resourceConfig } from './resource-config';
 import {
@@ -99,6 +101,9 @@ export abstract class ResourceService<
   Query,
   Replace
 > {
+  declare [RESOURCE_NAME]?: string;
+  declare [CONFIG]?: unknown;
+
   /** @internal */
   private readonly _db = inject<PrismaDatabase>(Database as any);
   /** @internal */
@@ -516,11 +521,11 @@ export abstract class ResourceService<
       return { ...result, ...boundaries };
     };
 
-    let total: Record<string, Record<string, any>> = {};
-    let items: Record<string, Record<string, any>>[] = [];
+    let total: Record<string, Record<string, any>>;
+    let items: Record<string, Record<string, any>>[];
     try {
       [total, items] = await this._db.client().$transaction(async (tx) => {
-        const txModel = tx[this._client.name];
+        const txModel = delegateOf(tx, this._client.name);
 
         const overall = await aggregateRange(
           txModel,
@@ -723,7 +728,7 @@ export abstract class ResourceService<
     let deleted: DeletedRecords;
     try {
       [resource, deleted] = await this._db.client().$transaction(async (tx) => {
-        const txModel = tx[this._client.name];
+        const txModel = delegateOf(tx, this._client.name);
 
         // A soft deleted record is read with its relations up front, as a
         // database delete returns them before the cascade removes them
@@ -944,7 +949,7 @@ export abstract class ResourceService<
       [updateResource, resource, orphans] = await this._db
         .client()
         .$transaction(async (tx) => {
-          const txModel = tx[this._client.name];
+          const txModel = delegateOf(tx, this._client.name);
 
           const current = await txModel.findFirst({
             where: {
@@ -1491,10 +1496,10 @@ export abstract class ResourceService<
     const projectedResource = projectVirtualFields(
       hideDeletedRelations(resource, this._client.name),
       this._client.name
-    );
+    ) as Record<string, any>;
 
     if (!isPlainObject(projectedResource['_count'])) {
-      return projectedResource;
+      return projectedResource as T;
     }
 
     // Create new relation count properties on the resource object
@@ -1504,7 +1509,7 @@ export abstract class ResourceService<
 
     delete projectedResource['_count'];
 
-    return projectedResource;
+    return projectedResource as T;
   }
 
   /**
@@ -1570,7 +1575,7 @@ export abstract class ResourceService<
     data: T,
     resourceName?: string
   ): T {
-    const sanitizedData = { ...data };
+    const sanitizedData = { ...data } as Record<string, unknown>;
 
     const resourceModel = injectModel(resourceName ?? this._client.name, false);
     const relationsModel = resourceModel?.relationsModel;
@@ -1620,7 +1625,7 @@ export abstract class ResourceService<
       }
     }
 
-    return sanitizedData;
+    return sanitizedData as T;
   }
 
   /**
@@ -1683,7 +1688,7 @@ export abstract class ResourceService<
    * @internal
    */
   private get _client(): ResourceClient {
-    return this._db.client()[this._modelKey];
+    return delegateOf(this._db.client(), this._modelKey);
   }
 
   /**
@@ -1721,4 +1726,9 @@ function setDistances(resources: any[], distances: SpatialDistances): void {
       }
     }
   }
+}
+
+/** The model delegate of a Prisma client, or of the client of a transaction, by its model key. */
+function delegateOf(client: object, modelKey: string): ResourceClient {
+  return (client as Record<string, ResourceClient>)[modelKey];
 }

@@ -28,6 +28,7 @@ if (!isBunProcess() && appConfig.RUNTIME === Runtime.Bun) {
 import { Command } from 'commander';
 import { buildCommand } from './build';
 import { configCommand } from './config';
+import { formatCommand, lintCommand } from './tooling';
 import { generateCommand } from './generate';
 import { migrateCommand } from './migrate';
 import { migrationCommand } from './migration';
@@ -35,6 +36,7 @@ import { moduleCommand } from './module';
 import { openapiCommand } from './openapi';
 import { runCommand } from './run';
 import { seedCommand } from './seed';
+import { skillCommand } from './skill';
 import { startCommand } from './start';
 import { testingCommand } from './testing';
 import { upgradeCommand } from './upgrade';
@@ -55,7 +57,11 @@ buildCommand(program);
 
 configCommand(program);
 
+formatCommand(program);
+
 generateCommand(program);
+
+lintCommand(program);
 
 migrateCommand(program);
 
@@ -68,6 +74,8 @@ openapiCommand(program);
 runCommand(program);
 
 seedCommand(program);
+
+skillCommand(program);
 
 startCommand(program);
 

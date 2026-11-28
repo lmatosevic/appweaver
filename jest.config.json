@@ -4,8 +4,8 @@
   "testEnvironment": "node",
   "setupFiles": ["<rootDir>/jest.setup.js"],
   "moduleNameMapper": {
-    "^@appweaver/(common|core|data|web|redis|bullmq|cron|nodemailer|opentelemetry|realtime|handlebars|sharp|twilio|ai|openai|mcp|testing|cli|client|create)$": "<rootDir>/packages/$1/index",
-    "^@appweaver/(common|core|data|web|redis|bullmq|cron|nodemailer|opentelemetry|realtime|handlebars|sharp|twilio|ai|openai|mcp|testing|cli|client|create)/(.*)$": "<rootDir>/packages/$1/$2"
+    "^@appweaver/(common|core|data|web|redis|bullmq|cron|nodemailer|opentelemetry|realtime|handlebars|sharp|skill|tooling|twilio|ai|openai|mcp|testing|cli|client|create)$": "<rootDir>/packages/$1/index",
+    "^@appweaver/(common|core|data|web|redis|bullmq|cron|nodemailer|opentelemetry|realtime|handlebars|sharp|skill|tooling|twilio|ai|openai|mcp|testing|cli|client|create)/(.*)$": "<rootDir>/packages/$1/$2"
   },
   "testMatch": ["**/*.test.ts"],
   "testPathIgnorePatterns": ["/node_modules/", "/dist/"],

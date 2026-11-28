@@ -33,7 +33,7 @@ import { capitalize } from './string-util';
  */
 export const resourceModelProps: Record<
   string,
-  keyof Partial<Omit<ResourceModel, 'name' | 'config'>>
+  Exclude<keyof ResourceModel, 'name' | 'config' | symbol>
 > = {
   '': 'readModel',
   Single: 'readOneModel',

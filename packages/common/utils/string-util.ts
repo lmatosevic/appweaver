@@ -1,6 +1,5 @@
-import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
-import { DefaultGenerationOptions, generateApiKey } from 'generate-api-key';
 import { plural as pluralize, singular as singularize } from 'pluralize';
 
 /**
@@ -59,14 +58,14 @@ export function randomString(
   let includeUndefined = true;
   for (const [category, include] of Object.entries(config)) {
     if (include) {
-      pool += categories[category];
+      pool += categories[category as keyof typeof categories];
       includeUndefined = false;
     }
   }
 
   if (includeUndefined) {
     for (const [key, value] of Object.entries(categories)) {
-      if (config[key] === undefined) {
+      if (config[key as keyof typeof config] === undefined) {
         pool += value;
       }
     }
@@ -75,43 +74,94 @@ export function randomString(
   return generateToken('string', length, undefined, { pool });
 }
 
+/** The characters of a `string` token by default: letters, digits and `-._~+/`. */
+const DEFAULT_TOKEN_POOL =
+  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~+/';
+
+const BASE62_POOL =
+  '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+/** The options of a `string` token. */
+export type TokenOptions = {
+  /** The characters to draw from, `DEFAULT_TOKEN_POOL` by default */
+  pool?: string;
+};
+
 /**
- * Generates a token based on the specified method, length, and options.
+ * Generates a random token with the cryptographically secure generator of `node:crypto`.
  *
- * @param {'bytes' | 'string' | 'base32' | 'base62' | 'uuidv4' | 'uuidv5'} [method='base62']
- *        The method to use for generating the token. Options include:
- *        - 'bytes': Generates a token using raw bytes.
- *        - 'string': Generates a token as a simple string.
- *        - 'base32': Generates a token encoded in Base32 format.
- *        - 'base62': Generates a token encoded in Base62 format.
- *        - 'uuidv4': Generates a UUID version 4 token.
- *        - 'uuidv5': Generates a UUID version 5 token.
- * @param {number} [length=16]
- *        The length of the token to generate. The default is 16.
- * @param {string} [prefix]
- *        An optional prefix to prepend to the generated token.
- * @param {DefaultGenerationOptions} [options={}]
- *        Additional optional configuration options for token generation.
+ * @param {'bytes' | 'string' | 'base32' | 'base62' | 'uuidv4'} [method='base62']
+ *        The method to use for generating the token:
+ *        - 'bytes': hexadecimal characters of random bytes.
+ *        - 'string': characters drawn from the pool of the options (letters, digits and `-._~+/` by default).
+ *        - 'base32': 16 random bytes in four RFC 4648 Base32 groups separated by dashes; the length is ignored.
+ *        - 'base62': digits and letters.
+ *        - 'uuidv4': a UUID version 4; the length is ignored.
+ * @param {number} [length=32] The length of the token, without its prefix.
+ * @param {string} [prefix] An optional prefix, joined to the token with a dot (`prefix.token`).
+ * @param {TokenOptions} [options={}] The pool of a `string` token.
  * @return {string} The generated token as a string.
  */
 export function generateToken(
-  method:
-    | 'bytes'
-    | 'string'
-    | 'base32'
-    | 'base62'
-    | 'uuidv4'
-    | 'uuidv5' = 'base62',
+  method: 'bytes' | 'string' | 'base32' | 'base62' | 'uuidv4' = 'base62',
   length: number = 32,
   prefix?: string,
-  options: DefaultGenerationOptions = {}
+  options: TokenOptions = {}
 ): string {
-  return generateApiKey({
-    method,
-    length,
-    prefix,
-    ...options
-  }) as string;
+  const token = tokenOf(method, length, options);
+  return prefix ? `${prefix}.${token}` : token;
+}
+
+/** The token of a method of `generateToken`, without its prefix. */
+function tokenOf(
+  method: 'bytes' | 'string' | 'base32' | 'base62' | 'uuidv4',
+  length: number,
+  options: TokenOptions
+): string {
+  switch (method) {
+    case 'bytes':
+      return randomBytes(Math.ceil(length / 2))
+        .toString('hex')
+        .slice(0, length);
+    case 'string':
+      return randomChars(options.pool ?? DEFAULT_TOKEN_POOL, length);
+    case 'base32':
+      return [0, 1, 2, 3].map(() => base32(randomBytes(4))).join('-');
+    case 'uuidv4':
+      return randomUUID();
+    default:
+      return randomChars(BASE62_POOL, length);
+  }
+}
+
+/** Draws each character from the pool uniformly, with `randomInt` (no modulo bias). */
+function randomChars(pool: string, length: number): string {
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += pool[randomInt(pool.length)];
+  }
+  return result;
+}
+
+/** Encodes bytes as RFC 4648 Base32, without padding. */
+function base32(bytes: Buffer): string {
+  let bits = 0;
+  let value = 0;
+  let output = '';
+  for (const byte of bytes) {
+    value = ((value << 8) | byte) & 0xffff;
+    bits += 8;
+    while (bits >= 5) {
+      output += BASE32_ALPHABET[(value >>> (bits - 5)) & 31];
+      bits -= 5;
+    }
+  }
+  if (bits > 0) {
+    output += BASE32_ALPHABET[(value << (5 - bits)) & 31];
+  }
+  return output;
 }
 
 /**

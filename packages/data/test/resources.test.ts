@@ -31,7 +31,10 @@ describe('core resources barrel', () => {
     modelNames = exported.filter(isResourceModel).map((model) => model.name);
     serviceNames = exported
       .filter(isResourceService)
-      .map((service) => service[RESOURCE_NAME]);
+      .map(
+        (service) =>
+          (service as unknown as Record<symbol, string>)[RESOURCE_NAME]
+      );
   });
 
   afterAll(() => {

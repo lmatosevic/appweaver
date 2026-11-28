@@ -105,7 +105,7 @@ describe('File versions', () => {
     );
     const { accessToken } = await inject(AuthService).generateAuthTokens(user);
     auth = { authorization: `Bearer ${accessToken}` };
-    authorId = user.id;
+    authorId = user.id as number;
   }, 30_000);
 
   afterAll(async () => {

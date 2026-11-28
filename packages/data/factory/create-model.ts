@@ -1,4 +1,4 @@
-import { Kind, TObject, TSchema, Type } from '@sinclair/typebox';
+import { Kind, TObject, TProperties, TSchema, Type } from '@sinclair/typebox';
 import {
   AnyJson,
   AuditFields,
@@ -35,7 +35,8 @@ import {
   GeoConfig,
   geoColumns,
   distanceFieldName,
-  parseDuration
+  parseDuration,
+  ResourceMarks
 } from '@appweaver/common';
 import { context } from '@appweaver/core/internal';
 import { define } from '@appweaver/core';
@@ -426,7 +427,7 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
 
   for (const value of Object.values(resourceModel)) {
     if (isPlainObject(value)) {
-      value[RESOURCE_NAME] = name;
+      (value as ResourceMarks)[RESOURCE_NAME] = name;
     }
   }
 
@@ -895,7 +896,7 @@ function relationInputProperties<T extends TObject>(
       }
 
       return acc;
-    }, {})
+    }, {} as TProperties)
   });
 }
 
@@ -949,7 +950,7 @@ function relationOutputProperties<T extends TObject>(
       }
 
       return acc;
-    }, {})
+    }, {} as TProperties)
   });
 }
 

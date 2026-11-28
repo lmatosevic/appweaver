@@ -97,7 +97,7 @@ export async function generateClient(
 
   for (const [path, item] of Object.entries(schemaObject.paths || {})) {
     // Skip object references
-    if (item['$ref']) {
+    if ('$ref' in item) {
       continue;
     }
 

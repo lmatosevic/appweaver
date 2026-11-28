@@ -2,7 +2,6 @@ import path from 'node:path';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import { glob } from 'glob';
-import { register } from 'ts-node';
 import {
   hasGeo,
   isResourceModel,
@@ -57,6 +56,21 @@ export async function isModulePackage(): Promise<boolean> {
   }
 }
 
+/** Whether the TypeScript loader of `tsx` is registered for the `require` of this process. */
+let loaderRegistered = false;
+
+/**
+ * Registers the TypeScript loader of `tsx` once, so the `require` of the project's sources compiles them (to CommonJS,
+ * with the `paths` of the project's `tsconfig.json`), without type checking.
+ */
+async function registerTypeScriptLoader(): Promise<void> {
+  if (!loaderRegistered) {
+    const { register } = await import('tsx/cjs/api');
+    register();
+    loaderRegistered = true;
+  }
+}
+
 /**
  * Discovers the enabled modules of the project from its sources, compiled by the registered TypeScript loader. The
  * discovery registers the config sections the modules list in their manifests.
@@ -64,12 +78,7 @@ export async function isModulePackage(): Promise<boolean> {
  * @return {Promise<EnabledModule[]>} The enabled modules, in their load order.
  */
 export async function discoverProjectModules(): Promise<EnabledModule[]> {
-  register({
-    transpileOnly: true,
-    compilerOptions: {
-      module: 'CommonJS'
-    }
-  });
+  await registerTypeScriptLoader();
 
   return discoverModules({
     scanPath: path.resolve(appConfig.SOURCE_PATH),

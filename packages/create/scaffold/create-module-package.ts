@@ -92,15 +92,8 @@ export async function createModulePackage(
         : `Select its driver with \`"${contract}": { "provider": "${shortName}" }\`, or leave \`auto\`.`,
     VERSION: frameworkVersion,
     TYPEBOX_VERSION: packageVersion('@sinclair/typebox'),
-    DEV_DEPENDENCIES: [
-      '@sinclair/typebox',
-      '@swc/core',
-      '@swc/jest',
-      '@types/jest',
-      '@types/node',
-      'jest',
-      'typescript'
-    ]
+    // Jest, SWC and the types of Node and Jest come with @appweaver/tooling
+    DEV_DEPENDENCIES: ['@sinclair/typebox', 'typescript']
       .map((name) => `    "${name}": "${packageVersion(name)}"`)
       .join(',\n')
   };

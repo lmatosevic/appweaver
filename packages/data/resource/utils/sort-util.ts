@@ -342,7 +342,10 @@ function isScalarField(model: ResourceModel, field: string): boolean {
   if (field in auditFields) {
     // The createdAt field of a model that does not audit it is still accepted,
     // so the default sort value does not have to be adjusted per model
-    return auditFields[field] === true || field === 'createdAt';
+    return (
+      auditFields[field as keyof typeof auditFields] === true ||
+      field === 'createdAt'
+    );
   }
 
   const scalar = model.config.scalars?.[field];

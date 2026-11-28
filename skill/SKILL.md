@@ -43,6 +43,8 @@ The basic file structure of the Appweaver project:
 - `appweaver.json` - central library configuration file, with the overrides of each environment under `environments`
 - `appweaver.{env}.json` - environment specific configuration files, overriding the `environments` section (optional)
 - `Dockerfile` - the dockerfile used for building a docker image for deploying the application (`docker` module)
+- `tsconfig.json` - TypeScript 5.9 with `strict`, so `noImplicitAny` is on: type every parameter, and an object built
+  key by key as `Record<string, unknown>`
 
 **IMPORTANT:** `{env}` is controlled by `NODE_ENV` environment variable set before any command is executed (can also be
 set in the `.env` file). The environment names are `test`, `local`, `dev`, `staging`, `qa`, and `prod`; `development`
@@ -1238,9 +1240,12 @@ weaver upgrade --force                         # force upgrade despite peerDepen
 weaver upgrade --no-companions                 # skip the companion packages (prisma, typebox, typescript, …)
 weaver upgrade --tooling                       # also upgrade the tooling packages (eslint, jest, prettier, …)
 weaver upgrade --dry-run                       # print the upgrades without installing them
+weaver skill sync                              # copy the installed @appweaver/skill into the agent directories
 ```
 
-Besides the `@appweaver/*` packages, `weaver upgrade` bumps the companion packages the project already has (Prisma
+After the install, `weaver upgrade` runs `weaver skill sync`, which copies the skill of the project's `@appweaver/skill`
+dev dependency into `skills/appweaver/` of every agent directory (`.claude`, `.agents`, `.github`, …); run it alone after
+installing the package by hand. Besides the `@appweaver/*` packages, `weaver upgrade` bumps the companion packages the project already has (Prisma
 and its adapters, TypeBox, TypeScript) to the exact versions the target release is built with. It never adds missing
 packages or downgrades newer ones. The libraries of the drivers (BullMQ, Cron, Handlebars, IoRedis, Nodemailer, Sharp)
 come with their `@appweaver/*` driver packages. Run `weaver generate` afterwards when Prisma is upgraded.
@@ -1291,9 +1296,14 @@ storage|mailer|sms|none`, i.e. a Postmark mailer or a Vonage SMS sender (see
 ### Run tests
 
 ```sh
-npm run test  # unit tests with coverage
-npm run e2e   # e2e tests
+npm run test                 # weaver test --coverage: the unit tests with coverage
+npm run e2e                  # weaver test --e2e: the e2e tests
+weaver test test/unit/a.test.ts --watch   # one file, again on every change
 ```
+
+`weaver test` runs the Jest of the `@appweaver/tooling` dev dependency on Node (the `"preset": "@appweaver/tooling"` of
+`jest.config.json`: SWC, the JUnit report of `reports/`), and `bun test` on Bun. The lint, the format and the test tools
+come with `@appweaver/tooling`: never add ESLint, Prettier, Jest or SWC to the project yourself.
 
 Test files must use the **`.test.ts`** extension. Place unit tests in `test/unit/` and end-to-end tests in `test/e2e/`,
 naming each file after its module. Add or update tests whenever a feature is added or existing behaviour changes.
@@ -1332,14 +1342,22 @@ stop and ask the user to run the command.
 ### Format code
 
 ```sh
-npm run format  # prettier --write "./**/*.ts"
+npm run format          # weaver format: prettier --write "./**/*.ts"
+weaver format --check   # check without writing
 ```
+
+The Prettier config is `"prettier": "@appweaver/tooling/prettier"` of `package.json`.
 
 ### Lint code
 
 ```sh
-npm run lint  # eslint "./**/*.ts"
+npm run lint        # weaver lint: eslint .
+weaver lint --fix   # fix what can be fixed
 ```
+
+`eslint.config.mjs` exports `eslintConfig({ rootDir: import.meta.dirname })` of `@appweaver/tooling/eslint`, the
+recommended rules of ESLint 10 and the type checked typescript-eslint; extend the array it returns with the rules of the
+project.
 
 ## References
 

@@ -21,8 +21,7 @@
     "create-appweaver": "./create.js"
   },
   "files": [
-    "templates",
-    "../../skill"
+    "templates"
   ],
   "rootFields": [
     "scaffoldDependencies"
@@ -49,6 +48,7 @@
     "create-appweaver": "node ./dist/create.js"
   },
   "dependencies": {
+    "@appweaver/skill": "^2.10.1",
     "commander": "15.0.0",
     "yaml": "2.9.0"
   }

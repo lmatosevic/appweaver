@@ -1,6 +1,7 @@
 import { AuthUser } from './auth';
 import { File } from './file';
 import { ModelName } from './registry';
+import type { ResourceMarks } from './resource';
 
 export type ActionType =
   | 'find'
@@ -82,7 +83,7 @@ export type ReadRestrictions = Record<string, any> | null | undefined | void;
 /** The data a policy merges into the written data, or nothing to merge none. */
 export type WriteRestrictions = Record<string, any> | null | undefined | void;
 
-export type ResourcePolicyConfig<T = any, U = AuthUser> = {
+export type ResourcePolicyConfig<T = any, U = AuthUser> = ResourceMarks & {
   /** Resource model name */
   modelName: ModelName;
   /** Return false to deny the action for the given resource */

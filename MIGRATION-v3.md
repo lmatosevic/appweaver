@@ -17,8 +17,8 @@ startup.
 | Section                                                                     | CR           | Affects                          | Status  |
 |-----------------------------------------------------------------------------|--------------|----------------------------------|---------|
 | [1. Before you start](#1-before-you-start)                                  | -            | Everyone                         | pending |
-| [2. TypeScript 7.1 and the project config](#2-typescript-71-and-the-project-config) | V3-TOOL-01 | Every project               | pending |
-| [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)         | V3-TOOL-05   | Every scaffolded project         | pending |
+| [2. The project config](#2-the-project-config)                              | V3-TOOL-01   | Every project                    | done    |
+| [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)         | V3-TOOL-05   | Every scaffolded project         | done    |
 | [4. TypeBox 1.x](#4-typebox-1x)                                             | V3-TOOL-06   | Schemas, config sections, routes | pending |
 | [5. Durations and sizes](#5-durations-and-sizes)                            | V3-CONV-01   | `appweaver.json`, `.env`         | pending |
 | [6. Exposure: `actions` everywhere](#6-exposure-actions-everywhere)         | V3-CONV-02   | `createRoutes`, bulk env flags   | pending |
@@ -35,6 +35,8 @@ startup.
 | [17. Generated client](#17-generated-client)                                | V3-CLIENT-01, V3-CLIENT-03 | `weaver-client generate` output | pending |
 | [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails) | V3-SEC-05 | OAuth2 providers           | done    |
 | [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101) | V3-SEC-01..04 | Filters, body size, CSV export | done |
+| [20. Smaller API changes](#20-smaller-api-changes)                          | per CR       | The utilities named              | done    |
+| [21. The skill package](#21-the-skill-package)                              | V3-TOOL-08   | Projects with agent files        | done    |
 
 Each section follows the same layout: **What changed**, **Who is affected**, **Before**, **After**, **Steps**.
 
@@ -46,15 +48,92 @@ _pending_ (V3-DOC-05): upgrade to the latest 2.10.x first and fix every startup 
 for every deployed environment; back up the database. Then apply the sections below in order, running `weaver config
 check` and the tests after each one.
 
-## 2. TypeScript 7.1 and the project config
+## 2. The project config
 
-_pending_ (V3-TOOL-01, D12): TypeScript 7.1 for the project; `baseUrl` removed from `tsconfig.json` (the `paths`
-relative to the config), `types` and `typeRoots` listed explicitly, the decorator flags removed, `noImplicitAny: true`.
+**What changed** (V3-TOOL-01, F30, F31): the generated projects drop the decorator flags (Appweaver uses no decorators)
+and turn `noImplicitAny` on, the default of `strict`. `weaver generate` loads the models with `tsx` instead of
+`ts-node`, which applies the `paths` of the project's `tsconfig.json`. TypeScript stays 5.9 in v3 (D12).
+
+**Who is affected**: every project.
+
+**Before** (`tsconfig.json`):
+
+```json
+{
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": false
+  }
+}
+```
+
+**After**: the three keys removed.
+
+**Steps**: remove `emitDecoratorMetadata`, `experimentalDecorators` and `noImplicitAny: false`, then type the
+parameters and the indexed objects `tsc` reports (`Record<string, unknown>` for an object built key by key). Keeping
+`noImplicitAny: false` in a project still works.
 
 ## 3. Lint, format and test tooling
 
-_pending_ (V3-TOOL-05, D15): the 17 tooling packages of a scaffolded project replaced by the `@appweaver/tooling` dev
-dependency, ESLint 10, `weaver lint`, `weaver format` and `weaver test`.
+**What changed** (V3-TOOL-05, D15): the lint, format and test tools of a project (ESLint 10, typescript-eslint,
+Prettier, Jest, SWC, jest-junit and their types) are the dependencies of the `@appweaver/tooling` dev dependency, which
+carries their configs too. `weaver lint`, `weaver format` and `weaver test` run them. ESLint 10 replaces ESLint 9.
+
+**Who is affected**: every project scaffolded by `npm create @appweaver` (Bun projects keep `bun test`).
+
+**Before** (`package.json`):
+
+```json
+{
+  "scripts": {
+    "test": "jest --coverage",
+    "e2e": "jest --config ./test/e2e/jest.e2e-config.json",
+    "format": "prettier --write \"./**/*.ts\"",
+    "lint": "eslint \"./**/*.ts\""
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.2",
+    "@swc/core": "1.15.41",
+    "eslint": "9.39.2",
+    "jest": "30.5.2",
+    "typescript-eslint": "8.73.0"
+  }
+}
+```
+
+**After**:
+
+```json
+{
+  "scripts": {
+    "test": "weaver test --coverage",
+    "e2e": "weaver test --e2e",
+    "format": "weaver format",
+    "lint": "weaver lint"
+  },
+  "prettier": "@appweaver/tooling/prettier",
+  "devDependencies": {
+    "@appweaver/tooling": "3.0.0",
+    "typescript": "5.9.3"
+  }
+}
+```
+
+**Steps**:
+
+1. Remove the 17 tooling packages from the `devDependencies` (`@eslint/js`, `@swc/core`, `@swc/jest`, `@types/jest`,
+   `@types/node`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `eslint`, `eslint-config-prettier`,
+   `eslint-plugin-jest`, `eslint-plugin-prettier`, `globals`, `jest`, `jest-junit`, `prettier`, `typescript-eslint`;
+   keep `@types/bun` on Bun) and add `@appweaver/tooling` at the framework version.
+2. Replace `eslint.config.mjs` with
+   `import { eslintConfig } from '@appweaver/tooling/eslint'; export default eslintConfig({ rootDir: import.meta.dirname });`
+   (`runtime: 'bun'` on Bun), spreading the array to add the rules of the project.
+3. Replace `.prettierrc` with `"prettier": "@appweaver/tooling/prettier"` in `package.json`.
+4. Replace the `transform`, `reporters` and `coverage*` keys of `jest.config.json` and `test/e2e/jest.e2e-config.json`
+   with `"preset": "@appweaver/tooling"`, keeping `rootDir`, `moduleNameMapper`, `testMatch`, the global setup and
+   `maxWorkers`; delete `swc.config.json`.
+5. Use the scripts above.
 
 ## 4. TypeBox 1.x
 
@@ -176,3 +255,22 @@ Released in 2.10.1 (phase 1a); listed here for a project upgrading from an older
 - The fields a relation's `output.omit` leaves out can no longer be filtered or sorted on (V3-SEC-02).
 - A cached response replays only an allow list of headers (V3-SEC-03).
 - The CSV export escapes the cells starting a formula with `'` (V3-SEC-04).
+
+## 20. Smaller API changes
+
+- **`generateToken`** of `@appweaver/common` (V3-SEC-06): generated with `node:crypto` instead of `generate-api-key`,
+  whose `string` tokens (the API keys of `randomString`) came from a generator that is not cryptographically secure. The
+  `uuidv5` method is removed, and the options are `TokenOptions` (`{ pool }`) instead of the `DefaultGenerationOptions`
+  of `generate-api-key`. A `base32` token is four groups of seven RFC 4648 characters separated by dashes.
+
+## 21. The skill package
+
+**What changed** (V3-TOOL-08, D18): the skill files are the `@appweaver/skill` package, released with the framework,
+instead of files bundled in `@appweaver/cli`. `weaver skill sync` copies them into the agent directories, and
+`weaver upgrade` runs it after the install.
+
+**Who is affected**: projects with agent files (`.claude/skills/appweaver`, `.agents/skills/appweaver`, ...).
+
+**Steps**: `npm install --save-dev @appweaver/skill`, then `npx weaver skill sync`. A project created by
+`npm create @appweaver` with an agent has it already.
+

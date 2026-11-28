@@ -14,11 +14,13 @@ const packages = [
   'nodemailer',
   'handlebars',
   'sharp',
+  'skill',
   'twilio',
   'opentelemetry',
   'realtime',
   'mcp',
   'testing',
+  'tooling',
   'create',
   'cli',
   'client'

@@ -137,7 +137,9 @@ export const apiKeyAuth = fastifyPlugin(async (server: Server) => {
     }
 
     const authModelField = uncapitalize(resourceAuthModel()!.name);
-    const owner = await authService.findById(apiKey[`${authModelField}Id`]);
+    const owner = await authService.findById(
+      (apiKey as Record<string, any>)[`${authModelField}Id`]
+    );
     // The key acts with the roles and permissions of its scope its owner still holds
     const authUser = owner ? scopeAuthUser(owner, apiKey) : owner;
 

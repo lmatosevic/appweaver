@@ -10,7 +10,7 @@ describe('Post visibility', () => {
   let app: Application;
   let posts: any;
 
-  const query = (body: unknown) =>
+  const query = (body: object) =>
     app.server.inject({
       method: 'POST',
       url: '/api/posts/query',

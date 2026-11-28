@@ -8,7 +8,7 @@ import {
   resolveScaffoldUpdates
 } from './scaffold-dependencies';
 import { upgradePackages } from './upgrade-packages';
-import { upgradeSkillFiles } from './upgrade-skill';
+import { syncProjectSkill } from '../skill/sync-skill';
 
 /**
  * Registers the `upgrade` command, upgrading the Appweaver packages and their companion packages.
@@ -163,7 +163,7 @@ export function upgradeCommand(program: Command): void {
 
       if (status === 0) {
         if (updateSkill) {
-          await upgradeSkillFiles(quiet);
+          await syncProjectSkill(projectDir, { quiet });
         }
         console.log(`Successfully upgraded packages:`);
         printUpdates(updates);

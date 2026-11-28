@@ -24,6 +24,7 @@
     "@appweaver/common": "{{VERSION}}",
     "@appweaver/core": "{{VERSION}}",
     "@appweaver/testing": "{{VERSION}}",
+    "@appweaver/tooling": "{{VERSION}}",
 {{DEV_DEPENDENCIES}}
   }
 }

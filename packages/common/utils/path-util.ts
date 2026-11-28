@@ -57,7 +57,7 @@ export function sanitizePath(filePath: string): string {
 export function isTypeScriptRuntime(
   mainPath: string = require.main?.filename || process.argv[1]
 ): boolean {
-  if (typeof globalThis['Bun'] === 'undefined') {
+  if (!('Bun' in globalThis)) {
     return false;
   }
 

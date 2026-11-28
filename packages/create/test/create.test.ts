@@ -17,7 +17,6 @@ jest.mock('commander', () => mockCommander);
 jest.mock('../scaffold/template-files', () => mockTemplateFiles);
 
 const packageRoot = path.join(__dirname, '..');
-const skillDir = path.join(packageRoot, 'skill');
 const cliVersion = JSON.parse(
   fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8')
 ).version;
@@ -56,6 +55,7 @@ describe('scaffoldDependencies', () => {
       const pkg = JSON.parse(
         fs.readFileSync(path.join(repoRoot, file), 'utf8')
       );
+      const expected = (name: string) => rootVersions[name];
       return [
         'dependencies',
         'devDependencies',
@@ -66,11 +66,11 @@ describe('scaffoldDependencies', () => {
             ([name, version]) =>
               !name.startsWith('@appweaver/') &&
               rootVersions[name] &&
-              version !== rootVersions[name]
+              version !== expected(name)
           )
           .map(
             ([name, version]) =>
-              `${file} ${field} ${name}@${version}, root ${rootVersions[name]}`
+              `${file} ${field} ${name}@${version}, root ${expected(name)}`
           )
       );
     });
@@ -85,7 +85,6 @@ describe('create', () => {
   let root: string;
   let originalCwd: string;
   let originalArgv: string[];
-  let createdSkillDir = false;
 
   beforeEach(() => {
     originalCwd = process.cwd();
@@ -100,30 +99,8 @@ describe('create', () => {
     process.chdir(originalCwd);
     process.argv = originalArgv;
     fs.rmSync(tempDir, { recursive: true, force: true });
-    if (createdSkillDir) {
-      fs.rmSync(skillDir, { recursive: true, force: true });
-      createdSkillDir = false;
-    }
     jest.restoreAllMocks();
   });
-
-  /**
-   * The skill directory is copied next to the compiled CLI during the build, so
-   * it is created temporarily here to exercise the agent files generation.
-   */
-  const createSkillDir = () => {
-    if (fs.existsSync(skillDir)) {
-      throw new Error(`Unexpected existing skill directory: ${skillDir}`);
-    }
-    fs.mkdirSync(skillDir, { recursive: true });
-    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), '# Skill', 'utf8');
-    fs.writeFileSync(
-      path.join(skillDir, 'GUIDELINES.md'),
-      '# Guidelines',
-      'utf8'
-    );
-    createdSkillDir = true;
-  };
 
   /** Runs the CLI with the given arguments and waits until it is done. */
   const run = (...args: string[]): Promise<string[]> =>
@@ -303,8 +280,10 @@ describe('create', () => {
     });
 
     test('keeps the files of the selected runtime', () => {
-      expect(exists('my-app', 'jest.config.json')).toBe(true);
-      expect(exists('my-app', 'swc.config.json')).toBe(true);
+      expect(readJson('my-app', 'jest.config.json').preset).toBe(
+        '@appweaver/tooling'
+      );
+      expect(exists('my-app', 'swc.config.json')).toBe(false);
       expect(exists('my-app', 'test', 'e2e', 'jest.e2e-config.json')).toBe(
         true
       );
@@ -1144,23 +1123,35 @@ describe('create', () => {
       expect(config).not.toHaveProperty('cache');
     });
 
-    test('runs only the test files with the Bun unit tests', async () => {
+    test('runs the tests, the lint and the format with weaver on Bun', async () => {
       await run('MyApp', '--no-install', '--agent', 'none', '--bun');
 
-      // A path given after --coverage would be run as a test file
-      expect(readJson('my-app', 'package.json').scripts.test).toBe(
-        'bun test ./test/unit --coverage --reporter=junit --reporter-outfile=./reports/junit.xml'
-      );
+      const { scripts, prettier } = readJson('my-app', 'package.json');
+      expect(scripts).toMatchObject({
+        test: 'weaver test --coverage',
+        lint: 'weaver lint',
+        format: 'weaver format'
+      });
+      expect(prettier).toBe('@appweaver/tooling/prettier');
+      expect(read('my-app', 'eslint.config.mjs')).toContain("runtime: 'bun'");
     });
 
-    test('installs the Jest tooling for the Node runtime', async () => {
+    test('installs the tooling package for the Node runtime', async () => {
       await run('MyApp', '--no-install', '--agent', 'none');
 
-      const { devDependencies } = readJson('my-app', 'package.json');
-      expect(devDependencies).toHaveProperty('jest');
-      expect(devDependencies).toHaveProperty('@swc/jest');
-      expect(devDependencies).toHaveProperty('typescript');
-      expect(devDependencies).not.toHaveProperty('@types/bun');
+      const { devDependencies, scripts } = readJson('my-app', 'package.json');
+      expect(devDependencies).toEqual({
+        '@appweaver/tooling': cliVersion,
+        typescript: rootPkg.scaffoldDependencies.companion.typescript
+      });
+      expect(scripts).toMatchObject({
+        test: 'weaver test --coverage',
+        e2e: 'weaver test --e2e'
+      });
+      expect(read('my-app', 'eslint.config.mjs')).toContain(
+        "from '@appweaver/tooling/eslint'"
+      );
+      expect(exists('my-app', '.prettierrc')).toBe(false);
     });
 
     test('installs the Bun types instead of Jest for the Bun runtime', async () => {
@@ -1204,8 +1195,6 @@ describe('create', () => {
 
   describe('agent files', () => {
     test('creates the Claude guidelines and the skill files', async () => {
-      createSkillDir();
-
       await run('MyApp', 'My description', '--no-install', '--agent', 'claude');
 
       expect(
@@ -1214,6 +1203,10 @@ describe('create', () => {
       expect(
         exists('my-app', '.claude', 'skills', 'appweaver', 'GUIDELINES.md')
       ).toBe(true);
+
+      expect(
+        readJson('my-app', 'package.json').devDependencies['@appweaver/skill']
+      ).toBe(cliVersion);
 
       const guidelines = read('my-app', 'CLAUDE.md');
       expect(guidelines).toContain('# MyApp');
@@ -1225,8 +1218,6 @@ describe('create', () => {
     });
 
     test('creates a markdown reference for the other agents', async () => {
-      createSkillDir();
-
       await run('MyApp', '--no-install', '--agent', 'codex');
 
       expect(
@@ -1239,8 +1230,6 @@ describe('create', () => {
     });
 
     test('uses the .github directory for Copilot', async () => {
-      createSkillDir();
-
       await run('MyApp', '--no-install', '--agent', 'copilot');
 
       expect(
@@ -1257,6 +1246,9 @@ describe('create', () => {
       expect(exists('my-app', 'CLAUDE.md')).toBe(false);
       expect(exists('my-app', 'AGENTS.md')).toBe(false);
       expect(exists('my-app', '.claude')).toBe(false);
+      expect(
+        readJson('my-app', 'package.json').devDependencies['@appweaver/skill']
+      ).toBeUndefined();
     });
   });
 

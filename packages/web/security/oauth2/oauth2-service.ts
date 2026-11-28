@@ -56,8 +56,9 @@ export class OAuth2Service {
     userInfo: UserInfo,
     authUser: AuthUser | null
   ): Promise<void> {
-    const serviceConfig: { checkOAuth2User?: CheckOAuth2UserFn } =
-      this._authUserService[CONFIG];
+    const serviceConfig = this._authUserService[CONFIG] as {
+      checkOAuth2User?: CheckOAuth2UserFn;
+    };
 
     if (!serviceConfig.checkOAuth2User) {
       return;
@@ -258,6 +259,8 @@ export class OAuth2Service {
   private connectedAccountOwnerId(
     account: ConnectedAccount
   ): ResourceId | undefined {
-    return account[`${uncapitalize(this._authUserService.modelName)}Id`];
+    return (account as Record<string, any>)[
+      `${uncapitalize(this._authUserService.modelName)}Id`
+    ];
   }
 }

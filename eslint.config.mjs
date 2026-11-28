@@ -67,7 +67,10 @@ export default tsEslint.config(
   },
   {
     // The contract suites export the tests other packages run
-    files: ['packages/testing/contracts/**/*.ts'],
+    files: [
+      'packages/testing/contracts/**/*.ts',
+      'packages/*/test/**/support/**/*.ts'
+    ],
     rules: {
       'jest/no-export': 'off'
     }

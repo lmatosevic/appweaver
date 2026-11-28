@@ -55,22 +55,26 @@ export async function generateTypes(
     defaultNonNullable: false,
     transformProperty: (property, schemaObject) => {
       const validationTags: string[] = [];
+      const constraints = schemaObject as unknown as Record<
+        string,
+        string | number | undefined
+      >;
 
       // Add validation JSDoc tags based on schema constraints
-      if (schemaObject['minLength'] !== undefined) {
-        validationTags.push(`@minLength ${schemaObject['minLength']}`);
+      if (constraints['minLength'] !== undefined) {
+        validationTags.push(`@minLength ${constraints['minLength']}`);
       }
-      if (schemaObject['maxLength'] !== undefined) {
-        validationTags.push(`@maxLength ${schemaObject['maxLength']}`);
+      if (constraints['maxLength'] !== undefined) {
+        validationTags.push(`@maxLength ${constraints['maxLength']}`);
       }
-      if (schemaObject['minimum'] !== undefined) {
-        validationTags.push(`@minimum ${schemaObject['minimum']}`);
+      if (constraints['minimum'] !== undefined) {
+        validationTags.push(`@minimum ${constraints['minimum']}`);
       }
-      if (schemaObject['maximum'] !== undefined) {
-        validationTags.push(`@maximum ${schemaObject['maximum']}`);
+      if (constraints['maximum'] !== undefined) {
+        validationTags.push(`@maximum ${constraints['maximum']}`);
       }
-      if (schemaObject['pattern'] !== undefined) {
-        validationTags.push(`@pattern ${schemaObject['pattern']}`);
+      if (constraints['pattern'] !== undefined) {
+        validationTags.push(`@pattern ${constraints['pattern']}`);
       }
       if (schemaObject['format'] !== undefined) {
         validationTags.push(`@format ${schemaObject['format']}`);

@@ -53,7 +53,13 @@
       "path": "./sharp/tsconfig.build.json"
     },
     {
+      "path": "./skill/tsconfig.build.json"
+    },
+    {
       "path": "./testing/tsconfig.build.json"
+    },
+    {
+      "path": "./tooling/tsconfig.build.json"
     },
     {
       "path": "./twilio/tsconfig.build.json"

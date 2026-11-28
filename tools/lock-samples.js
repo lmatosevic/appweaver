@@ -29,6 +29,7 @@ const lockedPackages = [
   'nodemailer',
   'handlebars',
   'sharp',
+  'skill',
   'twilio',
   'opentelemetry',
   'realtime',
@@ -36,6 +37,7 @@ const lockedPackages = [
   'openai',
   'mcp',
   'testing',
+  'tooling',
   'cli',
   'client',
   'create'

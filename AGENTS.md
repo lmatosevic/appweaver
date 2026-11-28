@@ -4,6 +4,10 @@
 
 The project is a TypeScript monorepo using `tsc -b` for builds.
 
+- **TypeScript**: TypeScript 5.9 for the monorepo, the published packages and the scaffolded projects, v3 included
+  (`PLAN-v3.md`, D12): the tools needing the compiler API (typescript-eslint, `openapi-typescript` of the client
+  generator, madge) do not support TypeScript 7. `noImplicitAny` is on (from `strict`): an object built key by key is
+  typed `Record<string, unknown>`, and a symbol a factory sets is a key of `ResourceMarks`.
 - **Initial Setup**: Run `npm install` to install all dependencies.
 - **Building**: Run `npm run build` from the root. This performs:
     - `prebuild`: Removes the `dist` folders of all packages (`clean:packages`).
@@ -229,6 +233,8 @@ on it:
 | `@appweaver/openai`                                               | The `openai` AI driver, for OpenAI and every OpenAI-compatible server (Ollama, OpenRouter)   |
 | `@appweaver/opentelemetry`                                        | The OpenTelemetry SDK exporting the traces, metrics and logs of the instrumentation          |
 | `@appweaver/testing`                                              | The test helpers shared by the packages                                                      |
+| `@appweaver/skill`                                                | The AI agent skill (`skill/` of the repository), synced into a project by `weaver skill sync`  |
+| `@appweaver/tooling`                                              | The lint, format and test tools of a project (ESLint 10, Prettier, Jest with SWC) and their configs |
 
 The directories moved as they were, so a file keeps its path within its package (`core/server/register-route.ts` is
 now `web/server/register-route.ts`). `@appweaver/common` and `@appweaver/core` are peer dependencies of every other
@@ -683,8 +689,9 @@ both variants render the same text.
 
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
-(packages the framework uses as a peer: Prisma and its driver adapters, TypeBox, TypeScript) and `tooling` (lint and
-test setup). The base template receives them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}` variables, and
+(packages the framework uses as a peer: Prisma and its driver adapters, TypeBox, TypeScript) and `tooling`
+(`@types/bun`, since the lint, format and test tools of a project are the dependencies of `@appweaver/tooling`, whose
+versions equal the root ones). The base template receives them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}` variables, and
 the modules write theirs into `package.json`, so bump versions there, not in the templates. Keep the versions equal
 to the root `dependencies` and `devDependencies`, which a test checks. The libraries of the drivers (BullMQ, Cron,
 Handlebars, IoRedis, Nodemailer, Sharp) are not among them, since they are dependencies of the driver packages.
@@ -1036,10 +1043,24 @@ weaver start [options]
 
 ---
 
+### `weaver lint` and `weaver format`
+
+```
+weaver lint [--fix] [patterns...]
+weaver format [--check] [patterns...]
+```
+
+Run the ESLint (`.` by default) and the Prettier (`./**/*.ts` by default, `--write` unless `--check`) of the project's
+`@appweaver/tooling`, resolved by its `toolBin` from the package itself, with `node` (`tooling/run-tool.ts`).
+
+---
+
 ### `weaver test` (alias: `t`)
 
-Has following subcommands for setting up the test environment: `setup`, `reset`, and `teardown`. All of them must be
-run with `NODE_ENV=test`.
+Without a subcommand, runs the tests: the Jest of `@appweaver/tooling` on Node (`--e2e` with
+`test/e2e/jest.e2e-config.json` and the JUnit report `e2e.xml`, `--coverage`, `-w, --watch`, the patterns passed on),
+`bun test ./test/unit` or `./test/e2e` on Bun (`tooling/tooling-commands.ts`). Its subcommands set up the test
+environment: `setup`, `reset`, and `teardown`, all run with `NODE_ENV=test`.
 
 #### `weaver test setup`
 
@@ -1095,6 +1116,23 @@ weaver test teardown [options]
 | `--verbose`        | Verbose output      | false    |
 
 The test database of a server (PostgreSQL, MySQL, SQL Server) is kept, since `weaver test setup` resets it.
+
+---
+
+### `weaver skill`
+
+Manage the AI agent skill files of the project.
+
+```
+weaver skill sync [--dry-run]
+```
+
+`sync` copies the skill of the project's `@appweaver/skill` dev dependency (`SKILL.md`, `GUIDELINES.md` and
+`references/`) into the `skills/appweaver/` of every agent directory the project has (`.claude`, `.junie`, `.kiro`,
+`.pi`, `.github`, `.opencode`, `.agents`), replacing the files of the previous version (`syncSkill` of
+`@appweaver/skill`). The project's own `AGENTS.md` or `CLAUDE.md` is never touched. Without the package it exits with 1,
+naming the install command. `weaver upgrade` runs it after the packages are installed, unless `--no-skill`, and
+`npm create @appweaver` adds the package with the agent files of `--agent`.
 
 ---
 
@@ -1411,7 +1449,7 @@ This runs the following steps automatically:
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
    `common`, `ai`, `openai`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `opentelemetry`,
-   `realtime`, `mcp`, `handlebars`, `sharp`, `testing`, `cli`, `client` and `create`.
+   `realtime`, `mcp`, `handlebars`, `sharp`, `skill`, `testing`, `tooling`, `cli`, `client` and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
@@ -1435,7 +1473,9 @@ This runs the following steps automatically:
     cd packages/mcp/dist        && npm publish
     cd packages/handlebars/dist && npm publish
     cd packages/sharp/dist      && npm publish
+    cd packages/skill/dist      && npm publish
     cd packages/testing/dist    && npm publish
+    cd packages/tooling/dist    && npm publish
     cd packages/create/dist     && npm publish
     cd packages/cli/dist        && npm publish
     cd packages/client/dist     && npm publish
@@ -1483,15 +1523,17 @@ or pull request descriptions: semantic-release copies the commit messages into `
 
 The [SKILL.md](./skill/SKILL.md) file provides a comprehensive guide for AI agents (such as Claude Code, Codex, Cursor,
 or other coding assistants) working with Appweaver projects. It contains detailed documentation on the library's
-architecture, conventions, APIs, and best practices to enable agentic development workflows.
+architecture, conventions, APIs, and best practices to enable agentic development workflows. The `skill/` directory is
+published as the `@appweaver/skill` package (`packages/skill`, its `files` copying `../../skill` into `dist/skill`),
+released with the framework, so a project's skill follows its framework version.
 
 ### For new projects created with `@appweaver/create`
 
 New projects scaffolded via `npm create @appweaver` include a `AGENTS.md` or `CLAUDE.md` file at the project root. This
 file is a thin, project-owned stub that references the framework guidelines (`GUIDELINES.md`) copied into the agent's
 skills directory (e.g. `.claude/skills/appweaver/GUIDELINES.md`). It can be freely extended with project-specific
-instructions and is never overwritten by `weaver upgrade`, which refreshes only the skill files (including
-`GUIDELINES.md`) inside the skills' directory.
+instructions and is never overwritten by `weaver skill sync` (which `weaver upgrade` runs), refreshing only the skill
+files of the project's `@appweaver/skill` dev dependency (including `GUIDELINES.md`) inside the skills' directory.
 
 ### Updating skill files
 

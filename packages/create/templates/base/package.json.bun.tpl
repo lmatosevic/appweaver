@@ -9,11 +9,12 @@
     "start": "weaver start",
     "dev": "weaver start --watch",
     "generate": "weaver generate --config-schema",
-    "test": "bun test ./test/unit --coverage --reporter=junit --reporter-outfile=./reports/junit.xml",
+    "test": "weaver test --coverage",
     "e2e": "bun test ./test/e2e --reporter=junit --reporter-outfile=./reports/e2e.xml",
-    "format": "prettier --write \"./**/*.ts\"",
-    "lint": "eslint \"./**/*.ts\""
+    "format": "weaver format",
+    "lint": "weaver lint"
   },
+  "prettier": "@appweaver/tooling/prettier",
   "dependencies": {
     "@appweaver/cli": "{{VERSION}}",
     "@appweaver/common": "{{VERSION}}",
@@ -21,6 +22,7 @@
 {{DEPENDENCIES}}
   },
   "devDependencies": {
+    "@appweaver/tooling": "{{VERSION}}",
 {{DEV_DEPENDENCIES}}
   },
   "trustedDependencies": [
