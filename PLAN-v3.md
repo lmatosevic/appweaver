@@ -2,6 +2,9 @@
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
 > section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
+> **Revision 13**: the maintainer's decisions of section 9 recorded: no 2.x maintenance after 3.0.0, the defaults of D5
+> (Swagger stays on, configurable), the release held for TypeScript 7.1, every sample and both clients kept, `views`, the
+> `DatabaseType` suffixes of the SQL files.
 > **Revision 12**: phase 1a released in 2.10.1 (decision 7 closed).
 > **Revision 11**: response compression, configurable globally and per route (E15, D24, V3-WEB-04).
 > **Revision 10**: the spatial model key is `spatial` (decision 10 closed, D23).
@@ -54,7 +57,8 @@
   is mechanical.
 - **Measure before optimizing**: the numbers of section 3 are the v2.10.0 baseline every later change is compared to.
 - **Small steps**: one concern per change request (CR), reviewed and merged one at a time.
-- **Security fixes do not wait for v3**: a confirmed vulnerability ships as a 2.10.x patch first (section 6, phase 1).
+- **Security fixes do not wait for v3**: until 3.0.0 is released, a confirmed vulnerability ships as a 2.10.x patch first
+  (section 6, phase 1). After 3.0.0, 2.x is not maintained: v3 replaces it as the latest release.
 
 ---
 
@@ -432,7 +436,7 @@ high, medium, low, or a design or performance finding.
 | F35 | `generate-api-key` pulls a vulnerable `uuid`; `prisma` pulls a vulnerable `effect`                        | Dependency  | Low    | C, E12   | V3-SEC-06   |
 | F36 | A JSON array in an array env variable is silently one string                                              | Config      | Low    | C, E10   | V3-COMMON-01 |
 | F37 | `data/utils/file-util.ts:145` reads the `SERVER_BODY_MAX_SIZE` of web from data                          | Layering    | Low    | R        | V3-SEC-01   |
-| F38 | Swagger UI on in production by default                                                                    | Default     | Low    | R        | V3-CONV-04  |
+| F38 | Swagger UI on in production by default                                                                    | Default     | Low    | R        | Kept, documented (decision 2) |
 | F39 | A policy receives `null` for an anonymous request and for the application's own calls alike (jobs, seeders, tests), so it cannot restrict the first without the second; the `cms-api` fix reads `currentRequestScope()?.source` | Design | Medium | C | V3-DATA-06 |
 | F40 | Two `cms-api` e2e tests of the 2FA (phone verification, method order) fail on `main` too               | Test        | Low    | C        | V3-QA-03    |
 | F42 | No supported way to add SQL that Prisma does not generate: `weaver migration new` applies at once (no `--create-only`), and what Prisma can model but the schema does not declare (a generated column, a trigram index) is dropped by the next migration | Design | Medium | C, E14 | V3-DATA-07 |
@@ -572,14 +576,14 @@ createRoutes({
 | Key                                                | Today           | v3                                            | Why                     |
 |----------------------------------------------------|-----------------|-----------------------------------------------|-------------------------|
 | Audit fields in responses                          | shown           | hidden, shown per model or view (`read.audit`) | F10                    |
-| `security.jwt.expiresIn` / `refreshExpiresIn`      | 7 d / 60 d      | 15 min / 30 d, refresh rotation with reuse detection | F11              |
+| `security.jwt.expiresIn` / `refreshExpiresIn`      | 7 d / 60 d      | 15 min / 30 d, refresh rotation with reuse detection (decided: short-lived tokens refreshed regularly) | F11 |
 | `security.jwt.autoGenerateKeys`                    | `true`          | `true` in `dev` and `test` only; otherwise fail at startup without keys or a secret | F6 |
 | `security.allowedRedirectHosts`                    | `['*']`         | the host of `app.hostname`                     | F5                     |
 | `cors.origin`                                      | `['*']`         | `['*']` in `dev` and `test`; a warning at startup in production while `*` | Realistic |
-| `swagger.enabled`                                  | `true`          | `true` in `dev` and `test`                     | F38                    |
+| `swagger.enabled`                                  | `true`          | `true` (decided: kept on in every environment; a production deployment turns it off with `swagger.enabled: false`, documented) | F38 |
 | `server.bodyMaxSize`                               | `100M`, every route | `1M` for JSON; uploads by the file fields' `maxSize` | F1          |
 | Filter complexity                                  | unbounded       | `resource.filter.maxConditions: 100`, `maxDepth: 5`, `maxListValues: 1000` (SQL Server takes 2,100 parameters) | F1 |
-| `query` `totalCount`                               | `true`          | `false`, and bounded (D10)                     | F19                    |
+| `query` `totalCount`                               | `true`          | `false`, and bounded (D10); a client asks `totalCount: true` on its first page for the number of pages, and not on the next ones | F19 |
 | `aggregate` without `from`/`to`                    | last 7 days     | the whole range of the filter, `interval` required for periods | F20     |
 | `export`, `aggregate`, bulk routes                 | on / env flags  | listed in `actions`                            | D4                     |
 | `security.account.2fa.forced`                      | boolean, `Email` fallback | see D6                               | F12                    |
@@ -847,8 +851,9 @@ database/sql/
   views/published_posts.sql                 # repeatable: applied again whenever its checksum changes
 ```
 
-- A file name is `<version>_<name>[.<database>].sql`, `<database>` one of `postgresql`, `mysql`, `sqlite`,
-  `sqlserver` (the values of `database.type`). For one version and name, the variant of the current database is
+- A file name is `<version>_<name>[.<database>].sql`, `<database>` exactly one of the values of the `DatabaseType`
+  enum of `@appweaver/common` (`sqlite`, `postgresql`, `mysql`, `sqlserver`, the values of `database.type`); any other
+  suffix fails `weaver migrate` (decided, decision 7 of section 9). For one version and name, the variant of the current database is
   applied if there is one, else the generic file, else nothing. Files run in version order.
 - `views/`, `functions/`, `triggers/` hold **repeatable** files (`CREATE OR REPLACE ...`), re-applied when their checksum
   changes, after the versioned ones.
@@ -1015,7 +1020,7 @@ CSV export streamed), the config examples, the skill and a load scenario with co
 | Atomic write operations                       | `increment` / `decrement` of numeric fields in the update input, allowed per field and view (D1) |
 | SQLite in production                          | Supported, documented as single-instance with the event loop caveat (F23); `server.requestTimeout` added; PostgreSQL recommended beyond it |
 | Comments                                      | Keep the JSDoc of the public API; remove comments restating the code and history notes; no ratio target |
-| Samples                                       | Keep the nine; fix `cms-api` (F4) and use it as the showcase of views (D1)                   |
+| Samples                                       | Keep all nine (decided), more may come for other use cases; fix `cms-api` (F4) and use it as the showcase of views (D1)                   |
 
 ---
 
@@ -1309,7 +1314,7 @@ ticked.
 
 - Confirmed: F33.
 - CRs: V3-CLIENT-01..03 (D19). Review: `FetchClient` token refresh races, `RealtimeClient` reconnection, the Angular
-  client and the untyped client (`--no-types`): keep only if used.
+  client and the untyped client (`--no-types`), both kept (decided).
 
 ### Skill and docs
 
@@ -1407,31 +1412,31 @@ week, XL more.
 
 ## 9. Decisions left to the maintainer
 
-The experiments settled most questions of revision 1. These remain:
+All decided (revision 13):
 
-1. **2.x support**: how long `2.x` keeps receiving security fixes after 3.0.0 (proposed: 6 months).
-2. **Defaults of D5** that change behavior for existing deployments: the 15-minute access token, Swagger off in
-   production, `totalCount: false`. Each is a one-line config to restore; confirm they are worth the migration note.
-3. **Upstream slip**: decided to build on the TypeScript 7.1 beta and release on the stable 7.1. If it slips past the
-   end of phase 7, hold 3.0.0 (proposed), or release on TypeScript 5.9 with 7.1 in a minor?
-4. **Samples**: all nine stay in v3 (proposed); any to retire?
-5. **Angular client and untyped client** (`--no-types`): keep, or drop without usage data?
-6. **Views naming**: `views` and `view`, or `variants`?
-7. ~~**2.x release of phase 1a**~~: released as v2.10.1.
-8. ~~**Prisma 8 and SQL Server**~~: decided in revision 7, Prisma 7 as used so far, no Prisma 8 plans (D16).
-9. **SQL migration file names** (D22): `<version>_<name>.<database>.sql` suffixes (proposed), or one directory per
-   database (`database/sql/postgresql/...`)?
-10. ~~**Name of the spatial model key**~~: decided in revision 10, `spatial` (D23).
+1. **2.x support**: none after 3.0.0; v3 replaces 2.x as the latest release, and 2.x receives no more fixes.
+2. **Defaults of D5**: access tokens short-lived (15 minutes) and refreshed regularly (30-day rotating refresh tokens);
+   `totalCount` off by default, the client asking for it on its first page only; Swagger UI **stays on** in every
+   environment, a production deployment turning it off with `swagger.enabled: false` (documented).
+3. **TypeScript 7.1 slip**: 3.0.0 is held until TypeScript 7.1 is stable, a milestone of the release.
+4. **Samples**: all nine stay; more may be added for other use cases.
+5. **Angular client and untyped client** (`--no-types`): both kept.
+6. **Views naming**: `views` on the model and `view` on the routes, policies, relations, MCP and events (D1).
+7. **SQL migration file names** (D22): the `<version>_<name>.<database>.sql` suffix, `<database>` a value of the
+   `DatabaseType` enum (`sqlite`, `postgresql`, `mysql`, `sqlserver`).
+8. **Prisma 8 and SQL Server**: Prisma 7 as used so far, no Prisma 8 plans (D16, revision 7).
+9. **Name of the spatial model key**: `spatial` (D23, revision 10).
+10. **2.x release of phase 1a**: released as v2.10.1 (revision 12).
 
 ---
 
 ## 10. Release plan
 
 1. Every approved CR done; every phase gate passed; **TypeScript 7.1.0 stable** replacing the beta development ran
-   on, Prisma on the latest 7.x, with the full test suite, the samples' e2e suites and the load tests rerun on
+   on (the release waits for it, decision 3), Prisma on the latest 7.x, with the full test suite, the samples' e2e suites and the load tests rerun on
    them.
 2. `3.0.0-next.N` prereleases on the `next` dist-tag; the samples and a scaffolded project of every module combination
    run on them; the load-test budgets met.
 3. `MIGRATION-v3.md` complete, with `weaver upgrade --target-version 3` applying the mechanical steps.
 4. docs.appweaver.co on v3, the v2 docs kept under a versioned path.
-5. `3.0.0` released from `main` (`next` merged); a `2.x` maintenance branch for security fixes for the agreed period.
+5. `3.0.0` released from `main` (`next` merged) as the latest release; no `2.x` maintenance branch (decision 1).
