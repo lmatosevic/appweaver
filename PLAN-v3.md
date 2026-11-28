@@ -2,6 +2,8 @@
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
 > section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
+> **Revision 15**: `weaver upgrade` stays a version and skill updater; it never rewrites the code or the config of a
+> project. The migration is the user's, guided by `MIGRATION-v3.md` and the warnings at startup.
 > **Revision 14**: no prerelease channel: one pull request per phase into `main`, stacked on the previous phase; 3.0.0 is
 > released from `main` once every phase is merged; a 2.x fix, if ever needed, branches from the `v2.10.1` tag (section 2).
 > **Revision 13**: the maintainer's decisions of section 9 recorded: no 2.x maintenance after 3.0.0, the defaults of D5
@@ -55,8 +57,9 @@
 - **Brutal honesty**: every proposal states its cost, its risk and the "leave it as is" option. A change has to beat
   doing nothing. Section 5 rejects several ideas of the original task list, with the reason.
 - **Remove and simplify first**: adding an option needs a use case from a sample or a real application.
-- **Breaking changes are allowed**, but each one gets a migration note, and a `weaver upgrade` step or codemod when it
-  is mechanical.
+- **Breaking changes are allowed**, but each one gets a migration note in `MIGRATION-v3.md`, and a clear error or
+  warning at startup when an old name or value is met. `weaver upgrade` never rewrites a project (revision 15): it bumps
+  the Appweaver packages, their companions and the skill files, nothing else; the migration is the user's to make.
 - **Measure before optimizing**: the numbers of section 3 are the v2.10.0 baseline every later change is compared to.
 - **Small steps**: one concern per change request (CR), reviewed and merged one at a time.
 - **2.x is not maintained**: v3 replaces it as the latest release. Phase 1a shipped as 2.10.1; a 2.x fix, if one is ever
@@ -747,8 +750,9 @@ milliseconds everywhere as integers only (`604800000` is unreadable).
 **Decision**: a duration key accepts an integer of milliseconds or a string with a unit (`'200ms'`, `'15m'`, `'7d'`);
 a size key accepts an integer of bytes or a string (`'64KB'`, `'5MB'`). Parsed once when the config loads; milliseconds
 and bytes in the code. The units leave the key names (`keepCompletedSeconds` -> `keepCompleted`). The 7 keys in seconds
-change meaning: a bare integer becomes milliseconds, so `weaver upgrade` rewrites them as strings (`604800` ->
-`'7d'`). The TOTP `period` stays an integer of seconds: RFC 6238 defines it so, and authenticator apps only take 30.
+change meaning, and a silent one would be dangerous (`604800` seconds read as milliseconds is ten minutes): in v3
+those 7 keys refuse a bare integer at startup, naming the unit string to write (`expiresIn: 604800` -> "write `'7d'`"),
+until v4 lets them take milliseconds like every other key. The TOTP `period` stays an integer of seconds: RFC 6238 defines it so, and authenticator apps only take 30.
 
 ### D12. TypeScript — **decided: wait for TypeScript 7.1, then move everything to it**
 
@@ -931,8 +935,8 @@ config, the routes and the errors while the code says `twoFactor` (`TwoFactorSer
 `SECURITY_ACCOUNT_2FA_ENABLED` has a segment starting with a digit. One name per concept, written out, is the rule of
 "one way to do things".
 
-**Renamed** (old names accepted in v3 with a deprecation warning at startup, removed in v4; `weaver upgrade` rewrites
-them, V3-DOC-05):
+**Renamed** (old names accepted in v3 with a deprecation warning at startup naming the new one, removed in v4; the user
+renames them, guided by `MIGRATION-v3.md`):
 
 | Today                                                                                   | v3                                                                                                   |
 |-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
@@ -969,7 +973,7 @@ named `spatial` (`spatial.provider`, `SpatialService`, `PostgisSpatialEngine`, `
 - The `Fn` suffix of the function types (`FileAccessFn`, ...), a TypeScript convention.
 
 **Effort**: M, mostly mechanical: the renames, the deprecated aliases and their warnings, the old route paths, the
-codemods of `weaver upgrade`, the samples, the scaffold templates, the generated client and the skill. In phase 3 with the
+migration notes, the samples, the scaffold templates, the generated client and the skill. In phase 3 with the
 other convention changes, so the config keys are renamed once together with D11.
 
 ### D24. Response compression — **decided: `@fastify/compress`, global config and a per-route switch**
@@ -1056,7 +1060,7 @@ CSV export streamed), the config examples, the skill and a load scenario with co
 | 4     | Data model and API design     | Views, `extend*`, cache scopes, audit, forced 2FA                         | Each RFC approved before its code                     |
 | 5     | Module-by-module              | The remaining approved CRs, in the order of section 7                     | Per module                                            |
 | 6     | Performance                   | Projection, counts, aggregates, FTS, idle, all databases and samples      | Budgets met or explained                              |
-| 7     | AI workflow, docs, migration  | Skill, AGENTS.md, CLI aids, docs site, migration guide, codemods          | Docs and samples on v3                                |
+| 7     | AI workflow, docs, migration  | Skill, AGENTS.md, CLI aids, docs site, migration guide                    | Docs and samples on v3                                |
 | 8     | Release                       | The Release workflow run once on `main`: `3.0.0`                          | Samples and every module combination run on it        |
 
 **Order**: security first (it ships to 2.x users), then the toolchain (every later pull request runs on it), then the
@@ -1167,7 +1171,7 @@ sample and every scaffold combination building and passing its e2e tests on its 
 
 | Step | CR          | Work                                                                                                    |
 |------|-------------|---------------------------------------------------------------------------------------------------------|
-| 3.1  | V3-CONV-01  | `Duration` and `Size` types, the keys renamed, `weaver upgrade` rewriting the old ones                  |
+| 3.1  | V3-CONV-01  | `Duration` and `Size` types, the keys renamed, the old ones warned about, the seconds keys strict       |
 | 3.2  | V3-CONV-02  | `actions` on REST, events and MCP; the bulk flags removed; `weaver routes`                              |
 | 3.3  | V3-CONV-03  | The maintenance job registry, locks, `maintenance.*`, batched deletes                                   |
 | 3.4  | V3-CONV-04  | The defaults table of D5                                                                                |
@@ -1175,7 +1179,7 @@ sample and every scaffold combination building and passing its e2e tests on its 
 | 3.6  | V3-CONV-06  | `totalCount` default and bounded count, `maxOffset`                                                     |
 | 3.7  | V3-CONV-07  | `aggregate` in one `GROUP BY`, no implicit 7-day window                                                 |
 | 3.8  | V3-COMMON-01 | Array env values: a JSON array accepted, anything ambiguous rejected                                   |
-| 3.9  | V3-CONV-08  | Full names instead of abbreviations (D23), with the codemods of `weaver upgrade`                        |
+| 3.9  | V3-CONV-08  | Full names instead of abbreviations (D23), the old names accepted with a warning                       |
 
 **Gate 3**: every package on the conventions; `MIGRATION-v3.md` covers each change.
 
@@ -1228,7 +1232,7 @@ ticked.
 | 7.2  | V3-DOC-03   | `AGENTS.md` < 8k tokens; details in `docs/contributing/*.md`                                            |
 | 7.3  | V3-DOC-04   | Agent benchmark: fixed tasks on a scaffolded project (a model with relations and routes, a view, a role and its policy, a maintenance job, a realtime channel, an MCP tool), counting turns, tokens and errors, before and after |
 | 7.4  | V3-CLI-02..04 | `weaver doctor`, `weaver resource new`, `--json` output                                               |
-| 7.5  | V3-DOC-05   | `MIGRATION-v3.md` complete, `weaver upgrade --target-version 3` codemods (config keys, durations, `actions`, imports) |
+| 7.5  | V3-DOC-05   | `MIGRATION-v3.md` complete: every breaking change with its before and after; `weaver upgrade` unchanged (versions and skill files) |
 | 7.6  | V3-DOC-01   | Comments cleanup, package by package                                                                    |
 
 ### Phase 8: Release — see section 10.
@@ -1324,7 +1328,7 @@ ticked.
 
 - Confirmed: F29.
 - CRs: V3-TOOL-03, V3-CLI-01 (`weaver routes`), V3-CLI-02 (`doctor`), V3-CLI-03 (`resource new`), V3-CLI-04 (`--json`),
-  V3-CLI-06 (`migration new --create-only` and `--sql`), the codemods of `weaver upgrade` (V3-DOC-05).
+  V3-CLI-06 (`migration new --create-only` and `--sql`); `weaver upgrade` keeps its scope (versions and skill files).
 
 ### `create` (3,513 lines)
 
@@ -1427,7 +1431,7 @@ week, XL more.
 | V3-DOC-02     | Skill under 5k tokens, generated configuration reference                 | 7     | P1   | M      | No             |
 | V3-DOC-03     | `AGENTS.md` under 8k tokens                                              | 7     | P1   | S      | No             |
 | V3-DOC-04     | Agent benchmark                                                          | 7     | P2   | M      | No             |
-| V3-DOC-05     | Migration guide and `weaver upgrade` codemods                            | 7     | P1   | L      | No             |
+| V3-DOC-05     | Migration guide, every breaking change with its before and after         | 7     | P1   | M      | No             |
 
 ---
 
@@ -1457,7 +1461,8 @@ All decided (revision 13):
 2. **TypeScript 7.1.0 stable** replacing the beta development ran on (the release waits for it, decision 3), Prisma on
    the latest 7.x; the full test suite, the samples' e2e suites, a scaffolded project of every module combination and
    the load tests rerun on `main`, the load-test budgets met.
-3. `MIGRATION-v3.md` complete, with `weaver upgrade --target-version 3` applying the mechanical steps.
+3. `MIGRATION-v3.md` complete; `weaver upgrade --target-version 3` bumps the packages and the skill files, and the user
+   applies the migration guide.
 4. docs.appweaver.co on v3, the v2 docs kept under a versioned path.
 5. The Release workflow run on `main`: `3.0.0`, the latest release; no 2.x maintenance (decision 1), a 2.x fix if ever
    needed branching from the `v2.10.1` tag.
