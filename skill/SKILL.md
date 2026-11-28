@@ -689,6 +689,9 @@ with plain value shorthands and nests through relations:
 - **Relations**: `_some`, `_every`, `_none` for list relations, `_exists` for any relation.
 - **Shorthands**: a bare value matches by equality, a list by inclusion, a two-value list on a numeric or date field as
   an inclusive range, and a bare value or list on a relation matches by id.
+- **Limits**: at most `resource.filterMaxConditions` conditions, `filterMaxDepth` levels and `filterMaxListValues`
+  values in a list, else `400 RESOURCE_FILTER_TOO_COMPLEX`; the fields a relation `omit`s from its output cannot be
+  filtered or sorted on through it.
 
 ```ts
 import { injectService } from '@appweaver/core';

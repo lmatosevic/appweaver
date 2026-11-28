@@ -1,25 +1,10 @@
 import { createService } from '@appweaver/data';
-import { injectService } from '@appweaver/core';
-import { createLogger } from '@appweaver/common';
-
-const logger = createLogger('post');
 
 export default createService({
   modelName: 'Post',
   beforeUpdate: (_, data) => {
     if (data.status === 'Published' && !data.publishedAt) {
       data.publishedAt = new Date();
-    }
-  },
-  // Not part of the update input, so raised through the client
-  afterFind: async (post) => {
-    try {
-      await injectService('Post').client.update({
-        where: { id: post.id },
-        data: { viewCount: { increment: 1 } }
-      });
-    } catch (e) {
-      logger.warn(e, 'Post view count was not raised');
     }
   },
   textSearch: {

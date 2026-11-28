@@ -28,6 +28,24 @@ export const GEO_CONDITION_SCHEMA_NAME = 'GeoCondition';
 export const queryFilterName = (modelName: string): string =>
   `${modelName}QueryFilter`;
 
+/** The name of the filter schema of a relation leaving fields of the related model out of its output. */
+export const relationQueryFilterName = (
+  modelName: string,
+  fieldName: string
+): string => `${modelName}${capitalize(fieldName)}RelationQueryFilter`;
+
+/** The filter schema of a relation: the related model's, or its own one when the relation omits fields. */
+function relationFilterRef(
+  model: ResourceModel,
+  fieldName: string,
+  relatedModel: string,
+  omit?: string[]
+): string {
+  return omit?.length
+    ? relationQueryFilterName(model.name, fieldName)
+    : queryFilterName(capitalize(relatedModel));
+}
+
 // The primitive types a plain filter value can take. They are declared as a
 // single JSON Schema type list rather than a union of typed branches, because
 // the request validator coerces a value into the first branch of a typed
@@ -186,10 +204,19 @@ export const GeoConditionSchema: TObject = Type.Object(
  *
  * @param {ResourceModel} model The resource model to build the filter schema
  * for.
+ * @param {Object} [options] The `name` of the schema, by default the model's
+ * one, and the fields it leaves out (`omit`), those a relation omits from its
+ * output.
  * @return {TObject} The query filter schema of the model.
  */
-export function buildQueryFilterSchema(model: ResourceModel): TObject {
-  const name = queryFilterName(model.name);
+export function buildQueryFilterSchema(
+  model: ResourceModel,
+  options: { name?: string; omit?: string[] } = {}
+): TObject {
+  const name = options.name ?? queryFilterName(model.name);
+  // The fields a relation leaves out of its output cannot be filtered on through it, or their values could be
+  // guessed one condition at a time
+  const omitted = new Set(options.omit ?? []);
 
   const self = () => Type.Ref(name);
 
@@ -230,7 +257,7 @@ export function buildQueryFilterSchema(model: ResourceModel): TObject {
     ...(model.config.audit ?? {})
   };
   for (const [fieldName, included] of Object.entries(auditFields)) {
-    if (included) {
+    if (included && !omitted.has(fieldName)) {
       properties[fieldName] = scalarValue(`Filter by the ${fieldName} field`);
     }
   }
@@ -238,7 +265,7 @@ export function buildQueryFilterSchema(model: ResourceModel): TObject {
   for (const [fieldName, scalar] of Object.entries(
     model.config.scalars ?? {}
   )) {
-    if (scalar.hidden) {
+    if (scalar.hidden || omitted.has(fieldName)) {
       continue;
     }
     // JSON fields hold arbitrary nested structures, so their conditions are
@@ -252,7 +279,7 @@ export function buildQueryFilterSchema(model: ResourceModel): TObject {
   }
 
   for (const [fieldName, geo] of Object.entries(model.config.geo ?? {})) {
-    if (geo.hidden) {
+    if (geo.hidden || omitted.has(fieldName)) {
       continue;
     }
     properties[fieldName] = Type.Optional(
@@ -265,14 +292,25 @@ export function buildQueryFilterSchema(model: ResourceModel): TObject {
   for (const [fieldName, relation] of Object.entries(
     model.config.relations ?? {}
   )) {
+    if (omitted.has(fieldName)) {
+      continue;
+    }
     properties[fieldName] = relationValue(
-      queryFilterName(capitalize(relation.model)),
+      relationFilterRef(
+        model,
+        fieldName,
+        relation.model,
+        relation.output?.omit
+      ),
       `Filter by the ${fieldName} relation, matching an id, a list of ids, ` +
         `or a nested ${capitalize(relation.model)} filter`
     );
   }
 
   for (const fieldName of Object.keys(model.config.files ?? {})) {
+    if (omitted.has(fieldName)) {
+      continue;
+    }
     properties[fieldName] = relationValue(
       queryFilterName('File'),
       `Filter by the ${fieldName} file field, matching an id, a list of ids, ` +
@@ -319,8 +357,10 @@ export function buildQueryFilterSchema(model: ResourceModel): TObject {
 /**
  * Registers the shared field condition schema and the query filter schema of
  * every loaded resource model on the server, so route schemas can reference
- * them by name (i.e. `UserQueryFilter`). Schemas already registered under the
- * same name are skipped, which makes repeated calls cheap.
+ * them by name (i.e. `UserQueryFilter`), and the filter schema of every relation
+ * omitting fields of its related model (i.e. `PostAuthorRelationQueryFilter`).
+ * Schemas already registered under the same name are skipped, which makes
+ * repeated calls cheap.
  */
 export function registerQueryFilterSchemas(): void {
   createSchemaModel(QueryConditionSchema, {
@@ -332,5 +372,21 @@ export function registerQueryFilterSchemas(): void {
     createSchemaModel(buildQueryFilterSchema(model), {
       name: queryFilterName(model.name)
     });
+
+    for (const [fieldName, relation] of Object.entries(
+      model.config.relations ?? {}
+    )) {
+      const relatedModel = context.resource.models.get(
+        capitalize(relation.model)
+      );
+      const omit = relation.output?.omit;
+      if (!relatedModel || !omit?.length) {
+        continue;
+      }
+      const name = relationQueryFilterName(model.name, fieldName);
+      createSchemaModel(buildQueryFilterSchema(relatedModel, { name, omit }), {
+        name
+      });
+    }
   }
 }

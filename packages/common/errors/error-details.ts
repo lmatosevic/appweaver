@@ -51,6 +51,10 @@ export interface ErrorDetailsMap {
   [ErrorCode.ResourceNotFound]: ModelDetails & { id?: string | number };
   [ErrorCode.ResourceForbidden]: ModelDetails & { action: string };
   [ErrorCode.ResourceInvalidSort]: { model?: string; field?: string };
+  [ErrorCode.ResourceFilterTooComplex]: ModelDetails & {
+    limit: 'conditions' | 'depth' | 'listValues';
+    max: number;
+  };
   [ErrorCode.ResourceInvalidAggregate]: ModelDetails & {
     field?: string;
     operator?: string;

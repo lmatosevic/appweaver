@@ -12,8 +12,9 @@ describe('Soft deleting a post', () => {
   let posts: any;
   let comments: any;
 
+  // Published, so the public routes serve them
   const seedPost = async (slug: string) =>
-    posts.create({ title: `Post ${slug}`, slug });
+    posts.create({ title: `Post ${slug}`, slug, status: 'Published' });
 
   const seedComment = async (postId: number, body: string) =>
     comments.create({ body, post: postId });

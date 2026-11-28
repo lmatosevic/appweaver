@@ -541,6 +541,10 @@
             "csvAddSepRow": {
               "default": false,
               "type": "boolean"
+            },
+            "csvEscapeFormulas": {
+              "default": true,
+              "type": "boolean"
             }
           }
         },
@@ -1021,6 +1025,21 @@
             "bulkReturnRecords": {
               "default": true,
               "type": "boolean"
+            },
+            "filterMaxConditions": {
+              "default": 1000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "filterMaxDepth": {
+              "default": 10,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "filterMaxListValues": {
+              "default": 2000,
+              "minimum": 1,
+              "type": "integer"
             }
           }
         },
@@ -1741,6 +1760,10 @@
             },
             "bodyMaxSize": {
               "default": "100M",
+              "type": "string"
+            },
+            "jsonBodyMaxSize": {
+              "default": "10M",
               "type": "string"
             },
             "staticEnabled": {

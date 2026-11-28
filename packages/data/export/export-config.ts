@@ -11,5 +11,9 @@ export const exportConfig = defineConfig('export', {
   /** Include a header row in CSV exports. Default: `true`. */
   CSV_ADD_HEADERS: Type.Boolean({ default: true }),
   /** Add a separator row (BOM) for Excel compatibility. Default: `false`. */
-  CSV_ADD_SEP_ROW: Type.Boolean({ default: false })
+  CSV_ADD_SEP_ROW: Type.Boolean({ default: false }),
+  /** Prefix with `'` the text cells a spreadsheet would run as a formula (starting with `=`, `+`, `-`, `@`, a tab or a
+   * carriage return), so an exported value cannot execute in the application opening the file. Numbers and signed
+   * numeric text such as phone numbers are left as they are. Default: `true`. */
+  CSV_ESCAPE_FORMULAS: Type.Boolean({ default: true })
 });

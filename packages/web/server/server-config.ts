@@ -19,8 +19,10 @@ export const serverConfig = defineConfig('server', {
   LISTEN: Type.Boolean({ default: true }),
   /** Base path prefix for all API routes. Default: `'/api'`. */
   API_PREFIX: Type.String({ default: '/api' }),
-  /** Maximum request body size. Default: `100M`. */
+  /** Maximum request body size, i.e. of a multipart file upload. Default: `100M`. */
   BODY_MAX_SIZE: Type.String({ default: '100M' }),
+  /** Maximum size of a JSON request body, parsed at once on the event loop. Default: `10M`. */
+  JSON_BODY_MAX_SIZE: Type.String({ default: '10M' }),
   /** Enable serving static files from the disk. Default: `true`. */
   STATIC_ENABLED: Type.Boolean({ default: true }),
   /** Directory containing static files. Default: `'./public'`. */

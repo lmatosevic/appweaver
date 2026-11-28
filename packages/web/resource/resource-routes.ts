@@ -1,3 +1,4 @@
+import { FastifyRequest } from 'fastify';
 import {
   AggregateOptions,
   AuthType,
@@ -14,6 +15,7 @@ import {
   RouteConfig
 } from '@appweaver/common';
 import {
+  assertFilterComplexity,
   resourceConfig,
   FileService,
   FileVersionDelete,
@@ -75,6 +77,14 @@ export function resourceRoutes(
       ? name
       : undefined
   });
+
+  // The filter of a body is checked against the complexity limits before the request validation, which would walk
+  // an oversized filter first
+  const bodyFilterCheck = async (request: FastifyRequest) =>
+    assertFilterComplexity(
+      (request.body as { filter?: unknown } | undefined)?.filter,
+      name
+    );
 
   const routeNames: ResourceRouteName[] = [
     'find',
@@ -189,6 +199,7 @@ export function resourceRoutes(
         {
           schema: schema.querySchema,
           onRequest: routeAuth(queryConfig),
+          preValidation: bodyFilterCheck,
           config: queryConfig
         },
         async (request, reply) => {
@@ -206,8 +217,10 @@ export function resourceRoutes(
         {
           schema: schema.queryGetSchema,
           onRequest: routeAuth(queryConfig),
-          preValidation: async (request) =>
-            parseJsonParams(request.query, ['filter'], ['sort']),
+          preValidation: async (request) => {
+            parseJsonParams(request.query, ['filter'], ['sort']);
+            assertFilterComplexity(request.query.filter, name);
+          },
           config: queryConfig
         },
         async (request, reply) => {
@@ -229,6 +242,7 @@ export function resourceRoutes(
         {
           schema: schema.aggregateSchema,
           onRequest: routeAuth(aggregateConfig),
+          preValidation: bodyFilterCheck,
           config: aggregateConfig
         },
         async (request, reply) => {
@@ -248,8 +262,10 @@ export function resourceRoutes(
         {
           schema: schema.aggregateGetSchema,
           onRequest: routeAuth(aggregateConfig),
-          preValidation: async (request) =>
-            parseJsonParams(request.query, ['filter', 'select']),
+          preValidation: async (request) => {
+            parseJsonParams(request.query, ['filter', 'select']);
+            assertFilterComplexity(request.query.filter, name);
+          },
           config: aggregateConfig
         },
         async (request, reply) => {
@@ -345,6 +361,7 @@ export function resourceRoutes(
         {
           schema: schema.exportSchema,
           onRequest: routeAuth(exportConfig),
+          preValidation: bodyFilterCheck,
           config: exportConfig
         },
         async (request, reply) => {

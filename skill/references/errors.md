@@ -158,6 +158,7 @@ The `ErrorCode` enum of `@appweaver/common` lists every code the framework raise
 | `RESOURCE_NOT_FOUND`                 | 404    | Resource not found                    |
 | `RESOURCE_FORBIDDEN`                 | 403    | Resource access forbidden             |
 | `RESOURCE_INVALID_SORT`              | 400    | Invalid sort                          |
+| `RESOURCE_FILTER_TOO_COMPLEX`        | 400    | Filter too complex                    |
 | `RESOURCE_INVALID_AGGREGATE`         | 400    | Invalid aggregation                   |
 | `RESOURCE_INVALID_CURSOR`            | 400    | Invalid pagination cursor             |
 | `RESOURCE_INVALID_QUERY_PARAMETER`   | 400    | Invalid query parameter               |

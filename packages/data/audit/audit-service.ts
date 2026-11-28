@@ -85,6 +85,8 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
   private _flushing?: Promise<void>;
   /** @internal */
   private _flushTimer?: NodeJS.Timeout;
+  /** @internal The flush interval in milliseconds, set once the service is ready. */
+  private _flushInterval?: number;
   /** @internal */
   private _purgeTimer?: NodeJS.Timeout;
   /** @internal */
@@ -96,8 +98,8 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
   }
 
   /**
-   * Starts writing the buffered entries every `audit.flushInterval`, and deleting the expired ones at once and every
-   * `audit.retentionInterval`.
+   * Starts writing the buffered entries `audit.flushInterval` after they are recorded, and deleting the expired ones
+   * at once and every `audit.retentionInterval`.
    *
    * @throws {ConfigurationError} `CONFIGURATION_INVALID` for an interval or a retention that is not a duration.
    */
@@ -107,12 +109,10 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
       return;
     }
 
-    const flushInterval = seconds(auditConfig.FLUSH_INTERVAL, 'flush interval');
-    this._flushTimer = setInterval(
-      () => void this.flush(),
-      flushInterval * 1000
-    );
-    this._flushTimer.unref();
+    this._flushInterval =
+      seconds(auditConfig.FLUSH_INTERVAL, 'flush interval') * 1000;
+    // Entries recorded before the service was ready
+    this.scheduleFlush();
 
     const retentions = this.retentions();
     if (retentions.size === 0 || !auditConfig.RETENTION_WORKER) {
@@ -466,7 +466,29 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
     if (this._buffer.length >= auditConfig.BATCH_SIZE) {
       void this.flush();
     }
+    this.scheduleFlush();
     return true;
+  }
+
+  /**
+   * Writes the buffer once `audit.flushInterval` has passed, rescheduled while entries are left, so an idle
+   * application runs no timer.
+   *
+   * @internal
+   */
+  private scheduleFlush(): void {
+    if (
+      this._flushTimer ||
+      this._flushInterval === undefined ||
+      this._buffer.length === 0
+    ) {
+      return;
+    }
+    this._flushTimer = setTimeout(() => {
+      this._flushTimer = undefined;
+      void this.flush().finally(() => this.scheduleFlush());
+    }, this._flushInterval);
+    this._flushTimer.unref();
   }
 
   /** @internal */
@@ -526,10 +548,11 @@ export class AuditService implements OnReady, OnShutdown, OnDestroy {
 
   /** @internal */
   private stopTimers(): void {
-    clearInterval(this._flushTimer);
+    clearTimeout(this._flushTimer);
     clearInterval(this._purgeTimer);
     this._flushTimer = undefined;
     this._purgeTimer = undefined;
+    this._flushInterval = undefined;
   }
 }
 

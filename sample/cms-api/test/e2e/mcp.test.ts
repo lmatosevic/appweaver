@@ -202,7 +202,13 @@ describe('MCP server', () => {
   });
 
   test('schedules a post with a date and time zone, and rejects one without', async () => {
-    const post = await posts.create({ title: 'Later', slug: 'later' });
+    // Created through the tool, so the user of the key is its author
+    const post = (
+      await callTool(authorKey, 'post_create', {
+        title: 'Later',
+        slug: 'later'
+      })
+    ).structuredContent;
 
     const scheduled = await callTool(authorKey, 'post_update', {
       id: post.id,

@@ -43,6 +43,7 @@ import { Router, Server } from '../types/server';
 import { info } from './info-route';
 import { PluginEntry } from './register-plugin';
 import { registerRateLimit } from './rate-limit';
+import { registerJsonParser } from './json-parser';
 import { requestValidation } from './request-validation';
 import { referencedSerializer } from './response-serialization';
 import schemas from './schemas';
@@ -91,6 +92,9 @@ export function createServer(): Server {
     }),
     loggerInstance
   }).withTypeProvider<TypeBoxTypeProvider>();
+
+  // A JSON body is parsed at once on the event loop, so it gets a limit of its own
+  registerJsonParser(server);
 
   // Trace the requests, from before the hooks of any plugin
   registerHttpTelemetry(server);

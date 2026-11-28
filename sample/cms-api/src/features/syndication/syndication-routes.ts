@@ -8,7 +8,7 @@ import {
 } from '@appweaver/common';
 import { currentAuthUser, EmailService, inject } from '@appweaver/core';
 import { errorResponses, registerRoute, serverConfig } from '@appweaver/web';
-import { findPublishedPost, findPublishedPosts } from './posts';
+import { countView, findPublishedPost, findPublishedPosts } from './posts';
 
 // The locale chosen by the application, here a request parameter, passed to
 // the template engine and the email service
@@ -55,6 +55,7 @@ registerRoute(
           },
           { locale: req.query.locale }
         );
+        countView(post.id);
 
         return reply.type(templateContentType(name)).send(html);
       }

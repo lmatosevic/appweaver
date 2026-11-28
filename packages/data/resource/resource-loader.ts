@@ -1,5 +1,7 @@
 import { TSchema, Type } from '@sinclair/typebox';
 import {
+  capitalize,
+  RESOURCE_NAME,
   findFilesByPattern,
   importModule,
   IResourceService,
@@ -82,11 +84,11 @@ async function loadModels(
 
   for (const modelSchema of exports as ResourceModel[]) {
     if (isResourceModel(modelSchema)) {
-      models[modelSchema.name] = modelSchema;
+      models[modelSchema.name] = definedModel(modelSchema);
     } else {
       for (const maybeSchema of Object.values(modelSchema)) {
         if (isResourceModel(maybeSchema)) {
-          models[maybeSchema.name] = maybeSchema;
+          models[maybeSchema.name] = definedModel(maybeSchema);
         }
       }
     }
@@ -148,11 +150,11 @@ function loadServices(exports: unknown[]): Record<string, IResourceService> {
 
   for (const resourceService of exports as IResourceService[]) {
     if (isResourceService(resourceService)) {
-      services[resourceService.modelName] = resourceService;
+      services[resourceName(resourceService)] = definedService(resourceService);
     } else {
       for (const maybeService of Object.values(resourceService)) {
         if (isResourceService(maybeService)) {
-          services[maybeService.modelName] = maybeService;
+          services[resourceName(maybeService)] = definedService(maybeService);
         }
       }
     }
@@ -168,11 +170,11 @@ function loadPolicies(
 
   for (const resourcePolicy of exports as ResourcePolicyConfig[]) {
     if (isResourcePolicy(resourcePolicy)) {
-      policies[resourcePolicy.modelName] = resourcePolicy;
+      policies[resourceName(resourcePolicy)] = definedPolicy(resourcePolicy);
     } else {
       for (const maybePolicy of Object.values(resourcePolicy)) {
         if (isResourcePolicy(maybePolicy)) {
-          policies[maybePolicy.modelName] = maybePolicy;
+          policies[resourceName(maybePolicy)] = definedPolicy(maybePolicy);
         }
       }
     }
@@ -182,6 +184,38 @@ function loadPolicies(
 }
 
 /** The exports of the application files matching a pattern, then of the resources of the modules. */
+/**
+ * The definitions the context holds under the name of a loaded one. Two files defining the same name (i.e. an
+ * application model named like a framework model) keep the first one, or the one defined with `override`, and the
+ * context warns about the other one; the loader follows the context, so the definition it links and validates is
+ * the one every service and route uses.
+ */
+function definedModel(model: ResourceModel): ResourceModel {
+  return context.resource.models.get(model.name) ?? model;
+}
+
+function definedService(service: IResourceService): IResourceService {
+  return (
+    (context.resource.services.get(resourceName(service)) as
+      | IResourceService
+      | undefined) ?? service
+  );
+}
+
+function definedPolicy(policy: ResourcePolicyConfig): ResourcePolicyConfig {
+  return context.resource.policies.get(resourceName(policy)) ?? policy;
+}
+
+/** The name a service class or a policy is defined under, the capitalized name of its model. */
+function resourceName(
+  resource: IResourceService | ResourcePolicyConfig
+): string {
+  return (
+    (resource as unknown as Record<symbol, string>)[RESOURCE_NAME] ??
+    capitalize(resource.modelName)
+  );
+}
+
 async function findExports(
   pattern: string,
   cwd: string,

@@ -525,6 +525,56 @@ describe('audit-service', () => {
       expect(db.lastQuery('findMany')).toBeDefined();
     });
 
+    test('runs no flush timer while nothing is buffered', () => {
+      jest.useFakeTimers();
+      try {
+        configOverrides.AUDIT_RETENTION_WORKER = false;
+
+        service.onReady();
+        expect(jest.getTimerCount()).toBe(0);
+
+        service.record({ category: 'custom' });
+        expect(jest.getTimerCount()).toBe(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    test('writes the entries recorded after one flush interval', async () => {
+      jest.useFakeTimers();
+      try {
+        configOverrides.AUDIT_RETENTION_WORKER = false;
+        configOverrides.AUDIT_FLUSH_INTERVAL = '2s';
+        service.onReady();
+
+        service.record({ category: 'custom' });
+        await jest.advanceTimersByTimeAsync(1999);
+        expect(written('AuditLog')).toHaveLength(0);
+
+        await jest.advanceTimersByTimeAsync(1);
+        expect(written('AuditLog')).toHaveLength(1);
+        expect(jest.getTimerCount()).toBe(0);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    test('writes the entries recorded before the service was ready', async () => {
+      jest.useFakeTimers();
+      try {
+        configOverrides.AUDIT_RETENTION_WORKER = false;
+        service.record({ category: 'custom' });
+        expect(jest.getTimerCount()).toBe(0);
+
+        service.onReady();
+        await jest.advanceTimersByTimeAsync(1000);
+
+        expect(written('AuditLog')).toHaveLength(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     test('rejects an interval that is not a duration', () => {
       configOverrides.AUDIT_FLUSH_INTERVAL = 'soon';
 

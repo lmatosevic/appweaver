@@ -94,6 +94,10 @@ export const errorHttpMap: { readonly [C in ErrorCode]: ErrorHttpMapping } = {
     title: 'Resource access forbidden'
   },
   [ErrorCode.ResourceInvalidSort]: { status: 400, title: 'Invalid sort' },
+  [ErrorCode.ResourceFilterTooComplex]: {
+    status: 400,
+    title: 'Filter too complex'
+  },
   [ErrorCode.ResourceInvalidAggregate]: {
     status: 400,
     title: 'Invalid aggregation'

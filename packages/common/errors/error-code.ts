@@ -48,6 +48,7 @@ export enum ErrorCode {
   ResourceNotFound = 'RESOURCE_NOT_FOUND',
   ResourceForbidden = 'RESOURCE_FORBIDDEN',
   ResourceInvalidSort = 'RESOURCE_INVALID_SORT',
+  ResourceFilterTooComplex = 'RESOURCE_FILTER_TOO_COMPLEX',
   ResourceInvalidAggregate = 'RESOURCE_INVALID_AGGREGATE',
   ResourceInvalidCursor = 'RESOURCE_INVALID_CURSOR',
   ResourceInvalidQueryParameter = 'RESOURCE_INVALID_QUERY_PARAMETER',

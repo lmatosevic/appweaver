@@ -4,7 +4,8 @@ import {
   extractSchemaProperties,
   isArray,
   isFunction,
-  isPlainObject
+  isPlainObject,
+  ResourceModel
 } from '@appweaver/common';
 import { injectModel } from '@appweaver/core';
 
@@ -26,8 +27,6 @@ export function projectVirtualFields<T>(resource: T, resourceName: string): T {
   const projectedVirtual = { ...resource };
 
   const resourceModel = injectModel(resourceName, false);
-  const relationsModel = resourceModel?.relationsModel;
-  const filesModel = resourceModel?.filesModel;
 
   // Set output or default value for virtual fields
   for (const [fieldName, virtual] of Object.entries(
@@ -45,25 +44,60 @@ export function projectVirtualFields<T>(resource: T, resourceName: string): T {
   }
 
   // Recursively project virtual fields for nested relational objects
+  const nestedModels = resourceModel ? nestedResourceNames(resourceModel) : {};
   for (const key in projectedVirtual) {
+    const nestedResourceName = nestedModels[key];
+    if (!nestedResourceName) {
+      continue;
+    }
+
     const value = projectedVirtual[key];
-
-    const relationSchema = extractSchemaProperties(relationsModel, key);
-    const fileSchema = extractSchemaProperties(filesModel, key);
-
     if (isPlainObject(value) || (isArray(value) && isPlainObject(value[0]))) {
-      const nestedResourceName = extractResourceName(
-        relationSchema ?? fileSchema
-      );
-      if (nestedResourceName) {
-        projectedVirtual[key] = isArray(value)
-          ? (value.map((item: any) =>
-              projectVirtualFields(item, nestedResourceName)
-            ) as any)
-          : projectVirtualFields(value, nestedResourceName);
-      }
+      projectedVirtual[key] = isArray(value)
+        ? (value.map((item: any) =>
+            projectVirtualFields(item, nestedResourceName)
+          ) as any)
+        : projectVirtualFields(value, nestedResourceName);
     }
   }
 
   return projectedVirtual;
+}
+
+// The models of the relation and file fields of a model, resolved once per schema instead of once per record. Keyed
+// by the relations schema, which is replaced when the model is linked again, so a stale entry is never read
+const nestedModelsCache = new WeakMap<object, Record<string, string>>();
+
+/**
+ * Resolves the model names of the relation and file fields of a model.
+ *
+ * @param {ResourceModel} resourceModel - The model.
+ * @return {Object} The related model name of every relation and file field, by field name.
+ */
+function nestedResourceNames(
+  resourceModel: ResourceModel
+): Record<string, string> {
+  const cacheKey = resourceModel.relationsModel ?? resourceModel;
+  const cached = nestedModelsCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const names: Record<string, string> = {};
+  const fields = [
+    ...Object.keys(resourceModel.config?.relations ?? {}),
+    ...Object.keys(resourceModel.config?.files ?? {})
+  ];
+  for (const key of fields) {
+    const name = extractResourceName(
+      extractSchemaProperties(resourceModel.relationsModel, key) ??
+        extractSchemaProperties(resourceModel.filesModel, key)
+    );
+    if (name) {
+      names[key] = name;
+    }
+  }
+
+  nestedModelsCache.set(cacheKey, names);
+  return names;
 }
