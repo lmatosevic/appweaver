@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ES2024",
+    "baseUrl": "./",
     "rootDir": "./",
     "outDir": "./dist",
     "strict": true,
@@ -15,7 +16,6 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "noUnusedLocals": false,
-    "types": ["node", "jest"],
     "paths": {
       "@/*": ["./src/*"],
       "@db/*": ["./database/*"]

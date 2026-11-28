@@ -4,10 +4,10 @@
 
 The project is a TypeScript monorepo using `tsc -b` for builds.
 
-- **TypeScript**: TypeScript 5.9 until every tool needing the compiler API (typescript-eslint, `openapi-typescript` of
-  the client generator, madge) supports TypeScript 7.1 (`PLAN-v3.md`, phase 2). The configs are ready for it: no
-  `baseUrl`, `types` and `rootDir` listed, no decorator flags. `noImplicitAny` is on (from `strict`): an object built key
-  by key is typed `Record<string, unknown>`, and a symbol a factory sets is a key of `ResourceMarks`.
+- **TypeScript**: TypeScript 5.9 for the monorepo, the published packages and the scaffolded projects, v3 included
+  (`PLAN-v3.md`, D12): the tools needing the compiler API (typescript-eslint, `openapi-typescript` of the client
+  generator, madge) do not support TypeScript 7. `noImplicitAny` is on (from `strict`): an object built key by key is
+  typed `Record<string, unknown>`, and a symbol a factory sets is a key of `ResourceMarks`.
 - **Initial Setup**: Run `npm install` to install all dependencies.
 - **Building**: Run `npm run build` from the root. This performs:
     - `prebuild`: Removes the `dist` folders of all packages (`clean:packages`).

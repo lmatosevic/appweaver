@@ -2,8 +2,11 @@
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
 > section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
-> **Revision 21**: TypeScript 7.1 waits until every tool is compatible with it (maintainer's decision): the compiler
-> stays 5.9, with the config cleanup and `noImplicitAny` of V3-TOOL-01 kept (D12).
+> **Revision 22**: no TypeScript 7 in v3 (maintainer's decision): v3 is developed and released on TypeScript 5.9, since
+> the tools needing the compiler API support no later version (typescript-eslint, `openapi-typescript`, madge,
+> `typebox-codegen`). The changes made for 7.1 in phase 2 are reverted; `noImplicitAny` and the removed decorator flags
+> stay (D12). Supersedes revision 21 (7.1 deferred until the tools were ready), the TypeScript parts of revisions 3, 4
+> and 13 and decision 3 of section 9.
 > **Revision 20**: phase 2 on `v3/phase-2-toolchain`: `tsx`, `@appweaver/skill`, `@appweaver/tooling` with ESLint 10,
 > `generateToken` on `node:crypto`; TypeBox 1.x (V3-TOOL-06) open, its spike recorded in phase 2 (section 6).
 > **Revision 19**: phases 0 and 1 implemented as the stacked pull requests of `v3/phase-0-preparation` and
@@ -20,7 +23,7 @@
 > **Revision 14**: no prerelease channel: one pull request per phase into `main`, stacked on the previous phase; 3.0.0 is
 > released from `main` once every phase is merged; a 2.x fix, if ever needed, branches from the `v2.10.1` tag (section 2).
 > **Revision 13**: the maintainer's decisions of section 9 recorded: no 2.x maintenance after 3.0.0, the defaults of D5
-> (Swagger stays on, configurable), the release held for TypeScript 7.1, every sample and both clients kept, `views`, the
+> (Swagger stays on, configurable), the release held for TypeScript 7.1 (superseded by 22), every sample and both clients kept, `views`, the
 > `DatabaseType` suffixes of the SQL files.
 > **Revision 12**: phase 1a released in 2.10.1 (decision 7 closed).
 > **Revision 11**: response compression, configurable globally and per route (E15, D24, V3-WEB-04).
@@ -29,12 +32,12 @@
 > **Revision 8**: remembered 2FA devices added to phase 4, next to the forced 2FA lifecycle (D6b, V3-WEB-03).
 > **Revision 7**: no Prisma 8 plans: v3 keeps Prisma 7 exactly as it is used today, with no switch planned and no code
 > preparing one; the migration engine interface, the `weaver db` restructuring and the Prisma 8 backlog are removed
-> (D16). The custom SQL migration layer (D22) stays. Only TypeScript runs on a pre-release (7.1 beta) in development.
+> (D16). The custom SQL migration layer (D22) stays. Only TypeScript runs on a pre-release (7.1 beta) in development (superseded by 22).
 > **Revision 6**: v3 stays on Prisma 7.x; Prisma 8 in a 3.x minor (superseded by 7).
 > **Revision 5**: custom SQL migrations investigated (E14, D22); Prisma 8 has no SQL Server library, so D16 is re-opened
 > (section 9).
 > **Revision 4**: phase 1a done on `fix/security-and-query-limits` (section 6); v3 is built on the TypeScript 7.1 beta and
-> the Prisma 8 release candidates for development, and released only once both are stable (Prisma part superseded by 6).
+> the Prisma 8 release candidates for development, and released only once both are stable (Prisma part superseded by 6, TypeScript part by 22).
 > **Revision 3**: v3 waits for TypeScript 7.1 and Prisma 8.0.0 stable before its toolchain phase (superseded by 4).
 > **Revision 2**: every claim below was checked in the code or measured (section 3). Each decision of section 5 states
 > the evidence it rests on, the alternatives rejected, and what it breaks. Nothing is implemented before its phase plan
@@ -128,7 +131,7 @@ scenarios it touches rerun, docs.appweaver.co updated.
   When a phase merges into `main`, the next pull request is retargeted to `main` and its branch rebased onto it; a
   change asked in the review of an earlier phase is made on its branch and the later branches are rebased.
 - **Releasing**: the Release workflow is run by hand, so `main` holds the merged phases unreleased; it is run once,
-  after the last phase and with TypeScript 7.1 stable (section 10), and the `feat!` commits make it 3.0.0. No release is
+  after the last phase (section 10), and the `feat!` commits make it 3.0.0. No release is
   run between two phases.
 - **2.x**: not maintained (decision 1). If a fix is ever needed, a branch from the `v2.10.1` tag, released on its own
   (added to the `branches` of `release.config.js` as a maintenance branch for that release only).
@@ -789,40 +792,31 @@ unit string in v3 like every other duration key, with no compatibility mode: a p
 `604800000`) where it wrote `604800`, listed in `MIGRATION-v3.md`. The only key keeping seconds is the TOTP `period`, an
 integer defined in seconds by RFC 6238, which authenticator apps only accept as 30.
 
-### D12. TypeScript — **decided: wait for TypeScript 7.1, then move everything to it**
+### D12. TypeScript — **decided (revision 22): TypeScript 5.9 in v3**
 
-**Evidence**: E6. TypeScript 7.0 builds 4.7 times faster but ships no compiler API, and four of our runtime tools need
-one (`ts-node`, `typebox-codegen`, `openapi-typescript`, typescript-eslint). TypeScript 7.1, which ships the API, is
-scheduled for the coming weeks (`7.1.0-beta` is on npm, and typescript-eslint 8.74 already accepts it through
-`@typescript/native`).
+**Evidence**: E6, and the tool check of phase 2 on `7.1.0-beta`. TypeScript 7.0 builds 4.7 times faster but ships no
+compiler API, and 7.1 ships a new one (`typescript/sync`, `typescript/ast`) none of our tools use: typescript-eslint
+takes `typescript <6.1` (its tsgo backend is experimental and needs 6.0 beside 7.1), `openapi-typescript` (the client
+generator), madge and `typebox-codegen` declare `typescript ^5`. Running 7.1 meant a `@typescript/native` alias for the
+compiler with 5.9 kept beside it for the tools, a workaround for the declarations of `openapi-typescript` that
+TypeScript 7 rejects, and a nested 5.9 in every project for its lint: a split toolchain for a faster build.
 
 **Decision**:
 
-0. **Revision 21**: the move to 7.1 is made once every tool below is compatible with it, not on the beta with aliased
-   copies of 5.9. A spike on `7.1.0-beta` (phase 2) built and tested the monorepo with the compiler as the
-   `@typescript/native` alias and 5.9 for the tools; it was reverted. Until then the compiler is 5.9, with the config
-   changes of item 2 made already.
-1. No intermediate step on TypeScript 6 or a split build: v3 moves from 5.9 straight to **TypeScript 7.1**, for the
-   monorepo, the published packages and the scaffolded projects alike. Development starts now on the latest
-   `7.1.0-beta` (or RC), pinned exactly; the stable 7.1.0 replaces it before 3.0.0 is released, and nothing is released
-   on a beta. Prisma stays on 7.x (D16).
-2. The config changes E6 found are made with it: `baseUrl` removed (the `paths` relative to the config), `types` and
-   `typeRoots` listed explicitly, the decorator flags removed, the client's CommonJS build off `moduleResolution:
-   node10`, the `WebSocket.send` typing fixed, and `noImplicitAny: true` (108 fixes). The config cleanup that is
-   valid on 5.9 too (decorator flags, `noImplicitAny`) may land earlier, in phase 1b.
-3. `ts-node` is replaced by `tsx` (its `register` API) for loading the project's models: `ts-node` will not follow
-   TypeScript 7.
-4. On the 7.1 beta, then again on the stable release, a check of every tool needing the API: typescript-eslint, `openapi-typescript` (the client
-   generator), `typebox-codegen` (`weaver generate --types`, replaced in V3-TOOL-06 if it does not follow) and madge.
-   A tool that does not support 7.1 yet keeps `typescript@6` as its own aliased dependency (`"typescript-api":
-   "npm:typescript@6"`) until it does, so it never holds the migration back.
-5. CommonJS output stays (see D13).
+1. v3 is developed and released on **TypeScript 5.9**, for the monorepo, the published packages and the scaffolded
+   projects alike. TypeScript 7 is reconsidered after v3, once the tools above run on it, as a release of its own.
+2. The config cleanup valid on 5.9 is made (F30, F31): the decorator flags removed, `noImplicitAny: true` (the fixes
+   typed the symbols the factories set as `ResourceMarks`). The changes only TypeScript 7 needs (`baseUrl` removed,
+   `types` listed, `rootDir` required, the client's CommonJS build off `node10`) are not made.
+3. `ts-node` is replaced by `tsx` (its `register` API) for loading the project's models: `ts-node` is unmaintained
+   since 2023 (F29).
+4. CommonJS output stays (see D13).
 
 ### D13. ESM — **decided: not in v3**
 
 ESM-only would touch the runtime `require` of providers and modules (`common/utils/module-util.ts`), the Prisma client
 output, the Jest setup and every scaffolded project, while nothing in E1-E12 shows a user-facing gain. The client
-package already ships ESM and CommonJS. Revisited once the project runs on TypeScript 7.1.
+package already ships ESM and CommonJS. Revisited after v3.
 
 ### D14. Test runner — **decided: stay on Jest with SWC**
 
@@ -837,7 +831,7 @@ that installs packages (V3-QA-02).
 Not inside `@appweaver/cli`: it would make the CLI heavy and pin every project's lint versions to ours. A
 `@appweaver/tooling` dev dependency carries the configs (ESLint 10 flat config, Prettier, Jest with SWC) and the tools as
 its own dependencies, replacing the 17 packages of `scaffoldDependencies.tooling` in a project. `weaver lint`,
-`weaver format` and `weaver test` resolve the tools from the project. Biome or oxlint: re-evaluated on TypeScript 7.1
+`weaver format` and `weaver test` resolve the tools from the project. Biome or oxlint: re-evaluated after v3
 (type-aware rules are the deciding factor). ESLint 10 regardless.
 
 ### D16. Prisma — **decided (revision 7): Prisma 7, as used so far**
@@ -1093,7 +1087,7 @@ CSV export streamed), the config examples, the skill and a load scenario with co
 |-------|-------------------------------|---------------------------------------------------------------------------|-------------------------------------------------------|
 | 0     | Preparation                   | Migration guide, load-test harness, baselines            | Baselines of every sample recorded                    |
 | 1     | Security fixes and audit      | 2.10.1 (released) for F1-F4, F7, F9; per-module findings                  | Register reviewed, CRs ordered                        |
-| 2     | Toolchain and platform        | TypeScript 7.1, `tsx`, tooling package, TypeBox 1, skill package          | CI green, samples and scaffolds build |
+| 2     | Toolchain and platform        | `noImplicitAny`, `tsx`, tooling package, TypeBox 1, skill package         | CI green, samples and scaffolds build |
 | 3     | Conventions and defaults      | Durations, exposure, maintenance jobs, secure defaults, query defaults    | Conventions applied in every package                  |
 | 4     | Data model and API design     | Views, `extend*`, cache scopes, audit, forced 2FA                         | Each RFC approved before its code                     |
 | 5     | Module-by-module              | The remaining approved CRs, in the order of section 7                     | Per module                                            |
@@ -1104,12 +1098,8 @@ CSV export streamed), the config examples, the skill and a load scenario with co
 **Order**: security first (it ships to 2.x users), then the toolchain (every later pull request runs on it), then the
 conventions (the features adopt them), then the design work, then performance against the final design.
 
-**Pre-release for development**: **TypeScript 7.1** (the release shipping the compiler API) is scheduled as stable in
-the coming weeks. Phase 2 does not wait for it: it moves the phase branches to the latest TypeScript `7.1.0-beta`, pinned
-to an exact version, for development only. Prisma stays on 7.x (D16). No CR of phases 3 to 8
-is merged before phase 2, so nothing is written twice against the old toolchain. The stable TypeScript 7.1 is a gate of the
-release (section 10): the phases may merge into `main` on the beta, 3.0.0 is never released on it. A pre-release bump is
-a CR of its own, with its upgrade notes applied.
+**Toolchain**: TypeScript 5.9 and Prisma 7.x for the whole of v3 (D12, D16); no pre-release is used. No CR of phases 3
+to 8 is merged before phase 2, so nothing is written twice against the old toolchain.
 
 ### Phase 0: Preparation (no behavior change)
 
@@ -1380,35 +1370,34 @@ The checklist, item by item (R: read in the code, T: covered by a test):
 
 | Step | CR          | Work                                                                                                    |
 |------|-------------|---------------------------------------------------------------------------------------------------------|
-**Entry**: phase 1 closed. TypeScript on the latest `7.1.0-beta`, pinned exactly (see "Pre-release for development"
-above). Prisma on the latest 7.x.
+**Entry**: phase 1 closed. TypeScript 5.9, Prisma on the latest 7.x.
 
 | Step | CR          | Work                                                                                                    |
 |------|-------------|---------------------------------------------------------------------------------------------------------|
-| 2.1  | V3-TOOL-02  | Tool check on the TypeScript 7.1 beta: typescript-eslint, `openapi-typescript`, `typebox-codegen`, madge; a tool not ready keeps an aliased `typescript@6` (D12) |
-| 2.2  | V3-TOOL-01  | TypeScript 7.1 everywhere: `baseUrl` removed, `types` and `typeRoots` listed, decorator flags removed, the client's CommonJS build off `node10`, the `WebSocket.send` typing, `noImplicitAny: true` (108 fixes) |
+| 2.1  | V3-TOOL-02  | Tool check on the TypeScript 7.1 beta: typescript-eslint, `openapi-typescript`, `typebox-codegen`, madge (D12); its result kept v3 on 5.9 |
+| 2.2  | V3-TOOL-01  | Decorator flags removed, `noImplicitAny: true` (108 fixes), on TypeScript 5.9                           |
 | 2.3  | V3-TOOL-03  | `ts-node` replaced by `tsx` in `cli/utils/loader-util.ts`                                               |
 | 2.4  | V3-TOOL-06  | TypeBox 1.x everywhere, one copy; `typebox-codegen` replaced if it cannot follow                        |
 | 2.5  | V3-TOOL-05  | `@appweaver/tooling` (ESLint 10, Prettier, Jest + SWC configs), `weaver lint|format|test`, the scaffold templates on it |
 | 2.6  | V3-TOOL-08  | `@appweaver/skill` and `weaver skill sync`                                                              |
 | 2.7  | V3-SEC-06   | `generate-api-key` replaced; `npm audit` triaged (the `effect` advisory comes with Prisma 7's `@prisma/config`) |
 
-**Gate 2**: CI green on TypeScript 5.9 and Prisma 7 (7.1 once its tools are compatible, revision 21), its duration compared to E1, every
+**Gate 2**: CI green on TypeScript 5.9 and Prisma 7, its duration compared to E1, every
 sample and every scaffold combination building and passing its e2e tests on its database.
 
 **Implementation** on `v3/phase-2-toolchain` (pull request into `v3/phase-1-review`), one commit per CR:
 
 | CR           | Result                                                                                                  |
 |--------------|---------------------------------------------------------------------------------------------------------|
-| V3-TOOL-02   | The tool check on `7.1.0-beta` below: typescript-eslint, `openapi-typescript`, madge and `typebox-codegen` are not ready |
-| V3-TOOL-01   | The config part: `baseUrl` and the decorator flags removed, `types` and `rootDir` set, `noImplicitAny` on (the symbol marks typed as `ResourceMarks`), for the monorepo, the samples and the scaffolds; `MIGRATION-v3.md` 2. **The compiler stays 5.9** (revision 21): the 7.1 beta was built and tested in this phase, then reverted until the tools are compatible |
+| V3-TOOL-02   | The tool check on `7.1.0-beta` below: typescript-eslint, `openapi-typescript`, madge and `typebox-codegen` are not ready for it, so v3 stays on 5.9 (revision 22) |
+| V3-TOOL-01   | The decorator flags removed and `noImplicitAny` on (the symbol marks typed as `ResourceMarks`), for the monorepo, the samples and the scaffolds; `MIGRATION-v3.md` 2. The 7.1 beta was built and tested in this phase, then reverted with its config changes (revision 22) |
 | V3-TOOL-03   | `tsx` (its CommonJS `register`) loads the models of `weaver generate`; the output of `cms-api` and `webshop-api` unchanged |
 | V3-SEC-06    | `generateToken` on `node:crypto`, found weaker than F35 said (F61); `npm audit --omit=dev` clean with `effect` 3.22.5 overridden in the monorepo, the rest in the dev tools only (Jest, autocannon, semantic-release) |
 | V3-TOOL-08   | `@appweaver/skill` (`packages/skill`, the `skill/` of the repository), `weaver skill sync`, run by `weaver upgrade`; a scaffolded project with an agent depends on it; `MIGRATION-v3.md` 21 |
-| V3-TOOL-05   | `@appweaver/tooling` (ESLint 10, typescript-eslint 8.74 with its own TypeScript 5.9, Prettier, Jest, SWC, jest-junit) with `eslintConfig`, the Prettier config and the Jest preset; `weaver lint`, `weaver format`, `weaver test` (`bun test` on Bun); the scaffolds and the module packages on it, a scaffolded project installed from the packed packages and its lint, format, unit and e2e tests and build run; the monorepo on ESLint 10; `MIGRATION-v3.md` 3 |
+| V3-TOOL-05   | `@appweaver/tooling` (ESLint 10, typescript-eslint 8.74, Prettier, Jest, SWC, jest-junit) with `eslintConfig`, the Prettier config and the Jest preset; `weaver lint`, `weaver format`, `weaver test` (`bun test` on Bun); the scaffolds and the module packages on it, a scaffolded project installed from the packed packages and its lint, format, unit and e2e tests and build run; the monorepo on ESLint 10; `MIGRATION-v3.md` 3 |
 | V3-TOOL-06   | **Open**, see below                                                                                     |
 
-The tool check (V3-TOOL-02, D12):
+The tool check (V3-TOOL-02, D12), kept as the evidence of revision 22:
 
 | Tool                       | On TypeScript 7.1.0-beta                                                                              |
 |----------------------------|-------------------------------------------------------------------------------------------------------|
@@ -1419,12 +1408,13 @@ The tool check (V3-TOOL-02, D12):
 | `tsc-watch` 7.2            | Runs the `typescript/bin/tsc` of the project, 7.1, and parses its output (`weaver start --watch`)      |
 | `tsx`, `tsc-alias`, knip   | Need no TypeScript                                                                                    |
 
-What the spike on the beta needed, reverted (revision 21): the compiler as the `@typescript/native` alias with the
+What running the beta needed, all reverted (revision 22): the compiler as the `@typescript/native` alias with the
 classic 5.9 as `typescript` (a peer of `openapi-typescript`, madge and `typebox-codegen` is `^5`, and npm cannot nest a
 peer of a direct dependency); the values of `openapi-typescript` typed by its ESM declarations, since TypeScript 7 rejects
 its CommonJS ones (`export =` beside named exports); a cast of `WebSocket.send` (its DOM typing takes no
-`SharedArrayBuffer`); `typescript-eslint` of a project nested with its own 5.9 (`@appweaver/tooling` does it already).
-The beta built the packages in 2.4 s (13.6 s on 5.9, E1) and type checked the repository in 1.0 s (11.8 s).
+`SharedArrayBuffer`); typescript-eslint of a project nested with a 5.9 of its own; `baseUrl` removed, `types` and
+`rootDir` listed in every `tsconfig.json`. The beta built the packages in 2.4 s (13.6 s on 5.9, E1) and type checked the
+repository in 1.0 s (11.8 s), the gain left for after v3.
 
 On 5.9, after the phase: `npm test` 48 s (60 s in E1; 324 suites, 4,983 tests, 89.2% of the branches), the full lint
 under ESLint 10 72 s.
@@ -1623,7 +1613,7 @@ ticked.
 ### Tools and CI
 
 - CI duration compared at gate 2; nightly load tests (never per pull request); the 4 GB lint heap of `tools/lint.js`
-  re-measured under ESLint 10 and TypeScript 7.1; `tools/copy-packages.js` and the sample lockfiles under the new
+  re-measured under ESLint 10; `tools/copy-packages.js` and the sample lockfiles under the new
   toolchain.
 
 ---
@@ -1635,7 +1625,7 @@ All `proposed` until approved, except V3-SEC-01 to V3-SEC-04, V3-SAMPLE-01 and V
 V3-PROC-01, V3-PROC-02, V3-PERF-01, V3-PERF-02, V3-TOOL-00. **Done in phase 1** (pull request of
 `v3/phase-1-review`): V3-SEC-05, V3-SEC-07a, V3-SEC-07b, V3-BUG-02, V3-BUG-03, V3-BUG-04, V3-PERF-06b, V3-QA-01 (the first part, see
 phase 1), V3-QA-02, V3-QA-03, V3-CLI-06. **Done in phase 2** (pull request of `v3/phase-2-toolchain`): V3-TOOL-01
-(the config part, the compiler staying 5.9), V3-TOOL-02, V3-TOOL-03, V3-TOOL-05, V3-TOOL-08, V3-SEC-06; V3-TOOL-06 open. Effort: S < 1 day, M days, L a week, XL more.
+(the config cleanup, TypeScript staying 5.9), V3-TOOL-02, V3-TOOL-03, V3-TOOL-05, V3-TOOL-08, V3-SEC-06; V3-TOOL-06 open. Effort: S < 1 day, M days, L a week, XL more.
 
 | ID            | Title                                                                    | Phase | Prio | Effort | Breaking       |
 |---------------|--------------------------------------------------------------------------|-------|------|--------|----------------|
@@ -1656,8 +1646,8 @@ phase 1), V3-QA-02, V3-QA-03, V3-CLI-06. **Done in phase 2** (pull request of `v
 | V3-QA-02      | Tests never install packages in the repository (F32)                     | 1     | P1   | S      | No             |
 | V3-QA-03      | The two failing `cms-api` 2FA e2e tests (F40)                            | 1     | P1   | S      | No             |
 | V3-SAMPLE-02  | Query plans of every sample's policies checked by the load scenarios (F41) | 6   | P2   | S      | No             |
-| V3-TOOL-01    | TypeScript 7.1, config cleanup, `noImplicitAny` (F30, F31)               | 2     | P1   | M      | Projects       |
-| V3-TOOL-02    | Tool check on TypeScript 7.1, aliased `typescript@6` where needed        | 2     | P1   | S      | No             |
+| V3-TOOL-01    | Config cleanup, `noImplicitAny` (F30, F31); TypeScript stays 5.9         | 2     | P1   | M      | Projects       |
+| V3-TOOL-02    | Tool check on TypeScript 7.1 (kept v3 on 5.9)                            | 2     | P1   | S      | No             |
 | V3-TOOL-03    | `tsx` instead of `ts-node` (F29)                                         | 2     | P1   | S      | No             |
 | V3-TOOL-05    | `@appweaver/tooling`, `weaver lint|format|test`, ESLint 10               | 2     | P1   | M      | Projects       |
 | V3-TOOL-06    | TypeBox 1.x (F27)                                                        | 2     | P1   | L      | Yes            |
@@ -1730,7 +1720,7 @@ All decided (revision 13):
 2. **Defaults of D5**: access tokens short-lived (15 minutes) and refreshed regularly (30-day rotating refresh tokens);
    `totalCount` off by default, the client asking for it on its first page only; Swagger UI **stays on** in every
    environment, a production deployment turning it off with `swagger.enabled: false` (documented).
-3. **TypeScript 7.1 slip**: 3.0.0 is held until TypeScript 7.1 is stable, a milestone of the release.
+3. **TypeScript**: v3 stays on TypeScript 5.9 (revision 22); 3.0.0 waits for no TypeScript release.
 4. **Samples**: all nine stay; more may be added for other use cases.
 5. **Angular client and untyped client** (`--no-types`): both kept.
 6. **Views naming**: `views` on the model and `view` on the routes, policies, relations, MCP and events (D1).
@@ -1745,8 +1735,7 @@ All decided (revision 13):
 ## 10. Release plan
 
 1. Every phase merged into `main` through its stacked pull request; every phase gate passed.
-2. **TypeScript 7.1.0 stable** replacing the beta development ran on (the release waits for it, decision 3), Prisma on
-   the latest 7.x; the full test suite, the samples' e2e suites, a scaffolded project of every module combination and
+2. TypeScript 5.9 and Prisma on the latest 7.x; the full test suite, the samples' e2e suites, a scaffolded project of every module combination and
    the load tests rerun on `main`, the load-test budgets met.
 3. `MIGRATION-v3.md` complete; `weaver upgrade --target-version 3` bumps the packages and the skill files, and the user
    applies the migration guide.

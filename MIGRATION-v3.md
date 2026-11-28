@@ -17,7 +17,7 @@ startup.
 | Section                                                                     | CR           | Affects                          | Status  |
 |-----------------------------------------------------------------------------|--------------|----------------------------------|---------|
 | [1. Before you start](#1-before-you-start)                                  | -            | Everyone                         | pending |
-| [2. The project config and TypeScript 7.1](#2-the-project-config-and-typescript-71) | V3-TOOL-01 | Every project               | done (7.1 pending) |
+| [2. The project config](#2-the-project-config)                              | V3-TOOL-01   | Every project                    | done    |
 | [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)         | V3-TOOL-05   | Every scaffolded project         | done    |
 | [4. TypeBox 1.x](#4-typebox-1x)                                             | V3-TOOL-06   | Schemas, config sections, routes | pending |
 | [5. Durations and sizes](#5-durations-and-sizes)                            | V3-CONV-01   | `appweaver.json`, `.env`         | pending |
@@ -48,13 +48,11 @@ _pending_ (V3-DOC-05): upgrade to the latest 2.10.x first and fix every startup 
 for every deployed environment; back up the database. Then apply the sections below in order, running `weaver config
 check` and the tests after each one.
 
-## 2. The project config and TypeScript 7.1
+## 2. The project config
 
-**What changed** (V3-TOOL-01, D12): the generated projects drop `baseUrl` (removed by TypeScript 7, TS5102), list their
-`types` and their `rootDir`, drop the decorator flags (Appweaver uses no decorators) and turn `noImplicitAny` on, the
-default of `strict`. `weaver generate` loads the models with `tsx` instead of `ts-node`, which applies the `paths` of the
-project's `tsconfig.json`. The projects stay on TypeScript 5.9; the move to TypeScript 7.1 comes once the tools needing
-its compiler API support it, and will be described here.
+**What changed** (V3-TOOL-01, F30, F31): the generated projects drop the decorator flags (Appweaver uses no decorators)
+and turn `noImplicitAny` on, the default of `strict`. `weaver generate` loads the models with `tsx` instead of
+`ts-node`, which applies the `paths` of the project's `tsconfig.json`. TypeScript stays 5.9 in v3 (D12).
 
 **Who is affected**: every project.
 
@@ -63,33 +61,18 @@ its compiler API support it, and will be described here.
 ```json
 {
   "compilerOptions": {
-    "baseUrl": "./",
-    "outDir": "./dist",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "noImplicitAny": false,
-    "paths": { "@/*": ["./src/*"], "@db/*": ["./database/*"] }
+    "noImplicitAny": false
   }
 }
 ```
 
-**After**:
+**After**: the three keys removed.
 
-```json
-{
-  "compilerOptions": {
-    "rootDir": "./",
-    "outDir": "./dist",
-    "types": ["node", "jest"],
-    "paths": { "@/*": ["./src/*"], "@db/*": ["./database/*"] }
-  }
-}
-```
-
-**Steps**: remove `baseUrl`, keeping the `paths` relative to the config file (`./src/*`); add `rootDir: "./"` and the
-`types` the project uses (`["node", "jest"]`, `["bun"]` on Bun); remove `emitDecoratorMetadata`,
-`experimentalDecorators` and `noImplicitAny: false`, then type the parameters and the indexed objects `tsc` reports
-(`Record<string, unknown>` for an object built key by key).
+**Steps**: remove `emitDecoratorMetadata`, `experimentalDecorators` and `noImplicitAny: false`, then type the
+parameters and the indexed objects `tsc` reports (`Record<string, unknown>` for an object built key by key). Keeping
+`noImplicitAny: false` in a project still works.
 
 ## 3. Lint, format and test tooling
 

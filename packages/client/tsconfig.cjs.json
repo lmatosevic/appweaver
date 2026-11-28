@@ -4,6 +4,7 @@
     "rootDir": "./",
     "outDir": "./dist/cjs",
     "module": "CommonJS",
+    "moduleResolution": "node",
     "paths": {}
   },
   "exclude": ["node_modules", "dist", "generated", "test/**/*", "**/*.test.ts"],
