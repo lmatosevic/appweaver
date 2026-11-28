@@ -3,6 +3,7 @@ import { Value } from '@sinclair/typebox/value';
 import { CONFIG_NAME } from '../constants';
 import { ConfigurationError, ErrorCode } from '../errors';
 import { camelToSnakeCase, parseArray, snakeToCamelCase } from '../utils';
+import { parseEnvArray } from './env-array';
 import { ConfigEntry } from './config-loader';
 
 /** The values of a config section, typed by its properties. */
@@ -265,7 +266,7 @@ function readSectionValue(key: string, property: TSchema): unknown {
 
   if (typeof envValue === 'string' && envValue !== '') {
     if (property.type === 'array') {
-      return parseArray(envValue, property.default);
+      return parseEnvArray(key, envValue, property.default);
     }
     if (property.type === 'boolean') {
       return ['true', 'on', 'yes', '1'].includes(envValue.toLowerCase().trim());
@@ -303,7 +304,11 @@ function readRecordValue(
       } else {
         record[entry.entry] = {
           ...(record[entry.entry] as object),
-          [entry.field]: readEnvString(value, fields![entry.field])
+          [entry.field]: readEnvString(
+            name.slice(`_${CONFIG_NAME}_`.length),
+            value,
+            fields![entry.field]
+          )
         };
       }
     }
@@ -376,12 +381,16 @@ function recordFields(property: TSchema): Record<string, TSchema> | undefined {
 }
 
 /** Converts an environment string of an array or a boolean property, the other values being converted on parsing. */
-function readEnvString(value: unknown, property: TSchema): unknown {
+function readEnvString(
+  key: string,
+  value: unknown,
+  property: TSchema
+): unknown {
   if (typeof value !== 'string') {
     return value;
   }
   if (property.type === 'array') {
-    return parseArray(value);
+    return parseEnvArray(key, value);
   }
   if (property.type === 'boolean') {
     return ['true', 'on', 'yes', '1'].includes(value.toLowerCase().trim());

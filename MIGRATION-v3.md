@@ -36,6 +36,7 @@ startup.
 | [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails) | V3-SEC-05 | OAuth2 providers           | done    |
 | [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101) | V3-SEC-01..04 | Filters, body size, CSV export | done |
 | [20. Smaller API changes](#20-smaller-api-changes)                          | per CR       | The utilities named              | done    |
+| [20b. Array environment variables](#20b-array-environment-variables)       | V3-COMMON-01 | Array keys set in `.env`         | done    |
 | [21. The skill package](#21-the-skill-package)                              | V3-TOOL-08   | Projects with agent files        | done    |
 
 Each section follows the same layout: **What changed**, **Who is affected**, **Before**, **After**, **Steps**.
@@ -284,6 +285,13 @@ Released in 2.10.1 (phase 1a); listed here for a project upgrading from an older
   whose `string` tokens (the API keys of `randomString`) came from a generator that is not cryptographically secure. The
   `uuidv5` method is removed, and the options are `TokenOptions` (`{ pool }`) instead of the `DefaultGenerationOptions`
   of `generate-api-key`. A `base32` token is four groups of seven RFC 4648 characters separated by dashes.
+
+## 20b. Array environment variables
+
+An array key read from an environment variable (V3-COMMON-01, F36) takes a JSON array
+(`CORS_ORIGIN=["https://a.example.com","https://b.example.com"]`) besides the comma-separated list, whose items are now
+trimmed. A value that was silently one item fails the startup with `CONFIGURATION_INVALID`: a JSON array that does not
+parse, an empty item (`a,,b` or a trailing comma) or a quoted item (`"a","b"`). Fix the variable as the error names it.
 
 ## 21. The skill package
 

@@ -110,7 +110,9 @@ like the `DB_HOST` a docker-compose container sets to the database service name.
 ## Environment variable parsing
 
 - **Boolean**: `'true'`, `'on'`, `'yes'`, `'1'` (case-insensitive) are parsed as `true`; all others as `false`
-- **Array**: Comma-separated values are automatically split into arrays
+- **Array**: a JSON array (`["a,b", "c"]`, for items holding a comma), or a comma-separated list whose items are
+  trimmed (`a, b`). An ambiguous value fails the startup with `CONFIGURATION_INVALID` instead of becoming one item: a
+  JSON array that does not parse, an empty item (`a,,b`, a trailing comma) or a quoted item (`"a","b"`)
 - **Numbers**: Parsed as integers or floats based on schema type
 - **Strings**: Used as-is
 

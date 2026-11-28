@@ -3,12 +3,8 @@ import * as path from 'node:path';
 import { config as dotenvConfig } from 'dotenv';
 import { expand as dotenvExpand } from 'dotenv-expand';
 import { TObject } from '@sinclair/typebox';
-import {
-  camelToSnakeCase,
-  isPlainObject,
-  parseArray,
-  resolveEnvironment
-} from '../utils';
+import { camelToSnakeCase, isPlainObject, resolveEnvironment } from '../utils';
+import { parseEnvArray } from './env-array';
 import { CONFIG_NAME } from '../constants';
 import { ConfigurationError, ErrorCode } from '../errors';
 
@@ -88,7 +84,7 @@ export function loadConfigFromEnv(schema: TObject): ConfigEntry {
     }
 
     if (schemaProp.type === 'array') {
-      config[name] = parseArray(value, schemaProp.default);
+      config[name] = parseEnvArray(name, value, schemaProp.default);
     } else if (schemaProp.type === 'boolean') {
       config[name] = ['true', 'on', 'yes', '1'].includes(
         value.toLowerCase().trim()
