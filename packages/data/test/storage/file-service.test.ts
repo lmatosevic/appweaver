@@ -377,6 +377,17 @@ describe('file-service', () => {
       dbClient.file.findFirst = jest.fn().mockResolvedValue(file);
     });
 
+    test('names the redirect after the file, not the directory of its name', async () => {
+      storage.url = jest.fn().mockResolvedValue('https://cdn.test/a.pdf');
+      dbClient.file.findFirst = jest
+        .fn()
+        .mockResolvedValue({ ...file, name: 'covers/2026/avatar-1.pdf' });
+
+      await expect(
+        service.download('covers/2026/avatar-1.pdf')
+      ).resolves.toEqual(expect.objectContaining({ fileName: 'avatar-1.pdf' }));
+    });
+
     test('returns the URL of a storage serving its files directly', async () => {
       storage.url = jest
         .fn()

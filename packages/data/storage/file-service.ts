@@ -228,7 +228,7 @@ export class FileService implements OnReady, OnDestroy {
     if (url) {
       return {
         url,
-        fileName: file.name.split('/')[0],
+        fileName: file.name.split('/').at(-1)!,
         mimeType: file.mimeType
       };
     }
