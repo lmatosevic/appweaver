@@ -7,20 +7,23 @@ function authModelField(): string {
   return uncapitalize(resourceAuthModel()!.name);
 }
 
+// A user manages their own keys only, an anonymous request none. The application's own calls skip the policies
 export default apiKeyConfig.ENABLED
   ? createPolicy({
       modelName: 'ApiKey',
       checkAccess: (user, resource, action) => {
-        const authFieldName = authModelField();
-        const currentAuthId = user!.id;
-        if (action === 'create') {
-          return resource[authFieldName].id === currentAuthId;
-        } else {
-          return resource[`${authFieldName}Id`] === currentAuthId;
+        if (!user) {
+          return false;
         }
+        const authFieldName = authModelField();
+        if (action === 'create') {
+          return resource[authFieldName]?.id === user.id;
+        }
+        return resource[`${authFieldName}Id`] === user.id;
       },
-      readRestrictions: (user) => {
-        return { [authModelField()]: { id: user!.id } };
-      }
+      readRestrictions: (user) =>
+        user
+          ? { [authModelField()]: { id: user.id } }
+          : { id: { in: [] as string[] } }
     })
   : undefined;

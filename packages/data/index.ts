@@ -1,4 +1,5 @@
 export * from './audit/audit-service';
+export { auditRoutesEnabled } from './audit/utils/audit-routes-util';
 export * from './config';
 export * from './database';
 export * from './export/export-service';

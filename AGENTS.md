@@ -10,11 +10,11 @@ The project is a TypeScript monorepo using `tsc -b` for builds.
   typed `Record<string, unknown>`, and a symbol a factory sets is a key of `ResourceMarks`.
 - **Initial Setup**: Run `npm install` to install all dependencies.
 - **Building**: Run `npm run build` from the root. This performs:
-    - `prebuild`: Removes the `dist` folders of all packages (`clean:packages`).
-    - `tsc -b -v packages`: Incremental build of all packages.
-    - `postbuild`: Resolves the path aliases of the client's ESM output (`resolve:esm`), cleans
-      `node_modules/@appweaver` (`clean:modules`), and copies the built packages there via `tools/copy-packages.js` to
-      allow packages and samples to reference each other during development.
+  - `prebuild`: Removes the `dist` folders of all packages (`clean:packages`).
+  - `tsc -b -v packages`: Incremental build of all packages.
+  - `postbuild`: Resolves the path aliases of the client's ESM output (`resolve:esm`), cleans
+    `node_modules/@appweaver` (`clean:modules`), and copies the built packages there via `tools/copy-packages.js` to
+    allow packages and samples to reference each other during development.
 - **Rebuilding**: there is no watch script. Rerun `npm run build`, or run `node tools/copy-packages.js` after a manual
   `tsc -b packages/<name>` to refresh `node_modules/@appweaver`.
 
@@ -77,27 +77,27 @@ describe('Feature Verification', () => {
 ## 3. Development Information
 
 - **Code Style**:
-    - **Formatting**: The project uses **Prettier**. Run `npm run format` to format the codebase after every task that
-      involves code changes.
-    - **Linting**: The project uses **ESLint**. Run `npm run lint` to check for issues and `npm run lint -- --fix` to
-      automatically fix what's possible. It runs `tools/lint.js`, which lints the packages and every sample in an
-      ESLint process of its own, with a 4 GB heap: typescript-eslint keeps the program of every project it opens, so a
-      single `eslint "{packages,sample}/**/*.ts"` needs over 3 GB and runs out of memory under the default heap of
-      Node. Files given to it are linted in one run, `npm run lint -- packages/web/server/*.ts`.
-    - **Circular dependencies**: Run `npm run check:circular` to check the package sources for import cycles with
-      madge (`.madgerc`). It skips the type-only and dynamic imports, which never run at load time, so it fails only on
-      a cycle of runtime imports. A shorter import through a directory barrel (`index.ts`) loads every module of the
-      barrel, so check it too.
-    - **Unused code**: Run `npm run check:unused` to check the package sources and the tools for unused files,
-      exports and dependencies with knip (`knip.json`). An export only used in its own file is not reported. A
-      dependency used outside the scanned sources (the driver adapters the samples run on, the plugins of
-      `release.config.js`) is listed in its `ignoreDependencies`, and a new entry point or type augmentation file in
-      its `entry`.
-    - **Comments**: Keep code comments short and to the point. Explain only what the code itself cannot show.
-    - **Class member order**: fields first, then all public methods, then the private ones.
-    - **Type member order**: in an interface or type, required properties come first, optional ones after them.
-    - **`@internal`**: only on class members, the private ones, or rarely a public one a class adds beside the
-      interface from `packages/common` it implements. Never on plain functions, constants or types.
+  - **Formatting**: The project uses **Prettier**. Run `npm run format` to format the codebase after every task that
+    involves code changes.
+  - **Linting**: The project uses **ESLint**. Run `npm run lint` to check for issues and `npm run lint -- --fix` to
+    automatically fix what's possible. It runs `tools/lint.js`, which lints the packages and every sample in an
+    ESLint process of its own, with a 4 GB heap: typescript-eslint keeps the program of every project it opens, so a
+    single `eslint "{packages,sample}/**/*.ts"` needs over 3 GB and runs out of memory under the default heap of
+    Node. Files given to it are linted in one run, `npm run lint -- packages/web/server/*.ts`.
+  - **Circular dependencies**: Run `npm run check:circular` to check the package sources for import cycles with
+    madge (`.madgerc`). It skips the type-only and dynamic imports, which never run at load time, so it fails only on
+    a cycle of runtime imports. A shorter import through a directory barrel (`index.ts`) loads every module of the
+    barrel, so check it too.
+  - **Unused code**: Run `npm run check:unused` to check the package sources and the tools for unused files,
+    exports and dependencies with knip (`knip.json`). An export only used in its own file is not reported. A
+    dependency used outside the scanned sources (the driver adapters the samples run on, the plugins of
+    `release.config.js`) is listed in its `ignoreDependencies`, and a new entry point or type augmentation file in
+    its `entry`.
+  - **Comments**: Keep code comments short and to the point. Explain only what the code itself cannot show.
+  - **Class member order**: fields first, then all public methods, then the private ones.
+  - **Type member order**: in an interface or type, required properties come first, optional ones after them.
+  - **`@internal`**: only on class members, the private ones, or rarely a public one a class adds beside the
+    interface from `packages/common` it implements. Never on plain functions, constants or types.
 - **Continuous integration**: the `CI` workflow (`.github/workflows/ci.yml`) runs on every pull request to `main`
   and every push to it, in `node:24` containers set up by `.github/actions/setup` (npm 12, `npm ci`):
   `npm run format:check`, `npm run lint` (after `npm run build`, since the samples import the built packages),
@@ -115,7 +115,7 @@ describe('Feature Verification', () => {
   what the monorepo is tested with. A test of `packages/create` checks it.
 
 **IMPORTANT**: after a new feature is added or change is done in how the library is used, always update the
-[SKILL.md](./skill/SKILL.md) file and any of the referenced files in ./skill/references/*.md.
+[SKILL.md](./skill/SKILL.md) file and any of the referenced files in ./skill/references/\*.md.
 
 ## 4. Architecture — Package Modules
 
@@ -195,8 +195,9 @@ category (`audit.auth`, `.read`, `.write`, `.changes`, `.custom`), and records t
 `delete` of `ResourceService` once its transaction commits. `web/audit/audit-hooks.ts` starts the entry of a request in
 the request scope of core (`runInRequestScope`, created with the auth context of the request) and records it once it
 responds, so a change belongs to the entry of its request. A write through Prisma directly records its change with
-`AuditService.recordChange`. The framework manages the models only, never their routes, services or policies, which the
-application declares for who may read them. The values of the `hidden` and `redact` fields and the names of secrets (`isSecretName` of
+`AuditService.recordChange`. The framework serves them read-only to the roles of `audit.routes` once
+`audit.routes.enabled` is on (`web/audit/resources/audit-routes.ts`, the service and the append-only policy in
+`data/audit/resources`), otherwise the application declares their routes, services and policies itself. The values of the `hidden` and `redact` fields and the names of secrets (`isSecretName` of
 `common/utils/redact-util.ts`, shared with the logger and `weaver config print`) never reach it. When adding a route
 whose requests should not be recorded, set its `audit: false`, and document a new category or key in
 `skill/references/audit.md`.
@@ -221,19 +222,19 @@ constraint. When adding an error code:
 The framework is split into packages, each a module (see the module system below) an application enables by depending
 on it:
 
-| Package                                                           | Holds                                                                                        |
-|-------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `@appweaver/core`                                                 | The runtime: modules, lifecycle, dependency injection, the in-process drivers                |
-| `@appweaver/data`                                                 | Prisma, the resources, the auth data model, `FileService`, the seeders and the CSV export    |
-| `@appweaver/web`                                                  | The Fastify server, the resource routes, the authentication, the problem details and Swagger |
-| `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, ... | One driver each, carrying the library it wraps as a dependency                               |
-| `@appweaver/realtime`                                             | The realtime connections over WebSocket and SSE: channels, resource events and actions       |
-| `@appweaver/ai`                                                   | `AiService`: the AI models of the endpoints, streams, objects, tools, embeddings, the queue   |
-| `@appweaver/mcp`                                                  | The MCP server of the AI agents: the resource actions and the custom tools                   |
-| `@appweaver/openai`                                               | The `openai` AI driver, for OpenAI and every OpenAI-compatible server (Ollama, OpenRouter)   |
-| `@appweaver/opentelemetry`                                        | The OpenTelemetry SDK exporting the traces, metrics and logs of the instrumentation          |
-| `@appweaver/testing`                                              | The test helpers shared by the packages                                                      |
-| `@appweaver/skill`                                                | The AI agent skill (`skill/` of the repository), synced into a project by `weaver skill sync`  |
+| Package                                                           | Holds                                                                                               |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `@appweaver/core`                                                 | The runtime: modules, lifecycle, dependency injection, the in-process drivers                       |
+| `@appweaver/data`                                                 | Prisma, the resources, the auth data model, `FileService`, the seeders and the CSV export           |
+| `@appweaver/web`                                                  | The Fastify server, the resource routes, the authentication, the problem details and Swagger        |
+| `@appweaver/redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, ... | One driver each, carrying the library it wraps as a dependency                                      |
+| `@appweaver/realtime`                                             | The realtime connections over WebSocket and SSE: channels, resource events and actions              |
+| `@appweaver/ai`                                                   | `AiService`: the AI models of the endpoints, streams, objects, tools, embeddings, the queue         |
+| `@appweaver/mcp`                                                  | The MCP server of the AI agents: the resource actions and the custom tools                          |
+| `@appweaver/openai`                                               | The `openai` AI driver, for OpenAI and every OpenAI-compatible server (Ollama, OpenRouter)          |
+| `@appweaver/opentelemetry`                                        | The OpenTelemetry SDK exporting the traces, metrics and logs of the instrumentation                 |
+| `@appweaver/testing`                                              | The test helpers shared by the packages                                                             |
+| `@appweaver/skill`                                                | The AI agent skill (`skill/` of the repository), synced into a project by `weaver skill sync`       |
 | `@appweaver/tooling`                                              | The lint, format and test tools of a project (ESLint 10, Prettier, Jest with SWC) and their configs |
 
 The directories moved as they were, so a file keeps its path within its package (`core/server/register-route.ts` is
@@ -245,7 +246,7 @@ Every package declares its entry points in the `exports` field of its `package.j
 any other file. Besides `.` and `./package.json`:
 
 | Entry point                  | Holds                                                                                      |
-|------------------------------|--------------------------------------------------------------------------------------------|
+| ---------------------------- | ------------------------------------------------------------------------------------------ |
 | `@appweaver/core/config`     | The config sections of core, without loading the runtime (the CLI)                         |
 | `@appweaver/core/drivers`    | The in-process drivers (`InMemory`, `NodeEvents`, `FilesystemStorage`, `MemoryQueue`, ...) |
 | `@appweaver/core/internal`   | `context`, the transaction scope, `LifecycleManager` and `loadProviders`, for the packages |
@@ -263,28 +264,28 @@ by them, since Jest maps every import to the sources.
 
 The runtime every application has, with neither a server nor a database. Organized into the following modules:
 
-| Module        | Purpose                                                                                                                              |
-|---------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `app/`        | `createApp`, `Application`, module discovery (`discover-modules.ts`), provider selection (`load-providers.ts`), app files, lifecycle |
-| `modules/`    | The manifest of the core module (`core.ts`): every contract and its in-process driver, always enabled first                          |
+| Module        | Purpose                                                                                                                                                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/`        | `createApp`, `Application`, module discovery (`discover-modules.ts`), provider selection (`load-providers.ts`), app files, lifecycle                                                           |
+| `modules/`    | The manifest of the core module (`core.ts`): every contract and its in-process driver, always enabled first                                                                                    |
 | `context/`    | Dependency injection container (`define`, `inject`, `injectService`, ...), the auth user context (`runAs`), the transaction scope and the request scope of the audit log (`runInRequestScope`) |
-| `cache/`      | The `Cache` stored in the `Memory` provider, its eviction indexes and `CacheService`                                                 |
-| `memory/`     | The in-process `memory` driver of `Memory`                                                                                           |
-| `events/`     | The `node` driver of `Events`                                                                                                        |
-| `pubsub/`     | The `pubsub` config and the in-process `memory` driver of `PubSub`, the messages every instance receives (the realtime events)       |
-| `storage/`    | The `local` filesystem driver of `Storage`                                                                                           |
-| `queue/`      | The in-process `memory` driver of `Queue`, `JobResults` waiting for a job on any instance through the `PubSub`                       |
-| `scheduler/`  | The scheduler config, its driver is `@appweaver/cron`                                                                                |
-| `mailer/`     | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                        |
-| `sms/`        | `SmsService`, sending the text messages through the `sms` queue, and the `json` SMS sender of development and tests                  |
-| `task/`       | `createTask` and `isTask`, the tasks `weaver run` lists and runs by name                                                             |
-| `template/`   | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                         |
-| `locale/`     | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations     |
-| `health/`     | `HealthService` (the checks, and the readiness the lifecycle sets), the `node:http` health listener of an app without web            |
-| `timeseries/` | The time series config, `TimeSeriesService` (validation, direct or queued writes, queries) and the in-process `memory` driver        |
-| `security/`   | The `security.store` config and the `memory` security store (`store/`)                                                               |
-| `types/`      | `ApplicationContext`                                                                                                                 |
-| `utils/`      | `createSchemaModel`                                                                                                                  |
+| `cache/`      | The `Cache` stored in the `Memory` provider, its eviction indexes and `CacheService`                                                                                                           |
+| `memory/`     | The in-process `memory` driver of `Memory`                                                                                                                                                     |
+| `events/`     | The `node` driver of `Events`                                                                                                                                                                  |
+| `pubsub/`     | The `pubsub` config and the in-process `memory` driver of `PubSub`, the messages every instance receives (the realtime events)                                                                 |
+| `storage/`    | The `local` filesystem driver of `Storage`                                                                                                                                                     |
+| `queue/`      | The in-process `memory` driver of `Queue`, `JobResults` waiting for a job on any instance through the `PubSub`                                                                                 |
+| `scheduler/`  | The scheduler config, its driver is `@appweaver/cron`                                                                                                                                          |
+| `mailer/`     | `EmailService`, rendering the template emails, and the `json` mailer of development and tests                                                                                                  |
+| `sms/`        | `SmsService`, sending the text messages through the `sms` queue, and the `json` SMS sender of development and tests                                                                            |
+| `task/`       | `createTask` and `isTask`, the tasks `weaver run` lists and runs by name                                                                                                                       |
+| `template/`   | The template config and `registerTemplate` / `registerTemplateHelper`, the engine is `@appweaver/handlebars`                                                                                   |
+| `locale/`     | Locale service — translating the dotted keys of the nested JSON translation files, with the framework's own English translations                                                               |
+| `health/`     | `HealthService` (the checks, and the readiness the lifecycle sets), the `node:http` health listener of an app without web                                                                      |
+| `timeseries/` | The time series config, `TimeSeriesService` (validation, direct or queued writes, queries) and the in-process `memory` driver                                                                  |
+| `security/`   | The `security.store` config and the `memory` security store (`store/`)                                                                                                                         |
+| `types/`      | `ApplicationContext`                                                                                                                                                                           |
+| `utils/`      | `createSchemaModel`                                                                                                                                                                            |
 
 **Module system**: every part of the framework is a module declared with `defineModule`
 (`packages/common/module/define-module.ts`): the contracts it declares, its providers (drivers) by name, its services,
@@ -314,7 +315,7 @@ The database module (`@appweaver/data`), built on Prisma, with `@prisma/client` 
 loads the resources of the application, then the `resources` of the modules.
 
 | Module        | Purpose                                                                                                                                                                                    |
-|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `database/`   | `PrismaDatabase` (the `prisma` driver of `Database`), the client factory, `runTransaction`, `toDatabaseError`, the telemetry extension, `migrationUrl` and `setupDatabase`                 |
 | `resource/`   | Resource loading (`loadResources`), `ResourceService`, the model, filter, sort and aggregate schemas, the query `utils/`                                                                   |
 | `factory/`    | `createModel`, `createPolicy` and `createService`                                                                                                                                          |
@@ -356,7 +357,7 @@ The `appweaver.json` of `packages/data` (never published) lists every framework 
 (`keepsTable` of `data/database/database-config.ts`), so `npm run generate` emits every framework model whatever the
 environment.
 
-A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown argument" naming an *unrelated* field
+A stale `prisma/client` makes Prisma reject writes with a misleading "Unknown argument" naming an _unrelated_ field
 (usually `createdById`) — suspect regeneration before the calling code.
 
 `weaver generate` runs from the built `node_modules/@appweaver/cli`, and the model files of `data` import the built
@@ -374,7 +375,7 @@ the resource routes of the application (`RESOURCE_ROUTES_PATTERN`), then the `we
 `Application` with `app.server` and `app.spec()`.
 
 | Module        | Purpose                                                                                                                                                                                       |
-|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `server/`     | Fastify server creation, the `HttpServer` lifecycle service, `registerRoute`, `registerPlugin`, `registerModel`, Swagger/OpenAPI                                                              |
 | `resource/`   | The resource routes and their schemas, the route loader (the `setup`) and the route `utils/`                                                                                                  |
 | `factory/`    | `createRoutes`                                                                                                                                                                                |
@@ -386,7 +387,7 @@ the resource routes of the application (`RESOURCE_ROUTES_PATTERN`), then the `we
 | `timeseries/` | The time series routes of the models with `series` fields and their schemas                                                                                                                   |
 | `template/`   | The template preview route of development                                                                                                                                                     |
 | `telemetry/`  | The OpenTelemetry server spans and metrics of the requests (`registerHttpTelemetry`, `requestSpan`) and their `telemetry.http` config                                                         |
-| `audit/`      | The audit log of the requests (`registerAuditHooks`, `auditRequestScope`) and its `audit` keys, the application exposing the audit models with routes of its own                             |
+| `audit/`      | The audit log of the requests (`registerAuditHooks`, `auditRequestScope`) and its `audit` keys, the application exposing the audit models with routes of its own                              |
 | `types/`      | The `Server` and `Router` types, the Fastify extensions and the HTTP auth types                                                                                                               |
 
 ### Driver packages
@@ -396,15 +397,15 @@ when it has one, its `config.ts` section. The library a driver wraps is a depend
 installs `@appweaver/redis`, never `ioredis`. `@appweaver/twilio` calls the REST API of Twilio with `fetch`, without
 the Twilio SDK.
 
-| Package                 | Driver                     | Provider                        | Config                          |
-|-------------------------|----------------------------|---------------------------------|---------------------------------|
-| `@appweaver/redis`      | `RedisMemory`, `RedisPubSub` | `redis` (`Memory`, `PubSub`)  | `redisConfig` (`memory.redis`), `redisPubSubConfig` (`pubsub.redis`) |
-| `@appweaver/bullmq`     | `BullQueue`                | `bullmq` (`Queue`)              | — (requires `@appweaver/redis`) |
-| `@appweaver/cron`       | `CronScheduler`            | `cron` (`Scheduler`)            | —                               |
-| `@appweaver/nodemailer` | `SmtpMailer`               | `smtp` (`Mailer`)               | `smtpConfig` (`mailer.smtp`)    |
-| `@appweaver/twilio`     | `TwilioSms`                | `twilio` (`SmsSender`)          | `twilioConfig` (`sms.twilio`)   |
-| `@appweaver/handlebars` | `HandlebarsTemplateEngine` | `handlebars` (`TemplateEngine`) | —                               |
-| `@appweaver/sharp`      | `SharpImageProcessor`      | `sharp` (`ImageProcessor`)      | —                               |
+| Package                 | Driver                       | Provider                        | Config                                                               |
+| ----------------------- | ---------------------------- | ------------------------------- | -------------------------------------------------------------------- |
+| `@appweaver/redis`      | `RedisMemory`, `RedisPubSub` | `redis` (`Memory`, `PubSub`)    | `redisConfig` (`memory.redis`), `redisPubSubConfig` (`pubsub.redis`) |
+| `@appweaver/bullmq`     | `BullQueue`                  | `bullmq` (`Queue`)              | — (requires `@appweaver/redis`)                                      |
+| `@appweaver/cron`       | `CronScheduler`              | `cron` (`Scheduler`)            | —                                                                    |
+| `@appweaver/nodemailer` | `SmtpMailer`                 | `smtp` (`Mailer`)               | `smtpConfig` (`mailer.smtp`)                                         |
+| `@appweaver/twilio`     | `TwilioSms`                  | `twilio` (`SmsSender`)          | `twilioConfig` (`sms.twilio`)                                        |
+| `@appweaver/handlebars` | `HandlebarsTemplateEngine`   | `handlebars` (`TemplateEngine`) | —                                                                    |
+| `@appweaver/sharp`      | `SharpImageProcessor`        | `sharp` (`ImageProcessor`)      | —                                                                    |
 
 ### `packages/opentelemetry`
 
@@ -413,7 +414,7 @@ The OpenTelemetry SDK module (`@appweaver/opentelemetry`), carrying the SDK pack
 contract and no provider: its manifest lists its config sections and one lifecycle service.
 
 | File                     | Purpose                                                                                                              |
-|--------------------------|----------------------------------------------------------------------------------------------------------------------|
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
 | `config.ts`              | The module keys of `telemetry` (service, exporter, endpoint, headers), `telemetry.traces`, `.metrics` and `.logs`    |
 | `sdk.ts`                 | `startTelemetry`: the resource, the providers, the exporters of the config, the global registration and the shutdown |
 | `configure-telemetry.ts` | `configureTelemetry`, the functions changing the `TelemetryOptions` the SDK is started with                          |
@@ -434,21 +435,21 @@ resource events of the models whose `createRoutes` sets `events`, calls the acti
 `createStream`. Nothing is exposed unless declared. Every message of a channel goes through the `PubSub` contract of
 core (`memory`, or `redis` of `@appweaver/redis` to reach every instance), while the `Events` stay in the process.
 
-| File                          | Purpose                                                                                                     |
-|-------------------------------|-------------------------------------------------------------------------------------------------------------|
-| `config.ts`                   | The `realtime` section: the routes, the transports, the tickets, the limits                                 |
-| `channel.ts`, `action.ts`     | `createChannel` and `createRealtimeAction`, defined in the context under their symbols                      |
+| File                          | Purpose                                                                                                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `config.ts`                   | The `realtime` section: the routes, the transports, the tickets, the limits                                                                                  |
+| `channel.ts`, `action.ts`     | `createChannel` and `createRealtimeAction`, defined in the context under their symbols                                                                       |
 | `gateway/realtime-gateway.ts` | `RealtimeGateway`: the connections and their subscriptions, the delivery checked per user, the actions, and the bridge of the resource events to the pub/sub |
-| `gateway/ticket-service.ts`   | `TicketService`: the one-time tickets of the connections, kept in the `Memory`                              |
-| `transport/`                  | `SseConnection` and `WsConnection`, the transports of a `RealtimeConnection`                                |
-| `web/realtime-routes.ts`      | The web part: the WebSocket plugin and the ticket, events, ws and actions routes                            |
-| `web/realtime-spec.ts`        | The `x-appweaver-realtime` extension of the OpenAPI document (`registerSpecExtension` of web)               |
-| `stream/create-stream.ts`     | `createStream`, the streams of a key, defined in the context under their symbol                             |
-| `stream/stream-instance.ts`   | `StreamInstance`: the sequence, the frames encoded once, the replay, the coalescing, the slow subscribers   |
-| `stream/stream-hub.ts`        | `StreamHub`: the streams of the instance, the streaming actions, and the relay between the instances        |
-| `gateway/connection-sink.ts`  | `ConnectionSink`, a subscriber of a stream writing to a connection; `transport/response-sink.ts` over HTTP  |
-| `gateway/action-call.ts`      | `ActionCall`: a call with a stream or an input, kept by the gateway until it ends, ended on a user change   |
-| `stream/input-stream.ts`      | `InputStream`: the chunks a client streams to an action, read as an async iterable, paced by credits        |
+| `gateway/ticket-service.ts`   | `TicketService`: the one-time tickets of the connections, kept in the `Memory`                                                                               |
+| `transport/`                  | `SseConnection` and `WsConnection`, the transports of a `RealtimeConnection`                                                                                 |
+| `web/realtime-routes.ts`      | The web part: the WebSocket plugin and the ticket, events, ws and actions routes                                                                             |
+| `web/realtime-spec.ts`        | The `x-appweaver-realtime` extension of the OpenAPI document (`registerSpecExtension` of web)                                                                |
+| `stream/create-stream.ts`     | `createStream`, the streams of a key, defined in the context under their symbol                                                                              |
+| `stream/stream-instance.ts`   | `StreamInstance`: the sequence, the frames encoded once, the replay, the coalescing, the slow subscribers                                                    |
+| `stream/stream-hub.ts`        | `StreamHub`: the streams of the instance, the streaming actions, and the relay between the instances                                                         |
+| `gateway/connection-sink.ts`  | `ConnectionSink`, a subscriber of a stream writing to a connection; `transport/response-sink.ts` over HTTP                                                   |
+| `gateway/action-call.ts`      | `ActionCall`: a call with a stream or an input, kept by the gateway until it ends, ended on a user change                                                    |
+| `stream/input-stream.ts`      | `InputStream`: the chunks a client streams to an action, read as an async iterable, paced by credits                                                         |
 
 A change of a user of the auth model reaches their connections on every instance through the pub/sub: a logout, a
 disabling or a deletion closes them (`revoke`), any other change loads the user again and removes the subscriptions it
@@ -491,14 +492,14 @@ are `AiDriver` providers of driver modules, a contract no module declares, so `l
 every installed driver is usable at once. The `mock` driver is built in, `registerAiDriver` registers one without a
 module.
 
-| File                       | Purpose                                                                                      |
-|----------------------------|----------------------------------------------------------------------------------------------|
-| `config.ts`, `types.ts`    | The `ai` section (endpoints are a record of objects), the messages, requests and stream parts |
-| `driver/`                  | `AiDriver`, the presets, `ModelRegistry` and the `mock` driver                               |
-| `service/ai-service.ts`    | `AiService`: one step loop (`run`, `steps`) serving generate and stream, objects, the queue  |
-| `service/`                 | `AiStream`, `AiObjectStream` and the prompt types                                            |
-| `tools/create-tool.ts`     | `createAiTool`, registered by name for the queued prompts                                    |
-| `utils/`                   | Partial JSON, SSE and stream writer helpers, similarity, the `gen_ai` telemetry               |
+| File                    | Purpose                                                                                       |
+| ----------------------- | --------------------------------------------------------------------------------------------- |
+| `config.ts`, `types.ts` | The `ai` section (endpoints are a record of objects), the messages, requests and stream parts |
+| `driver/`               | `AiDriver`, the presets, `ModelRegistry` and the `mock` driver                                |
+| `service/ai-service.ts` | `AiService`: one step loop (`run`, `steps`) serving generate and stream, objects, the queue   |
+| `service/`              | `AiStream`, `AiObjectStream` and the prompt types                                             |
+| `tools/create-tool.ts`  | `createAiTool`, registered by name for the queued prompts                                     |
+| `utils/`                | Partial JSON, SSE and stream writer helpers, similarity, the `gen_ai` telemetry               |
 
 A capability the model lacks fails before the request with `AI_CAPABILITY_UNSUPPORTED`. `generateQueued` waits with
 `JobResults` of core, `streamQueued` relays the worker's parts on `ai:stream:<id>` of the `PubSub`. A driver of another
@@ -580,7 +581,7 @@ The package exposes a `weaver-client` CLI binary. See **Section 6** for the full
 **Key source locations:**
 
 | Path                            | Purpose                                                              |
-|---------------------------------|----------------------------------------------------------------------|
+| ------------------------------- | -------------------------------------------------------------------- |
 | `weaver-client.ts`              | CLI entry point                                                      |
 | `commands/generate-command.ts`  | `generate` command — schema I/O and file writing                     |
 | `generators/generate-types.ts`  | OpenAPI → TypeScript type definitions                                |
@@ -590,7 +591,7 @@ The package exposes a `weaver-client` CLI binary. See **Section 6** for the full
 | `utils/problem-util.ts`         | Inlines the error codes of every error response, names `ErrorCode`   |
 | `clients/fetch-client.ts`       | `FetchClient` base class with auth/middleware                        |
 | `clients/modules/`              | `ResourceClient`, `AuthClient`, `AccountClient`, `RealtimeClient`... |
-| `utils/realtime-util.ts`        | The `RealtimeModuleType` of the `x-appweaver-realtime` extension      |
+| `utils/realtime-util.ts`        | The `RealtimeModuleType` of the `x-appweaver-realtime` extension     |
 | `errors/client-error.ts`        | `ClientError` with the HTTP status, error code and problem details   |
 | `constants.ts`                  | OpenAPI extension keys and operation/type mapping tables             |
 
@@ -628,21 +629,21 @@ exported as `@appweaver/create/scaffold`, which `weaver module add|remove` of `p
 project, so both apply the same templates. `@appweaver/cli` depends on `@appweaver/create` at its exact version
 (`tools/copy-packages.js` pins the `@appweaver/*` dependencies of the published manifests).
 
-| Path                                | Purpose                                                                                                              |
-|-------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| `create.ts`                         | CLI entry point: the project program (options, module selection, agent files, installation) and the `module` program |
-| `scaffold/create-module-package.ts` | `createModulePackage` and `moduleShortName`, a module package from `templates/module-package/`                       |
-| `scaffold/modules.ts`               | The module catalog: packages, requirements, `appweaver.json` values when enabled / disabled                          |
-| `scaffold/apply-modules.ts`         | `enableModules` / `disableModules`, and the integrations between two modules                                         |
-| `scaffold/create-project.ts`        | The base template, the disabled modules' config, then `enableModules`                                                |
-| `scaffold/load-project.ts`          | Reads an existing project and its enabled modules (from its packages or marker files)                                |
-| `scaffold/project-files.ts`         | `ProjectFiles`, staging the writes and deletions until `commit` (dry runs print them)                                |
-| `scaffold/compose-util.ts`          | Adds and removes the Redis service of `docker-compose.yml` with the `yaml` document API                              |
-| `templates/base/`                   | The minimal core application every module is added to                                                                |
-| `templates/modules/<name>/`         | The files of a module, deleted when it is removed                                                                    |
+| Path                                | Purpose                                                                                                                                                  |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `create.ts`                         | CLI entry point: the project program (options, module selection, agent files, installation) and the `module` program                                     |
+| `scaffold/create-module-package.ts` | `createModulePackage` and `moduleShortName`, a module package from `templates/module-package/`                                                           |
+| `scaffold/modules.ts`               | The module catalog: packages, requirements, `appweaver.json` values when enabled / disabled                                                              |
+| `scaffold/apply-modules.ts`         | `enableModules` / `disableModules`, and the integrations between two modules                                                                             |
+| `scaffold/create-project.ts`        | The base template, the disabled modules' config, then `enableModules`                                                                                    |
+| `scaffold/load-project.ts`          | Reads an existing project and its enabled modules (from its packages or marker files)                                                                    |
+| `scaffold/project-files.ts`         | `ProjectFiles`, staging the writes and deletions until `commit` (dry runs print them)                                                                    |
+| `scaffold/compose-util.ts`          | Adds and removes the Redis service of `docker-compose.yml` with the `yaml` document API                                                                  |
+| `templates/base/`                   | The minimal core application every module is added to                                                                                                    |
+| `templates/modules/<name>/`         | The files of a module, deleted when it is removed                                                                                                        |
 | `templates/modules/<a>+<b>/`        | The files of two modules enabled together (`mailer+templates`, `sms+templates` and `mcp+templates` hold the account templates and the MCP sign-in pages) |
-| `templates/translations/en.json`    | The English texts of the scaffolded templates, merged into `locales/en.json` with the mailer                         |
-| `templates/module-package/`         | The files of every module package (`common/`), and those of each contract (`storage/`, `mailer/`, `sms/`, `none/`)   |
+| `templates/translations/en.json`    | The English texts of the scaffolded templates, merged into `locales/en.json` with the mailer                                                             |
+| `templates/module-package/`         | The files of every module package (`common/`), and those of each contract (`storage/`, `mailer/`, `sms/`, `none/`)                                       |
 
 **Module packages**: `create-appweaver module <package> [description] [--contract storage|mailer|sms|none] [-o dir]`
 (selected by `module` as the first argument) creates a package in `-o` (by default the package name without its scope)
@@ -718,7 +719,7 @@ weaver build [options]
 ```
 
 | Option                 | Description                     | Default               |
-|------------------------|---------------------------------|-----------------------|
+| ---------------------- | ------------------------------- | --------------------- |
 | `-p, --project <path>` | TypeScript project config file. | `tsconfig.build.json` |
 
 1. Removes the build directory (`APP_BUILD_PATH`, `./dist` by default).
@@ -742,7 +743,7 @@ weaver config check
 #### `weaver config schema`
 
 | Option                     | Description                    | Default                   |
-|----------------------------|--------------------------------|---------------------------|
+| -------------------------- | ------------------------------ | ------------------------- |
 | `-o, --output-path <path>` | Output path of the JSON Schema | `./appweaver.schema.json` |
 
 Writes the JSON Schema of `appweaver.json` (`config/config-schema.ts`): every key under its camelCase name in the
@@ -778,7 +779,7 @@ weaver generate [options]
 ```
 
 | Option                        | Description                                        | Default                   |
-|-------------------------------|----------------------------------------------------|---------------------------|
+| ----------------------------- | -------------------------------------------------- | ------------------------- |
 | `--types`                     | Generate the TypeScript types                      | —                         |
 | `--prisma-schema`             | Generate the Prisma schema (and client)            | —                         |
 | `--config-schema`             | Generate the JSON Schema of `appweaver.json`       | —                         |
@@ -861,7 +862,7 @@ weaver migration check [options]
 ```
 
 | Option                      | Description                        | Default     |
-|-----------------------------|------------------------------------|-------------|
+| --------------------------- | ---------------------------------- | ----------- |
 | `--model-pattern <pattern>` | Glob of the model files            | from config |
 | `--no-prune`                | Keep the framework models not used | pruned      |
 
@@ -883,7 +884,7 @@ weaver migration reset [options]
 ```
 
 | Option        | Description                                  | Default |
-|---------------|----------------------------------------------|---------|
+| ------------- | -------------------------------------------- | ------- |
 | `-y, --yes`   | Skip the confirmation prompt                 | false   |
 | `-f, --force` | Force reset for non-development environments | false   |
 
@@ -909,7 +910,7 @@ weaver module remove <modules...> [options] (alias: rm)
 ```
 
 | Option              | Description                                                  | Default   |
-|---------------------|--------------------------------------------------------------|-----------|
+| ------------------- | ------------------------------------------------------------ | --------- |
 | `--database <type>` | `add` only: the database of the `data` module                | `sqlite`  |
 | `--no-install`      | Skip the installation of the dependencies                    | installed |
 | `--dry-run`         | Print the file changes without applying them                 | false     |
@@ -954,7 +955,7 @@ weaver openapi [options]
 ```
 
 | Option                     | Description                                    | Default          |
-|----------------------------|------------------------------------------------|------------------|
+| -------------------------- | ---------------------------------------------- | ---------------- |
 | `-o, --output-path <path>` | Output path of the OpenAPI specification       | `./openapi.json` |
 | `--format <format>`        | Format of the specification (`json` or `yaml`) | `json`           |
 
@@ -1004,7 +1005,7 @@ weaver seed [options]
 ```
 
 | Option                 | Description                                                | Default               |
-|------------------------|------------------------------------------------------------|-----------------------|
+| ---------------------- | ---------------------------------------------------------- | --------------------- |
 | `--build-project`      | Build the project before seeding                           | false                 |
 | `-p, --project <path>` | TypeScript project config file used by `--build-project`   | `tsconfig.build.json` |
 | `--seeders-dir <dir>`  | Seeders directory                                          | from config           |
@@ -1030,7 +1031,7 @@ weaver start [options]
 ```
 
 | Option                 | Description                                          | Default               |
-|------------------------|------------------------------------------------------|-----------------------|
+| ---------------------- | ---------------------------------------------------- | --------------------- |
 | `-w, --watch`          | Watch mode — recompiles and restarts on file changes | false                 |
 | `-p, --project <path>` | TypeScript project config file used in watch mode    | `tsconfig.build.json` |
 
@@ -1071,7 +1072,7 @@ weaver test setup [options]
 ```
 
 | Option                        | Description                    | Default     |
-|-------------------------------|--------------------------------|-------------|
+| ----------------------------- | ------------------------------ | ----------- |
 | `--temp-dir <dir>`            | Temporary directory            | `./temp`    |
 | `--model-pattern <pattern>`   | Glob of the model files        | from config |
 | `--prisma-schema-path <path>` | Prisma schema output path      | from config |
@@ -1092,7 +1093,7 @@ weaver test reset [options]
 ```
 
 | Option             | Description         | Default  |
-|--------------------|---------------------|----------|
+| ------------------ | ------------------- | -------- |
 | `--database`       | Reset database      | —        |
 | `--storage`        | Reset file storage  | —        |
 | `--temp-dir <dir>` | Temporary directory | `./temp` |
@@ -1111,7 +1112,7 @@ weaver test teardown [options]
 ```
 
 | Option             | Description         | Default  |
-|--------------------|---------------------|----------|
+| ------------------ | ------------------- | -------- |
 | `--temp-dir <dir>` | Temporary directory | `./temp` |
 | `--verbose`        | Verbose output      | false    |
 
@@ -1145,11 +1146,11 @@ weaver upgrade [packages...] [options]
 ```
 
 | Argument      | Description                                                                                                              | Default                               |
-|---------------|--------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
+| ------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
 | `[packages…]` | One or more package names to upgrade (e.g. `@appweaver/core @appweaver/cli`). Only `@appweaver/*` packages are upgraded. | All installed `@appweaver/*` packages |
 
 | Option                       | Description                                                                           | Default  |
-|------------------------------|---------------------------------------------------------------------------------------|----------|
+| ---------------------------- | ------------------------------------------------------------------------------------- | -------- |
 | `--no-companions`            | Skip upgrading the companion packages (Prisma and its adapters, TypeBox, TypeScript). | upgraded |
 | `--tooling`                  | Also upgrade the tooling packages (ESLint, Jest, SWC, Prettier…).                     | false    |
 | `--no-skill`                 | Skip upgrading AI agent skill files in agent directories (`.claude`, `.agents`, …).   | upgraded |
@@ -1183,7 +1184,7 @@ weaver-client generate <schema-path> [options]
 `C:\api\openapi.json`), or a URL (`http://`, `https://`, `file://`). The schema may be JSON or YAML.
 
 | Option                     | Description                                                                                  | Default                   |
-|----------------------------|----------------------------------------------------------------------------------------------|---------------------------|
+| -------------------------- | -------------------------------------------------------------------------------------------- | ------------------------- |
 | `--types-only`             | Generate TypeScript types only, skip client class generation                                 | false                     |
 | `--client-only`            | Generate the client class only, skip TypeScript types generation                             | false                     |
 | `-o, --output-path <path>` | Output path for both types and client (used when `--types-path`/`--client-path` are omitted) | `./generated/client.ts`   |
@@ -1223,14 +1224,17 @@ weaver-client generate ./openapi.json --output-path ./generated/client.ts
 // 3. Use the generated client
 import { createClient } from './generated/client';
 
-const client = createClient({ baseUrl: 'http://localhost:5000', auth: { apiKey: 'myApiKey' } });
+const client = createClient({
+  baseUrl: 'http://localhost:5000',
+  auth: { apiKey: 'myApiKey' }
+});
 const users = await client.user.query({ filter: { enabled: true } });
 ```
 
 **Runtime client authentication strategies:**
 
 | Strategy   | Config shape                                       | Notes                                     |
-|------------|----------------------------------------------------|-------------------------------------------|
+| ---------- | -------------------------------------------------- | ----------------------------------------- |
 | JWT Bearer | `{ jwt: string \| JwtAuthConfig \| AuthFn }`       | Optional refresh token support            |
 | API Key    | `{ apiKey: string \| ApiKeyAuthConfig \| AuthFn }` | Configurable header (default `X-Api-Key`) |
 | HTTP Basic | `{ basic: string \| BasicAuthConfig \| AuthFn }`   | Base64-encodes username:password          |
@@ -1238,7 +1242,7 @@ const users = await client.user.query({ filter: { enabled: true } });
 **Generated module clients and their operations:**
 
 | Client            | Key operations                                                                                                                                                         |
-|-------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ResourceClient`  | `find`, `query`, `aggregate`, `create`, `update`, `replace`, `delete`, `export`, `uploadFiles`, `deleteFiles`, `bulkCreate`, `bulkUpdate`, `bulkReplace`, `bulkDelete` |
 | `AuthClient`      | `login`, `logout`, `refresh`, `changePassword`, `exchangeToken`, `me`                                                                                                  |
 | `AccountClient`   | `sendVerifyEmail`, `verifyEmail`, `verifyEmailRedirect`, `sendResetPassword`, `resetPassword`, `sendVerifyPhone`, `verifyPhone`                                        |
@@ -1308,7 +1312,7 @@ and then deep-merges the **environment-specific** overrides chosen by the `NODE_
 to highest precedence:
 
 | Source                                  | Loaded when                                                 |
-|-----------------------------------------|-------------------------------------------------------------|
+| --------------------------------------- | ----------------------------------------------------------- |
 | `appweaver.json` → `config`             | Always (base configuration)                                 |
 | `appweaver.json` → `environments.<env>` | `NODE_ENV` resolves to `<env>` (`development` → `dev`, ...) |
 | `appweaver.<env>.json` → `config`       | The file exists (optional, i.e. mounted in a container)     |
@@ -1361,7 +1365,7 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 `README.md`. They follow the `cms-api` workflow above, with the differences listed here.
 
 | Sample                        | Runtime | Database             | Showcases                                                                                                                                                                                                                                                                                                 |
-|-------------------------------|---------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------------------- | ------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sample/webshop-api`          | Node    | PostgreSQL + Redis   | Transactional checkout, BullMQ payment worker on a resource event, API key partner, localized order emails, product price and stock time series in a TimescaleDB hypertable, OpenTelemetry traces across the request and the payment job (Jaeger), an AI support assistant with tools on Ollama or OpenAI |
 | `sample/hr-api`               | Node    | SQL Server           | `Employee` auth model with UUIDv7 ids, permission based access, team policies, soft delete cascades                                                                                                                                                                                                       |
 | `sample/helpdesk-api`         | Node    | MySQL (MariaDB)      | Non-auth customers connected by email, auto-assignment, SLA escalation job, SMS 2FA of the admin, team workload time series with a retention                                                                                                                                                              |
@@ -1411,7 +1415,7 @@ Scaffolded with `@appweaver/create`, each showcases a different part of the fram
 - The load tests of `PLAN-v3.md` are operations of `samples:manage` too, never root scripts: `load` seeds the main model
   of a sample to a size and load-tests it with autocannon, `probe` measures its idle timer wake-ups and memory, and
   `load-summary` prints the reports of `reports/load` as tables (`npm run samples:manage -- load cms-api -- --setup
-  --size 100k`). Each sample holds its load definition in `test/load/load.js`, the scripts are in `tools/load`
+--size 100k`). Each sample holds its load definition in `test/load/load.js`, the scripts are in `tools/load`
   (`tools/load/README.md`). Never run them with `--parallel`.
 - The Node samples build before their end-to-end tests (`pree2e`), since the application loads the compiled `dist/src`.
 - The Bun sample runs its scripts with `bun run`. Bun runs every test file in one process, where the application
@@ -1456,30 +1460,30 @@ This runs the following steps automatically:
    `node ./tools/publish-package.js <package> <version>` (a Node script, since semantic-release runs its commands with
    `cmd.exe` on Windows), every package after the ones it depends on, skipping a version the registry already has, so a
    release failing halfway publishes the remaining packages when run again:
-    ```bash
-    cd packages/common/dist     && npm publish
-    cd packages/core/dist       && npm publish
-    cd packages/ai/dist         && npm publish
-    cd packages/openai/dist     && npm publish
-    cd packages/data/dist       && npm publish
-    cd packages/web/dist        && npm publish
-    cd packages/redis/dist      && npm publish
-    cd packages/bullmq/dist     && npm publish
-    cd packages/cron/dist       && npm publish
-    cd packages/nodemailer/dist && npm publish
-    cd packages/twilio/dist     && npm publish
-    cd packages/opentelemetry/dist && npm publish
-    cd packages/realtime/dist   && npm publish
-    cd packages/mcp/dist        && npm publish
-    cd packages/handlebars/dist && npm publish
-    cd packages/sharp/dist      && npm publish
-    cd packages/skill/dist      && npm publish
-    cd packages/testing/dist    && npm publish
-    cd packages/tooling/dist    && npm publish
-    cd packages/create/dist     && npm publish
-    cd packages/cli/dist        && npm publish
-    cd packages/client/dist     && npm publish
-    ```
+   ```bash
+   cd packages/common/dist     && npm publish
+   cd packages/core/dist       && npm publish
+   cd packages/ai/dist         && npm publish
+   cd packages/openai/dist     && npm publish
+   cd packages/data/dist       && npm publish
+   cd packages/web/dist        && npm publish
+   cd packages/redis/dist      && npm publish
+   cd packages/bullmq/dist     && npm publish
+   cd packages/cron/dist       && npm publish
+   cd packages/nodemailer/dist && npm publish
+   cd packages/twilio/dist     && npm publish
+   cd packages/opentelemetry/dist && npm publish
+   cd packages/realtime/dist   && npm publish
+   cd packages/mcp/dist        && npm publish
+   cd packages/handlebars/dist && npm publish
+   cd packages/sharp/dist      && npm publish
+   cd packages/skill/dist      && npm publish
+   cd packages/testing/dist    && npm publish
+   cd packages/tooling/dist    && npm publish
+   cd packages/create/dist     && npm publish
+   cd packages/cli/dist        && npm publish
+   cd packages/client/dist     && npm publish
+   ```
 8. **Git commit** (`@semantic-release/git`) — commits the updated `package.json` files and `CHANGELOG.md` with a chore
    commit, then tags the release, and `@semantic-release/github` creates the GitHub release,
    without commenting on the released pull requests and issues (`successComment: false`).
@@ -1510,7 +1514,7 @@ release when either one is missing or rejected.
 `semantic-release` derives the version bump from commit prefixes:
 
 | Prefix                                            | Version bump |
-|---------------------------------------------------|--------------|
+| ------------------------------------------------- | ------------ |
 | `fix:`                                            | patch        |
 | `feat:`                                           | minor        |
 | `feat!:` / `BREAKING CHANGE` footer               | major        |

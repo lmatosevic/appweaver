@@ -23,20 +23,20 @@ for the API keys, so the next migration does not drop the history.
 
 `AuditLog` holds one entry per request, or per change made outside of a request:
 
-| Field                                     | Description                                                                                   |
-|-------------------------------------------|-----------------------------------------------------------------------------------------------|
-| `id`                                      | A UUIDv7, so the entries sort by time.                                                        |
-| `category`                                | `auth`, `read`, `write`, `change` (a change made outside of a request) or `custom`.          |
-| `source`                                  | `http`, `mcp`, `realtime`, `job`, `task` or `system` (no scope, i.e. a queue worker).         |
-| `action`                                  | The resource action (`update`), the auth route (`auth.login`), the tool (`mcp.post_create`). |
-| `method`, `route`, `path`, `query`        | The request: its route template (`/api/posts/:id`) and its redacted query.                    |
-| `body`                                    | The redacted JSON body, with `audit.requestBody` only.                                        |
-| `status`, `errorCode`, `duration`         | The response status, the error code of a failed request, the duration in milliseconds.       |
+| Field                                     | Description                                                                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`                                      | A UUIDv7, so the entries sort by time.                                                                                                     |
+| `category`                                | `auth`, `read`, `write`, `change` (a change made outside of a request) or `custom`.                                                        |
+| `source`                                  | `http`, `mcp`, `realtime`, `job`, `task` or `system` (no scope, i.e. a queue worker).                                                      |
+| `action`                                  | The resource action (`update`), the auth route (`auth.login`), the tool (`mcp.post_create`).                                               |
+| `method`, `route`, `path`, `query`        | The request: its route template (`/api/posts/:id`) and its redacted query.                                                                 |
+| `body`                                    | The redacted JSON body, with `audit.requestBody` only.                                                                                     |
+| `status`, `errorCode`, `duration`         | The response status, the error code of a failed request, the duration in milliseconds.                                                     |
 | `userId`, `authType`, `apiKeyId`          | The authenticated user, or the one a sign-in signs in, empty for an anonymous request. A plain value without a relation, kept on deletion. |
-| `ip`, `userAgent`, `requestId`, `traceId` | The client and the request, the trace of the telemetry.                                       |
-| `model`, `resourceId`                     | The record of a resource route, or the one record a request changed (i.e. created).           |
-| `metadata`                                | Free JSON of the entries of the application.                                                  |
-| `createdAt`                               | When the request started.                                                                     |
+| `ip`, `userAgent`, `requestId`, `traceId` | The client and the request, the trace of the telemetry.                                                                                    |
+| `model`, `resourceId`                     | The record of a resource route, or the one record a request changed (i.e. created).                                                        |
+| `metadata`                                | Free JSON of the entries of the application.                                                                                               |
+| `createdAt`                               | When the request started.                                                                                                                  |
 
 `AuditChange` holds one row per changed record, deleted with its entry: `model`, `resourceId`, `action` (`create`,
 `update`, `delete`) and `diff`, the changed fields as `{ field: { from, to } }`, `from` absent on a create and `to`
@@ -47,13 +47,13 @@ truncated, and an update changing nothing is not recorded.
 
 Each category is switched and kept on its own, its empty `retention` falling back to `audit.retention`:
 
-| Section         | Default | Records                                                                                                    |
-|-----------------|---------|------------------------------------------------------------------------------------------------------------|
+| Section         | Default | Records                                                                                                                      |
+| --------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `audit.auth`    | on      | The routes of `security.routePrefix` and `security.account.routePrefix` (login, OAuth2, 2FA, account), failed ones included. |
-| `audit.read`    | off     | The `find`, `query`, `aggregate` and `export` routes, and the `GET` routes.                                |
-| `audit.write`   | on      | The create, update, delete, bulk and file routes, and the routes of the other methods.                     |
-| `audit.changes` | on      | The diffs of the records. Off, no `AuditChange` is written at all.                                         |
-| `audit.custom`  | on      | The entries of `AuditService.record`.                                                                      |
+| `audit.read`    | off     | The `find`, `query`, `aggregate` and `export` routes, and the `GET` routes.                                                  |
+| `audit.write`   | on      | The create, update, delete, bulk and file routes, and the routes of the other methods.                                       |
+| `audit.changes` | on      | The diffs of the records. Off, no `AuditChange` is written at all.                                                           |
+| `audit.custom`  | on      | The entries of `AuditService.record`.                                                                                        |
 
 The changes of a request whose category is disabled are still recorded, each with an entry of its own (`change`), so
 `audit.write.enabled: false` keeps the history of the records without an entry per request.
@@ -120,10 +120,18 @@ import { AuditService } from '@appweaver/data';
 const audit = inject(AuditService);
 
 const previous = await tx.order.findUnique({ where: { id } });
-const current = await tx.order.update({ where: { id }, data: { status: 'shipped' } });
+const current = await tx.order.update({
+  where: { id },
+  data: { status: 'shipped' }
+});
 audit.recordChange('Order', 'update', previous, current);
 
-audit.record({ category: 'custom', action: 'invoice.sent', model: 'Invoice', resourceId: invoice.id });
+audit.record({
+  category: 'custom',
+  action: 'invoice.sent',
+  model: 'Invoice',
+  resourceId: invoice.id
+});
 ```
 
 `record` takes the user, the client and the trace of the current call when the entry does not set them.
@@ -137,7 +145,9 @@ source and an action:
 ```ts
 import { runInRequestScope, setRequestScope } from '@appweaver/core';
 
-await runInRequestScope({ source: 'job', action: 'import.products' }, () => importProducts());
+await runInRequestScope({ source: 'job', action: 'import.products' }, () =>
+  importProducts()
+);
 
 setRequestScope({ action: 'report.publish' }); // the action of the entry of the current request
 ```
@@ -153,9 +163,12 @@ opening the connection.
 
 ## Reading
 
-The framework manages the two models only. The application decides who reads the audit log and how, exposing the
-models like its own resources, with a service, its routes and a policy each (`src/resources/audit-log/`,
-`src/resources/audit-change/`):
+`audit.routes.enabled: true` serves the audit log with the routes of the framework: `/audit-logs` and
+`/audit-changes`, `find` and `query` only, for the roles of `audit.routes.roles` (`['Admin']`), left out of the audit
+log themselves, with a service and an append-only policy of each model. They are off by default.
+
+For other access rules, leave them off and expose the models like the application's own resources, with a service,
+its routes and a policy each (`src/resources/audit-log/`, `src/resources/audit-change/`):
 
 ```ts
 // service.ts
@@ -174,7 +187,8 @@ export default createRoutes({
 // policy.ts: append-only, so no service call changes the history either
 export default createPolicy({
   modelName: 'AuditLog',
-  checkAccess: (_user, _resource, action) => !['create', 'update', 'delete'].includes(action)
+  checkAccess: (_user, _resource, action) =>
+    !['create', 'update', 'delete'].includes(action)
 });
 ```
 

@@ -14,5 +14,9 @@ export { default as apiKeyService } from './security/resources/api-key/service';
 export { default as connectedAccountService } from './security/resources/connected-account/service';
 export { default as twoFactorMethodService } from './security/resources/two-factor-method/service';
 export { default as twoFactorRecoveryCodeService } from './security/resources/two-factor-recovery-code/service';
+export { default as auditLogService } from './audit/resources/audit-log/service';
+export { default as auditChangeService } from './audit/resources/audit-change/service';
 
 export { default as apiKeyPolicy } from './security/resources/api-key/policy';
+export { default as auditLogPolicy } from './audit/resources/audit-log/policy';
+export { default as auditChangePolicy } from './audit/resources/audit-change/policy';

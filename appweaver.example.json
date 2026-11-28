@@ -356,6 +356,10 @@
       "custom": {
         "enabled": true,
         "retention": ""
+      },
+      "routes": {
+        "enabled": false,
+        "roles": ["Admin"]
       }
     },
     "memory": {

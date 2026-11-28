@@ -18,12 +18,13 @@ export default apiKeyConfig.ENABLED
         });
         data.keyHash = makeHash(data.key);
 
-        // Add relation to the current user when creating a new API Key
-        (data as Record<string, unknown>)[
-          uncapitalize(resourceAuthModel()!.name)
-        ] = {
-          id: currentAuthUser()!.id
-        };
+        // The owner is the current user, or the one the application's own call gives
+        const user = currentAuthUser();
+        if (user) {
+          (data as Record<string, unknown>)[
+            uncapitalize(resourceAuthModel()!.name)
+          ] = { id: user.id };
+        }
 
         // Enforces max API key duration based on config value
         const maxDuration = apiKeyConfig.MAX_DURATION;

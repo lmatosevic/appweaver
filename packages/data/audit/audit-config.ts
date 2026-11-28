@@ -73,3 +73,11 @@ export const auditCustomConfig = defineConfig('audit.custom', {
   /** How long the entries are kept, a duration, empty for `audit.retention`. Default: `''`. */
   RETENTION: Type.String({ default: '' })
 });
+
+export const auditRoutesConfig = defineConfig('audit.routes', {
+  /** Register the read-only routes of the audit log (`/audit-logs` and `/audit-changes`: `find` and `query`), left
+   * out of the audit log themselves, with the service and the policy of the models. Default: `false`. */
+  ENABLED: Type.Boolean({ default: false }),
+  /** The roles allowed to read them. Default: `['Admin']`. */
+  ROLES: Type.Array(Type.String(), { default: ['Admin'] })
+});

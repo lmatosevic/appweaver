@@ -12,6 +12,7 @@ import {
   auditConfig,
   auditCustomConfig,
   auditReadConfig,
+  auditRoutesConfig,
   auditWriteConfig
 } from './audit/audit-config';
 import { databaseConfig } from './database/database-config';
@@ -48,7 +49,8 @@ export default defineModule({
     auditAuthConfig,
     auditReadConfig,
     auditWriteConfig,
-    auditCustomConfig
+    auditCustomConfig,
+    auditRoutesConfig
   ],
   loggers: [
     'database',
