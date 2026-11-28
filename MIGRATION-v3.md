@@ -35,6 +35,7 @@ startup.
 | [17. Generated client](#17-generated-client)                                | V3-CLIENT-01, V3-CLIENT-03 | `weaver-client generate` output | pending |
 | [18. OAuth2 sign-in and unverified emails](#18-oauth2-sign-in-and-unverified-emails) | V3-SEC-05 | OAuth2 providers           | done    |
 | [19. Changes already released in 2.10.1](#19-changes-already-released-in-2101) | V3-SEC-01..04 | Filters, body size, CSV export | done |
+| [20. Smaller API changes](#20-smaller-api-changes)                          | per CR       | The utilities named              | done    |
 
 Each section follows the same layout: **What changed**, **Who is affected**, **Before**, **After**, **Steps**.
 
@@ -218,3 +219,11 @@ Released in 2.10.1 (phase 1a); listed here for a project upgrading from an older
 - The fields a relation's `output.omit` leaves out can no longer be filtered or sorted on (V3-SEC-02).
 - A cached response replays only an allow list of headers (V3-SEC-03).
 - The CSV export escapes the cells starting a formula with `'` (V3-SEC-04).
+
+## 20. Smaller API changes
+
+- **`generateToken`** of `@appweaver/common` (V3-SEC-06): generated with `node:crypto` instead of `generate-api-key`,
+  whose `string` tokens (the API keys of `randomString`) came from a generator that is not cryptographically secure. The
+  `uuidv5` method is removed, and the options are `TokenOptions` (`{ pool }`) instead of the `DefaultGenerationOptions`
+  of `generate-api-key`. A `base32` token is four groups of seven RFC 4648 characters separated by dashes.
+

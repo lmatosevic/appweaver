@@ -85,7 +85,6 @@
     "fastify-plugin": "6.0.0",
     "fkill": "10.0.3",
     "flatted": "3.4.2",
-    "generate-api-key": "1.0.2",
     "glob": "14.0.4",
     "handlebars": "4.7.10",
     "ioredis": "5.11.1",
@@ -181,6 +180,9 @@
       "prettier": "3.8.4",
       "typescript-eslint": "8.73.0"
     }
+  },
+  "overrides": {
+    "effect": "3.22.5"
   },
   "allowScripts": {
     "@parcel/watcher": false,
