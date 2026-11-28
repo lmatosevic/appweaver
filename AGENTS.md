@@ -839,10 +839,11 @@ Database migration commands for development.
 Create a new database migration.
 
 ```
-weaver migration new <name>
+weaver migration new <name> [--create-only]
 ```
 
-Executes `prisma migrate dev --name <name>`.
+Executes `prisma migrate dev --name <name>`, with `--create-only` when given: the migration is created without being
+applied, so its `migration.sql` can be edited first (custom SQL Prisma does not generate, see D22 of `PLAN-v3.md`).
 
 #### `weaver migration check`
 

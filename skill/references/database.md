@@ -138,6 +138,7 @@ Check whether the models need a new migration, then create it:
 ```bash
 weaver migration check                  # exit code 1 and the SQL when one is needed
 weaver migration new <migration_name>
+weaver migration new <migration_name> --create-only   # to edit its migration.sql before applying it
 ```
 
 Run pending migrations, or print them with their SQL first:

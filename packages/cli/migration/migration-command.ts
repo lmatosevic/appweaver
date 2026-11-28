@@ -19,10 +19,21 @@ export function migrationCommand(program: Command): void {
     .command('new')
     .description('Create a new database migration and apply it.')
     .argument('<name>', 'Name of the migration, i.e. add_category_to_post.')
-    .action(async (name: string) => {
+    .option(
+      '--create-only',
+      'Create the migration without applying it, so its SQL can be edited first.'
+    )
+    .action(async (name: string, _, command: Command) => {
       setAiDangerousActionConsent();
+      const createOnly = !!command.getOptionValue('createOnly');
       process.exit(
-        await runProcess('prisma', ['migrate', 'dev', '--name', name])
+        await runProcess('prisma', [
+          'migrate',
+          'dev',
+          '--name',
+          name,
+          ...(createOnly ? ['--create-only'] : [])
+        ])
       );
     });
 
