@@ -2,6 +2,8 @@
 
 > **Status**: draft for review, refined phase by phase. **Baseline**: v2.10.0 (`main` at `f26fc6b`), the measurements of
 > section 3. **Released since**: v2.10.1 (`main` at `b57cfe1`), phase 1a.
+> **Revision 18**: a clean switch: no aliases or compatibility code for the renamed keys, model options, routes and
+> codes; the old names stop working in v3, `MIGRATION-v3.md` lists them (D23).
 > **Revision 17**: every duration key accepts milliseconds or a unit string in v3, the former seconds keys included; no
 > compatibility mode for them (D11).
 > **Revision 16**: audit fields stay in the responses by default, removable per model, view or relation (D5, F10).
@@ -60,9 +62,10 @@
 - **Brutal honesty**: every proposal states its cost, its risk and the "leave it as is" option. A change has to beat
   doing nothing. Section 5 rejects several ideas of the original task list, with the reason.
 - **Remove and simplify first**: adding an option needs a use case from a sample or a real application.
-- **Breaking changes are allowed**, but each one gets a migration note in `MIGRATION-v3.md`, and a clear error or
-  warning at startup when an old name or value is met. `weaver upgrade` never rewrites a project (revision 15): it bumps
-  the Appweaver packages, their companions and the skill files, nothing else; the migration is the user's to make.
+- **Breaking changes are allowed, as a clean switch** (revision 18): no aliases, deprecated options or compatibility code
+  for the renamed or changed parts; the old names stop working in v3, and each change gets a migration note in
+  `MIGRATION-v3.md`. `weaver upgrade` never rewrites a project (revision 15): it bumps the Appweaver packages, their
+  companions and the skill files, nothing else; the migration is the user's to make.
 - **Measure before optimizing**: the numbers of section 3 are the v2.10.0 baseline every later change is compared to.
 - **Small steps**: one concern per change request (CR), reviewed and merged one at a time.
 - **2.x is not maintained**: v3 replaces it as the latest release. Phase 1a shipped as 2.10.1; a 2.x fix, if one is ever
@@ -529,7 +532,8 @@ schema. A view is `buildModel` over the view's config with its own `$id` (`PostP
 the route registry is keyed by model name (`define` of routes, `core/context/dependency-injection.ts:80`), so it must
 be keyed by model and view; and the generated types and client need one type set per view.
 
-**Breaking**: no, additive. The relation `output.omit` and `mcp.exclude` stay for one major, deprecated.
+**Breaking**: no, additive. The relation `output.omit` and `mcp.exclude` stay as they are, not deprecated: they remove a
+few fields of one relation or tool, a view names a whole shape.
 
 ### D2. Extending and overriding framework models, services, policies and routes — **decided: `extend*`, and duplicates fail**
 
@@ -941,8 +945,8 @@ config, the routes and the errors while the code says `twoFactor` (`TwoFactorSer
 `SECURITY_ACCOUNT_2FA_ENABLED` has a segment starting with a digit. One name per concept, written out, is the rule of
 "one way to do things".
 
-**Renamed** (old names accepted in v3 with a deprecation warning at startup naming the new one, removed in v4; the user
-renames them, guided by `MIGRATION-v3.md`):
+**Renamed** (a clean switch, revision 18: the old names stop working in v3, with no alias; `MIGRATION-v3.md` lists each
+one with its new name):
 
 | Today                                                                                   | v3                                                                                                   |
 |-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
@@ -950,7 +954,7 @@ renames them, guided by `MIGRATION-v3.md`):
 | `GeoConfig`, `GeoField`, `GeoFieldType`, `GeoFilterOperators`, `GeoConditionSchema`, `GeoColumns`, `GeoModel` | `SpatialConfig`, `SpatialField`, `SpatialFieldType`, `SpatialFilterOperators`, `SpatialConditionSchema`, `SpatialColumns`, `SpatialModel` |
 | `geoColumns`, `geoFieldSchema`, `geoStorage`, `geoDistance`, `geoModelOf`, `hasGeo`     | `spatialColumns`, `spatialFieldSchema`, `spatialStorage`, `spatialDistance`, `spatialModelOf`, `hasSpatialFields` |
 | Config section `security.account.2fa` (`SECURITY_ACCOUNT_2FA_*`), `.2fa.totp`           | `security.account.twoFactor` (`SECURITY_ACCOUNT_TWO_FACTOR_*`), `.twoFactor.totp`                    |
-| Routes `/auth/account/2fa/*`                                                            | `/auth/account/two-factor/*` (the old paths answer in v3, left out of the OpenAPI document)          |
+| Routes `/auth/account/2fa/*`                                                            | `/auth/account/two-factor/*` (the old paths removed)                                                 |
 | JWT scope `2fa`, `AuthScope.TwoFA`, `AuthOTTPurpose.TwoFAVerification` (`2faVerification`) | `twoFactor`, `AuthScope.TwoFactor`, `OneTimeTokenPurpose.TwoFactorVerification`                  |
 | Error codes `ACCOUNT_2FA_*` (5)                                                         | `ACCOUNT_TWO_FACTOR_*`                                                                               |
 | `security.authOttTtl`                                                                   | `security.exchangeTokenTtl` (the one-time token of `/exchange-token`)                               |
@@ -978,8 +982,7 @@ named `spatial` (`spatial.provider`, `SpatialService`, `PostgisSpatialEngine`, `
   describe its objects.
 - The `Fn` suffix of the function types (`FileAccessFn`, ...), a TypeScript convention.
 
-**Effort**: M, mostly mechanical: the renames, the deprecated aliases and their warnings, the old route paths, the
-migration notes, the samples, the scaffold templates, the generated client and the skill. In phase 3 with the
+**Effort**: S to M, mechanical: the renames, the migration notes, the samples, the scaffold templates, the generated client and the skill. In phase 3 with the
 other convention changes, so the config keys are renamed once together with D11.
 
 ### D24. Response compression — **decided: `@fastify/compress`, global config and a per-route switch**
@@ -1185,7 +1188,7 @@ sample and every scaffold combination building and passing its e2e tests on its 
 | 3.6  | V3-CONV-06  | `totalCount` default and bounded count, `maxOffset`                                                     |
 | 3.7  | V3-CONV-07  | `aggregate` in one `GROUP BY`, no implicit 7-day window                                                 |
 | 3.8  | V3-COMMON-01 | Array env values: a JSON array accepted, anything ambiguous rejected                                   |
-| 3.9  | V3-CONV-08  | Full names instead of abbreviations (D23), the old names accepted with a warning                       |
+| 3.9  | V3-CONV-08  | Full names instead of abbreviations (D23), a clean switch without aliases                              |
 
 **Gate 3**: every package on the conventions; `MIGRATION-v3.md` covers each change.
 
@@ -1402,7 +1405,7 @@ week, XL more.
 | V3-CONV-05    | `database.keepTables` (F18)                                              | 3     | P2   | S      | Yes            |
 | V3-CONV-06    | `totalCount` default, bounded count, `maxOffset` (F19)                   | 3     | P1   | S      | Yes            |
 | V3-CONV-07    | `aggregate` in one `GROUP BY`, no implicit window (F20)                  | 3     | P1   | M      | Yes            |
-| V3-CONV-08    | Full names: `geo` to `spatial`, `2fa` to `twoFactor`, `OTT`, `SEP`, CLI aliases (D23, F45) | 3 | P1 | M | Yes (aliases in v3) |
+| V3-CONV-08    | Full names: `geo` to `spatial`, `2fa` to `twoFactor`, `OTT`, `SEP`, CLI aliases (D23, F45) | 3 | P1 | M | Yes |
 | V3-COMMON-01  | Array env values (F36)                                                   | 3     | P2   | S      | No             |
 | V3-DATA-01    | `extend*`, duplicates fail (F9)                                          | 4     | P1   | L      | Duplicates fail |
 | V3-DATA-02    | Model views (F13, F2)                                                    | 4     | P1   | XL     | No (additive)  |
