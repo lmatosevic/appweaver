@@ -37,7 +37,8 @@
     "release": "semantic-release --no-ci",
     "postrelease": "git push --follow-tags",
     "samples:lock": "node tools/lock-samples.js",
-    "samples:manage": "node tools/manage-samples.js"
+    "samples:manage": "node tools/manage-samples.js",
+    "load": "node tools/load/run-load.js"
   },
   "dependencies": {
     "@fastify/ajv-compiler": "4.0.5",
@@ -127,6 +128,7 @@
     "@types/ws": "8.18.2",
     "@typescript-eslint/eslint-plugin": "8.73.0",
     "@typescript-eslint/parser": "8.73.0",
+    "autocannon": "8.0.0",
     "conventional-changelog-conventionalcommits": "9.3.1",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
