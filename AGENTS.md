@@ -81,6 +81,11 @@ describe('Feature Verification', () => {
       madge (`.madgerc`). It skips the type-only and dynamic imports, which never run at load time, so it fails only on
       a cycle of runtime imports. A shorter import through a directory barrel (`index.ts`) loads every module of the
       barrel, so check it too.
+    - **Unused code**: Run `npm run check:unused` to check the package sources and the tools for unused files,
+      exports and dependencies with knip (`knip.json`). An export only used in its own file is not reported. A
+      dependency used outside the scanned sources (the driver adapters the samples run on, the plugins of
+      `release.config.js`) is listed in its `ignoreDependencies`, and a new entry point or type augmentation file in
+      its `entry`.
     - **Comments**: Keep code comments short and to the point. Explain only what the code itself cannot show.
     - **Class member order**: fields first, then all public methods, then the private ones.
     - **Type member order**: in an interface or type, required properties come first, optional ones after them.
@@ -88,8 +93,9 @@ describe('Feature Verification', () => {
       interface from `packages/common` it implements. Never on plain functions, constants or types.
 - **Continuous integration**: the `CI` workflow (`.github/workflows/ci.yml`) runs on every pull request to `main`
   and every push to it, in `node:24` containers set up by `.github/actions/setup` (npm 12, `npm ci`):
-  `npm run format:check`, `npm run lint` (after `npm run build`, since the samples import the built packages) and
-  `npm run check:circular`, then `npm test`. The test job uploads the coverage to Codecov (the `CODECOV_TOKEN` secret),
+  `npm run format:check`, `npm run lint` (after `npm run build`, since the samples import the built packages),
+  `npm run check:circular` and `npm run check:unused`, then `npm test`. A job of osv-scanner reports the known
+  vulnerabilities of the lockfiles of the monorepo and the samples without failing the workflow. The test job uploads the coverage to Codecov (the `CODECOV_TOKEN` secret),
   which the coverage badge of the READMEs reads and which reports the coverage diff of every pull request in its
   informational status checks, never failing, and without a comment (`codecov.yml`).
 - **Branch names**: a new branch is named after the work it holds, in kebab-case (`fix/realtime-input-errors`), never
