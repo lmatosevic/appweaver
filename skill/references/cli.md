@@ -496,13 +496,32 @@ In watch mode the server also restarts when a file of the template or translatio
 
 ---
 
+## `weaver lint` and `weaver format`
+
+```
+weaver lint [--fix] [patterns...]
+weaver format [--check] [patterns...]
+```
+
+Run the ESLint (default pattern `.`) and the Prettier (default pattern `./**/*.ts`, written unless `--check`) of the
+project's `@appweaver/tooling` dev dependency. Without the package they exit with 1, naming the install command.
+
+---
+
 ## `weaver test`
 
 ```
 weaver test|t [options] [command]
 ```
 
-Set up, reset and tear down the test environment.
+Run the tests (`weaver test [patterns...]`), or set up, reset and tear down the test environment (the subcommands). The
+tests run with the Jest of `@appweaver/tooling` on Node and `bun test` on Bun.
+
+| Option        | Description                                                  | Default |
+|---------------|--------------------------------------------------------------|---------|
+| `--e2e`       | Run the end-to-end tests (`test/e2e/jest.e2e-config.json`)    | `false` |
+| `--coverage`  | Collect the coverage                                         | `false` |
+| `-w, --watch` | Run the tests again on every change                          | `false` |
 
 **Subcommands:**
 

@@ -87,35 +87,8 @@ export async function createProject(
 }
 
 function getDevDependencies(runtime: Runtime): string[] {
-  const devDependencies = [
-    '@eslint/js',
-    '@types/node',
-    '@typescript-eslint/eslint-plugin',
-    '@typescript-eslint/parser',
-    'eslint',
-    'eslint-config-prettier',
-    'eslint-plugin-prettier',
-    'globals',
-    'prettier',
-    'typescript',
-    'typescript-eslint'
-  ];
-
-  // Bun runs the tests itself, Node runs them with Jest
-  if (runtime === 'bun') {
-    devDependencies.push('@types/bun');
-  } else {
-    devDependencies.push(
-      '@swc/core',
-      '@swc/jest',
-      '@types/jest',
-      'eslint-plugin-jest',
-      'jest',
-      'jest-junit'
-    );
-  }
-
-  return devDependencies;
+  // The lint, format and test tools come with @appweaver/tooling, and Bun runs the tests itself
+  return runtime === 'bun' ? ['@types/bun', 'typescript'] : ['typescript'];
 }
 
 /** Formats the packages as the sorted entries of a `package.json` dependencies object. */

@@ -37,6 +37,7 @@ const lockedPackages = [
   'openai',
   'mcp',
   'testing',
+  'tooling',
   'cli',
   'client',
   'create'

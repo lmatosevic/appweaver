@@ -1,7 +1,5 @@
 {
-  "testEnvironment": "node",
+  "preset": "@appweaver/tooling",
   "testMatch": ["**/test/**/*.test.ts"],
-  "transform": {
-    "^.+\\.ts$": ["@swc/jest"]
-  }
+  "reporters": ["default"]
 }

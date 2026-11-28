@@ -237,6 +237,7 @@ on it:
 | `@appweaver/opentelemetry`                                        | The OpenTelemetry SDK exporting the traces, metrics and logs of the instrumentation          |
 | `@appweaver/testing`                                              | The test helpers shared by the packages                                                      |
 | `@appweaver/skill`                                                | The AI agent skill (`skill/` of the repository), synced into a project by `weaver skill sync`  |
+| `@appweaver/tooling`                                              | The lint, format and test tools of a project (ESLint 10, Prettier, Jest with SWC) and their configs |
 
 The directories moved as they were, so a file keeps its path within its package (`core/server/register-route.ts` is
 now `web/server/register-route.ts`). `@appweaver/common` and `@appweaver/core` are peer dependencies of every other
@@ -691,8 +692,10 @@ both variants render the same text.
 
 The versions of every npm package a generated project installs (except the `@appweaver/*` packages, which follow the
 CLI's own version) are kept in the `scaffoldDependencies` field of the **root** `package.json`, split into `companion`
-(packages the framework uses as a peer: Prisma and its driver adapters, TypeBox, TypeScript) and `tooling` (lint and
-test setup). The base template receives them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}` variables, and
+(packages the framework uses as a peer: Prisma and its driver adapters, TypeBox, TypeScript; the `typescript` of a
+project is the TypeScript 7 compiler) and `tooling` (`@types/bun`, since the lint, format and test tools of a project
+are the dependencies of `@appweaver/tooling`, whose versions equal the root ones; its `typescript` is the classic 5.9 of
+typescript-eslint). The base template receives them through the `{{DEPENDENCIES}}` and `{{DEV_DEPENDENCIES}}` variables, and
 the modules write theirs into `package.json`, so bump versions there, not in the templates. Keep the versions equal
 to the root `dependencies` and `devDependencies`, which a test checks. The libraries of the drivers (BullMQ, Cron,
 Handlebars, IoRedis, Nodemailer, Sharp) are not among them, since they are dependencies of the driver packages.
@@ -1044,10 +1047,24 @@ weaver start [options]
 
 ---
 
+### `weaver lint` and `weaver format`
+
+```
+weaver lint [--fix] [patterns...]
+weaver format [--check] [patterns...]
+```
+
+Run the ESLint (`.` by default) and the Prettier (`./**/*.ts` by default, `--write` unless `--check`) of the project's
+`@appweaver/tooling`, resolved by its `toolBin` from the package itself, with `node` (`tooling/run-tool.ts`).
+
+---
+
 ### `weaver test` (alias: `t`)
 
-Has following subcommands for setting up the test environment: `setup`, `reset`, and `teardown`. All of them must be
-run with `NODE_ENV=test`.
+Without a subcommand, runs the tests: the Jest of `@appweaver/tooling` on Node (`--e2e` with
+`test/e2e/jest.e2e-config.json` and the JUnit report `e2e.xml`, `--coverage`, `-w, --watch`, the patterns passed on),
+`bun test ./test/unit` or `./test/e2e` on Bun (`tooling/tooling-commands.ts`). Its subcommands set up the test
+environment: `setup`, `reset`, and `teardown`, all run with `NODE_ENV=test`.
 
 #### `weaver test setup`
 
@@ -1436,7 +1453,7 @@ This runs the following steps automatically:
 5. **Version bump** (`@semantic-release/npm`, no publish) — updates `version` in the root `package.json` and in the
    `package.json` of every published package, listed in `release.config.js` (and `tools/lock-samples.js`): `core`,
    `common`, `ai`, `openai`, `data`, `web`, `redis`, `bullmq`, `cron`, `nodemailer`, `twilio`, `opentelemetry`,
-   `realtime`, `mcp`, `handlebars`, `sharp`, `skill`, `testing`, `cli`, `client` and `create`.
+   `realtime`, `mcp`, `handlebars`, `sharp`, `skill`, `testing`, `tooling`, `cli`, `client` and `create`.
 6. **Package copy** (`@semantic-release/exec`) — runs `node ./tools/copy-packages.js` to sync built packages into
    `node_modules/@appweaver`.
 7. **Publish** (`@semantic-release/exec`) — publishes each package's `dist/` directory to the npm registry with
@@ -1462,6 +1479,7 @@ This runs the following steps automatically:
     cd packages/sharp/dist      && npm publish
     cd packages/skill/dist      && npm publish
     cd packages/testing/dist    && npm publish
+    cd packages/tooling/dist    && npm publish
     cd packages/create/dist     && npm publish
     cd packages/cli/dist        && npm publish
     cd packages/client/dist     && npm publish

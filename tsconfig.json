@@ -29,6 +29,8 @@
       "@appweaver/sharp/*": ["./packages/sharp/*"],
       "@appweaver/skill": ["./packages/skill"],
       "@appweaver/skill/*": ["./packages/skill/*"],
+      "@appweaver/tooling": ["./packages/tooling"],
+      "@appweaver/tooling/*": ["./packages/tooling/*"],
       "@appweaver/cron": ["./packages/cron"],
       "@appweaver/cron/*": ["./packages/cron/*"],
       "@appweaver/nodemailer": ["./packages/nodemailer"],

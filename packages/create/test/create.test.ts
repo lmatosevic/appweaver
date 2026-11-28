@@ -294,8 +294,10 @@ describe('create', () => {
     });
 
     test('keeps the files of the selected runtime', () => {
-      expect(exists('my-app', 'jest.config.json')).toBe(true);
-      expect(exists('my-app', 'swc.config.json')).toBe(true);
+      expect(readJson('my-app', 'jest.config.json').preset).toBe(
+        '@appweaver/tooling'
+      );
+      expect(exists('my-app', 'swc.config.json')).toBe(false);
       expect(exists('my-app', 'test', 'e2e', 'jest.e2e-config.json')).toBe(
         true
       );
@@ -1135,23 +1137,35 @@ describe('create', () => {
       expect(config).not.toHaveProperty('cache');
     });
 
-    test('runs only the test files with the Bun unit tests', async () => {
+    test('runs the tests, the lint and the format with weaver on Bun', async () => {
       await run('MyApp', '--no-install', '--agent', 'none', '--bun');
 
-      // A path given after --coverage would be run as a test file
-      expect(readJson('my-app', 'package.json').scripts.test).toBe(
-        'bun test ./test/unit --coverage --reporter=junit --reporter-outfile=./reports/junit.xml'
-      );
+      const { scripts, prettier } = readJson('my-app', 'package.json');
+      expect(scripts).toMatchObject({
+        test: 'weaver test --coverage',
+        lint: 'weaver lint',
+        format: 'weaver format'
+      });
+      expect(prettier).toBe('@appweaver/tooling/prettier');
+      expect(read('my-app', 'eslint.config.mjs')).toContain("runtime: 'bun'");
     });
 
-    test('installs the Jest tooling for the Node runtime', async () => {
+    test('installs the tooling package for the Node runtime', async () => {
       await run('MyApp', '--no-install', '--agent', 'none');
 
-      const { devDependencies } = readJson('my-app', 'package.json');
-      expect(devDependencies).toHaveProperty('jest');
-      expect(devDependencies).toHaveProperty('@swc/jest');
-      expect(devDependencies).toHaveProperty('typescript');
-      expect(devDependencies).not.toHaveProperty('@types/bun');
+      const { devDependencies, scripts } = readJson('my-app', 'package.json');
+      expect(devDependencies).toEqual({
+        '@appweaver/tooling': cliVersion,
+        typescript: rootPkg.scaffoldDependencies.companion.typescript
+      });
+      expect(scripts).toMatchObject({
+        test: 'weaver test --coverage',
+        e2e: 'weaver test --e2e'
+      });
+      expect(read('my-app', 'eslint.config.mjs')).toContain(
+        "from '@appweaver/tooling/eslint'"
+      );
+      expect(exists('my-app', '.prettierrc')).toBe(false);
     });
 
     test('installs the Bun types instead of Jest for the Bun runtime', async () => {

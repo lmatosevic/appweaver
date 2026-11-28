@@ -521,8 +521,8 @@ export abstract class ResourceService<
       return { ...result, ...boundaries };
     };
 
-    let total: Record<string, Record<string, any>> = {};
-    let items: Record<string, Record<string, any>>[] = [];
+    let total: Record<string, Record<string, any>>;
+    let items: Record<string, Record<string, any>>[];
     try {
       [total, items] = await this._db.client().$transaction(async (tx) => {
         const txModel = delegateOf(tx, this._client.name);

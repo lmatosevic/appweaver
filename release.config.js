@@ -20,6 +20,7 @@ const packages = [
   'realtime',
   'mcp',
   'testing',
+  'tooling',
   'create',
   'cli',
   'client'

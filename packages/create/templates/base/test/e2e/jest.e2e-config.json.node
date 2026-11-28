@@ -1,24 +1,10 @@
 {
-  "moduleFileExtensions": ["js", "json", "ts"],
+  "preset": "@appweaver/tooling",
   "rootDir": "../../",
-  "testEnvironment": "node",
   "testMatch": ["**/test/e2e/**/*.test.ts"],
-  "transform": {
-    "^.+\\.(t|j)s$": ["@swc/jest"]
-  },
-  "transformIgnorePatterns": ["/node_modules/(?!(content-disposition|cookie|@fastify/cookie)/)"],
+  "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@db/(.*)$": "<rootDir>/database/$1"
-  },
-  "reporters": [
-    "default",
-    [
-      "jest-junit",
-      {
-        "outputDirectory": "./reports",
-        "outputName": "e2e.xml"
-      }
-    ]
-  ]
+  }
 }

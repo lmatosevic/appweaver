@@ -1297,9 +1297,14 @@ storage|mailer|sms|none`, i.e. a Postmark mailer or a Vonage SMS sender (see
 ### Run tests
 
 ```sh
-npm run test  # unit tests with coverage
-npm run e2e   # e2e tests
+npm run test                 # weaver test --coverage: the unit tests with coverage
+npm run e2e                  # weaver test --e2e: the e2e tests
+weaver test test/unit/a.test.ts --watch   # one file, again on every change
 ```
+
+`weaver test` runs the Jest of the `@appweaver/tooling` dev dependency on Node (the `"preset": "@appweaver/tooling"` of
+`jest.config.json`: SWC, the JUnit report of `reports/`), and `bun test` on Bun. The lint, the format and the test tools
+come with `@appweaver/tooling`: never add ESLint, Prettier, Jest or SWC to the project yourself.
 
 Test files must use the **`.test.ts`** extension. Place unit tests in `test/unit/` and end-to-end tests in `test/e2e/`,
 naming each file after its module. Add or update tests whenever a feature is added or existing behaviour changes.
@@ -1338,14 +1343,22 @@ stop and ask the user to run the command.
 ### Format code
 
 ```sh
-npm run format  # prettier --write "./**/*.ts"
+npm run format          # weaver format: prettier --write "./**/*.ts"
+weaver format --check   # check without writing
 ```
+
+The Prettier config is `"prettier": "@appweaver/tooling/prettier"` of `package.json`.
 
 ### Lint code
 
 ```sh
-npm run lint  # eslint "./**/*.ts"
+npm run lint        # weaver lint: eslint .
+weaver lint --fix   # fix what can be fixed
 ```
+
+`eslint.config.mjs` exports `eslintConfig({ rootDir: import.meta.dirname })` of `@appweaver/tooling/eslint`, the
+recommended rules of ESLint 10 and the type checked typescript-eslint; extend the array it returns with the rules of the
+project.
 
 ## References
 

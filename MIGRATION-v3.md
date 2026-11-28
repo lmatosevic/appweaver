@@ -18,7 +18,7 @@ startup.
 |-----------------------------------------------------------------------------|--------------|----------------------------------|---------|
 | [1. Before you start](#1-before-you-start)                                  | -            | Everyone                         | pending |
 | [2. TypeScript 7.1 and the project config](#2-typescript-71-and-the-project-config) | V3-TOOL-01 | Every project               | done    |
-| [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)         | V3-TOOL-05   | Every scaffolded project         | pending |
+| [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)         | V3-TOOL-05   | Every scaffolded project         | done    |
 | [4. TypeBox 1.x](#4-typebox-1x)                                             | V3-TOOL-06   | Schemas, config sections, routes | pending |
 | [5. Durations and sizes](#5-durations-and-sizes)                            | V3-CONV-01   | `appweaver.json`, `.env`         | pending |
 | [6. Exposure: `actions` everywhere](#6-exposure-actions-everywhere)         | V3-CONV-02   | `createRoutes`, bulk env flags   | pending |
@@ -97,8 +97,65 @@ has no such API before 7.1, and a new one from 7.1 on.
 
 ## 3. Lint, format and test tooling
 
-_pending_ (V3-TOOL-05, D15): the 17 tooling packages of a scaffolded project replaced by the `@appweaver/tooling` dev
-dependency, ESLint 10, `weaver lint`, `weaver format` and `weaver test`.
+**What changed** (V3-TOOL-05, D15): the lint, format and test tools of a project (ESLint 10, typescript-eslint,
+Prettier, Jest, SWC, jest-junit and their types) are the dependencies of the `@appweaver/tooling` dev dependency, which
+carries their configs too. `weaver lint`, `weaver format` and `weaver test` run them. ESLint 10 replaces ESLint 9, and
+typescript-eslint keeps a TypeScript 5.9 of its own beside the TypeScript 7.1 compiler of the project.
+
+**Who is affected**: every project scaffolded by `npm create @appweaver` (Bun projects keep `bun test`).
+
+**Before** (`package.json`):
+
+```json
+{
+  "scripts": {
+    "test": "jest --coverage",
+    "e2e": "jest --config ./test/e2e/jest.e2e-config.json",
+    "format": "prettier --write \"./**/*.ts\"",
+    "lint": "eslint \"./**/*.ts\""
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.2",
+    "@swc/core": "1.15.41",
+    "eslint": "9.39.2",
+    "jest": "30.5.2",
+    "typescript-eslint": "8.73.0"
+  }
+}
+```
+
+**After**:
+
+```json
+{
+  "scripts": {
+    "test": "weaver test --coverage",
+    "e2e": "weaver test --e2e",
+    "format": "weaver format",
+    "lint": "weaver lint"
+  },
+  "prettier": "@appweaver/tooling/prettier",
+  "devDependencies": {
+    "@appweaver/tooling": "3.0.0",
+    "typescript": "7.1.0-beta"
+  }
+}
+```
+
+**Steps**:
+
+1. Remove the 17 tooling packages from the `devDependencies` (`@eslint/js`, `@swc/core`, `@swc/jest`, `@types/jest`,
+   `@types/node`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `eslint`, `eslint-config-prettier`,
+   `eslint-plugin-jest`, `eslint-plugin-prettier`, `globals`, `jest`, `jest-junit`, `prettier`, `typescript-eslint`;
+   keep `@types/bun` on Bun) and add `@appweaver/tooling` at the framework version.
+2. Replace `eslint.config.mjs` with
+   `import { eslintConfig } from '@appweaver/tooling/eslint'; export default eslintConfig({ rootDir: import.meta.dirname });`
+   (`runtime: 'bun'` on Bun), spreading the array to add the rules of the project.
+3. Replace `.prettierrc` with `"prettier": "@appweaver/tooling/prettier"` in `package.json`.
+4. Replace the `transform`, `reporters` and `coverage*` keys of `jest.config.json` and `test/e2e/jest.e2e-config.json`
+   with `"preset": "@appweaver/tooling"`, keeping `rootDir`, `moduleNameMapper`, `testMatch`, the global setup and
+   `maxWorkers`; delete `swc.config.json`.
+5. Use the scripts above.
 
 ## 4. TypeBox 1.x
 

@@ -28,6 +28,7 @@ if (!isBunProcess() && appConfig.RUNTIME === Runtime.Bun) {
 import { Command } from 'commander';
 import { buildCommand } from './build';
 import { configCommand } from './config';
+import { formatCommand, lintCommand } from './tooling';
 import { generateCommand } from './generate';
 import { migrateCommand } from './migrate';
 import { migrationCommand } from './migration';
@@ -56,7 +57,11 @@ buildCommand(program);
 
 configCommand(program);
 
+formatCommand(program);
+
 generateCommand(program);
+
+lintCommand(program);
 
 migrateCommand(program);
 
