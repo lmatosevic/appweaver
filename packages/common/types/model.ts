@@ -376,6 +376,17 @@ export type OperationConfig<F extends string = string> = {
   pick?: ModelFieldName<F>[];
 };
 
+/** A way an update writes a field: `set` its value, or `increment` or `decrement` it atomically by a number. */
+export type WriteOperation = 'set' | 'increment' | 'decrement';
+
+/** The fields of an update and the operations each one accepts. */
+export type UpdateOperationConfig<F extends string = string> =
+  OperationConfig<F> & {
+    /** The operations a numeric field accepts, i.e. `{ viewCount: ['increment'] }`, written in an update as
+     * `{ viewCount: { increment: 1 } }`; a field left out accepts `set` only, its value */
+    operations?: Partial<Record<F, WriteOperation[]>>;
+  };
+
 export type VirtualInput<T = any> = {
   /** Which operations accept this virtual field */
   type?: InputType;
@@ -524,8 +535,8 @@ export type ResourceModelConfig<
   read?: OperationConfig<NoInfer<S | R | F | V | G | E>>;
   /** Field restrictions for create operations */
   create?: OperationConfig<NoInfer<S | R | F | V | G | E>>;
-  /** Field restrictions for update operations */
-  update?: OperationConfig<NoInfer<S | R | F | V | G | E>>;
+  /** Field restrictions for update operations, and the operations of the numeric fields (`increment`, `decrement`) */
+  update?: UpdateOperationConfig<NoInfer<S | R | F | V | G | E>>;
   /** Virtual (computed) field definitions */
   virtual?: VirtualConfig<V>;
   /** Export field definitions */

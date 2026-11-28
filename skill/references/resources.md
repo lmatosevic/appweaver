@@ -37,25 +37,25 @@ function createModel(
 ) {}
 ```
 
-| Property           | Type                           | Required | Default               | Description                                                         |
-| ------------------ | ------------------------------ | -------- | --------------------- | ------------------------------------------------------------------- |
-| `name`             | string                         | yes      | -                     | Model name (PascalCase). Used as database table name and type name. |
-| `tableName`        | string                         | no       | (model name)          | Custom database table name override.                                |
-| `generateTypes`    | boolean                        | no       | `true`                | Generate TypeScript types for this model.                           |
-| `generateDbSchema` | boolean                        | no       | `true`                | Generate Prisma schema for this model.                              |
-| `id`               | IdField                        | no       | Autoincrement integer | ID field configuration.                                             |
-| `audit`            | AuditFields                    | no       | All included          | Audit timestamps and creator tracking fields.                       |
-| `scalars`          | Record\<string, ScalarField>   | no       | -                     | Scalar fields (database columns).                                   |
-| `relations`        | Record\<string, RelationField> | no       | -                     | Relations to other models.                                          |
-| `files`            | Record\<string, FileField>     | no       | -                     | File upload fields.                                                 |
-| `virtual`          | Record\<string, VirtualField>  | no       | -                     | Computed/virtual fields not stored in database.                     |
-| `read`             | OperationConfig                | no       | -                     | Pick/omit fields for the read DTO.                                  |
-| `create`           | OperationConfig                | no       | -                     | Pick/omit fields for the create DTO.                                |
-| `update`           | OperationConfig                | no       | -                     | Pick/omit fields for the update and replace DTOs (PATCH and PUT).   |
-| `export`           | Record\<string, ExportField>   | no       | -                     | CSV export field configuration.                                     |
-| `index`            | string[] \| string[][]         | no       | -                     | Database index definitions (`-field` desc, `+field` asc).           |
-| `unique`           | string[] \| string[][]         | no       | -                     | Composite unique constraints, in the same shape as `index`.         |
-| `softDelete`       | boolean                        | no       | `false`               | Mark deleted records instead of removing them.                      |
+| Property           | Type                           | Required | Default               | Description                                                                                                                          |
+| ------------------ | ------------------------------ | -------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`             | string                         | yes      | -                     | Model name (PascalCase). Used as database table name and type name.                                                                  |
+| `tableName`        | string                         | no       | (model name)          | Custom database table name override.                                                                                                 |
+| `generateTypes`    | boolean                        | no       | `true`                | Generate TypeScript types for this model.                                                                                            |
+| `generateDbSchema` | boolean                        | no       | `true`                | Generate Prisma schema for this model.                                                                                               |
+| `id`               | IdField                        | no       | Autoincrement integer | ID field configuration.                                                                                                              |
+| `audit`            | AuditFields                    | no       | All included          | Audit timestamps and creator tracking fields.                                                                                        |
+| `scalars`          | Record\<string, ScalarField>   | no       | -                     | Scalar fields (database columns).                                                                                                    |
+| `relations`        | Record\<string, RelationField> | no       | -                     | Relations to other models.                                                                                                           |
+| `files`            | Record\<string, FileField>     | no       | -                     | File upload fields.                                                                                                                  |
+| `virtual`          | Record\<string, VirtualField>  | no       | -                     | Computed/virtual fields not stored in database.                                                                                      |
+| `read`             | OperationConfig                | no       | -                     | Pick/omit fields for the read DTO.                                                                                                   |
+| `create`           | OperationConfig                | no       | -                     | Pick/omit fields for the create DTO.                                                                                                 |
+| `update`           | UpdateOperationConfig          | no       | -                     | Pick/omit fields for the update and replace DTOs (PATCH and PUT), and the `operations` of numeric fields (`increment`, `decrement`). |
+| `export`           | Record\<string, ExportField>   | no       | -                     | CSV export field configuration.                                                                                                      |
+| `index`            | string[] \| string[][]         | no       | -                     | Database index definitions (`-field` desc, `+field` asc).                                                                            |
+| `unique`           | string[] \| string[][]         | no       | -                     | Composite unique constraints, in the same shape as `index`.                                                                          |
+| `softDelete`       | boolean                        | no       | `false`               | Mark deleted records instead of removing them.                                                                                       |
 
 The `geo` fields are described in [spatial.md](./spatial.md#declaring-geo-fields), the `series` fields and
 `seriesOptions` in [timeseries.md](./timeseries.md#declaring-series-fields).
@@ -904,6 +904,26 @@ too. There is no separate replace config: the routes differ only by what an omit
 
 A create or update request sending a field its DTO excludes is rejected with a `400` `VALIDATION_FAILED` error naming
 the field (`rule: "additionalProperties"`).
+
+#### Increment and decrement
+
+`update.operations` lets a numeric scalar (`int`, `bigInt`, `float`) of the update input be raised or lowered
+atomically by the database, so two concurrent updates never lose one another:
+
+```ts
+update: {
+  omit: ['uid'],
+  operations: {
+    viewCount: ['increment'],              // only `{ viewCount: { increment: 1 } }`, never a value
+    stock: ['set', 'increment', 'decrement'] // a value, or `{ stock: { decrement: 2 } }`
+  }
+}
+```
+
+A field left out accepts `set` only, its value. The amount is a positive number (an integer for `int` and `bigInt`),
+and the `minimum` and `maximum` of the field are not checked against the result. A field without `set` is left out of
+the `<Model>Replace` input (`PUT`). A service call takes the same form,
+`injectService('Post').update(id, { viewCount: { increment: 1 } })`, and the hooks receive it as sent.
 
 ### Export config
 

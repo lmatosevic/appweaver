@@ -1218,6 +1218,14 @@ describe('resource-service', () => {
       expect(post).toMatchObject({ title: 'Updated' });
     });
 
+    test('passes an increment of a field to the database as it is', async () => {
+      await service.update(1, { viewCount: { increment: 1 } } as any);
+
+      expect(db.lastQuery('update').args.data).toMatchObject({
+        viewCount: { increment: 1 }
+      });
+    });
+
     test('reads the current record before updating', async () => {
       await service.update(1, { title: 'Updated' });
 

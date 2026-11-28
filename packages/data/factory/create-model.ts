@@ -14,6 +14,7 @@ import {
   createLogger,
   Nullable,
   OperationConfig,
+  WriteOperation,
   OutputType,
   pickProperties,
   RelationField,
@@ -72,6 +73,7 @@ export function createModel<
   validateSeries(config);
   validateGeo(config);
   validateFileVersions(config);
+  validateWriteOperations(config);
   const resourceModel = buildModel(config);
 
   logger.debug({ modelName: resourceModel.name }, 'Created resource model');
@@ -351,29 +353,35 @@ function buildModel(config: ResourceModelConfig): ResourceModel {
     config.create
   );
 
-  const updateModel = omitOrPickScalars(
-    resolveDefaultScalars(
-      Type.Partial(
-        Type.Composite([scalarsSchema, geoInputSchema, virtualSchema])
+  const updateModel = withWriteOperations(
+    omitOrPickScalars(
+      resolveDefaultScalars(
+        Type.Partial(
+          Type.Composite([scalarsSchema, geoInputSchema, virtualSchema])
+        ),
+        config
       ),
-      config
+      config.update
     ),
-    config.update
+    config
   );
 
   // The fields of an update, its scalars required the same way as on a
   // create, since a replacement carries the whole stored state of the
   // resource. The virtual fields are no part of it, so they stay optional
-  const replaceModel = omitOrPickScalars(
-    resolveDefaultScalars(
-      Type.Composite([
-        scalarsSchema,
-        geoInputSchema,
-        Type.Partial(virtualSchema)
-      ]),
-      config
+  const replaceModel = withoutUnsetFields(
+    omitOrPickScalars(
+      resolveDefaultScalars(
+        Type.Composite([
+          scalarsSchema,
+          geoInputSchema,
+          Type.Partial(virtualSchema)
+        ]),
+        config
+      ),
+      config.update
     ),
-    config.update
+    config
   );
 
   const { readOneModel, readManyModel } = buildOutputModels(
@@ -561,6 +569,90 @@ function buildScalarSchema(field: ScalarField): TSchema {
   }
 
   return fieldType;
+}
+
+const WRITE_OPERATIONS: WriteOperation[] = ['set', 'increment', 'decrement'];
+const NUMERIC_TYPES = ['int', 'bigInt', 'float'];
+
+/**
+ * Checks the `update.operations` of a model: each one names a numeric scalar of the update input, with known
+ * operations.
+ *
+ * @throws {ConfigurationError} For an operation of a field that is not a numeric scalar of the update input.
+ */
+function validateWriteOperations(config: ResourceModelConfig): void {
+  const operations: Record<string, WriteOperation[] | undefined> =
+    config.update?.operations ?? {};
+  for (const [name, ops] of Object.entries(operations)) {
+    const field = config.scalars?.[name];
+    const fieldName = `'${capitalize(config.name)}.${name}'`;
+    if (!field || !NUMERIC_TYPES.includes(field.type) || field.array) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `The update operations of ${fieldName} need a numeric scalar field (int, bigInt or float)`
+      );
+    }
+    if (
+      config.update?.pick
+        ? !config.update.pick.includes(name)
+        : config.update?.omit?.includes(name)
+    ) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `The update operations of ${fieldName} need the field in the update input`
+      );
+    }
+    const unknown = (ops ?? []).filter((op) => !WRITE_OPERATIONS.includes(op));
+    if (!ops?.length || unknown.length > 0) {
+      throw new ConfigurationError(
+        ErrorCode.ConfigurationInvalid,
+        `The update operations of ${fieldName} must be a non-empty list of ${WRITE_OPERATIONS.join(', ')}`
+      );
+    }
+  }
+}
+
+/**
+ * Replaces the schema of every field with `update.operations` by the operations it accepts: its value for `set`, and
+ * `{ increment: n }` or `{ decrement: n }` with a positive number.
+ */
+function withWriteOperations(
+  type: TObject,
+  config: ResourceModelConfig
+): TObject {
+  for (const [name, ops] of Object.entries(config.update?.operations ?? {}) as [
+    string,
+    WriteOperation[]
+  ][]) {
+    const field = type.properties[name];
+    if (!field) {
+      continue;
+    }
+    const amount =
+      config.scalars?.[name]?.type === 'float'
+        ? Type.Number({ exclusiveMinimum: 0 })
+        : Type.Integer({ minimum: 1 });
+    const variants: TSchema[] = ops.map((op) =>
+      op === 'set'
+        ? Type.Optional(field, false)
+        : Type.Object({ [op]: amount }, { additionalProperties: false })
+    );
+    type.properties[name] = Type.Optional(
+      variants.length === 1 ? variants[0] : Type.Union(variants)
+    );
+  }
+  return type;
+}
+
+/** Removes the fields a replacement cannot set, the ones whose `update.operations` leave `set` out. */
+function withoutUnsetFields(
+  type: TObject,
+  config: ResourceModelConfig
+): TObject {
+  const unset = Object.entries(config.update?.operations ?? {})
+    .filter(([, ops]) => !(ops as WriteOperation[]).includes('set'))
+    .map(([name]) => name);
+  return unset.length > 0 ? Type.Composite([Type.Omit(type, unset)]) : type;
 }
 
 function omitOrPickScalars(

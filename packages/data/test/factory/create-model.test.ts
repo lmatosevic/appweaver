@@ -320,4 +320,93 @@ describe('create-model', () => {
       ).not.toThrow();
     });
   });
+
+  describe('update operations', () => {
+    const post = (
+      operations: Record<string, any>,
+      update: Record<string, any> = {}
+    ) =>
+      createModel({
+        name: 'Post',
+        scalars: {
+          title: { type: 'string' },
+          viewCount: { type: 'int', default: 0 },
+          score: { type: 'float', required: false },
+          likes: { type: 'int', default: 0 }
+        },
+        update: { ...update, operations }
+      } as any);
+
+    test('accepts an increment or a decrement of a numeric field', () => {
+      const model = post({
+        viewCount: ['increment'],
+        score: ['set', 'increment', 'decrement']
+      });
+
+      expect(
+        Value.Check(model.updateModel, { viewCount: { increment: 1 } })
+      ).toBe(true);
+      expect(Value.Check(model.updateModel, { viewCount: 3 })).toBe(false);
+      expect(
+        Value.Check(model.updateModel, { viewCount: { decrement: 1 } })
+      ).toBe(false);
+      expect(
+        Value.Check(model.updateModel, { viewCount: { increment: 0 } })
+      ).toBe(false);
+      expect(
+        Value.Check(model.updateModel, { viewCount: { increment: 1.5 } })
+      ).toBe(false);
+      expect(
+        Value.Check(model.updateModel, {
+          viewCount: { increment: 1, decrement: 1 }
+        })
+      ).toBe(false);
+      expect(Value.Check(model.updateModel, { score: 2.5 })).toBe(true);
+      expect(
+        Value.Check(model.updateModel, { score: { increment: 0.5 } })
+      ).toBe(true);
+      expect(
+        Value.Check(model.updateModel, { score: { decrement: 0.5 } })
+      ).toBe(true);
+      expect(Value.Check(model.updateModel, { likes: 2 })).toBe(true);
+      expect(Value.Check(model.updateModel, { likes: { increment: 1 } })).toBe(
+        false
+      );
+      expect(Value.Check(model.updateModel, {})).toBe(true);
+    });
+
+    test('leaves a field without set out of a replacement', () => {
+      const model = post({
+        viewCount: ['increment'],
+        score: ['set', 'increment']
+      });
+
+      expect(model.replaceOneModel.properties.viewCount).toBeUndefined();
+      expect(model.replaceOneModel.properties.score).toBeDefined();
+      expect(model.replaceOneModel.properties.likes).toBeDefined();
+    });
+
+    test('rejects the operations of a field that is not a numeric scalar of the update input', () => {
+      const invalid = (
+        operations: Record<string, any>,
+        update?: Record<string, any>
+      ) => {
+        resetContext();
+        return () => post(operations, update);
+      };
+
+      for (const run of [
+        invalid({ title: ['increment'] }),
+        invalid({ missing: ['increment'] }),
+        invalid({ viewCount: [] }),
+        invalid({ viewCount: ['multiply'] }),
+        invalid({ viewCount: ['increment'] }, { omit: ['viewCount'] }),
+        invalid({ viewCount: ['increment'] }, { pick: ['title'] })
+      ]) {
+        expect(run).toThrow(
+          expect.objectContaining({ code: ErrorCode.ConfigurationInvalid })
+        );
+      }
+    });
+  });
 });
