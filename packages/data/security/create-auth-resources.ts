@@ -12,7 +12,8 @@ import {
   ResourceServiceConfig,
   ScalarConfig,
   uncapitalize,
-  VirtualConfig
+  VirtualConfig,
+  ResourceMarks
 } from '@appweaver/common';
 import { apiKeyConfig } from './auth-config';
 import {
@@ -256,18 +257,18 @@ export function createAuthService<
     registrationFiles?: RegistrationFilesFn;
     checkOAuth2User?: CheckOAuth2UserFn;
   }
-): Ctor<IResourceService<T, T, C, U>> {
+): Ctor<IResourceService<T, T, C, U>> & ResourceMarks {
   // Capture original functions to invoke after new auth logic
   const beforeCreate = config.beforeCreate;
   const beforeUpdate = config.beforeUpdate;
 
   config.beforeCreate = async (data: C): Promise<void> => {
-    await updatePasswordHash(data as AuthUser, data['password']);
+    await updatePasswordHash(data as AuthUser, passwordOf(data));
     await beforeCreate?.(data);
   };
 
   config.beforeUpdate = async (id: ResourceId, data: U): Promise<void> => {
-    await updatePasswordHash(data as AuthUser, data['password'], true);
+    await updatePasswordHash(data as AuthUser, passwordOf(data), true);
     await beforeUpdate?.(id, data);
   };
 
@@ -285,4 +286,9 @@ export function createAuthService<
   service[RESOURCE_AUTH] = true;
 
   return service;
+}
+
+/** The plain password of the written data of an auth model, which the hook hashes. */
+function passwordOf(data: unknown): string | undefined {
+  return (data as { password?: string }).password;
 }

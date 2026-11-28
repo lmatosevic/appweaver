@@ -62,7 +62,9 @@ export function resourceAuthService():
   | undefined {
   for (const service of context.resource.services.values()) {
     if (isResourceAuthService(service)) {
-      return injectService(service[RESOURCE_NAME]);
+      return injectService(
+        service[RESOURCE_NAME] as string
+      ) as IResourceService<AuthUser, AuthUser>;
     }
   }
 }
@@ -164,7 +166,7 @@ export async function updatePasswordHash(
       authUser.logoutAt = new Date();
     }
   }
-  delete authUser['password'];
+  delete (authUser as { password?: string }).password;
 }
 
 /**

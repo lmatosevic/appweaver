@@ -16,6 +16,9 @@ import { redisConfig } from './config';
 
 const logger = createLogger('memory');
 
+/** The Lua command releasing a lock, defined on the client with `defineCommand`. */
+type LockCommand = (key: string, value: string) => Promise<number>;
+
 export class RedisMemory extends Memory<RedisOptions, RedisClient> {
   /** @internal */
   private readonly _breaker = new CircuitBreaker(
@@ -266,10 +269,9 @@ class RedisLock {
       if (result === 'OK') {
         return {
           release: async () =>
-            (await this.client[this._releaseLockCommand](
-              resourceKey,
-              lockValue
-            )) > 0
+            (await (this.client as unknown as Record<string, LockCommand>)[
+              this._releaseLockCommand
+            ](resourceKey, lockValue)) > 0
         };
       } else {
         await setTimeout(this.retryDelay);

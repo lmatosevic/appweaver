@@ -22,7 +22,8 @@ import {
   ResourceData,
   ResourceEvent,
   ResourceId,
-  ResourceServiceConfig
+  ResourceServiceConfig,
+  ResourceMarks
 } from '@appweaver/common';
 import { define, injectPolicy, currentAuthUser } from '@appweaver/core';
 import { ResourceService } from '../resource/resource-service';
@@ -48,10 +49,14 @@ export function createService<
 >(
   config: ResourceServiceConfig<T, C, U> & { modelName: N },
   override: boolean = false
-): Ctor<ResourceService<T, T, C, U, QueryFilter<T>, R>> {
+): Ctor<ResourceService<T, T, C, U, QueryFilter<T>, R>> & ResourceMarks {
   const name = capitalize(config.modelName);
 
   class Service extends ResourceService<T, T, C, U, QueryFilter<T>, R> {
+    static [CONFIG] = config;
+    static [RESOURCE_NAME] = name;
+    static [RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
+
     [CONFIG] = config;
     [RESOURCE_NAME] = name;
     [RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
@@ -212,10 +217,6 @@ export function createService<
     value: `${name}Service`,
     configurable: true
   });
-
-  Service[CONFIG] = config;
-  Service[RESOURCE_NAME] = name;
-  Service[RESOURCE_TYPE] = RESOURCE_SERVICE_TYPE;
 
   logger.debug({ modelName: config.modelName }, 'Created resource service');
 

@@ -17,7 +17,7 @@ startup.
 | Section                                                                     | CR           | Affects                          | Status  |
 |-----------------------------------------------------------------------------|--------------|----------------------------------|---------|
 | [1. Before you start](#1-before-you-start)                                  | -            | Everyone                         | pending |
-| [2. TypeScript 7.1 and the project config](#2-typescript-71-and-the-project-config) | V3-TOOL-01 | Every project               | pending |
+| [2. TypeScript 7.1 and the project config](#2-typescript-71-and-the-project-config) | V3-TOOL-01 | Every project               | done    |
 | [3. Lint, format and test tooling](#3-lint-format-and-test-tooling)         | V3-TOOL-05   | Every scaffolded project         | pending |
 | [4. TypeBox 1.x](#4-typebox-1x)                                             | V3-TOOL-06   | Schemas, config sections, routes | pending |
 | [5. Durations and sizes](#5-durations-and-sizes)                            | V3-CONV-01   | `appweaver.json`, `.env`         | pending |
@@ -48,8 +48,50 @@ check` and the tests after each one.
 
 ## 2. TypeScript 7.1 and the project config
 
-_pending_ (V3-TOOL-01, D12): TypeScript 7.1 for the project; `baseUrl` removed from `tsconfig.json` (the `paths`
-relative to the config), `types` and `typeRoots` listed explicitly, the decorator flags removed, `noImplicitAny: true`.
+**What changed** (V3-TOOL-01, D12): Appweaver is built with TypeScript 7.1 (`7.1.0-beta` until 7.1.0 is stable), and
+a project compiles with it too: `weaver build` and `weaver start --watch` run the `tsc` of the project. TypeScript 7
+removes `baseUrl` (TS5102), lists no `@types` package unless `types` names it, and requires `rootDir` when the output
+layout depends on it. The generated projects drop the decorator flags (Appweaver uses no decorators) and turn
+`noImplicitAny` on, the default of `strict`. `weaver generate` loads the models with `tsx` instead of `ts-node`, which
+applies the `paths` of the project's `tsconfig.json`.
+
+**Who is affected**: every project.
+
+**Before** (`tsconfig.json`):
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": false,
+    "paths": { "@/*": ["./src/*"], "@db/*": ["./database/*"] }
+  }
+}
+```
+
+**After**:
+
+```json
+{
+  "compilerOptions": {
+    "rootDir": "./",
+    "outDir": "./dist",
+    "types": ["node", "jest"],
+    "paths": { "@/*": ["./src/*"], "@db/*": ["./database/*"] }
+  }
+}
+```
+
+**Steps**: set `typescript` to `7.1.0-beta` in the `devDependencies` (`weaver upgrade` does it for the projects that
+have it); remove `baseUrl`, keeping the `paths` relative to the config file (`./src/*`); add `rootDir: "./"` and the
+`types` the project uses (`["node", "jest"]`, `["bun"]` on Bun); remove `emitDecoratorMetadata`,
+`experimentalDecorators` and `noImplicitAny: false`, then type the parameters and the indexed objects `tsc` reports
+(`Record<string, unknown>` for an object built key by key). A tool of the project that needs the compiler API of
+TypeScript (it calls `require('typescript')`, as typescript-eslint does) keeps a TypeScript 5.9 of its own; TypeScript 7
+has no such API before 7.1, and a new one from 7.1 on.
 
 ## 3. Lint, format and test tooling
 

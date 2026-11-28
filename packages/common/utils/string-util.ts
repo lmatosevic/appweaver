@@ -59,14 +59,14 @@ export function randomString(
   let includeUndefined = true;
   for (const [category, include] of Object.entries(config)) {
     if (include) {
-      pool += categories[category];
+      pool += categories[category as keyof typeof categories];
       includeUndefined = false;
     }
   }
 
   if (includeUndefined) {
     for (const [key, value] of Object.entries(categories)) {
-      if (config[key] === undefined) {
+      if (config[key as keyof typeof config] === undefined) {
         pool += value;
       }
     }

@@ -24,7 +24,7 @@ export function projectVirtualFields<T>(resource: T, resourceName: string): T {
     return resource;
   }
 
-  const projectedVirtual = { ...resource };
+  const projectedVirtual = { ...resource } as Record<string, unknown>;
 
   const resourceModel = injectModel(resourceName, false);
 
@@ -61,7 +61,7 @@ export function projectVirtualFields<T>(resource: T, resourceName: string): T {
     }
   }
 
-  return projectedVirtual;
+  return projectedVirtual as T;
 }
 
 // The models of the relation and file fields of a model, resolved once per schema instead of once per record. Keyed

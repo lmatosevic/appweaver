@@ -1,4 +1,8 @@
-import openapiTS, { astToString, OpenAPI3 } from 'openapi-typescript';
+import type { OpenAPI3 } from 'openapi-typescript';
+import type * as OpenapiTypescript from 'openapi-typescript' with {
+  'resolution-mode': 'import'
+};
+import * as openapiTypescriptModule from 'openapi-typescript';
 import ts from 'typescript';
 import {
   hoistSharedTypes,
@@ -24,6 +28,12 @@ import {
   TWO_FACTOR_MODULE_TYPE,
   TWO_FACTOR_TYPES
 } from '../constants';
+
+// The CommonJS declarations of openapi-typescript mix `export =` with named exports, which TypeScript 7 rejects, so
+// the values are typed by its ESM declarations (the lint still runs on TypeScript 5.9, which accepts them)
+const { default: openapiTS, astToString } =
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  openapiTypescriptModule as unknown as typeof OpenapiTypescript;
 
 /**
  * Generates TypeScript types based on an OpenAPI V3 schema content.
@@ -55,22 +65,26 @@ export async function generateTypes(
     defaultNonNullable: false,
     transformProperty: (property, schemaObject) => {
       const validationTags: string[] = [];
+      const constraints = schemaObject as unknown as Record<
+        string,
+        string | number | undefined
+      >;
 
       // Add validation JSDoc tags based on schema constraints
-      if (schemaObject['minLength'] !== undefined) {
-        validationTags.push(`@minLength ${schemaObject['minLength']}`);
+      if (constraints['minLength'] !== undefined) {
+        validationTags.push(`@minLength ${constraints['minLength']}`);
       }
-      if (schemaObject['maxLength'] !== undefined) {
-        validationTags.push(`@maxLength ${schemaObject['maxLength']}`);
+      if (constraints['maxLength'] !== undefined) {
+        validationTags.push(`@maxLength ${constraints['maxLength']}`);
       }
-      if (schemaObject['minimum'] !== undefined) {
-        validationTags.push(`@minimum ${schemaObject['minimum']}`);
+      if (constraints['minimum'] !== undefined) {
+        validationTags.push(`@minimum ${constraints['minimum']}`);
       }
-      if (schemaObject['maximum'] !== undefined) {
-        validationTags.push(`@maximum ${schemaObject['maximum']}`);
+      if (constraints['maximum'] !== undefined) {
+        validationTags.push(`@maximum ${constraints['maximum']}`);
       }
-      if (schemaObject['pattern'] !== undefined) {
-        validationTags.push(`@pattern ${schemaObject['pattern']}`);
+      if (constraints['pattern'] !== undefined) {
+        validationTags.push(`@pattern ${constraints['pattern']}`);
       }
       if (schemaObject['format'] !== undefined) {
         validationTags.push(`@format ${schemaObject['format']}`);

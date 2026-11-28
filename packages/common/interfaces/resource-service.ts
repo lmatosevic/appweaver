@@ -12,7 +12,8 @@ import {
   ResourceClient,
   ResourceEvent,
   ResourceData,
-  ResourceId
+  ResourceId,
+  ResourceMarks
 } from '../types';
 
 export interface IResourceService<
@@ -22,7 +23,7 @@ export interface IResourceService<
   Update = Partial<ResourceData<Resource>>,
   Query = QueryFilter<ReadOne>,
   Replace = Create
-> {
+> extends ResourceMarks {
   modelName: string;
 
   /**

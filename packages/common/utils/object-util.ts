@@ -44,10 +44,13 @@ export function setProperties<T extends object = any>(
   obj: T,
   value: keyof T | undefined
 ): T {
-  return Object.keys(obj).reduce((acc, key) => {
-    acc[key] = value;
-    return acc;
-  }, {} as T);
+  return Object.keys(obj).reduce(
+    (acc, key) => {
+      acc[key] = value;
+      return acc;
+    },
+    {} as Record<string, unknown>
+  ) as T;
 }
 
 /**
@@ -83,12 +86,12 @@ export function omitProperties<T extends object = any>(
   return Object.keys(obj).reduce(
     (acc, key) => {
       if (!props.includes(key as keyof T)) {
-        acc[key] = obj[key];
+        acc[key] = obj[key as keyof T];
       }
       return acc;
     },
-    {} as Omit<T, keyof T>
-  );
+    {} as Record<string, unknown>
+  ) as Omit<T, keyof T>;
 }
 
 /**

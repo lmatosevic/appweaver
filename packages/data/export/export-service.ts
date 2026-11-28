@@ -145,7 +145,7 @@ export class ExportService {
     const filesModel = resourceModel.filesModel;
     const fieldsConfig = resourceExportConfig ?? resourceModel.config.export;
 
-    const property = {};
+    const property: Record<string, unknown> = {};
 
     for (const key in item) {
       let value = item[key];

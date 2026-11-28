@@ -393,7 +393,7 @@ export class AiService implements OnInit, IHealthCheck {
     const data = { prompt: queuedPrompt(prompt), stream: uuidv4() };
     const channel = `ai:stream:${data.stream}`;
     return new AiStream(
-      async function* (this: AiService, signal) {
+      async function* (this: AiService, signal: AbortSignal) {
         const queue = this.queue();
         const pubsub = this.pubsub();
         const parts = new AsyncQueue<AiStreamPart>();

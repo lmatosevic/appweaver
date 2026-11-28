@@ -159,7 +159,7 @@ export function defineConfig<P extends TProperties>(
       get: () =>
         Object.prototype.hasOwnProperty.call(configOverrides, prefix + key)
           ? configOverrides[prefix + key]
-          : parsed()[key]
+          : (parsed() as Record<string, unknown>)[key]
     });
   }
 

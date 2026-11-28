@@ -19,7 +19,9 @@ export default apiKeyConfig.ENABLED
         data.keyHash = makeHash(data.key);
 
         // Add relation to the current user when creating a new API Key
-        data[uncapitalize(resourceAuthModel()!.name)] = {
+        (data as Record<string, unknown>)[
+          uncapitalize(resourceAuthModel()!.name)
+        ] = {
           id: currentAuthUser()!.id
         };
 

@@ -62,7 +62,7 @@ export class HealthService {
         };
         return acc;
       },
-      {}
+      {} as Record<string, HealthCheckResponse>
     );
 
     Object.keys(healthChecks).forEach((name, index) =>

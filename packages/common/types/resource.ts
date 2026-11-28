@@ -1,4 +1,11 @@
 import { TObject, TSchema } from '@sinclair/typebox';
+import {
+  CONFIG,
+  RESOURCE_AUTH,
+  RESOURCE_MODEL_RELINK,
+  RESOURCE_NAME,
+  RESOURCE_TYPE
+} from '../constants';
 import { ResourceModelConfig } from './model';
 import { ResourceRoutesConfig } from './routes';
 import { ResourceId } from './resource-id';
@@ -42,7 +49,19 @@ export type ResourceClient = Record<ClientOperation, any> & {
   name: string;
 };
 
-export type ResourceModel = {
+/** The marks the resource factories set on what they create, read by the loaders and the dependency injection. */
+export type ResourceMarks = {
+  /** The name of the model of the resource */
+  [RESOURCE_NAME]?: string;
+  /** The kind of the resource (`Model`, `Service`, `Routes` or `Policy`) */
+  [RESOURCE_TYPE]?: string;
+  /** The config the resource was created with */
+  [CONFIG]?: unknown;
+  /** Set on the model and the service of the auth model */
+  [RESOURCE_AUTH]?: boolean;
+};
+
+export type ResourceModel = ResourceMarks & {
   /** Model name in singular with the first capital letter (e.g., Model) */
   name: string;
   /** Received model config from default export */
@@ -87,9 +106,11 @@ export type ResourceModel = {
   fileVersionDeleteModel: TObject;
   /** The values of the time series fields, each optional and nullable */
   seriesModel: TObject;
+  /** Builds the schemas again once every model is registered, see `relinkResourceModels` */
+  [RESOURCE_MODEL_RELINK]?: () => void;
 };
 
-export type ResourceRoutes = {
+export type ResourceRoutes = ResourceMarks & {
   /** Configuration for route definitions and behavior */
   config: ResourceRoutesConfig;
   /** A base path for all registered routes of this resource.

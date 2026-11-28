@@ -28,8 +28,7 @@ export const appConfig = defineConfig(
     TYPE_BASE: Type.String({ default: 'urn:appweaver' }),
     /** JavaScript runtime. Auto-detected as `bun` if Bun is present, otherwise `node`. */
     RUNTIME: Type.Enum(Runtime, {
-      default:
-        typeof globalThis['Bun'] !== 'undefined' ? Runtime.Bun : Runtime.Node
+      default: 'Bun' in globalThis ? Runtime.Bun : Runtime.Node
     }),
     /** Path to compiled build artifacts. Default: `'./dist'`. */
     BUILD_PATH: Type.String({ default: './dist' }),

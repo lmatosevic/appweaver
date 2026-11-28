@@ -29,7 +29,7 @@ export type ConfigEntry = {
  * from which environment variables are loaded. Values can be strings or arrays based on the schema specifications.
  */
 export function loadConfigFromEnv(schema: TObject): ConfigEntry {
-  const config = {};
+  const config: Record<string, any> = {};
   const files: string[] = [];
 
   // Load variables from the default .env file.
@@ -208,7 +208,7 @@ function parseConfig(
   schema: TObject,
   section: unknown
 ): Record<string, string | string[]> {
-  const config = {};
+  const config: Record<string, any> = {};
 
   const variables = recurseConfig(
     (section ?? {}) as Map<string, string | string[]>,

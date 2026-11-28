@@ -4,6 +4,13 @@
 
 The project is a TypeScript monorepo using `tsc -b` for builds.
 
+- **TypeScript**: the compiler is TypeScript 7.1 (`7.1.0-beta` until 7.1.0 is stable), the `@typescript/native` alias of
+  the root `package.json`, which the `tsc` of `node_modules/.bin` runs. The root `typescript` is the classic 5.9 the
+  tools needing the compiler API load (typescript-eslint, `openapi-typescript` of the client generator, madge), since
+  TypeScript 7 has none they can use; `@appweaver/client` depends on it for the same reason. The samples and the
+  scaffolded projects have only the compiler, as their `typescript`. `noImplicitAny` is on (from `strict`): an object
+  built key by key is typed `Record<string, unknown>`, and a symbol a factory sets is a key of `ResourceMarks`.
+
 - **Initial Setup**: Run `npm install` to install all dependencies.
 - **Building**: Run `npm run build` from the root. This performs:
     - `prebuild`: Removes the `dist` folders of all packages (`clean:packages`).

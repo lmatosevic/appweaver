@@ -2,7 +2,6 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ES2024",
-    "baseUrl": "./",
     "outDir": "./dist",
     "strict": true,
     "sourceMap": true,
@@ -12,13 +11,11 @@
     "resolveJsonModule": true,
     "incremental": true,
     "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
-    "noImplicitAny": false,
     "noUnusedLocals": false,
+    "types": ["node", "jest", "bun"],
     "paths": {
       "@appweaver/common": ["./packages/common"],
       "@appweaver/common/*": ["./packages/common/*"],

@@ -719,7 +719,9 @@ export class RealtimeClient<
       send: (message) => transport.sendRaw!(JSON.stringify(message)),
       sendRaw: (data) => {
         if (socket.readyState === socket.OPEN) {
-          socket.send(data);
+          // The DOM typing of TypeScript 7 takes only the bytes of an ArrayBuffer, never of a SharedArrayBuffer
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+          socket.send(data as string | Uint8Array<ArrayBuffer>);
         }
       }
     };

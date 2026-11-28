@@ -1,6 +1,9 @@
 import { FastifyRequest } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import oauthPlugin, { ProviderConfiguration } from '@fastify/oauth2';
+import oauthPlugin, {
+  OAuth2Namespace,
+  ProviderConfiguration
+} from '@fastify/oauth2';
 import {
   AuthOTTPurpose,
   AuthSource,
@@ -112,7 +115,7 @@ export function createOAuth2Plugin(
       );
     }
 
-    if (server[authSource] !== undefined) {
+    if (oauth2Namespace(server, authSource) !== undefined) {
       throw new ConfigurationError(
         ErrorCode.ConfigurationInvalid,
         `${name} OAuth2 provider is already registered`
@@ -120,7 +123,10 @@ export function createOAuth2Plugin(
     }
 
     const authConfig =
-      oAuth2Config.auth ?? oauthPlugin[`${upperName}_CONFIGURATION`];
+      oAuth2Config.auth ??
+      (oauthPlugin as unknown as Record<string, ProviderConfiguration>)[
+        `${upperName}_CONFIGURATION`
+      ];
     if (!authConfig && !oAuth2Config.issuer) {
       throw new ConfigurationError(
         ErrorCode.ConfigurationInvalid,
@@ -202,13 +208,13 @@ export function createOAuth2Plugin(
     });
 
     const callbackHandler = async function (request: any, reply: any) {
-      const { token } =
-        await server[authSource].getAccessTokenFromAuthorizationCodeFlow(
-          request
-        );
+      const { token } = await oauth2Namespace(
+        server,
+        authSource
+      )!.getAccessTokenFromAuthorizationCodeFlow(request);
 
       const userInfo = await oAuth2Config.extractUserInfo(token.access_token, {
-        token: token as OAuth2TokenSet,
+        token: token as unknown as OAuth2TokenSet,
         request
       });
 
@@ -259,7 +265,8 @@ export function createOAuth2Plugin(
           authUserId: authUser.id,
           authSource,
           providerAccountId: userInfo.id,
-          scope: (token.scope as string) ?? oAuth2Config.scope.join(' '),
+          scope:
+            (token as { scope?: string }).scope ?? oAuth2Config.scope.join(' '),
           passwordRequired,
           emailVerified: userInfo.emailVerified === true
         },
@@ -335,4 +342,14 @@ function toAuthorizationParams(
     result[param] = value;
   }
   return result;
+}
+
+/** The namespace `@fastify/oauth2` decorates the server with for a provider, by its auth source. */
+function oauth2Namespace(
+  server: Server,
+  authSource: string
+): OAuth2Namespace | undefined {
+  return (server as unknown as Record<string, OAuth2Namespace | undefined>)[
+    authSource
+  ];
 }

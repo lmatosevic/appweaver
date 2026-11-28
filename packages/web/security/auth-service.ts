@@ -227,8 +227,9 @@ export class AuthService {
     let authUser: AuthUser;
 
     try {
-      const serviceConfig: { registrationData: RegistrationDataFn } =
-        this._authUserService[CONFIG];
+      const serviceConfig = this._authUserService[CONFIG] as {
+        registrationData: RegistrationDataFn;
+      };
 
       const registrationData = await serviceConfig.registrationData(
         source,
@@ -591,8 +592,9 @@ export class AuthService {
     source: AuthSource,
     data?: Partial<UserAdditionalData>
   ): Promise<void> {
-    const serviceConfig: { registrationFiles?: RegistrationFilesFn } =
-      this._authUserService[CONFIG];
+    const serviceConfig = this._authUserService[CONFIG] as {
+      registrationFiles?: RegistrationFilesFn;
+    };
 
     if (!serviceConfig.registrationFiles) {
       return;

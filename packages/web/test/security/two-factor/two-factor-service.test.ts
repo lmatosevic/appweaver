@@ -183,7 +183,9 @@ describe('two-factor-service', () => {
 
     recoveryRows = [];
     const matches = (row: RecoveryRow, where: Record<string, any>) =>
-      Object.entries(where).every(([key, value]) => row[key] === value);
+      Object.entries(where).every(
+        ([key, value]) => row[key as keyof RecoveryRow] === value
+      );
     recoveryCodeService = {
       modelName: 'TwoFactorRecoveryCode',
       client: {

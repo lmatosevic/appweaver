@@ -2,7 +2,6 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ES2024",
-    "baseUrl": "./",
     "rootDir": "./",
     "outDir": "./dist",
     "strict": true,
@@ -12,13 +11,11 @@
     "resolveJsonModule": true,
     "incremental": true,
     "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
-    "noImplicitAny": false,
     "noUnusedLocals": false,
+    "types": ["node", "jest"],
     "paths": {
       "@/*": ["./src/*"],
       "@db/*": ["./database/*"]

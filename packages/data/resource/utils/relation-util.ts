@@ -108,7 +108,7 @@ export function mapRelationActions(
   data: any,
   currentData?: any
 ): RelationActions {
-  const relations = {};
+  const relations: Record<string, any> = {};
 
   const resourceModel = injectModel(resourceName);
   const readModel = resourceModel.readModel;
@@ -249,7 +249,7 @@ export function mapRelationActions(
         }
       }
 
-      const relationActions = {};
+      const relationActions: Record<string, unknown> = {};
       for (const [actionName, actionItems] of Object.entries(actions)) {
         if (actionItems.length > 0) {
           relationActions[actionName] = isArrayType

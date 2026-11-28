@@ -21,7 +21,8 @@ import {
   ResourceModel,
   ResourcePolicyConfig,
   ResourceRoutes,
-  ContextError
+  ContextError,
+  ResourceMarks
 } from '@appweaver/common';
 import { context } from './context';
 import {
@@ -65,7 +66,7 @@ export function define<T = DefinitionValue, S extends T = T>(
     isString(nameOrClass) || isSymbol(nameOrClass)
       ? nameOrClass
       : (nameOrClass?.name ??
-        value[RESOURCE_NAME] ??
+        (value as ResourceMarks)[RESOURCE_NAME] ??
         (value as any).name ??
         value.constructor?.name);
 

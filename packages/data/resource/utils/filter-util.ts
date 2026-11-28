@@ -193,7 +193,7 @@ const fieldOperators: Record<string, (value: any) => Record<string, any>> = {
  * database condition and the unrecognized values passed through unchanged.
  */
 export function mapQueryFilter(filter: any, resourceName: string): any {
-  const queryFilter = {};
+  const queryFilter: Record<string, any> = {};
 
   const resourceModel = injectModel(resourceName, false);
   const readModel = resourceModel?.readModel;
@@ -384,7 +384,7 @@ function mapFieldFilter(value: any): any {
     return value;
   }
 
-  const condition = {};
+  const condition: Record<string, any> = {};
 
   for (const [key, item] of Object.entries(value)) {
     // A `_not` negates its operator object or plain value directly, while an
